@@ -146,29 +146,6 @@ public class ZCRMLoginHandler
                 }
             }
         }
-        
-//        ZohoAuthZIAMUtil.shared()!.presentInitialViewController(withCustomParams: getLoginScreenParams(), success: {_ in
-//            print( "access token received!" )
-//        }, andFailure: {
-//            error in
-//            switch( error!.code )
-//            {
-//            // SFSafari Dismissed
-//            case 205 :
-//                print( "Error Detail : \( error!.description ), code : \( error!.code )" )
-//                self.loadIAMLoginView()
-//                break
-//
-//            // access_denied
-//            case 905 :
-//                print( "Error Detail : \( error!.description ), code : \( error!.code )" )
-//                self.loadIAMLoginView()
-//                break
-//
-//            default :
-//                print( "Error : \( error! )" )
-//            }
-//        })
     }
     
     public func logout()
@@ -179,17 +156,12 @@ public class ZCRMLoginHandler
                 {
                     print( "Error occured in removeAllScopesWithSuccess() : \(error!)" )
                 }
+                else
+                {
+                    self.clearIAMLoginFirstLaunch()
+                    print( "removed AllScopesWithSuccess!" )
+                }
         })
-//        ZohoAuthZIAMUtil.shared()!.removeAllScopesWithsuccess(
-//            {
-//                self.clearIAMLoginFirstLaunch()
-//                print( "removed AllScopesWithSuccess!" )
-//        },
-//            failure :
-//            {
-//                error in
-//                print( "Error occured in removeAllScopesWithSuccess() : \(error!)" )
-//        })
         print( "logout ZCRM!" )
     }
     
@@ -212,18 +184,6 @@ public class ZCRMLoginHandler
                 print( "Error occured in getOauth2Token(): \(error!)" )
             }
         }
-        
-//        ZohoAuthZIAMUtil.shared().getOauth2Token(
-//            {
-//                accessToken in
-//                oAuth2Token = accessToken!
-//
-//        },
-//            failure :
-//            {
-//                error in
-//                print( "Error occured in getOauth2Token(): \(error!)" )
-//        } )
         return oAuth2Token
     }
     

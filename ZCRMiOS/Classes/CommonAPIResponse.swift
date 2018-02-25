@@ -13,13 +13,11 @@ public class CommonAPIResponse
     internal var response : HTTPURLResponse?
     internal var responseJSON : [String:Any] = [String:Any]()
     internal var httpStatusCode : HTTPStatusCode?
-//    internal var responseHeaders : ResponseHeaders
     
     init(response : HTTPURLResponse, responseData : Data?) throws
     {
         self.response = response
         self.httpStatusCode = HTTPStatusCode(rawValue: response.statusCode)!
-//        self.responseHeaders = ResponseHeaders(response: response)
         try setResponseJSON(responseData: responseData)
         try processResponse()
     }
