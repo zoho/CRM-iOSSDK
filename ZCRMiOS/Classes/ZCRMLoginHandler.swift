@@ -160,6 +160,13 @@ public class ZCRMLoginHandler
                 {
                     self.clearIAMLoginFirstLaunch()
                     print( "removed AllScopesWithSuccess!" )
+                    self.loadIAMLoginView()
+                    URLCache.shared.removeAllCachedResponses()
+                    if let cookies = HTTPCookieStorage.shared.cookies {
+                        for cookie in cookies {
+                            HTTPCookieStorage.shared.deleteCookie(cookie)
+                        }
+                    }
                 }
         })
         print( "logout ZCRM!" )
