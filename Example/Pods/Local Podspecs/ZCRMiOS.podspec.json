@@ -1,0 +1,22 @@
+{
+  "name": "ZCRMiOS",
+  "version": "0.1.0",
+  "summary": "A short description of ZCRMiOS.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://github.com/boopathyparamasivan/ZCRMiOS",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "boopathyparamasivan": "boopathy.p@zohocorp.com"
+  },
+  "source": {
+    "git": "https://github.com/boopathyparamasivan/ZCRMiOS.git",
+    "tag": "0.1.0"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "source_files": "ZCRMiOS/Classes/**/*"
+}

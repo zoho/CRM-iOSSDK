@@ -1,0 +1,6 @@
+use_frameworks!
+target 'ZCRMiOS_Tests' do
+  pod 'ZCRMiOS', :path => '../'
+  
+  
+end
