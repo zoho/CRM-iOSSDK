@@ -17,12 +17,12 @@ ZCRMiOS is available through [CocoaPods](http://cocoapods.org). To install
 it, simply add the following line to your Podfile:
 
 ```ruby
-pod 'ZCRMiOS'
+pod 'ZCRMiOS', :git => 'https://github.com/zoho/CRM-iOSSDK.git'
 ```
 
 ## Author
 
-boopathyparamasivan, boopathy.p@zohocorp.com
+Zohocorp
 
 ## License
 
