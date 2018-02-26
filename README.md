@@ -20,9 +20,13 @@ Xcode 8 and Above
 ## SDK Responsibilities
 
 Scaffolding - Zoho CRM dependencies inclusion and base project creation.
+
 Authentication - User login and logout.
+
 API wrapping & version upgrades - API requests wrapped as method calls.
+
 Data modeling - CRM entities modeled as language objects.
+
 Metadata caching - Essential metadata are cached to avoid unnecessary API calls.
 
 The mobile SDK takes care of the above, so that the developers can focus only on the UI components of the mobile app.

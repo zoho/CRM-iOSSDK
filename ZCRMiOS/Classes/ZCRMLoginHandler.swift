@@ -197,22 +197,24 @@ public class ZCRMLoginHandler
     internal func getLoginScreenParams() -> String
     {
         var loginScreenParams : String = ""
-        if(appConfigurationUtil.getAppConfigurations().hasKey(forKey: "ShowSignUp") && appConfigurationUtil.getShowSignUp() == "true")
+        if( appConfigurationUtil.getAppConfigurations().hasKey( forKey : "ShowSignUp" ) && appConfigurationUtil.getShowSignUp() == "true" )
         {
             loginScreenParams = "hide_signup=false"
         }
         
-        if(appConfigurationUtil.getAppConfigurations().hasKey(forKey: "PortalID") && appConfigurationUtil.getPortalID() != "")
+        if( appConfigurationUtil.getAppConfigurations().hasKey( forKey : "PortalID" ) && appConfigurationUtil.getPortalID().isEmpty == false )
         {
             let portalID = appConfigurationUtil.getPortalID()
-            if( loginScreenParams != "" && !loginScreenParams.contains("PortalID"))
+            if( loginScreenParams != "" && !loginScreenParams.contains( "PortalID" ) )
             {
                 loginScreenParams = loginScreenParams + "&portal_id=" + portalID
-            }else{
+            }
+            else
+            {
                 loginScreenParams = "portal_id=" + portalID
             }
         }
-        print("login screen params = \(loginScreenParams)")
+        print( "login screen params = \( loginScreenParams )" )
         return loginScreenParams
     }
     
