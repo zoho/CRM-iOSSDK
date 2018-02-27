@@ -10,7 +10,10 @@
 #endif
 #endif
 
-#include <sqlite3.h>
+#import "Bridge-Header.h"
+#import "ZohoAuth.h"
+#import "ZohoAuthConstants.h"
+#import "ZohoAuthRequestBlocks.h"
 
 FOUNDATION_EXPORT double ZCRMiOSVersionNumber;
 FOUNDATION_EXPORT const unsigned char ZCRMiOSVersionString[];

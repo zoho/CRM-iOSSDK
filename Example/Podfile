@@ -1,6 +1,7 @@
 use_frameworks!
+pod 'ZohoAuth'
+
 target 'ZCRMiOS_Tests' do
   pod 'ZCRMiOS', :path => '../'
-  
-  
+
 end
