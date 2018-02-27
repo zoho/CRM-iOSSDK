@@ -624,7 +624,7 @@
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Target Support Files/Pods-ZCRMiOS_Tests/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MACH_O_TYPE = staticlib;
 				MODULEMAP_FILE = "Target Support Files/Pods-ZCRMiOS_Tests/Pods-ZCRMiOS_Tests.modulemap";
@@ -714,7 +714,7 @@
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Target Support Files/Pods-ZCRMiOS_Tests/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MACH_O_TYPE = staticlib;
 				MODULEMAP_FILE = "Target Support Files/Pods-ZCRMiOS_Tests/Pods-ZCRMiOS_Tests.modulemap";
