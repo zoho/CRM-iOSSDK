@@ -17,6 +17,8 @@ To run the example project, clone the repo, and run `pod install` from the Examp
 
 Xcode 8 and Above
 
+Swift 3.2
+
 ## SDK Responsibilities
 
 Scaffolding - Zoho CRM dependencies inclusion and base project creation.
