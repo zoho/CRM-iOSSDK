@@ -78,7 +78,7 @@ public class CRMAppConfigUtil
     
     internal func getAccessType() -> String
     {
-        return self.appConfigDict.getString( key : "Access" )
+        return self.appConfigDict.getString( key : "AccessType" )
     }
     
     internal func getShowSignUp() -> String
