@@ -56,14 +56,14 @@ internal class APIRequest
     
     private func authenticateRequest()
     {
-//        if( APPTYPE == "ZCRM" )
-//        {
+        if( APPTYPE == "ZCRM" )
+        {
             self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( ZCRMLoginHandler().getOauth2Token() )" )
-//        }
-//        else
-//        {
-//            self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( ZVCRMLoginHandler().getOauth2Token() )" )
-//        }
+        }
+        else
+        {
+            self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( ZVCRMLoginHandler().getOauth2Token() )" )
+        }
     }
     
     internal func addHeader(headerName : String, headerVal : String)

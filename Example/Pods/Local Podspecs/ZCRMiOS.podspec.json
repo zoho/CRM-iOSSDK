@@ -15,10 +15,13 @@
     "git": "https://github.com/zoho/CRM-iOSSDK.git",
     "tag": "0.0.1"
   },
-  "vendored_frameworks": "ZohoAuthKit.framework",
-  "public_header_files": "Pod/Classes/**/*.h",
+  "vendored_frameworks": [
+    "Example/Pods/ZohoAuth/ZohoAuthKit.framework",
+    "ZohoPortalAuthKit.framework"
+  ],
   "platforms": {
     "ios": "8.0"
   },
-  "source_files": "ZCRMiOS/Classes/**/*"
+  "source_files": "ZCRMiOS/Classes/**/*",
+  "public_header_files": "Pod/Classes/**/*.h"
 }

@@ -27,7 +27,7 @@ TODO: Add long description of the pod here.
   s.author           = { 'boopathypsiva' => 'boopathy.p@zohocorp.com' }
   s.source           = { :git => 'https://github.com/zoho/CRM-iOSSDK.git', :tag => s.version.to_s }
   
-  s.vendored_frameworks = 'Example/Pods/ZohoAuth/ZohoAuthKit.framework'
+  s.vendored_frameworks = 'Example/Pods/ZohoAuth/ZohoAuthKit.framework', 'Example/Pods/ZohoPortalAuth/ZohoPortalAuthKit.framework'
 
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
