@@ -122,7 +122,7 @@ public class ZCRMLoginHandler
         ZohoAuth.handleURL( url, sourceApplication :sourceApplication, annotation : annotation )
     }
     
-    public func loadIAMLoginView()
+    public func handleLogin( completion: @escaping ( Bool ) -> () )
     {
         ZohoAuth.presentZohoSign(inHavingCustomParams: getLoginScreenParams()) { (success, error) in
             if( error != nil )
@@ -132,18 +132,29 @@ public class ZCRMLoginHandler
                 // SFSafari Dismissed
                 case 205 :
                     print( "Error Detail : \( error!.description ), code : \( error!.code )" )
-                    self.loadIAMLoginView()
+                    completion( false )
+                    self.handleLogin( completion : { _ in
+                        
+                    })
                     break
                     
                 // access_denied
                 case 905 :
                     print( "Error Detail : \( error!.description ), code : \( error!.code )" )
-                    self.loadIAMLoginView()
+                    completion( false )
+                    self.handleLogin( completion : { _ in
+                        
+                    })
                     break
                     
                 default :
+                    completion( false )
                     print( "Error : \( error! )" )
                 }
+            }
+            else
+            {
+                completion( true )
             }
         }
     }
@@ -160,7 +171,9 @@ public class ZCRMLoginHandler
                 {
                     self.clearIAMLoginFirstLaunch()
                     print( "removed AllScopesWithSuccess!" )
-                    self.loadIAMLoginView()
+                    self.handleLogin( completion : { _ in
+                        
+                    })
                     URLCache.shared.removeAllCachedResponses()
                     if let cookies = HTTPCookieStorage.shared.cookies {
                         for cookie in cookies {
