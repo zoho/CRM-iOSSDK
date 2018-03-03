@@ -55,7 +55,7 @@ public class ZVCRMLoginHandler
         ZohoPortalAuth.initWithClientID( appConfigurationUtil.getClientID(), clientSecret : appConfigurationUtil.getClientSecretID(), portalID : appConfigurationUtil.getPortalID(), scope : appConfigurationUtil.getAuthscopes(), urlScheme : appConfigurationUtil.getRedirectURLScheme(), mainWindow : window, accountsPortalURL : appConfigurationUtil.getAccountsURL()  )
     }
 
-    public func loadIAMLoginView()
+    public func handleLogin( completion : @escaping( Bool ) -> () )
     {
         ZohoPortalAuth.presentZohoPortalSign { ( success, error ) in
             if( error != nil )
@@ -65,16 +65,23 @@ public class ZVCRMLoginHandler
                 // SFSafari Dismissed
                 case 205 :
                     print( "Error Detail : \( error!.description ), code : \( error!.code )" )
-                    self.loadIAMLoginView()
+                    completion( false )
+                    self.handleLogin( completion : { _ in
+                        
+                    })
                     break
 
                 // access_denied
                 case 905 :
                     print( "Error Detail : \( error!.description ), code : \( error!.code )" )
-                    self.loadIAMLoginView()
+                    completion( false )
+                    self.handleLogin( completion : { _ in
+                        
+                    })
                     break
 
                 default :
+                    completion( false )
                     print( "Error : \( error! )" )
                 }
             }
@@ -123,7 +130,9 @@ public class ZVCRMLoginHandler
             {
                 self.clearIAMLoginFirstLaunch()
                 print( "removed AllScopesWithSuccess!" )
-                self.loadIAMLoginView()
+                self.handleLogin( completion : { _ in
+                    
+                })
                 URLCache.shared.removeAllCachedResponses()
                 if let cookies = HTTPCookieStorage.shared.cookies {
                     for cookie in cookies {
