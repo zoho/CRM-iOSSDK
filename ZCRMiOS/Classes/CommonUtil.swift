@@ -211,13 +211,13 @@ public extension String
     
     var dateComponents : DateComponents
     {
-        let date : Date = Formatter.iso8601.date( from : self )
+        let date : Date = Formatter.iso8601.date( from : self )!
         return date.dateComponents
     }
     
     var millisecondsSince1970 : Double
     {
-        let date : Date = Formatter.iso8601.date( from : self )
+        let date : Date = Formatter.iso8601.date( from : self )!
         return date.millisecondsSince1970
     }
     
@@ -334,7 +334,7 @@ public extension Date
     {
         let calender = Calendar.current
         
-        let components = calender.component( [ Calendar.Component.day, Calendar.Component.month, Calendar.Component.year, Calendar.Component.quarter, Calendar.Component.timeZone, Calendar.Component.weekOfMonth, Calendar.Component.weekOfYear, Calendar.Component.hour, Calendar.Component.minute, Calendar.Component.second ], from : self )
+        let components = calender.dateComponents( [ Calendar.Component.day, Calendar.Component.month, Calendar.Component.year, Calendar.Component.quarter, Calendar.Component.timeZone, Calendar.Component.weekOfMonth, Calendar.Component.weekOfYear, Calendar.Component.hour, Calendar.Component.minute, Calendar.Component.second ], from : self )
         
         var dateComponents = DateComponents()
         
