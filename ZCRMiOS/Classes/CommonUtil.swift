@@ -209,6 +209,18 @@ public extension String
         return Formatter.iso8601.date( from : self )   // "Nov 14, 2017, 10:22 PM"
     }
     
+    var dateComponents : DateComponents
+    {
+        let date : Date = Formatter.iso8601.date( from : self )
+        return date.dateComponents
+    }
+    
+    var millisecondsSince1970 : Double
+    {
+        let date : Date = Formatter.iso8601.date( from : self )
+        return date.millisecondsSince1970
+    }
+    
     func convertToDictionary() -> [String: String]? {
         let data = self.data(using: .utf8)
         let anyResult = try? JSONSerialization.jsonObject(with: data!, options: .mutableContainers)
@@ -281,7 +293,7 @@ extension Formatter
     }()
 }
 
-extension Date
+public extension Date
 {
     var iso8601 : String
     {
@@ -311,6 +323,33 @@ extension Date
         let formatter = Formatter.iso8601WithTimeZone
         formatter.timeZone = timeZone
         return formatter.string( from : date ).replacingOccurrences( of : "Z", with : "+00:00" ).replacingOccurrences( of : "z", with : "+00:00" )
+    }
+    
+    var millisecondsSince1970 : Double
+    {
+        return ( self.timeIntervalSince1970 * 1000.0 )
+    }
+    
+    var dateComponents : DateComponents
+    {
+        let calender = Calendar.current
+        
+        let components = calender.component( [ Calendar.Component.day, Calendar.Component.month, Calendar.Component.year, Calendar.Component.quarter, Calendar.Component.timeZone, Calendar.Component.weekOfMonth, Calendar.Component.weekOfYear, Calendar.Component.hour, Calendar.Component.minute, Calendar.Component.second ], from : self )
+        
+        var dateComponents = DateComponents()
+        
+        dateComponents.day = components.day!
+        dateComponents.month = components.month!
+        dateComponents.year = components.year!
+        dateComponents.timeZone = components.timeZone!
+        dateComponents.weekOfMonth = components.weekOfMonth!
+        dateComponents.quarter = components.quarter!
+        dateComponents.weekOfYear = components.weekOfYear!
+        dateComponents.hour = components.hour!
+        dateComponents.minute = components.minute!
+        dateComponents.second = components.second!
+        
+        return dateComponents
     }
 }
 
