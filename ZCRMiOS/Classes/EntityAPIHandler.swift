@@ -420,12 +420,22 @@ internal class EntityAPIHandler
                 propertyName.remove(at: propertyName.startIndex)
                 self.record.setValue(ofProperty: propertyName, value: value)
             }
-            else if(value is [String:Any])
+            else if( "Remind_At" == fieldAPIName )
             {
-                let lookupDetails : [String:Any] = value as! [String : Any]
-                let lookupRecord : ZCRMRecord = ZCRMRecord(moduleAPIName: fieldAPIName, recordId: lookupDetails.getInt64(key: "id"))
-                lookupRecord.setLookupLabel(label: lookupDetails.getString(key: "name"))
-                self.record.setValue(forField: fieldAPIName, value: lookupRecord)
+                let alarmDetails = recordDetails.getDictionary( key : fieldAPIName )
+                self.record.setValue( forField : "ALARM", value : alarmDetails.getString( key : "ALARM" ) )
+            }
+            else if( "Recurring_Activity" == fieldAPIName )
+            {
+                let recurringActivity = recordDetails.getDictionary( key : fieldAPIName )
+                self.record.setValue( forField : "RRULE", value : recurringActivity.getString( key : "RRULE" ) )
+            }
+            else if( value is [ String : Any ] )
+            {
+                let lookupDetails : [ String : Any ] = value as! [ String : Any ]
+                let lookupRecord : ZCRMRecord = ZCRMRecord( moduleAPIName : fieldAPIName, recordId : lookupDetails.getInt64( key : "id" ) )
+                lookupRecord.setLookupLabel( label : lookupDetails.getString( key : "name" ) )
+                self.record.setValue( forField : fieldAPIName, value : lookupRecord )
             }
             else
             {
