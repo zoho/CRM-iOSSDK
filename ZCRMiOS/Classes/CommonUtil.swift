@@ -297,7 +297,7 @@ public extension Date
 {
     var iso8601 : String
     {
-        return Formatter.iso8601.string( from : self ).replacingOccurrences( of : "Z", with : "+00:00" ).replacingOccurrences( of : "z", with : "+00:00" )
+        return Formatter.iso8601WithTimeZone.string( from : self ).replacingOccurrences( of : "Z", with : "+00:00" ).replacingOccurrences( of : "z", with : "+00:00" )
     }
     
     func millisecondsToISO( timeIntervalSince1970 : Double, timeZone : TimeZone ) -> String
