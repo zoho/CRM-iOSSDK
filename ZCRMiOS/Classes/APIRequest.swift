@@ -101,11 +101,16 @@ internal class APIRequest
             }
             self.urlPath = self.urlPath.substring(to: self.urlPath.index(before: self.urlPath.endIndex))
         }
-        if ( url?.absoluteString == nil )
+        if ( self.url?.absoluteString == nil )
         {
-            url = URL(string: (self.baseUrl + self.urlPath))!
+            self.url = URL(string: (self.baseUrl + self.urlPath))!
         }
-        self.request = URLRequest(url: url!)
+        else
+        {
+            let urlSting = self.url!.absoluteString
+            self.url = URL( string : ( urlSting + self.urlPath ) )!
+        }
+        self.request = URLRequest(url: self.url!)
         self.request?.httpMethod = self.requestMethod.rawValue
         for (key, value) in self.headers
         {
