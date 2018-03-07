@@ -303,7 +303,7 @@ public class ZCRMUser : ZCRMEntity
     
     public func downloadProfilePhoto() throws -> FileAPIResponse
     {
-        return try UserAPIHandler().downloadPhoto( size : nil )
+        return try UserAPIHandler().downloadPhoto( size : PhotoSize.ORIGINAL )
     }
     
     public func downloadProfilePhoto( size : PhotoSize ) throws -> FileAPIResponse

@@ -101,7 +101,7 @@ internal class APIRequest
             }
             self.urlPath = self.urlPath.substring(to: self.urlPath.index(before: self.urlPath.endIndex))
         }
-        if ( url == nil )
+        if ( url?.absoluteString == nil )
         {
             url = URL(string: (self.baseUrl + self.urlPath))!
         }
@@ -306,7 +306,14 @@ internal class APIRequest
         {
             params[ "authtoken" ] = "## ***** ##"
         }
-        return "URL : \( self.baseUrl + self.urlPath ), HEADERS : \( headers.description ) PARAMS : \( params.description )"
+        if( url?.absoluteString != nil )
+        {
+            return "URL : \( url!.absoluteString ), HEADERS : \( headers.description ) PARAMS : \( params.description )"
+        }
+        else
+        {
+            return "URL : \( self.baseUrl + self.urlPath ), HEADERS : \( headers.description ) PARAMS : \( params.description )"
+        }
     }
 }
 
