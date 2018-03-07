@@ -420,12 +420,12 @@ internal class EntityAPIHandler
                 propertyName.remove(at: propertyName.startIndex)
                 self.record.setValue(ofProperty: propertyName, value: value)
             }
-            else if( "Remind_At" == fieldAPIName )
+            else if( "Remind_At" == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) )
             {
                 let alarmDetails = recordDetails.getDictionary( key : fieldAPIName )
                 self.record.setValue( forField : "ALARM", value : alarmDetails.getString( key : "ALARM" ) )
             }
-            else if( "Recurring_Activity" == fieldAPIName )
+            else if( "Recurring_Activity" == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) )
             {
                 let recurringActivity = recordDetails.getDictionary( key : fieldAPIName )
                 self.record.setValue( forField : "RRULE", value : recurringActivity.getString( key : "RRULE" ) )

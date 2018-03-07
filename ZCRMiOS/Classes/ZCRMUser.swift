@@ -300,5 +300,15 @@ public class ZCRMUser : ZCRMEntity
     {
         return self.confirm
     }
+    
+    public func downloadProfilePhoto() throws -> FileAPIResponse
+    {
+        return try UserAPIHandler().downloadPhoto( size : nil )
+    }
+    
+    public func downloadProfilePhoto( size : PhotoSize ) throws -> FileAPIResponse
+    {
+        return try UserAPIHandler().downloadPhoto( size : size )
+    }
 }
 

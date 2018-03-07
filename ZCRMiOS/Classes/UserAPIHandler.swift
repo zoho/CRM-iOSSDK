@@ -115,6 +115,17 @@ internal class UserAPIHandler
         return response
     }
     
+    internal func downloadPhoto( size : PhotoSize? ) throws -> FileAPIResponse
+    {
+        let request : APIRequest = APIRequest( url : PHOTOURL, reqMethod : RequestMethod.GET )
+        if( size != nil )
+        {
+            request.addParam( paramName : "photo_size", paramVal : size!.rawValue )
+        }
+        print( "Request : \( request.toString() )" )
+        return try request.downloadFile()
+    }
+    
     internal func getCurrentUser() throws -> APIResponse
     {
         return try getUser(userId: nil)
