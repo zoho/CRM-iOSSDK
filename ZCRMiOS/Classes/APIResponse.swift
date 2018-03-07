@@ -112,6 +112,11 @@ public class FileAPIResponse : APIResponse
         return response!.suggestedFilename!
     }
     
+    public func getFileData() throws -> Data
+    {
+        return try Data( contentsOf : self.tempLocalUrl! )
+    }
+    
     public func getTempLocalUrl() -> URL
     {
         return self.tempLocalUrl!

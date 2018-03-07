@@ -47,11 +47,19 @@ internal class APIRequest
     private var params : [String : String] = [String : String]()
     private var requestBody : Any?
     private var request : URLRequest?
+    private var url : URL?
     
     init(urlPath : String, reqMethod : RequestMethod)
     {
         self.urlPath = urlPath
         self.requestMethod = reqMethod
+    }
+    
+    init( url : URL, reqMethod : RequestMethod )
+    {
+        self.url = url
+        self.requestMethod = reqMethod
+        self.urlPath = ""
     }
     
     private func authenticateRequest()
@@ -93,8 +101,16 @@ internal class APIRequest
             }
             self.urlPath = self.urlPath.substring(to: self.urlPath.index(before: self.urlPath.endIndex))
         }
-        let url : URL = URL(string: (self.baseUrl + self.urlPath))!
-        self.request = URLRequest(url: url)
+        if ( self.url?.absoluteString == nil )
+        {
+            self.url = URL(string: (self.baseUrl + self.urlPath))!
+        }
+        else
+        {
+            let urlSting = self.url!.absoluteString
+            self.url = URL( string : ( urlSting + self.urlPath ) )!
+        }
+        self.request = URLRequest(url: self.url!)
         self.request?.httpMethod = self.requestMethod.rawValue
         for (key, value) in self.headers
         {
@@ -295,7 +311,14 @@ internal class APIRequest
         {
             params[ "authtoken" ] = "## ***** ##"
         }
-        return "URL : \( self.baseUrl + self.urlPath ), HEADERS : \( headers.description ) PARAMS : \( params.description )"
+        if( url?.absoluteString != nil )
+        {
+            return "URL : \( url!.absoluteString ), HEADERS : \( headers.description ) PARAMS : \( params.description )"
+        }
+        else
+        {
+            return "URL : \( self.baseUrl + self.urlPath ), HEADERS : \( headers.description ) PARAMS : \( params.description )"
+        }
     }
 }
 

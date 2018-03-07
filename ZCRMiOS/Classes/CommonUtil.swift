@@ -33,6 +33,15 @@ public enum AccessType : String
     case SANDBOX = "Sandbox"
 }
 
+public enum PhotoSize : String
+{
+    case STAMP = "stamp"
+    case THUMB = "thumb"
+    case ORIGINAL = "original"
+    case FAVICON = "favicon"
+    case MEDIUM = "medium"
+}
+
 internal extension Dictionary
 {
     func hasKey( forKey : Key ) -> Bool
@@ -435,16 +444,17 @@ var APPTYPE : String = "ZCRM"
 var APIBASEURL : String = String()
 var APIVERSION : String = String()
 var COUNTRYDOMAIN : String = "com"
+let PHOTOURL : URL = URL( string : "https://profile.zoho.com/api/v1/user/self/photo" )!
 
 let BOUNDARY = String( format : "unique-consistent-string-%@", UUID.init().uuidString )
 let LEADS : String = "Leads"
 let ACCOUNTS : String = "Accounts"
-let CONTACTS : String = "Contacts";
-let DEALS : String = "Deals";
-let QUOTES : String = "Quotes";
-let SALESORDERS : String = "SalesOrders";
-let INVOICES : String = "Invoices";
-let PURCHASEORDERS : String = "PurchaseOrders";
+let CONTACTS : String = "Contacts"
+let DEALS : String = "Deals"
+let QUOTES : String = "Quotes"
+let SALESORDERS : String = "SalesOrders"
+let INVOICES : String = "Invoices"
+let PURCHASEORDERS : String = "PurchaseOrders"
 
 let INVALID_ID_MSG : String = "The given id seems to be invalid."
 let INVALID_DATA : String = "INVALID_DATA"
@@ -462,10 +472,10 @@ let CODE_SUCCESS : String = "success"
 let INFO : String = "info"
 let DETAILS : String = "details"
 
-let PER_PAGE : String = "per_page";
-let PAGE : String = "page";
-let COUNT : String = "count";
-let MORE_RECORDS : String = "more_records";
+let PER_PAGE : String = "per_page"
+let PAGE : String = "page"
+let COUNT : String = "count"
+let MORE_RECORDS : String = "more_records"
 
 let REMAINING_COUNT_FOR_THIS_DAY : String = "X-RATELIMIT-LIMIT"
 let REMAINING_COUNT_FOR_THIS_WINDOW : String = "X-RATELIMIT-REMAINING"
