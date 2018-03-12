@@ -119,29 +119,35 @@ public class ZVCRMLoginHandler
         ZohoPortalAuth.clearZohoAuthPortalDetailsForFirstLaunch()
     }
 
-    public func logout()
+    public func logout( completion : @escaping ( Bool ) -> (), isLoginCustomized : Bool )
     {
-        ZohoPortalAuth.revokeAccessToken { ( error ) in
-            if( error != nil )
-            {
-                print( "Error occured in logout() : \(error!)" )
-            }
-            else
-            {
-                self.clearIAMLoginFirstLaunch()
-                print( "removed AllScopesWithSuccess!" )
-                self.handleLogin( completion : { _ in
-                    
-                })
-                URLCache.shared.removeAllCachedResponses()
-                if let cookies = HTTPCookieStorage.shared.cookies {
-                    for cookie in cookies {
-                        HTTPCookieStorage.shared.deleteCookie(cookie)
-                    }
+        ZohoPortalAuth.revokeAccessToken(
+            { ( error ) in
+                if( error != nil )
+                {
+                    print( "Error occured in logout() : \(error!)" )
+                    completion( false )
                 }
-            }
-        }
-        print( "logout ZVCRM!" )
+                else
+                {
+                    self.clearIAMLoginFirstLaunch()
+                    print( "removed AllScopesWithSuccess!" )
+                    if( isLoginCustomized == false )
+                    {
+                        self.handleLogin( completion : { _ in
+                            
+                        })
+                    }
+                    URLCache.shared.removeAllCachedResponses()
+                    if let cookies = HTTPCookieStorage.shared.cookies {
+                        for cookie in cookies {
+                            HTTPCookieStorage.shared.deleteCookie(cookie)
+                        }
+                    }
+                    completion( true )
+                    print( "logout ZVCRM successful!" )
+                }
+        })
     }
     
 }

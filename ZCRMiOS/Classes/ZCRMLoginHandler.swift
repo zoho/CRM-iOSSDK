@@ -159,30 +159,35 @@ public class ZCRMLoginHandler
         }
     }
     
-    public func logout()
+    public func logout( completion : @escaping ( Bool ) -> (), isLoginCustomized : Bool )
     {
         ZohoAuth.revokeAccessToken(
-            { (error) in
+            { ( error ) in
                 if( error != nil )
                 {
-                    print( "Error occured in removeAllScopesWithSuccess() : \(error!)" )
+                    print( "Error occured in logout() : \(error!)" )
+                    completion( false )
                 }
                 else
                 {
                     self.clearIAMLoginFirstLaunch()
                     print( "removed AllScopesWithSuccess!" )
-                    self.handleLogin( completion : { _ in
-                        
-                    })
+                    if( isLoginCustomized == false )
+                    {
+                        self.handleLogin( completion : { _ in
+                            
+                        })
+                    }
                     URLCache.shared.removeAllCachedResponses()
                     if let cookies = HTTPCookieStorage.shared.cookies {
                         for cookie in cookies {
                             HTTPCookieStorage.shared.deleteCookie(cookie)
                         }
                     }
+                    completion( true )
+                    print( "logout ZCRM successful!" )
                 }
         })
-        print( "logout ZCRM!" )
     }
     
     internal func getOauth2Token() -> String
