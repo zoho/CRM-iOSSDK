@@ -12,7 +12,7 @@ public class ZCRMLoginHandler
 {
     private var appConfigurationUtil : CRMAppConfigUtil = CRMAppConfigUtil()
     private var accessType : String = String()
-    private var configurationKeys : [ String ] = [ "DomainSuffix", "ApiVersion", "ClientID", "ClientSecretID", "RedirectURLScheme", "AccountsURL", "OAuthScopes", "AccessType" ]
+    private var configurationKeys : [ String ] = [ "DomainSuffix", "ApiVersion", "ClientID", "ClientSecretID", "RedirectURLScheme", "AccountsURL", "OAuthScopes", "AccessType", "LoginCustomization" ]
     public init(){}
     
     public init( appConfigUtil : CRMAppConfigUtil ) throws
@@ -159,20 +159,20 @@ public class ZCRMLoginHandler
         }
     }
     
-    public func logout( completion : @escaping ( Bool ) -> (), isLoginCustomized : Bool )
+    public func logout( completion : @escaping ( Bool ) -> () )
     {
         ZohoAuth.revokeAccessToken(
-            { ( error ) in
+            { (error) in
                 if( error != nil )
                 {
-                    print( "Error occured in logout() : \(error!)" )
+                    print( "Error occured in removeAllScopesWithSuccess() : \(error!)" )
                     completion( false )
                 }
                 else
                 {
                     self.clearIAMLoginFirstLaunch()
                     print( "removed AllScopesWithSuccess!" )
-                    if( isLoginCustomized == false )
+                    if( self.appConfigurationUtil.isLoginCustomized() == false )
                     {
                         self.handleLogin( completion : { _ in
                             
@@ -181,11 +181,11 @@ public class ZCRMLoginHandler
                     URLCache.shared.removeAllCachedResponses()
                     if let cookies = HTTPCookieStorage.shared.cookies {
                         for cookie in cookies {
-                            HTTPCookieStorage.shared.deleteCookie(cookie)
+                            HTTPCookieStorage.shared.deleteCookie( cookie )
                         }
                     }
                     completion( true )
-                    print( "logout ZCRM successful!" )
+                    print( "logout ZCRM!" )
                 }
         })
     }

@@ -11,7 +11,7 @@ import Foundation
 public class ZVCRMLoginHandler
 {
     private var appConfigurationUtil : CRMAppConfigUtil = CRMAppConfigUtil()
-    private var configurationKeys : [ String ] = [ "ClientID", "ClientSecretID", "AccountsURL", "PortalID", "OAuthScopes", "RedirectURLScheme", "ApiBaseURL", "ApiVersion" ]
+    private var configurationKeys : [ String ] = [ "ClientID", "ClientSecretID", "AccountsURL", "PortalID", "OAuthScopes", "RedirectURLScheme", "ApiBaseURL", "ApiVersion", "LoginCustomization" ]
 
     public init(){}
 
@@ -119,7 +119,7 @@ public class ZVCRMLoginHandler
         ZohoPortalAuth.clearZohoAuthPortalDetailsForFirstLaunch()
     }
 
-    public func logout( completion : @escaping ( Bool ) -> (), isLoginCustomized : Bool )
+    public func logout( completion : @escaping ( Bool ) -> () )
     {
         ZohoPortalAuth.revokeAccessToken(
             { ( error ) in
@@ -132,7 +132,7 @@ public class ZVCRMLoginHandler
                 {
                     self.clearIAMLoginFirstLaunch()
                     print( "removed AllScopesWithSuccess!" )
-                    if( isLoginCustomized == false )
+                    if( self.appConfigurationUtil.isLoginCustomized() == false )
                     {
                         self.handleLogin( completion : { _ in
                             

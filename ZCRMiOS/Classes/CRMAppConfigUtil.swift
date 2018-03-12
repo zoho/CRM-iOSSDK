@@ -90,4 +90,16 @@ public class CRMAppConfigUtil
     {
         return self.appConfigDict
     }
+    
+    internal func isLoginCustomized() -> Bool
+    {
+        if ( self.appConfigDict.getString( key : "LoginCustomization" ) == "true" )
+        {
+            return true
+        }
+        else
+        {
+            return false
+        }
+    }
 }
