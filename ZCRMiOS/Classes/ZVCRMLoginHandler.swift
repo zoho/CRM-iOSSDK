@@ -11,7 +11,7 @@ import Foundation
 public class ZVCRMLoginHandler
 {
     private var appConfigurationUtil : CRMAppConfigUtil = CRMAppConfigUtil()
-    private var configurationKeys : [ String ] = [ "ClientID", "ClientSecretID", "AccountsURL", "PortalID", "OAuthScopes", "RedirectURLScheme", "ApiBaseURL", "ApiVersion", "LoginCustomization" ]
+    private var configurationKeys : [ String ] = [ "ClientID", "ClientSecretID", "AccountsURL", "PortalID", "OAuthScopes", "RedirectURLScheme", "ApiBaseURL", "ApiVersion" ]
 
     public init(){}
 
@@ -132,12 +132,9 @@ public class ZVCRMLoginHandler
                 {
                     self.clearIAMLoginFirstLaunch()
                     print( "removed AllScopesWithSuccess!" )
-                    if( self.appConfigurationUtil.isLoginCustomized() == false )
-                    {
-                        self.handleLogin( completion : { _ in
+                    self.handleLogin( completion : { _ in
                             
-                        })
-                    }
+                    })
                     URLCache.shared.removeAllCachedResponses()
                     if let cookies = HTTPCookieStorage.shared.cookies {
                         for cookie in cookies {
