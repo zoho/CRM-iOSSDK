@@ -18,6 +18,7 @@ public enum ZCRMSDKError : Error
     case MaxRecordCountExceeded(String)
     case FileSizeExceeded(String)
     case InternalError( String )
+    case ConnectionError( String )
 }
 
 public enum SortOrder : String

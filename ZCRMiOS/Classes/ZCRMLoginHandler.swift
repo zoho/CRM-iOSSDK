@@ -12,7 +12,7 @@ public class ZCRMLoginHandler
 {
     private var appConfigurationUtil : CRMAppConfigUtil = CRMAppConfigUtil()
     private var accessType : String = String()
-    private var configurationKeys : [ String ] = [ "DomainSuffix", "ApiVersion", "ClientID", "ClientSecretID", "RedirectURLScheme", "AccountsURL", "OAuthScopes", "AccessType", "LoginCustomization" ]
+    private var configurationKeys : [ String ] = [ "DomainSuffix", "ApiVersion", "ClientID", "ClientSecretID", "RedirectURLScheme", "AccountsURL", "OAuthScopes", "AccessType" ]
     public init(){}
     
     public init( appConfigUtil : CRMAppConfigUtil ) throws

@@ -23,7 +23,6 @@ internal class ModuleAPIHandler
         {
             request.addHeader( headerName : "If-Modified-Since", headerVal : modifiedSince! )
         }
-        print( "Request : \( request.toString() )" )
         let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
@@ -37,7 +36,6 @@ internal class ModuleAPIHandler
     {
         let request : APIRequest = APIRequest(urlPath: "/settings/layouts/\(layoutId)", reqMethod: RequestMethod.GET)
         request.addParam(paramName: "module", paramVal: self.module.getAPIName())
-        print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
         let responseJSON = response.getResponseJSON()
         let layoutsList:[[String : Any]] = responseJSON.getArrayOfDictionaries( key : "layouts" )
@@ -53,7 +51,6 @@ internal class ModuleAPIHandler
         {
             request.addHeader( headerName : "If-Modified-Since", headerVal : modifiedSince! )
         }
-        print( "Request : \( request.toString() )" )
         let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
@@ -71,7 +68,6 @@ internal class ModuleAPIHandler
         {
             request.addHeader( headerName : "If-Modified-Since", headerVal : modifiedSince! )
         }
-        print( "Request : \( request.toString() )" )
         let response = try request.getBulkAPIResponse()
         
         let responseJSON = response.getResponseJSON()
@@ -89,7 +85,6 @@ internal class ModuleAPIHandler
     {
         let request : APIRequest = APIRequest( urlPath : "/settings/custom_views/\(cvId)", reqMethod : RequestMethod.GET )
         request.addParam( paramName : "module", paramVal : self.module.getAPIName() )
-        print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
         let cvArray : [ [ String : Any ] ] = response.getResponseJSON().getArrayOfDictionaries( key : "custom_views" )
         response.setData( data : getZCRMCustomView( cvDetails : cvArray[ 0 ] ) )
@@ -105,7 +100,10 @@ internal class ModuleAPIHandler
         customView.setIsDefault(isDefault: cvDetails.optBoolean(key: "default")!)
         customView.setCategory(category: cvDetails.optString(key: "category")!)
         customView.setFavouriteSequence(favourite: cvDetails.optInt(key: "favorite"))
-        customView.setDisplayFields(fieldsAPINames: cvDetails.optArray(key: "fields") as! [String])
+        if cvDetails.hasValue( forKey : "fields" )
+        {
+            customView.setDisplayFields(fieldsAPINames: cvDetails.optArray(key: "fields") as! [String])
+        }
         customView.setSortByCol(fieldAPIName: cvDetails.optString(key: "sort_by"))
         customView.setSortOrder(sortOrder: cvDetails.optString(key: "sort_order"))
         return customView

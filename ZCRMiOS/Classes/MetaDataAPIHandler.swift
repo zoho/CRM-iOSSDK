@@ -16,7 +16,6 @@ internal class MetaDataAPIHandler
         {
             request.addHeader( headerName : "If-Modified-Since", headerVal : modifiedSince! )
         }
-        print( "Request : \( request.toString() )" )
         let response = try request.getBulkAPIResponse()
 		let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
@@ -34,7 +33,6 @@ internal class MetaDataAPIHandler
 	internal func getModule(apiName : String) throws -> APIResponse
 	{
 		let request : APIRequest = APIRequest(urlPath: "/settings/modules/\(apiName)", reqMethod: RequestMethod.GET)
-        print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
 		let responseJSON = response.getResponseJSON()
 		let modulesList:[[String : Any]] = responseJSON.getArrayOfDictionaries(key: "modules")

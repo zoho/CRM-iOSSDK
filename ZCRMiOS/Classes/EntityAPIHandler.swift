@@ -18,7 +18,6 @@ internal class EntityAPIHandler
     internal func getRecord() throws -> APIResponse
     {
         let request : APIRequest = APIRequest(urlPath: "/\(self.record.getModuleAPIName())/\(self.record.getId())", reqMethod: RequestMethod.GET)
-        print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
         let responseJSON : [String:Any] = response.getResponseJSON()
         let responseDataArray : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: "data")
@@ -35,7 +34,6 @@ internal class EntityAPIHandler
         dataArray.append(self.getZCRMRecordAsJSON() as Any as! [ String : Any ] )
         reqBodyObj["data"] = dataArray
         request.setRequestBody(body: reqBodyObj)
-        print( "Request : \( request.toString() )" )
         
         let response = try request.getAPIResponse()
         
@@ -56,7 +54,6 @@ internal class EntityAPIHandler
         dataArray.append(self.getZCRMRecordAsJSON() as Any as! [ String : Any ])
         reqBodyObj["data"] = dataArray
         request.setRequestBody(body: reqBodyObj)
-        print( "Request : \( request.toString() )" )
         
         let response = try request.getAPIResponse()
         
@@ -72,7 +69,6 @@ internal class EntityAPIHandler
     internal func deleteRecord() throws -> APIResponse
     {
         let request : APIRequest = APIRequest(urlPath: "/\(self.record.getModuleAPIName())/\(self.record.getId())", reqMethod: RequestMethod.DELETE)
-        print( "Request : \( request.toString() )" )
         return try request.getAPIResponse()
     }
     
@@ -93,7 +89,6 @@ internal class EntityAPIHandler
         dataArray.append(convertData)
         reqBodyObj["data"] = dataArray
         request.setRequestBody(body: reqBodyObj)
-        print( "Request : \( request.toString() )" )
         
         let response : APIResponse = try request.getAPIResponse()
         
@@ -118,7 +113,6 @@ internal class EntityAPIHandler
         try photoSupportedModuleCheck( moduleAPIName : self.record.getModuleAPIName() )
         try fileDetailCheck( filePath : filePath )
         let request : APIRequest = APIRequest( urlPath : "/\( self.record.getModuleAPIName() )/\( String( self.record.getId() ) )/photo", reqMethod : RequestMethod.POST )
-        print( "Request : \( request.toString() )" )
         return try request.uploadFile( filePath : filePath )
     }
     
@@ -126,7 +120,6 @@ internal class EntityAPIHandler
     {
         try photoSupportedModuleCheck( moduleAPIName : self.record.getModuleAPIName() )
         let request : APIRequest = APIRequest(urlPath: "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )/photo", reqMethod: RequestMethod.GET)
-        print( "Request : \( request.toString() )" )
         return try request.downloadFile()
     }
     
@@ -134,7 +127,6 @@ internal class EntityAPIHandler
     {
         try photoSupportedModuleCheck( moduleAPIName : self.record.getModuleAPIName() )
         let request : APIRequest = APIRequest(urlPath : "/\( self.record.getModuleAPIName() )/\( String( self.record.getId() ) )/photo", reqMethod : RequestMethod.DELETE )
-        print( "Request : \( request.toString() )" )
         return try request.getAPIResponse()
     }
     

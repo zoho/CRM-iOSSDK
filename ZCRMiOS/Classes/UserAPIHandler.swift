@@ -20,7 +20,6 @@ internal class UserAPIHandler
         {
             request.addHeader( headerName : "If-Modified-Since", headerVal : modifiedSince! )
         }
-        print( "Request : \( request.toString() )" )
         let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
@@ -39,7 +38,6 @@ internal class UserAPIHandler
     {
         var allProfiles : [ ZCRMProfile ] = [ ZCRMProfile ] ()
         let request : APIRequest = APIRequest( urlPath : "/settings/profiles", reqMethod : RequestMethod.GET )
-        print( "Request : \( request.toString() )" )
         let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
@@ -58,7 +56,6 @@ internal class UserAPIHandler
     {
         var allRoles : [ ZCRMRole ] = [ ZCRMRole ]()
         let request = APIRequest( urlPath : "/settings/roles", reqMethod : RequestMethod.GET )
-        print( "Request : \( request.toString() )" )
         let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
@@ -85,7 +82,6 @@ internal class UserAPIHandler
             request = APIRequest(urlPath: "/users", reqMethod: RequestMethod.GET)
             request.addParam(paramName: "type", paramVal: "CurrentUser")
         }
-        print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
 		let responseJSON = response.getResponseJSON()
 		let usersList:[[String : Any]] = responseJSON.getArrayOfDictionaries( key : "users" )
@@ -96,7 +92,6 @@ internal class UserAPIHandler
     internal func getProfile( profileId : Int64 ) throws -> APIResponse
     {
         let request = APIRequest( urlPath : "/settings/profiles/\(profileId)", reqMethod : RequestMethod.GET )
-        print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
         let responseJSON = response.getResponseJSON()
         let profileList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : "profiles" )
@@ -107,7 +102,6 @@ internal class UserAPIHandler
     internal func getRole( roleId : Int64 ) throws -> APIResponse
     {
         let request = APIRequest( urlPath : "/settings/roles/\(roleId)", reqMethod : RequestMethod.GET )
-        print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
         let responseJSON = response.getResponseJSON()
         let rolesList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : "roles" )
@@ -119,7 +113,6 @@ internal class UserAPIHandler
     {
         let request : APIRequest = APIRequest( url : PHOTOURL, reqMethod : RequestMethod.GET )
         request.addParam( paramName : "photo_size", paramVal : size.rawValue )
-        print( "Request : \( request.toString() )" )
         return try request.downloadFile()
     }
     

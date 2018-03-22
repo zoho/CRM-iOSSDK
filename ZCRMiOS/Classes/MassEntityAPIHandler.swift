@@ -31,7 +31,6 @@ internal class MassEntityAPIHandler
         }
         reqBodyObj["data"] = dataArray
         request.setRequestBody(body: reqBodyObj)
-        print( "Request : \( request.toString() )" )
         
         let response : BulkAPIResponse = try request.getBulkAPIResponse()
         
@@ -78,7 +77,6 @@ internal class MassEntityAPIHandler
         }
 		request.addParam(paramName: "page", paramVal: String(page))
 		request.addParam(paramName: "per_page", paramVal: String(per_page))
-        print( "Request : \( request.toString() )" )
 		let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
@@ -122,7 +120,6 @@ internal class MassEntityAPIHandler
 		request.addParam(paramName: searchKey, paramVal: searchValue.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!)
 		request.addParam(paramName: "page", paramVal: String(page))
 		request.addParam(paramName: "per_page", paramVal: String(per_page))
-        print( "Request : \( request.toString() )" )
 		let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
@@ -157,7 +154,6 @@ internal class MassEntityAPIHandler
 		}
 		reqBodyObj["data"] = dataArray
 		request.setRequestBody(body: reqBodyObj)
-        print( "Request : \( request.toString() )" )
 		
         let response : BulkAPIResponse = try request.getBulkAPIResponse()
         
@@ -198,7 +194,6 @@ internal class MassEntityAPIHandler
         }
         reqBodyObj["data"] = dataArray
         request.setRequestBody(body: reqBodyObj)
-        print( "Request : \( request.toString() )" )
         let response : BulkAPIResponse = try request.getBulkAPIResponse()
         let responses : [ EntityResponse ] = response.getEntityResponses()
         var upsertRecords : [ ZCRMRecord ] = [ ZCRMRecord ]()
@@ -233,7 +228,6 @@ internal class MassEntityAPIHandler
         idsStr = idsStr.replacingOccurrences(of: "[", with: "")
         idsStr = idsStr.replacingOccurrences(of: "]", with: "")
         request.addParam(paramName: "ids", paramVal: idsStr)
-        print( "Request : \( request.toString() )" )
         
         let response : BulkAPIResponse = try request.getBulkAPIResponse()
         
@@ -267,7 +261,6 @@ internal class MassEntityAPIHandler
     {
         let request : APIRequest = APIRequest( urlPath : "/\( self.module.getAPIName() )/deleted", reqMethod : RequestMethod.GET )
         request.addParam( paramName : "type", paramVal : type )
-        print( "Request : \( request.toString() )" )
         let response : BulkAPIResponse = try request.getBulkAPIResponse()
         let responses : [ EntityResponse ] = response.getEntityResponses()
         var trashRecords : [ ZCRMTrashRecord ] = [ ZCRMTrashRecord ]()

@@ -49,7 +49,7 @@ public class ZCRMEventParticipant
     /// set the name of the ZCRMEventParticipant.
     ///
     /// - Parameter name: name of the ZCRMEventParticipant
-    internal func setName( name : String? )
+    internal func setName( name : String )
     {
         self.name = name
     }
@@ -57,15 +57,15 @@ public class ZCRMEventParticipant
     /// Returns the name of the ZCRMEventParticipant.
     ///
     /// - Returns: name of the ZCRMEventParticipant
-    public func getName() -> String
+    public func getName() -> String?
     {
-        return self.name!
+        return self.name
     }
     
     /// Set the email of the ZCRMEventParticipant.
     ///
     /// - Parameter email: email of the ZCRMEventParticipant
-    internal func setEmail( email : String? )
+    internal func setEmail( email : String )
     {
         self.email = email
     }
@@ -73,15 +73,15 @@ public class ZCRMEventParticipant
     /// Returns the email of the ZCRMEventParticipant
     ///
     /// - Returns: email of the ZCRMEventParticipant
-    public func getEmail() -> String
+    public func getEmail() -> String?
     {
-        return self.email!
+        return self.email
     }
     
     /// Set the status of the ZCRMEventParticipant.
     ///
     /// - Parameter status: status of the ZCRMEventParticipant
-    internal func setStatus( status : String? )
+    internal func setStatus( status : String )
     {
         self.status = status
     }
@@ -89,9 +89,9 @@ public class ZCRMEventParticipant
     /// Returns the status of the ZCRMEventParticipant.
     ///
     /// - Returns: status of the ZCRMEventParticipant
-    public func getStatus() -> String
+    public func getStatus() -> String?
     {
-        return self.status!
+        return self.status
     }
     
     /// Returns true if the ZCRMEventParticipant invited
@@ -99,13 +99,20 @@ public class ZCRMEventParticipant
     /// - Returns: true if the ZCRMEventParticipant invited
     public func didInvite() -> Bool
     {
-        return self.isInvited!
+        if let invited = self.isInvited
+        {
+            return invited
+        }
+        else
+        {
+            return false
+        }
     }
     
     /// Set true if the ZCRMEventParticipant invited
     ///
     /// - Parameter invited: true if the ZCRMEventParticipant invited
-    internal func setInvited( invited : Bool? )
+    internal func setInvited( invited : Bool )
     {
         self.isInvited = invited
     }

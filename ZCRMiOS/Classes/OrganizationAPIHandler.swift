@@ -15,7 +15,6 @@ public class OrganizationAPIHandler
     internal func getOrganizationDetails() throws -> APIResponse
     {
         let request : APIRequest = APIRequest( urlPath : "/org", reqMethod : RequestMethod.GET )
-        print( "Request : \( request.toString() )" )
         let response : APIResponse = try request.getAPIResponse()
         let responseJSON : [ String :  Any ] = response.responseJSON
         let orgArray = responseJSON.getArrayOfDictionaries( key : "org" )
