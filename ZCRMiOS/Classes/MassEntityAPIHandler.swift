@@ -56,21 +56,47 @@ internal class MassEntityAPIHandler
         return response
     }
 	
-    internal func getRecords(cvId : Int64?, sortByField : String?, sortOrder : SortOrder?, page : Int, per_page : Int, modifiedSince : String? ) throws -> BulkAPIResponse
+	internal func getRecords(cvId : Int64? ,fields : [String]? ,  sortByField : String? , sortOrder : SortOrder? , converted : Converted? , approved : Approved? , page : Int , per_page : Int , modifiedSince : String? ) throws -> BulkAPIResponse
 	{
 		var records : [ZCRMRecord] = [ZCRMRecord]()
 		let request : APIRequest = APIRequest(urlPath: "/\(self.module.getAPIName())", reqMethod: RequestMethod.GET)
+		
+		if (!fields!.isEmpty)
+		{
+			
+			var fieldsStr : String = ""
+			for field in fields!
+			{
+				if(!field.isEmpty)
+				{
+					fieldsStr += field + ","
+				}
+			}
+			if(!fieldsStr.replacingOccurrences(of: ",", with: "").isEmpty)
+			{
+				request.addParam(paramName: "fields", paramVal: String(fieldsStr.dropLast()) )
+			}
+			
+		}
 		if(cvId != nil)
 		{
 			request.addParam(paramName: "cvid", paramVal: String(cvId!))
 		}
-		if(sortByField != nil)
+		if(sortByField != nil && !(sortByField?.isEmpty)! )
 		{
 			request.addParam(paramName: "sort_by", paramVal: sortByField!)
 		}
 		if(sortOrder != nil)
 		{
 			request.addParam(paramName: "sort_order", paramVal: sortOrder!.rawValue)
+		}
+		if(converted != nil)
+		{
+			request.addParam(paramName: "converted", paramVal: converted!.rawValue )
+		}
+		if(approved != nil)
+		{
+			request.addParam(paramName: "approved", paramVal: approved!.rawValue )
 		}
         if ( modifiedSince != nil )
         {

@@ -26,6 +26,21 @@ public enum SortOrder : String
     case DESCENDING = "desc"
 }
 
+public enum Converted : String {
+	
+	case TRUE = "true"
+	case FALSE = "false"
+	case BOTH = "both"
+	
+}
+
+public enum Approved : String {
+	
+	case TRUE = "true"
+	case FALSE = "false"
+	case BOTH = "both"
+}
+
 public enum AccessType : String
 {
     case PRODUCTION = "Production"
