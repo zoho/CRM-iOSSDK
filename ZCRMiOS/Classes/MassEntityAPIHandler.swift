@@ -56,12 +56,12 @@ internal class MassEntityAPIHandler
         return response
     }
 	
-	internal func getRecords(cvId : Int64? ,fields : [String]? ,  sortByField : String? , sortOrder : SortOrder? , converted : Converted? , approved : Approved? , page : Int , per_page : Int , modifiedSince : String? ) throws -> BulkAPIResponse
+	internal func getRecords(cvId : Int64? ,fields : [String]? ,  sortByField : String? , sortOrder : SortOrder? , converted : Bool? , approved : Bool? , page : Int , per_page : Int , modifiedSince : String? ) throws -> BulkAPIResponse
 	{
 		var records : [ZCRMRecord] = [ZCRMRecord]()
 		let request : APIRequest = APIRequest(urlPath: "/\(self.module.getAPIName())", reqMethod: RequestMethod.GET)
 		
-		if (!fields!.isEmpty)
+		if ( fields != nil && !fields!.isEmpty)
 		{
 			
 			var fieldsStr : String = ""
@@ -92,11 +92,11 @@ internal class MassEntityAPIHandler
 		}
 		if(converted != nil)
 		{
-			request.addParam(paramName: "converted", paramVal: converted!.rawValue )
+			request.addParam(paramName: "converted", paramVal: String(describing: converted) )
 		}
 		if(approved != nil)
 		{
-			request.addParam(paramName: "approved", paramVal: approved!.rawValue )
+			request.addParam(paramName: "approved", paramVal: String(describing: approved) )
 		}
         if ( modifiedSince != nil )
         {
