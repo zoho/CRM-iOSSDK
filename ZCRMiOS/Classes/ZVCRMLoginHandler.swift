@@ -85,6 +85,10 @@ public class ZVCRMLoginHandler
                     print( "Error : \( error! )" )
                 }
             }
+            else
+            {
+                completion( true )
+            }
         }
     }
 
