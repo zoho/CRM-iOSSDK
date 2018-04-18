@@ -8,13 +8,17 @@
 
 import Foundation
 
-public class OrganizationAPIHandler
+internal class OrganizationAPIHandler : CommonAPIHandler
 {
-    public init() {}
+	override init() {
+
+	}
     
     internal func getOrganizationDetails() throws -> APIResponse
     {
-        let request : APIRequest = APIRequest( urlPath : "/org", reqMethod : RequestMethod.GET )
+		setUrlPath(urlPath:  "/org" )
+		setRequestMethod(requestMethod: .GET)
+        let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
         let response : APIResponse = try request.getAPIResponse()
         let responseJSON : [ String :  Any ] = response.responseJSON

@@ -6,7 +6,7 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
-internal class EntityAPIHandler
+internal class EntityAPIHandler : CommonAPIHandler
 {
     private var record : ZCRMRecord
     
@@ -14,10 +14,15 @@ internal class EntityAPIHandler
     {
         self.record = record
     }
-    
+	
+	// MARK: - Handler Functions
+	
     internal func getRecord() throws -> APIResponse
     {
-        let request : APIRequest = APIRequest(urlPath: "/\(self.record.getModuleAPIName())/\(self.record.getId())", reqMethod: RequestMethod.GET)
+		setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\(self.record.getId())")
+		setRequestMethod(requestMethod : .GET)
+		let request : APIRequest = APIRequest(handler: self)
+		
         print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
         let responseJSON : [String:Any] = response.getResponseJSON()
@@ -29,16 +34,18 @@ internal class EntityAPIHandler
     
     internal func createRecord() throws -> APIResponse
     {
-        let request : APIRequest = APIRequest(urlPath: "/\(self.record.getModuleAPIName())", reqMethod: RequestMethod.POST)
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         var dataArray : [[String:Any]] = [[String:Any]]()
         dataArray.append(self.getZCRMRecordAsJSON() as Any as! [ String : Any ] )
         reqBodyObj["data"] = dataArray
-        request.setRequestBody(body: reqBodyObj)
+		
+		setUrlPath(urlPath : "/\(self.record.getModuleAPIName())")
+		setRequestMethod(requestMethod : .POST)
+		setRequestBody(requestBody : reqBodyObj)
+		let request : APIRequest = APIRequest(handler : self)
         print( "Request : \( request.toString() )" )
-        
+		
         let response = try request.getAPIResponse()
-        
         let responseJSON : [String:Any] = response.getResponseJSON()
         let respDataArr : [[String:Any?]] = responseJSON.getArrayOfDictionaries(key: "data")
         let respData : [String:Any?] = respDataArr[0]
@@ -50,16 +57,18 @@ internal class EntityAPIHandler
     
     internal func updateRecord() throws -> APIResponse
     {
-        let request : APIRequest = APIRequest(urlPath: "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )", reqMethod: RequestMethod.PUT)
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         var dataArray : [[String:Any]] = [[String:Any]]()
         dataArray.append(self.getZCRMRecordAsJSON() as Any as! [ String : Any ])
         reqBodyObj["data"] = dataArray
-        request.setRequestBody(body: reqBodyObj)
+		
+		setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )" )
+		setRequestMethod( requestMethod : .PUT )
+		setRequestBody( requestBody : reqBodyObj )
+		let request : APIRequest = APIRequest( handler : self)
         print( "Request : \( request.toString() )" )
-        
+		
         let response = try request.getAPIResponse()
-        
         let responseJSON : [String:Any] = response.getResponseJSON()
         let respDataArr : [[String:Any?]] = responseJSON.getArrayOfDictionaries(key: "data")
         let respData : [String:Any?] = respDataArr[0]
@@ -71,14 +80,19 @@ internal class EntityAPIHandler
     
     internal func deleteRecord() throws -> APIResponse
     {
-        let request : APIRequest = APIRequest(urlPath: "/\(self.record.getModuleAPIName())/\(self.record.getId())", reqMethod: RequestMethod.DELETE)
+		
+		setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\(self.record.getId())")
+		setRequestMethod(requestMethod : .DELETE )
+		
+		let request : APIRequest = APIRequest(handler : self )
         print( "Request : \( request.toString() )" )
+		
         return try request.getAPIResponse()
     }
     
     internal func convertRecord(newPotential: ZCRMRecord!, assignTo: ZCRMUser!) throws -> [String:Int64]
     {
-        let request : APIRequest = APIRequest(urlPath: "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )/actions/convert", reqMethod: RequestMethod.POST)
+
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         var dataArray : [[String:Any]] = [[String:Any]]()
         var convertData : [String:Any] = [String:Any]()
@@ -92,11 +106,14 @@ internal class EntityAPIHandler
         }
         dataArray.append(convertData)
         reqBodyObj["data"] = dataArray
-        request.setRequestBody(body: reqBodyObj)
+		
+		setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )/actions/convert" )
+		setRequestMethod(requestMethod : .POST )
+		setRequestBody(requestBody : reqBodyObj )
+		let request : APIRequest = APIRequest(handler : self)
         print( "Request : \( request.toString() )" )
         
         let response : APIResponse = try request.getAPIResponse()
-        
         let responseJSON : [String:Any] = response.getResponseJSON()
         let respDataArr : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: "data")
         let respData : [String:Any] = respDataArr[0]
@@ -111,33 +128,48 @@ internal class EntityAPIHandler
         }
         convertedDetails.updateValue( respData.optInt64(key: "Contacts")! , forKey : "Contacts" )
         return convertedDetails
+		
     }
     
     internal func uploadPhoto( filePath : String ) throws -> APIResponse
     {
         try photoSupportedModuleCheck( moduleAPIName : self.record.getModuleAPIName() )
         try fileDetailCheck( filePath : filePath )
-        let request : APIRequest = APIRequest( urlPath : "/\( self.record.getModuleAPIName() )/\( String( self.record.getId() ) )/photo", reqMethod : RequestMethod.POST )
+		
+		setUrlPath(urlPath :  "/\( self.record.getModuleAPIName() )/\( String( self.record.getId() ) )/photo" )
+		setRequestMethod(requestMethod : .POST )
+		let request : APIRequest = APIRequest(handler : self )
         print( "Request : \( request.toString() )" )
+		
         return try request.uploadFile( filePath : filePath )
     }
     
     internal func downloadPhoto() throws -> FileAPIResponse
     {
         try photoSupportedModuleCheck( moduleAPIName : self.record.getModuleAPIName() )
-        let request : APIRequest = APIRequest(urlPath: "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )/photo", reqMethod: RequestMethod.GET)
+		
+		setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )/photo" )
+		setRequestMethod(requestMethod : .GET )
+		let request : APIRequest = APIRequest(handler : self )
         print( "Request : \( request.toString() )" )
+		
         return try request.downloadFile()
     }
     
     internal func deletePhoto() throws -> APIResponse
     {
         try photoSupportedModuleCheck( moduleAPIName : self.record.getModuleAPIName() )
-        let request : APIRequest = APIRequest(urlPath : "/\( self.record.getModuleAPIName() )/\( String( self.record.getId() ) )/photo", reqMethod : RequestMethod.DELETE )
+		
+		setUrlPath(urlPath : "/\( self.record.getModuleAPIName() )/\( String( self.record.getId() ) )/photo" )
+		setRequestMethod(requestMethod : .DELETE )
+		let request : APIRequest = APIRequest(handler : self )
         print( "Request : \( request.toString() )" )
+		
         return try request.getAPIResponse()
     }
-    
+	
+	// MARK: - Utility Functions
+	
     private func setPriceDetails( priceDetails : [ [ String : Any ] ] )
     {
         for index in ( 0..<priceDetails.count )

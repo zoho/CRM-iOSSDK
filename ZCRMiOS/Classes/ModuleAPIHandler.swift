@@ -6,7 +6,7 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
-internal class ModuleAPIHandler
+internal class ModuleAPIHandler : CommonAPIHandler
 {
     private let module : ZCRMModule
     
@@ -14,30 +14,42 @@ internal class ModuleAPIHandler
     {
         self.module = module
     }
-    
+	
+	// MARK: - Handler functions
+	
     internal func getAllLayouts( modifiedSince : String? ) throws -> BulkAPIResponse
     {
-        let request : APIRequest = APIRequest(urlPath: "/settings/layouts", reqMethod: RequestMethod.GET)
-        request.addParam(paramName: "module", paramVal: self.module.getAPIName())
-        if ( modifiedSince != nil )
-        {
-            request.addHeader( headerName : "If-Modified-Since", headerVal : modifiedSince! )
-        }
+		
+		setUrlPath(urlPath: "/settings/layouts")
+		setRequestMethod(requestMethod: .GET )
+		addRequestParam(queryParam: "module" , value: self.module.getAPIName())
+		if modifiedSince != nil && modifiedSince != ""
+		{
+			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
+			
+		}
+		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
+		
         let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
         {
             response.setData( data : self.getAllLayouts( layoutsList : responseJSON.getArrayOfDictionaries( key : "layouts" ) ) )
         }
+		
+		
         return response
     }
     
     internal func getLayout(layoutId : Int64) throws -> APIResponse
     {
-        let request : APIRequest = APIRequest(urlPath: "/settings/layouts/\(layoutId)", reqMethod: RequestMethod.GET)
-        request.addParam(paramName: "module", paramVal: self.module.getAPIName())
-        print( "Request : \( request.toString() )" )
+		setUrlPath(urlPath:  "/settings/layouts/\(layoutId)")
+		setRequestMethod(requestMethod: .GET )
+		addRequestParam(queryParam: "module" , value: self.module.getAPIName())
+		let request : APIRequest = APIRequest(handler: self )
+		print( "Request : \( request.toString() )" )
+		
         let response = try request.getAPIResponse()
         let responseJSON = response.getResponseJSON()
         let layoutsList:[[String : Any]] = responseJSON.getArrayOfDictionaries( key : "layouts" )
@@ -47,13 +59,17 @@ internal class ModuleAPIHandler
     
     internal func getAllFields( modifiedSince : String? ) throws -> BulkAPIResponse
     {
-        let request : APIRequest = APIRequest(urlPath: "/settings/fields", reqMethod: RequestMethod.GET)
-        request.addParam(paramName: "module", paramVal: self.module.getAPIName())
-        if ( modifiedSince != nil )
-        {
-            request.addHeader( headerName : "If-Modified-Since", headerVal : modifiedSince! )
-        }
+		setUrlPath(urlPath: "/settings/fields")
+		setRequestMethod(requestMethod: .GET )
+		addRequestParam(queryParam: "module" , value: self.module.getAPIName())
+		if modifiedSince != nil && modifiedSince != ""
+		{
+			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
+			
+		}
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
+		
         let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
@@ -62,18 +78,22 @@ internal class ModuleAPIHandler
         }
         return response
     }
-    
+
     internal func getAllCustomViews( modifiedSince : String? ) throws -> BulkAPIResponse
     {
-        let request : APIRequest = APIRequest(urlPath: "/settings/custom_views", reqMethod: RequestMethod.GET)
-        request.addParam(paramName: "module", paramVal: self.module.getAPIName())
-        if ( modifiedSince != nil )
-        {
-            request.addHeader( headerName : "If-Modified-Since", headerVal : modifiedSince! )
-        }
+ 
+		setUrlPath(urlPath: "/settings/custom_views")
+		setRequestMethod(requestMethod: .GET )
+		addRequestParam(queryParam: "module" , value: self.module.getAPIName())
+		if modifiedSince != nil && modifiedSince != ""
+		{
+			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
+			
+		}
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
+		
         let response = try request.getBulkAPIResponse()
-        
         let responseJSON = response.getResponseJSON()
         var allCVs : [ZCRMCustomView] = [ZCRMCustomView]()
         let allCVsList : [[String:Any]] = responseJSON.getArrayOfDictionaries( key : "custom_views" )
@@ -87,15 +107,43 @@ internal class ModuleAPIHandler
     
     internal func getCustomView( cvId : Int64 ) throws -> APIResponse
     {
-        let request : APIRequest = APIRequest( urlPath : "/settings/custom_views/\(cvId)", reqMethod : RequestMethod.GET )
-        request.addParam( paramName : "module", paramVal : self.module.getAPIName() )
+		setUrlPath(urlPath: "/settings/custom_views/\(cvId)" )
+		setRequestMethod(requestMethod: .GET )
+		addRequestParam(queryParam: "module" , value: self.module.getAPIName() )
+		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
         let cvArray : [ [ String : Any ] ] = response.getResponseJSON().getArrayOfDictionaries( key : "custom_views" )
         response.setData( data : getZCRMCustomView( cvDetails : cvArray[ 0 ] ) )
         return response
     }
-    
+	
+	internal func getAllCustomButtons( modifiedSince : String? ) throws  -> BulkAPIResponse
+	{
+		setUrlPath(urlPath: "/settings/custom_buttons" )
+		setRequestMethod(requestMethod: .GET )
+		addRequestParam(queryParam: "module" , value: self.module.getAPIName() )
+		if modifiedSince != nil && modifiedSince != ""
+		{
+			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
+			
+		}
+		let request : APIRequest = APIRequest(handler: self)
+		print( "Request : \( request.toString() )" )
+		
+		let response = try request.getBulkAPIResponse()
+		let responseJSON = response.getResponseJSON()
+		if responseJSON.isEmpty == false
+		{
+			response.setData( data : self.getAllZCRMCustomButtos( customButtons : responseJSON.getArrayOfDictionaries( key : "custom_buttons" ) ) )
+		}
+		return response
+		
+	}
+	
+	
+	// MARK: - Utility functions
+	
     internal func getZCRMCustomView(cvDetails: [String:Any]) -> ZCRMCustomView
     {
         let customView : ZCRMCustomView = ZCRMCustomView( cvId : cvDetails.getInt64( key : "id" ), moduleAPIName : self.module.getAPIName() )
@@ -225,9 +273,9 @@ internal class ModuleAPIHandler
         if(fieldDetails.hasValue(forKey: "view_type"))
         {
             let subLayouts : [String:Bool] = fieldDetails.getDictionary(key: "view_type") as! [String : Bool]
-            var layoutsPresent : [String] = [String]()
+			var layoutsPresent : [String] = [String]()
             if(subLayouts.optBoolean(key: "create")!)
-            {
+			{
                 layoutsPresent.append("CREATE")
             }
             if(subLayouts.optBoolean(key: "edit")!)
@@ -246,5 +294,114 @@ internal class ModuleAPIHandler
         }
         return field
     }
+	
+	
+	internal func getAllZCRMCustomButtos( customButtons : [ [ String : Any] ]) -> [ZCRMCustomButton]
+	{
+		var buttons : [ZCRMCustomButton] = [ZCRMCustomButton]()
+		for customButton in customButtons
+		{
+			buttons.append( self.getZCRMCustomButton( buttonDetails: customButton ) )
+		}
+		return buttons
+	}
+	
+	internal func getZCRMCustomButton( buttonDetails : [ String : Any ]) -> ZCRMCustomButton
+	{
+		let zcrmCustomButton : ZCRMCustomButton = ZCRMCustomButton( id: buttonDetails.getInt64(key: "id" ) , name: buttonDetails.getString(key: "name" ))
+		let profiles = buttonDetails.optArrayOfDictionaries(key: "profiles")
+		var zcrmProfiles : [ZCRMProfile] = [ZCRMProfile]()
+		for profile in profiles!
+		{
+			zcrmProfiles.append(ZCRMProfile(profileId: profile.getInt64(key: "id" ) , profileName: profile.getString(key: "name" )))
+		}
+		zcrmCustomButton.setProfiles(profiles: zcrmProfiles );
+		zcrmCustomButton.setModifiedTime(modifiedTime: buttonDetails.getString(key: "modified_time"))
+		if buttonDetails.hasValue(forKey: "related_list_name" )
+		{
+			zcrmCustomButton.setRelatedListName(relatedListName: buttonDetails.optString(key: "related_list_name"))
+		}
+		if buttonDetails.hasKey(forKey: "arguments")
+		{
+			zcrmCustomButton.setArguments(arguments: buttonDetails.optArray(key: "arguments") as? [String])
+		}
+		if buttonDetails.hasValue(forKey: "description" )
+		{
+			zcrmCustomButton.setDescription( description: buttonDetails.optString(key: "description") )
+		}
+		var btnDisplay : ButtonDisplay?
+		switch buttonDetails.getString(key: "display" )
+		{
+			case "new_window" :
+				btnDisplay = .NEW_WINDOW
+			case "new_tab" :
+				btnDisplay = .NEW_TAB
+			case "same_tab" :
+				btnDisplay = .SAME_TAB
+			default:
+				print(" ZCRMCustomButtom Display \(buttonDetails.optString(key: "display") ?? "nil" )")
+		}
+		zcrmCustomButton.setButtonDisplay(display: btnDisplay )
+		var btnPosition : ButtonPosition?
+		switch buttonDetails.getString(key: "position")
+		{
+			case "create_clone":
+				btnPosition = .CREATE_CLONE
+			case "edit":
+				btnPosition = .EDIT
+			case "view":
+				btnPosition = .VIEW
+			case "list_view":
+				btnPosition = .LIST_VIEW
+			case "list_view_each_record":
+				btnPosition = .LIST_VIEW_EACH_RECORD
+			case "related_list":
+				btnPosition = .RELATED_LIST
+			default:
+				print(" ZCRMCustomButtom Position \(buttonDetails.optString(key: "position") ?? "nil" )")
+		}
+		zcrmCustomButton.setButtonPosition(buttonPosition: btnPosition )
+		
+		if buttonDetails.hasValue(forKey: "url_encoding")
+		{
+			var urlEncoding : UrlEncoding?
+			switch buttonDetails.getString(key: "url_encoding")
+			{
+			case "UTF-8":
+				urlEncoding = .UTF_8
+			case "UTF-16":
+				urlEncoding = .UTF_16
+			case "ISO-8859-1":
+				urlEncoding = .ISO_8859_1
+			case "ISO-8859-9":
+				urlEncoding = .ISO_8859_9
+			case "GB2312":
+				urlEncoding = .GB2312
+			case "Big5":
+				urlEncoding = .BIG5
+			case "Shift_JIS":
+				urlEncoding = .SHIFT_JIS
+			default:
+				print(" ZCRMCustomButtom Display \(buttonDetails.optString(key: "position") ?? "nil" )")
+			}
+			zcrmCustomButton.setUrlEncoding(urlEncoding: urlEncoding )
+		}
+		var btnAction : ButtonAction?
+		switch buttonDetails.getString(key: "action")
+		{
+			case "url":
+				btnAction = .URL
+			case "custom_function":
+				btnAction = .CUSTOM_FUNCTION
+			case "web_tab":
+				btnAction = .WEB_TAB
+			default:
+				print(" ZCRMCustomButtom Display \(buttonDetails.optString(key: "position") ?? "nil" )")
+		}
+		zcrmCustomButton.setButtonAction(buttonAction: btnAction)
+		
+		return zcrmCustomButton
+	}
+
 }
 

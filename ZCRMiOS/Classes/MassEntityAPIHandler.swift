@@ -6,7 +6,7 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
-internal class MassEntityAPIHandler
+internal class MassEntityAPIHandler : CommonAPIHandler
 {
 	private var module : ZCRMModule
     private var trashRecord : ZCRMTrashRecord = ZCRMTrashRecord( type : "" )
@@ -15,6 +15,8 @@ internal class MassEntityAPIHandler
 	{
 		self.module = module
 	}
+	
+	// MARK: - Handler Functions
     
     internal func createRecords(records: [ZCRMRecord]) throws -> BulkAPIResponse
     {
@@ -22,7 +24,6 @@ internal class MassEntityAPIHandler
         {
             throw ZCRMSDKError.MaxRecordCountExceeded("Cannot process more than 100 records at a time.")
         }
-        let request : APIRequest = APIRequest(urlPath: "/\(self.module.getAPIName())", reqMethod: RequestMethod.POST)
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         var dataArray : [[String:Any]] = [[String:Any]]()
         for record in records
@@ -30,11 +31,14 @@ internal class MassEntityAPIHandler
             dataArray.append(EntityAPIHandler(record: record).getZCRMRecordAsJSON() as Any as! [String : Any])
         }
         reqBodyObj["data"] = dataArray
-        request.setRequestBody(body: reqBodyObj)
+		
+		setUrlPath(urlPath :  "/\(self.module.getAPIName())" )
+		setRequestMethod(requestMethod : .POST )
+		setRequestBody(requestBody : reqBodyObj )
+		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
         
         let response : BulkAPIResponse = try request.getBulkAPIResponse()
-        
         let responses : [EntityResponse] = response.getEntityResponses()
         var updatedRecords : [ZCRMRecord] = [ZCRMRecord]()
         for entityResponse in responses
@@ -54,13 +58,14 @@ internal class MassEntityAPIHandler
             }
         }
         return response
+		
     }
 	
 	internal func getRecords(cvId : Int64? ,fields : [String]? ,  sortByField : String? , sortOrder : SortOrder? , converted : Bool? , approved : Bool? , page : Int , per_page : Int , modifiedSince : String? ) throws -> BulkAPIResponse
 	{
 		var records : [ZCRMRecord] = [ZCRMRecord]()
-		let request : APIRequest = APIRequest(urlPath: "/\(self.module.getAPIName())", reqMethod: RequestMethod.GET)
-		
+		setUrlPath(urlPath: "/\(self.module.getAPIName())" )
+		setRequestMethod( requestMethod : .GET )
 		if ( fields != nil && !fields!.isEmpty)
 		{
 			
@@ -74,37 +79,39 @@ internal class MassEntityAPIHandler
 			}
 			if(!fieldsStr.replacingOccurrences(of: ",", with: "").isEmpty)
 			{
-				request.addParam(paramName: "fields", paramVal: String(fieldsStr.dropLast()) )
+				addRequestParam(queryParam: "fields" , value: String(fieldsStr.dropLast()) )
 			}
 			
 		}
 		if(cvId != nil)
 		{
-			request.addParam(paramName: "cvid", paramVal: String(cvId!))
+			addRequestParam(queryParam:  "cvid" , value: String(cvId!) )
 		}
 		if(sortByField != nil && !(sortByField?.isEmpty)! )
 		{
-			request.addParam(paramName: "sort_by", paramVal: sortByField!)
+			addRequestParam(queryParam: "sort_by" , value:  sortByField! )
 		}
 		if(sortOrder != nil)
 		{
-			request.addParam(paramName: "sort_order", paramVal: sortOrder!.rawValue)
+			addRequestParam(queryParam: "sort_order" , value: sortOrder!.rawValue )
 		}
 		if(converted != nil)
 		{
-			request.addParam(paramName: "converted", paramVal: String(describing: converted) )
+			addRequestParam(queryParam: "converted" , value: converted!.description )
 		}
 		if(approved != nil)
 		{
-			request.addParam(paramName: "approved", paramVal: String(describing: approved) )
+			addRequestParam(queryParam: "approved" , value: approved!.description )
 		}
         if ( modifiedSince != nil )
         {
-            request.addHeader( headerName : "If-Modified-Since", headerVal : modifiedSince! )
+         	addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
         }
-		request.addParam(paramName: "page", paramVal: String(page))
-		request.addParam(paramName: "per_page", paramVal: String(per_page))
+		addRequestParam(queryParam: "page" , value: String(page) )
+		addRequestParam(queryParam: "per_page" , value: String(per_page) )
+		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
+		
 		let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
@@ -119,6 +126,7 @@ internal class MassEntityAPIHandler
             response.setData(data: records)
         }
 		return response
+		
 	}
     
     internal func searchByText( searchText : String, page : Int, perPage : Int ) throws -> BulkAPIResponse
@@ -144,10 +152,13 @@ internal class MassEntityAPIHandler
     internal func searchRecords( searchKey : String, searchValue : String, page : Int, per_page : Int) throws -> BulkAPIResponse
 	{
 		var records : [ZCRMRecord] = [ZCRMRecord]()
-		let request : APIRequest = APIRequest(urlPath: "/\(self.module.getAPIName())/search", reqMethod: RequestMethod.GET)
-		request.addParam(paramName: searchKey, paramVal: searchValue.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!)
-		request.addParam(paramName: "page", paramVal: String(page))
-		request.addParam(paramName: "per_page", paramVal: String(per_page))
+		setUrlPath(urlPath : "/\(self.module.getAPIName())/search" )
+		setRequestMethod(requestMethod : .GET )
+		addRequestParam(queryParam:  searchKey , value: searchValue.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!)
+		addRequestParam(queryParam: "page" , value: String(page) )
+		addRequestParam(queryParam: "per_page" , value: String(per_page) )
+		let request : APIRequest = APIRequest(handler: self )
+		
         print( "Request : \( request.toString() )" )
 		let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
@@ -171,7 +182,6 @@ internal class MassEntityAPIHandler
         {
             throw ZCRMSDKError.MaxRecordCountExceeded("Cannot process more than 100 records at a time.")
         }
-		let request : APIRequest = APIRequest(urlPath: "/\(self.module.getAPIName())", reqMethod: RequestMethod.PUT)
 		var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
 		var dataArray : [[String:Any]] = [[String:Any]]()
 		for id in ids
@@ -182,7 +192,12 @@ internal class MassEntityAPIHandler
 			dataArray.append(dataJSON)
 		}
 		reqBodyObj["data"] = dataArray
-		request.setRequestBody(body: reqBodyObj)
+
+		setUrlPath(urlPath : "/\(self.module.getAPIName())")
+		setRequestMethod(requestMethod : .PUT )
+		setRequestBody(requestBody : reqBodyObj )
+		let request : APIRequest = APIRequest(handler: self )
+		
         print( "Request : \( request.toString() )" )
 		
         let response : BulkAPIResponse = try request.getBulkAPIResponse()
@@ -214,7 +229,6 @@ internal class MassEntityAPIHandler
         {
             throw ZCRMSDKError.MaxRecordCountExceeded("Cannot process more than 100 records at a time.")
         }
-        let request : APIRequest = APIRequest( urlPath : "/\( self.module.getAPIName() )/upsert", reqMethod : RequestMethod.POST )
         var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
         var dataArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
         for record in records
@@ -223,8 +237,13 @@ internal class MassEntityAPIHandler
             dataArray.append( recordJSON as Any as! [String : Any] )
         }
         reqBodyObj["data"] = dataArray
-        request.setRequestBody(body: reqBodyObj)
+		
+		setUrlPath(urlPath:  "/\( self.module.getAPIName() )/upsert")
+		setRequestMethod(requestMethod: .GET )
+		setRequestBody(requestBody: reqBodyObj )
+		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
+		
         let response : BulkAPIResponse = try request.getBulkAPIResponse()
         let responses : [ EntityResponse ] = response.getEntityResponses()
         var upsertRecords : [ ZCRMRecord ] = [ ZCRMRecord ]()
@@ -253,12 +272,14 @@ internal class MassEntityAPIHandler
         {
             throw ZCRMSDKError.MaxRecordCountExceeded("Cannot process more than 100 records at a time.")
         }
-        let request : APIRequest = APIRequest(urlPath: "/\(self.module.getAPIName())", reqMethod: RequestMethod.DELETE)
         var idsStr : String = "\(ids)"
         idsStr = idsStr.replacingOccurrences(of: " ", with: "")
         idsStr = idsStr.replacingOccurrences(of: "[", with: "")
         idsStr = idsStr.replacingOccurrences(of: "]", with: "")
-        request.addParam(paramName: "ids", paramVal: idsStr)
+		setUrlPath(urlPath : "/\(self.module.getAPIName())")
+		setRequestMethod(requestMethod: .DELETE )
+		addRequestParam(queryParam:  "ids" , value: idsStr )
+		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
         
         let response : BulkAPIResponse = try request.getBulkAPIResponse()
@@ -291,8 +312,10 @@ internal class MassEntityAPIHandler
     
     internal func getDeletedRecords( type : String ) throws -> BulkAPIResponse
     {
-        let request : APIRequest = APIRequest( urlPath : "/\( self.module.getAPIName() )/deleted", reqMethod : RequestMethod.GET )
-        request.addParam( paramName : "type", paramVal : type )
+		setUrlPath(urlPath : "/\( self.module.getAPIName() )/deleted")
+		setRequestMethod(requestMethod : .GET )
+		addRequestParam(queryParam: "type" , value: type )
+		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
         let response : BulkAPIResponse = try request.getBulkAPIResponse()
         let responses : [ EntityResponse ] = response.getEntityResponses()
@@ -307,7 +330,9 @@ internal class MassEntityAPIHandler
         response.setData( data : trashRecords )
         return response
     }
-    
+	
+	// MARK: - Utility Functions
+	
     internal func setTrashRecordProperties( record : [ String : Any ] )
     {
         for ( fieldAPIName, value ) in record

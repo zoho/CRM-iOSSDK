@@ -42,6 +42,44 @@ public enum PhotoSize : String
     case MEDIUM = "medium"
 }
 
+public enum ButtonDisplay : String {
+	
+	case NEW_TAB = "new_tab"
+	case NEW_WINDOW = "new_window"
+	case SAME_TAB = "same_tab"
+}
+
+public enum UrlEncoding : String {
+	
+	case UTF_8 = "UTF-8"
+	case UTF_16 = "UTF-16"
+	case ISO_8859_1 = "ISO-8859-1"
+	case ISO_8859_9 = "ISO-8859-9"
+	case GB2312 = "GB2312"
+	case BIG5 = "Big5"
+	case SHIFT_JIS = "Shift_JIS"
+	
+}
+
+public enum ButtonAction : String {
+	
+	case URL = "url"
+	case CUSTOM_FUNCTION = "custom_function"
+	case WEB_TAB = "web_tab"
+	
+}
+
+public enum ButtonPosition : String {
+	
+	case CREATE_CLONE = "create_clone"
+	case EDIT = "edit"
+	case VIEW = "view"
+	case LIST_VIEW = "list_view"
+	case LIST_VIEW_EACH_RECORD = "list_view_each_record"
+	case RELATED_LIST = "related_list"
+
+}
+
 internal extension Dictionary
 {
     func hasKey( forKey : Key ) -> Bool

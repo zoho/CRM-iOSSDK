@@ -41,27 +41,30 @@ internal enum RequestMethod : String
 internal class APIRequest
 {
     private var baseUrl : String = "\( APIBASEURL )/crm/\( APIVERSION )"
-    private var urlPath : String
+    private var urlPath : String = ""
     private var requestMethod : RequestMethod
     private var headers : [String : String] = [String : String]()
     private var params : [String : String] = [String : String]()
     private var requestBody : Any?
     private var request : URLRequest?
     private var url : URL?
-    
-    init(urlPath : String, reqMethod : RequestMethod)
-    {
-        self.urlPath = urlPath
-        self.requestMethod = reqMethod
-    }
-    
-    init( url : URL, reqMethod : RequestMethod )
-    {
-        self.url = url
-        self.requestMethod = reqMethod
-        self.urlPath = ""
-    }
-    
+	
+	init( handler : APIHandler)
+	{
+		if let urlPath = handler.getUrlPath()
+		{
+			self.urlPath = urlPath
+		}
+		else if let url = handler.getUrl()
+		{
+			self.url = url
+		}
+		self.requestMethod = handler.getRequestMethod()
+		self.params = handler.getRequestParams()
+		self.headers = handler.getRequestHeaders()
+		self.requestBody = handler.getRequestBody()
+	}
+	
     private func authenticateRequest()
     {
         if( APPTYPE == "ZCRM" )
@@ -74,21 +77,11 @@ internal class APIRequest
         }
     }
     
-    internal func addHeader(headerName : String, headerVal : String)
+    private func addHeader(headerName : String, headerVal : String)
     {
         self.headers[headerName] = headerVal
     }
-    
-    internal func addParam(paramName : String, paramVal : String)
-    {
-        self.params[paramName] = paramVal
-    }
-    
-    internal func setRequestBody(body : Any)
-    {
-        self.requestBody = body
-    }
-    
+	
     private func initialiseRequest()
     {
         self.authenticateRequest()
