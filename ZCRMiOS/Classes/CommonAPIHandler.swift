@@ -86,9 +86,9 @@ internal class CommonAPIHandler : APIHandler
 		return self.requestBody
 	}
 	
-	internal func addRequestParam( queryParam : String , value : String )
+	internal func addRequestParam( param : String , value : String )
 	{
-		self.requestParams[queryParam] = value
+		self.requestParams[param] = value
 	}
 	
 	internal func getRequestParams() -> [String : String]

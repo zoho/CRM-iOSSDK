@@ -77,38 +77,38 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 					fieldsStr += field + ","
 				}
 			}
-			if(!fieldsStr.replacingOccurrences(of: ",", with: "").isEmpty)
+			if(!fieldsStr.isEmpty)
 			{
-				addRequestParam(queryParam: "fields" , value: String(fieldsStr.dropLast()) )
+				addRequestParam(param: "fields" , value: String(fieldsStr.dropLast()) )
 			}
 			
 		}
 		if(cvId != nil)
 		{
-			addRequestParam(queryParam:  "cvid" , value: String(cvId!) )
+			addRequestParam(param:  "cvid" , value: String(cvId!) )
 		}
 		if(sortByField != nil && !(sortByField?.isEmpty)! )
 		{
-			addRequestParam(queryParam: "sort_by" , value:  sortByField! )
+			addRequestParam(param: "sort_by" , value:  sortByField! )
 		}
 		if(sortOrder != nil)
 		{
-			addRequestParam(queryParam: "sort_order" , value: sortOrder!.rawValue )
+			addRequestParam(param: "sort_order" , value: sortOrder!.rawValue )
 		}
 		if(converted != nil)
 		{
-			addRequestParam(queryParam: "converted" , value: converted!.description )
+			addRequestParam(param: "converted" , value: converted!.description )
 		}
 		if(approved != nil)
 		{
-			addRequestParam(queryParam: "approved" , value: approved!.description )
+			addRequestParam(param: "approved" , value: approved!.description )
 		}
         if ( modifiedSince != nil )
         {
          	addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
         }
-		addRequestParam(queryParam: "page" , value: String(page) )
-		addRequestParam(queryParam: "per_page" , value: String(per_page) )
+		addRequestParam(param: "page" , value: String(page) )
+		addRequestParam(param: "per_page" , value: String(per_page) )
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
 		
@@ -154,9 +154,9 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 		var records : [ZCRMRecord] = [ZCRMRecord]()
 		setUrlPath(urlPath : "/\(self.module.getAPIName())/search" )
 		setRequestMethod(requestMethod : .GET )
-		addRequestParam(queryParam:  searchKey , value: searchValue.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!)
-		addRequestParam(queryParam: "page" , value: String(page) )
-		addRequestParam(queryParam: "per_page" , value: String(per_page) )
+		addRequestParam(param:  searchKey , value: searchValue.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!)
+		addRequestParam(param: "page" , value: String(page) )
+		addRequestParam(param: "per_page" , value: String(per_page) )
 		let request : APIRequest = APIRequest(handler: self )
 		
         print( "Request : \( request.toString() )" )
@@ -239,7 +239,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         reqBodyObj["data"] = dataArray
 		
 		setUrlPath(urlPath:  "/\( self.module.getAPIName() )/upsert")
-		setRequestMethod(requestMethod: .GET )
+		setRequestMethod(requestMethod: .POST )
 		setRequestBody(requestBody: reqBodyObj )
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
@@ -266,7 +266,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         return response
     }
     
-    internal func deleteRecords(ids: [Int64]) throws -> BulkAPIResponse
+    internal func deleteRecords(ids: [Int64] ) throws -> BulkAPIResponse
     {
         if(ids.count > 100)
         {
@@ -278,7 +278,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         idsStr = idsStr.replacingOccurrences(of: "]", with: "")
 		setUrlPath(urlPath : "/\(self.module.getAPIName())")
 		setRequestMethod(requestMethod: .DELETE )
-		addRequestParam(queryParam:  "ids" , value: idsStr )
+		addRequestParam(param:  "ids" , value: idsStr )
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
         
@@ -314,7 +314,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     {
 		setUrlPath(urlPath : "/\( self.module.getAPIName() )/deleted")
 		setRequestMethod(requestMethod : .GET )
-		addRequestParam(queryParam: "type" , value: type )
+		addRequestParam(param: "type" , value: type )
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
         let response : BulkAPIResponse = try request.getBulkAPIResponse()

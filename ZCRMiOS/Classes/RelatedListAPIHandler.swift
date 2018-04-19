@@ -34,12 +34,12 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 		var records : [ZCRMRecord] = [ZCRMRecord]()
 		setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())" )
 		setRequestMethod(requestMethod: .GET )
-		addRequestParam(queryParam:  "page" , value: String(page) )
-		addRequestParam(queryParam: "per_page", value: String(per_page) )
+		addRequestParam(param:  "page" , value: String(page) )
+		addRequestParam(param: "per_page", value: String(per_page) )
         if(sortByField != nil)
         {
-			addRequestParam(queryParam: "sort_by" , value: sortByField! )
-			addRequestParam(queryParam: "sort_order" , value: sortOrder!.rawValue )
+			addRequestParam(param: "sort_by" , value: sortByField! )
+			addRequestParam(param: "sort_order" , value: sortOrder!.rawValue )
         }
         if ( modifiedSince != nil )
         {
@@ -70,12 +70,12 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 		var notes : [ZCRMNote] = [ZCRMNote]()
 		setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())" )
 		setRequestMethod(requestMethod: .GET )
-		addRequestParam(queryParam:  "page" , value: String(page) )
-		addRequestParam(queryParam: "per_page", value: String(per_page) )
+		addRequestParam(param:  "page" , value: String(page) )
+		addRequestParam(param: "per_page", value: String(per_page) )
         if(sortByField != nil)
         {
-			addRequestParam(queryParam: "sort_by" , value: sortByField! )
-			addRequestParam(queryParam: "sort_order" , value: sortOrder!.rawValue )
+			addRequestParam(param: "sort_by" , value: sortByField! )
+			addRequestParam(param: "sort_order" , value: sortOrder!.rawValue )
         }
         if ( modifiedSince != nil )
         {
@@ -104,8 +104,8 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 		var attachments : [ZCRMAttachment] = [ZCRMAttachment]()
 		setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())" )
 		setRequestMethod(requestMethod: .GET )
-		addRequestParam(queryParam:  "page" , value: String(page) )
-		addRequestParam(queryParam: "per_page", value: String(per_page) )
+		addRequestParam(param:  "page" , value: String(page) )
+		addRequestParam(param: "per_page", value: String(per_page) )
         if ( modifiedSince != nil )
         {
 			addRequestHeader(header: "If-Modified-Since" , value : modifiedSince! )
@@ -149,7 +149,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     {
 		
 		setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())" )
-		addRequestParam(queryParam:  "attachmentUrl" , value: attachmentURL )
+		addRequestParam(param:  "attachmentUrl" , value: attachmentURL )
 		setRequestMethod(requestMethod: .POST )
 		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )

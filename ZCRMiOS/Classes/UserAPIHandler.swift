@@ -15,7 +15,7 @@ internal class UserAPIHandler : CommonAPIHandler
 		setRequestMethod(requestMethod: .GET )
         if(type != nil)
         {
-			addRequestParam(queryParam: "type" , value: type! )
+			addRequestParam(param: "type" , value: type! )
         }
         if ( modifiedSince != nil )
         {
@@ -89,7 +89,7 @@ internal class UserAPIHandler : CommonAPIHandler
         else
         {
 			setUrlPath(urlPath: "/users" )
-			addRequestParam(queryParam: "type" , value:  "CurrentUser")
+			addRequestParam(param: "type" , value:  "CurrentUser")
         }
 		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
@@ -130,7 +130,7 @@ internal class UserAPIHandler : CommonAPIHandler
     {
 		setUrl(url: PHOTOURL )
 		setRequestMethod(requestMethod: .GET )
-		addRequestParam(queryParam: "photo_size" , value: size.rawValue )
+		addRequestParam(param: "photo_size" , value: size.rawValue )
 		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         return try request.downloadFile()

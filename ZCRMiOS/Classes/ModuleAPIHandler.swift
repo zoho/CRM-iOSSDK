@@ -22,8 +22,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
 		
 		setUrlPath(urlPath: "/settings/layouts")
 		setRequestMethod(requestMethod: .GET )
-		addRequestParam(queryParam: "module" , value: self.module.getAPIName())
-		if modifiedSince != nil && modifiedSince != ""
+		addRequestParam(param: "module" , value: self.module.getAPIName())
+		if modifiedSince != nil 
 		{
 			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
 			
@@ -46,7 +46,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
     {
 		setUrlPath(urlPath:  "/settings/layouts/\(layoutId)")
 		setRequestMethod(requestMethod: .GET )
-		addRequestParam(queryParam: "module" , value: self.module.getAPIName())
+		addRequestParam(param: "module" , value: self.module.getAPIName())
 		let request : APIRequest = APIRequest(handler: self )
 		print( "Request : \( request.toString() )" )
 		
@@ -61,8 +61,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
     {
 		setUrlPath(urlPath: "/settings/fields")
 		setRequestMethod(requestMethod: .GET )
-		addRequestParam(queryParam: "module" , value: self.module.getAPIName())
-		if modifiedSince != nil && modifiedSince != ""
+		addRequestParam(param: "module" , value: self.module.getAPIName())
+		if modifiedSince != nil
 		{
 			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
 			
@@ -84,8 +84,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
  
 		setUrlPath(urlPath: "/settings/custom_views")
 		setRequestMethod(requestMethod: .GET )
-		addRequestParam(queryParam: "module" , value: self.module.getAPIName())
-		if modifiedSince != nil && modifiedSince != ""
+		addRequestParam(param: "module" , value: self.module.getAPIName())
+		if modifiedSince != nil 
 		{
 			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
 			
@@ -109,7 +109,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
     {
 		setUrlPath(urlPath: "/settings/custom_views/\(cvId)" )
 		setRequestMethod(requestMethod: .GET )
-		addRequestParam(queryParam: "module" , value: self.module.getAPIName() )
+		addRequestParam(param: "module" , value: self.module.getAPIName() )
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
@@ -122,8 +122,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
 	{
 		setUrlPath(urlPath: "/settings/custom_buttons" )
 		setRequestMethod(requestMethod: .GET )
-		addRequestParam(queryParam: "module" , value: self.module.getAPIName() )
-		if modifiedSince != nil && modifiedSince != ""
+		addRequestParam(param: "module" , value: self.module.getAPIName() )
+		if modifiedSince != nil
 		{
 			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
 			
