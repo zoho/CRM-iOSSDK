@@ -30,7 +30,6 @@ public class ZCRMModule : ZCRMEntity
 	private var businessCardFields : [ZCRMField]?
 	private var relatedLists : [ZCRMModuleRelation]?
     private var accessibleProfiles : [ ZCRMProfile ]?
-	private var customButtons : [ZCRMCustomButton]?
 	
     /// Initialize the instance of a module with the given module API name.
     ///
@@ -393,11 +392,6 @@ public class ZCRMModule : ZCRMEntity
     {
         return try ModuleAPIHandler( module : self ).getCustomView( cvId : cvId )
     }
-	
-	public func getAllCustomButtons( modifiedSince : String? ) throws -> BulkAPIResponse
-	{
-		return try ModuleAPIHandler(module: self ).getAllCustomButtons( modifiedSince : modifiedSince )
-	}
 	
     /// Returns ZCRMRecord with the given ID of the module(APIResponse).
     ///
