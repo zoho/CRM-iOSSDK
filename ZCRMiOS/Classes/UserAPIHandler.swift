@@ -17,7 +17,7 @@ internal class UserAPIHandler : CommonAPIHandler
         {
 			addRequestParam(param: "type" , value: type! )
         }
-        if ( modifiedSince != nil )
+        if ( modifiedSince.notNilandEmpty)
         {
 			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
         }

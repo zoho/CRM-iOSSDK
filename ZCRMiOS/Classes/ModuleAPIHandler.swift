@@ -23,7 +23,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
 		setUrlPath(urlPath: "/settings/layouts")
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param: "module" , value: self.module.getAPIName())
-		if modifiedSince != nil 
+		if modifiedSince.notNilandEmpty
 		{
 			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
 			
@@ -62,7 +62,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
 		setUrlPath(urlPath: "/settings/fields")
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param: "module" , value: self.module.getAPIName())
-		if modifiedSince != nil
+		if modifiedSince.notNilandEmpty
 		{
 			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
 			
@@ -85,7 +85,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
 		setUrlPath(urlPath: "/settings/custom_views")
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param: "module" , value: self.module.getAPIName())
-		if modifiedSince != nil 
+		if modifiedSince.notNilandEmpty
 		{
 			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
 			
@@ -123,7 +123,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
 		setUrlPath(urlPath: "/settings/custom_buttons" )
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param: "module" , value: self.module.getAPIName() )
-		if modifiedSince != nil
+		if modifiedSince.notNilandEmpty
 		{
 			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
 			

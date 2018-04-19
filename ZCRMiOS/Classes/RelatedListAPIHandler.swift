@@ -36,12 +36,15 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param:  "page" , value: String(page) )
 		addRequestParam(param: "per_page", value: String(per_page) )
-        if(sortByField != nil)
+        if(sortByField.notNilandEmpty)
         {
 			addRequestParam(param: "sort_by" , value: sortByField! )
-			addRequestParam(param: "sort_order" , value: sortOrder!.rawValue )
         }
-        if ( modifiedSince != nil )
+		if(sortOrder != nil )
+		{
+			addRequestParam(param: "sort_order" , value: sortOrder!.rawValue )
+		}
+        if ( modifiedSince.notNilandEmpty )
         {
 			addRequestHeader(header: "If-Modified-Since" , value : modifiedSince! )
         }
@@ -72,12 +75,15 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param:  "page" , value: String(page) )
 		addRequestParam(param: "per_page", value: String(per_page) )
-        if(sortByField != nil)
+        if(sortByField.notNilandEmpty)
         {
 			addRequestParam(param: "sort_by" , value: sortByField! )
-			addRequestParam(param: "sort_order" , value: sortOrder!.rawValue )
         }
-        if ( modifiedSince != nil )
+		if(sortOrder != nil)
+		{
+			addRequestParam(param: "sort_order" , value: sortOrder!.rawValue )
+		}
+        if ( modifiedSince.notNilandEmpty)
         {
             addRequestHeader(header: "If-Modified-Since" , value : modifiedSince! )
         }
@@ -106,7 +112,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param:  "page" , value: String(page) )
 		addRequestParam(param: "per_page", value: String(per_page) )
-        if ( modifiedSince != nil )
+        if ( modifiedSince.notNilandEmpty)
         {
 			addRequestHeader(header: "If-Modified-Since" , value : modifiedSince! )
         }

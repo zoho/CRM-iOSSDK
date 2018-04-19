@@ -13,7 +13,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
 		var allModules : [ZCRMModule] = [ZCRMModule]()
 		setUrlPath(urlPath: "/settings/modules" )
 		setRequestMethod(requestMethod: .GET )
-        if ( modifiedSince != nil )
+        if ( modifiedSince.notNilandEmpty)
         {
 			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
         }

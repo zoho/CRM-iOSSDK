@@ -87,7 +87,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 		{
 			addRequestParam(param:  "cvid" , value: String(cvId!) )
 		}
-		if(sortByField != nil && !(sortByField?.isEmpty)! )
+		if(sortByField.notNilandEmpty)
 		{
 			addRequestParam(param: "sort_by" , value:  sortByField! )
 		}
@@ -103,7 +103,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 		{
 			addRequestParam(param: "approved" , value: approved!.description )
 		}
-        if ( modifiedSince != nil )
+        if ( modifiedSince.notNilandEmpty )
         {
          	addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
         }

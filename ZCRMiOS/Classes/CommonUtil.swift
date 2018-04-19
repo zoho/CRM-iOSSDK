@@ -267,7 +267,7 @@ public extension String
         let date : Date = Formatter.iso8601.date( from : self )!
         return date.millisecondsSince1970
     }
-    
+	
     func convertToDictionary() -> [String: String]? {
         let data = self.data(using: .utf8)
         let anyResult = try? JSONSerialization.jsonObject(with: data!, options: .mutableContainers)
@@ -398,6 +398,19 @@ public extension Date
         
         return dateComponents
     }
+}
+
+internal extension Optional where Wrapped == String 
+{
+	var notNilandEmpty : Bool
+	{
+		if(self != nil && !(self?.isEmpty)!)
+		{
+			return true
+		}
+		
+		return false ;
+	}
 }
 
 public func getCurrentMillisecSince1970() -> Double
