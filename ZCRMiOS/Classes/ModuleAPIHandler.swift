@@ -24,7 +24,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param: "module" , value: self.module.getAPIName())
 		if modifiedSince.notNilandEmpty
-		{
+		{ 
 			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
 			
 		}

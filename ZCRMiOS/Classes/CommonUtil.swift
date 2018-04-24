@@ -80,6 +80,45 @@ public enum ButtonPosition : String {
 
 }
 
+internal enum FuntionType : String
+{
+	case gallery = "gallery"
+	case org = "org"
+	case installed = "installed"
+	case restapi = "restapi"
+}
+
+internal enum FuntionCategory : String
+{
+	case automation = "automation"
+	case button = "button"
+	case scheduler = "scheduler"
+	case relatedlist = "relatedlist"
+	case standalone = "standalone"
+}
+
+internal enum FunctionSource : String
+{
+	case gallery = "gallery"
+	case crm = "crm"
+}
+
+public enum FunctionParamType : String
+{
+	case STRING = "STRING"
+	case BIGINT = "BIGINT"
+	case TIMESTAMP = "TIMESTAMP"
+	case DECIMAL = "DECIMAL"
+	case BOOLEAN = "BOOLEAN"
+	
+}
+
+public enum RestApiType : String
+{
+	case oauth = "oauth"
+	case zapikey = "apikey"
+}
+
 internal extension Dictionary
 {
     func hasKey( forKey : Key ) -> Bool

@@ -19,7 +19,7 @@ public class ZCRMCustomButton : ZCRMEntity
 	private var urlEncoding : UrlEncoding?
 	private var buttonAction : ButtonAction?
 	private var buttonPosition : ButtonPosition?
-	private var customFunction : ZCRMCustomFunction?
+	private var customFunction : ZCRMFunction?
 	
 	private var modifiedTime : String?
 	private var modifiedBy : ZCRMUser?
@@ -112,7 +112,7 @@ public class ZCRMCustomButton : ZCRMEntity
 		return self.buttonPosition
 	}
 	
-	internal func setCustonFunction( customFunction : ZCRMCustomFunction? )
+	internal func setCustonFunction( customFunction : ZCRMFunction? )
 	{
 		self.customFunction = customFunction
 	}
@@ -162,34 +162,5 @@ public class ZCRMCustomButton : ZCRMEntity
 	}
 	
 }
-
-
-public class ZCRMCustomFunction
-{
-	
-	private var name : String?
-	private var id : Int64?
-	private var arguments : String?
-	private var description : String?
-	
-	init( id : Int64 , name : String )
-	{
-		self.id = id
-		self.name = name
-	}
-	
-	internal func setArguments( arguments : String )
-	{
-		self.arguments = arguments
-		
-	}
-	
-	internal func setDescription( description : String )
-	{
-		self.description = description
-	}
-	
-}
-
 
 

@@ -48,6 +48,7 @@ internal class APIRequest
     private var requestBody : Any?
     private var request : URLRequest?
     private var url : URL?
+	private var isOAuth : Bool = true
 	
 	init( handler : APIHandler)
 	{
@@ -63,6 +64,7 @@ internal class APIRequest
 		self.params = handler.getRequestParams()
 		self.headers = handler.getRequestHeaders()
 		self.requestBody = handler.getRequestBody()
+		self.isOAuth = handler.getRequestType()
 	}
 	
     private func authenticateRequest()
@@ -84,7 +86,10 @@ internal class APIRequest
 	
     private func initialiseRequest()
     {
-        self.authenticateRequest()
+		if isOAuth
+		{
+			self.authenticateRequest()
+		}
         if(!self.params.isEmpty)
         {
             self.urlPath += "?"

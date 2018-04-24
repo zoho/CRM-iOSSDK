@@ -19,6 +19,7 @@ internal protocol APIHandler : class
 	
 	func getRequestParams() -> [ String : String ]
 	
+	func getRequestType() -> Bool
 	
 }
 
@@ -31,7 +32,7 @@ internal class CommonAPIHandler : APIHandler
 	private var requestBody : [String : Any ] = [ String : Any ]()
 	private var requestParams : [ String : String ] = [String : String]()
 	private var requestHeaders : [ String : String ] = [String : String]()
-	
+	private var isOAuthRequest : Bool = true
 	init() {
 		
 	}
@@ -96,5 +97,12 @@ internal class CommonAPIHandler : APIHandler
 		return self.requestParams
 	}
 	
-	
+	internal func setRequestType( isOAuthRequest : Bool )
+	{
+		self.isOAuthRequest = isOAuthRequest
+	}
+	internal func getRequestType() -> Bool
+	{
+		return self.isOAuthRequest
+	}
 }
