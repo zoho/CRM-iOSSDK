@@ -147,6 +147,10 @@ public class ZCRMFunction : ZCRMEntity
 	{
 		let url : URL
 		var isOAuth : Bool = true
+		if !params.equateKeys(dictionary: self.params )
+		{
+			throw ZCRMSDKError.InValidError("Invalid paramter found")
+		}
 		if let apis : [RestApi] = self.restAPI
 		{
 			if apis.index(of: api) != nil
@@ -164,7 +168,7 @@ public class ZCRMFunction : ZCRMEntity
 		}
 		else
 		{
-			throw ZCRMSDKError.InValidError( "No RestApi's for thid ZCRMFunction")
+			throw ZCRMSDKError.InValidError( "No RestApi's for this ZCRMFunction")
 		}
 		
 		return try DeveloperSpaceAPIHandler().executeRestApi(url: url, params:  params , isOAuth: isOAuth )

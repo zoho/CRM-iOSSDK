@@ -237,6 +237,22 @@ internal extension Dictionary
         let jsonString = String(data: jsonData!, encoding: String.Encoding.ascii)
         return jsonString!
     }
+	
+	func equateKeys( dictionary : [ String : Any ] ) -> Bool
+	{
+		let dictKeys = dictionary.keys
+		var isEqual : Bool = true
+		for key in self.keys
+		{
+			if dictKeys.index(of: key as! String) == nil
+			{
+				isEqual = false
+			}
+		}
+		return isEqual
+	}
+	
+	
 }
 
 public extension Array

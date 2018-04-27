@@ -38,7 +38,7 @@ internal enum RequestMethod : String
     case DELETE = "DELETE"
 }
 
-internal class APIRequest
+internal class APIRequest 
 {
     private var baseUrl : String = "\( APIBASEURL )/crm/\( APIVERSION )"
     private var urlPath : String = ""
