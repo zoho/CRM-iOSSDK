@@ -97,7 +97,7 @@ internal class APIRequest
             {
                 self.urlPath += key + "=" + value + "&"
             }
-            self.urlPath = self.urlPath.substring(to: self.urlPath.index(before: self.urlPath.endIndex))
+			self.urlPath = String(self.urlPath.dropLast())
         }
         if ( self.url?.absoluteString == nil )
         {

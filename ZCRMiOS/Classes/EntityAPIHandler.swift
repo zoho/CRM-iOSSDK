@@ -212,6 +212,18 @@ internal class EntityAPIHandler : CommonAPIHandler
             {
                 value = ( value as? ZCRMUser )?.getId()
             }
+			if( recordData[ fieldApiName ] is [ZCRMSubformRecord] )
+			{
+				var subformObj : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
+				for subform in recordData[ fieldApiName ] as! [ ZCRMSubformRecord ]
+				{
+					subformObj.append( subform.getAllValues() )
+				}
+				if subformObj.isEmpty == false
+				{
+					value = subformObj
+				}
+			}
             recordJSON[ fieldApiName ] = value
         }
         recordJSON[ "Product_Details" ] = self.getLineItemsAsJSONArray()

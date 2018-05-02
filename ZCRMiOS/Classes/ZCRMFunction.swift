@@ -30,6 +30,16 @@ public class ZCRMFunction : ZCRMEntity
 		self.displayName = displayName
 	}
 	
+	public func getID() -> Int64
+	{
+		return self.id
+	}
+	
+	public func getDisplayName() -> String
+	{
+		return self.displayName
+	}
+	
 	internal func setDescription( description : String? )
 	{
 		self.description = description

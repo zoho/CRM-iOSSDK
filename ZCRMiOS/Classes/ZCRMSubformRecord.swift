@@ -50,7 +50,7 @@ public class ZCRMSubformRecord : ZCRMEntity
 		return self.createdTime
 	}
 	
-	internal func setValue(forField : String, value : Any?)
+	public func setValue(forField : String, value : Any?)
 	{
 		if forField.isEmpty == false
 		{
@@ -75,6 +75,11 @@ public class ZCRMSubformRecord : ZCRMEntity
 		{
 			throw ZCRMSDKError.ProcessingError("The given field is not present in the record.")
 		}
+	}
+	
+	internal func getAllValues() -> [ String : Any? ]
+	{
+		return self.fieldNameVsValue
 	}
 	
 }
