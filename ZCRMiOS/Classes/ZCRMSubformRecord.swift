@@ -62,14 +62,7 @@ public class ZCRMSubformRecord : ZCRMEntity
 	{
 		if self.fieldNameVsValue.hasKey( forKey : ofField )
 		{
-			if( self.fieldNameVsValue.hasValue( forKey : ofField ) )
-			{
-				return self.fieldNameVsValue.optValue(key : ofField)
-			}
-			else
-			{
-				return nil
-			}
+			return self.fieldNameVsValue.optValue(key: ofField )
 		}
 		else
 		{

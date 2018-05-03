@@ -212,16 +212,12 @@ internal class EntityAPIHandler : CommonAPIHandler
             {
                 value = ( value as? ZCRMUser )?.getId()
             }
-			if( recordData[ fieldApiName ] is [ZCRMSubformRecord] )
+			if( recordData[ fieldApiName ] is [ZCRMSubformRecord]  && (recordData[fieldApiName] as! [ZCRMSubformRecord]).isEmpty == false)
 			{
 				var subformObj : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
 				for subform in recordData[ fieldApiName ] as! [ ZCRMSubformRecord ]
 				{
 					subformObj.append( subform.getAllValues() )
-				}
-				if subformObj.isEmpty == false
-				{
-					value = subformObj
 				}
 			}
             recordJSON[ fieldApiName ] = value

@@ -71,7 +71,7 @@ internal class APIRequest
     {
         if( APPTYPE == "ZCRM" )
         {
-            self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken  \( ZCRMLoginHandler().getOauth2Token() )" )
+            self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( ZCRMLoginHandler().getOauth2Token() )" )
         }
         else
         {
@@ -86,7 +86,7 @@ internal class APIRequest
 	
     private func initialiseRequest()
     {
-		if isOAuth
+		if isOAuth == true
 		{
 			self.authenticateRequest()
 		}
@@ -114,7 +114,7 @@ internal class APIRequest
         {
             request?.setValue(value, forHTTPHeaderField: key)
         }
-        if(self.requestBody != nil)
+		if(self.requestBody != nil && (self.requestBody as! [ String : Any? ] ).isEmpty == false )
         {
             let reqBody = try? JSONSerialization.data(withJSONObject: self.requestBody!, options: [])
             self.request?.httpBody = reqBody
@@ -130,6 +130,10 @@ internal class APIRequest
         URLSession.shared.dataTask(with: self.request!, completionHandler: { data, response, err in
             responseData = data
             urlResponse = response
+			if( err != nil )
+			{
+				print( "Error occured : \(err!.code), \( err.debugDescription )")
+			}
             sema.signal()
         }).resume()
         sema.wait()
@@ -154,6 +158,7 @@ internal class APIRequest
             guard err == nil else
             {
                 error = err
+				print( "Error occured : \(err!.code), \( err.debugDescription )")
                 return
             }
             responseData = data
@@ -176,7 +181,11 @@ internal class APIRequest
         var responseData : Data?
         URLSession.shared.dataTask(with: self.request!, completionHandler: { data, response, err in
             responseData = data
-            urlResponse = response as! HTTPURLResponse
+			urlResponse = response as! HTTPURLResponse
+			if( err != nil )
+			{
+				print( "Error occured : \(err!.code), \( err.debugDescription )")
+			}
             sema.signal()
         }).resume()
         sema.wait()
