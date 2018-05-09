@@ -7,8 +7,8 @@
 
 public class ZCRMSubformRecord : ZCRMEntity
 {
-	private var id : Int64
-	private var apiName : String
+	private var id : Int64?
+	private var apiName : String?
 	private var owner : ZCRMUser?
 	private var modifiedTime : String?
 	private var createdTime : String?
@@ -18,6 +18,15 @@ public class ZCRMSubformRecord : ZCRMEntity
 	{
 		self.apiName = apiName
 		self.id = id
+	}
+	
+	init(){
+		
+	}
+	
+	public func getID() -> Int64?
+	{
+		return self.id
 	}
 	
 	internal func setOwner( owner : ZCRMUser )

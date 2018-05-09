@@ -268,6 +268,7 @@ public extension Array
         let dup = stringArray.joined(separator: "-")
         return dup
     }
+	
 }
 
 public extension String

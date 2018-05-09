@@ -130,10 +130,6 @@ internal class APIRequest
         URLSession.shared.dataTask(with: self.request!, completionHandler: { data, response, err in
             responseData = data
             urlResponse = response
-			if( err != nil )
-			{
-				print( "Error occured : \(err!.code), \( err.debugDescription )")
-			}
             sema.signal()
         }).resume()
         sema.wait()
@@ -155,12 +151,6 @@ internal class APIRequest
         var responseData : Data?
         var error : Error? = nil
         URLSession.shared.dataTask(with: self.request!, completionHandler: { data, response, err in
-            guard err == nil else
-            {
-                error = err
-				print( "Error occured : \(err!.code), \( err.debugDescription )")
-                return
-            }
             responseData = data
             urlResponse = response as! HTTPURLResponse
             sema.signal()
@@ -182,10 +172,6 @@ internal class APIRequest
         URLSession.shared.dataTask(with: self.request!, completionHandler: { data, response, err in
             responseData = data
 			urlResponse = response as! HTTPURLResponse
-			if( err != nil )
-			{
-				print( "Error occured : \(err!.code), \( err.debugDescription )")
-			}
             sema.signal()
         }).resume()
         sema.wait()
