@@ -64,12 +64,8 @@
 		F9D9CE58228FAF926A65BE0F1C5433C2 /* OrganizationAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C013F31F9F1009C000F32B85123F3B /* OrganizationAPIHandler.swift */; };
 		F9E554769E23D41774DBEE2CEA5941AA /* ZCRMiOS-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 2A3F58183DA49F68F830E1DDC98531BB /* ZCRMiOS-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		FE768EF72088C54E00CA492B /* CommonAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE768EF42088C54100CA492B /* CommonAPIHandler.swift */; };
-		FE768EF82088C54E00CA492B /* ZCRMCustomButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE768EF32088C54100CA492B /* ZCRMCustomButton.swift */; };
 		FEF21FE1209249CB003CE1BF /* ZCRMSubformRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEF21FDE209248D9003CE1BF /* ZCRMSubformRecord.swift */; };
 		FEF21FE2209249D8003CE1BF /* EntityAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DB9EDBF15A5E0EF653CF7FF49C37AE1 /* EntityAPIHandler.swift */; };
-		FEF5A704208F6294005DD190 /* DeveloperSpaceAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEF5A6FE208F6279005DD190 /* DeveloperSpaceAPIHandler.swift */; };
-		FEF5A705208F6294005DD190 /* ZCRMDeveloperSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEF5A6FF208F627A005DD190 /* ZCRMDeveloperSpace.swift */; };
-		FEF5A706208F6294005DD190 /* ZCRMFunction.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEF5A700208F627A005DD190 /* ZCRMFunction.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -164,12 +160,8 @@
 		F9BFA90C459410F28C836D4FFCE43EF0 /* SQLite.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SQLite.swift; path = ZCRMiOS/Classes/SQLite.swift; sourceTree = "<group>"; };
 		FB62DD92D004BC1474153AF9E23C10F8 /* Pods-ZCRMiOS_Tests-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-ZCRMiOS_Tests-acknowledgements.markdown"; sourceTree = "<group>"; };
 		FB8C5BDE0A125B8C2EE6389374269B0D /* ZohoAuthConstants.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = ZohoAuthConstants.h; sourceTree = "<group>"; };
-		FE768EF32088C54100CA492B /* ZCRMCustomButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ZCRMCustomButton.swift; path = ZCRMiOS/Classes/ZCRMCustomButton.swift; sourceTree = "<group>"; };
 		FE768EF42088C54100CA492B /* CommonAPIHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CommonAPIHandler.swift; path = ZCRMiOS/Classes/CommonAPIHandler.swift; sourceTree = "<group>"; };
 		FEF21FDE209248D9003CE1BF /* ZCRMSubformRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ZCRMSubformRecord.swift; path = ZCRMiOS/Classes/ZCRMSubformRecord.swift; sourceTree = "<group>"; };
-		FEF5A6FE208F6279005DD190 /* DeveloperSpaceAPIHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DeveloperSpaceAPIHandler.swift; path = ZCRMiOS/Classes/DeveloperSpaceAPIHandler.swift; sourceTree = "<group>"; };
-		FEF5A6FF208F627A005DD190 /* ZCRMDeveloperSpace.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ZCRMDeveloperSpace.swift; path = ZCRMiOS/Classes/ZCRMDeveloperSpace.swift; sourceTree = "<group>"; };
-		FEF5A700208F627A005DD190 /* ZCRMFunction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ZCRMFunction.swift; path = ZCRMiOS/Classes/ZCRMFunction.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -231,11 +223,7 @@
 			isa = PBXGroup;
 			children = (
 				FEF21FDE209248D9003CE1BF /* ZCRMSubformRecord.swift */,
-				FEF5A6FE208F6279005DD190 /* DeveloperSpaceAPIHandler.swift */,
-				FEF5A6FF208F627A005DD190 /* ZCRMDeveloperSpace.swift */,
-				FEF5A700208F627A005DD190 /* ZCRMFunction.swift */,
 				FE768EF42088C54100CA492B /* CommonAPIHandler.swift */,
-				FE768EF32088C54100CA492B /* ZCRMCustomButton.swift */,
 				7844664BB00399EBCBC2D7B41FDA15D9 /* APIRequest.swift */,
 				D13CBD26668380A6326875084B838702 /* APIResponse.swift */,
 				B20DEB589C9EBAFC7A3A0265038F8E81 /* Bridge-Header.h */,
@@ -529,11 +517,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FEF5A704208F6294005DD190 /* DeveloperSpaceAPIHandler.swift in Sources */,
-				FEF5A705208F6294005DD190 /* ZCRMDeveloperSpace.swift in Sources */,
-				FEF5A706208F6294005DD190 /* ZCRMFunction.swift in Sources */,
 				FE768EF72088C54E00CA492B /* CommonAPIHandler.swift in Sources */,
-				FE768EF82088C54E00CA492B /* ZCRMCustomButton.swift in Sources */,
 				051D6A544151921F2E2FB67F8C90C87F /* APIRequest.swift in Sources */,
 				C2A003CE4DB4B7D24AA012DED303945B /* APIResponse.swift in Sources */,
 				272FF1D39A5E4ADB4899A443E1E8F7C4 /* CommonAPIResponse.swift in Sources */,
