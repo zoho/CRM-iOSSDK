@@ -6,20 +6,22 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
-internal class UserAPIHandler
+internal class UserAPIHandler : CommonAPIHandler
 {
     internal func getUsers(type : String?, modifiedSince : String? ) throws -> BulkAPIResponse
     {
         var allUsers : [ZCRMUser] = [ZCRMUser]()
-        let request : APIRequest = APIRequest(urlPath: "/users", reqMethod: RequestMethod.GET)
+		setUrlPath(urlPath: "/users" )
+		setRequestMethod(requestMethod: .GET )
         if(type != nil)
         {
-            request.addParam(paramName: "type", paramVal: type!)
+			addRequestParam(param: "type" , value: type! )
         }
-        if ( modifiedSince != nil )
+        if ( modifiedSince.notNilandEmpty)
         {
-            request.addHeader( headerName : "If-Modified-Since", headerVal : modifiedSince! )
+			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
         }
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
@@ -38,7 +40,9 @@ internal class UserAPIHandler
     internal func getAllProfiles() throws -> BulkAPIResponse
     {
         var allProfiles : [ ZCRMProfile ] = [ ZCRMProfile ] ()
-        let request : APIRequest = APIRequest( urlPath : "/settings/profiles", reqMethod : RequestMethod.GET )
+		setUrlPath(urlPath: "/settings/profiles" )
+		setRequestMethod(requestMethod: .GET)
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
@@ -57,7 +61,9 @@ internal class UserAPIHandler
     internal func getAllRoles() throws -> BulkAPIResponse
     {
         var allRoles : [ ZCRMRole ] = [ ZCRMRole ]()
-        let request = APIRequest( urlPath : "/settings/roles", reqMethod : RequestMethod.GET )
+		setUrlPath(urlPath:  "/settings/roles" )
+		setRequestMethod(requestMethod: .GET)
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
@@ -75,16 +81,17 @@ internal class UserAPIHandler
     
 	internal func getUser(userId : Int64?) throws -> APIResponse
 	{
-		var request : APIRequest
+		setRequestMethod(requestMethod: .GET )
         if(userId != nil)
         {
-            request = APIRequest(urlPath: "/users/\(userId!)", reqMethod: RequestMethod.GET)
+			setUrlPath(urlPath: "/users/\(userId!)" )
         }
         else
         {
-            request = APIRequest(urlPath: "/users", reqMethod: RequestMethod.GET)
-            request.addParam(paramName: "type", paramVal: "CurrentUser")
+			setUrlPath(urlPath: "/users" )
+			addRequestParam(param: "type" , value:  "CurrentUser")
         }
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
 		let responseJSON = response.getResponseJSON()
@@ -95,7 +102,9 @@ internal class UserAPIHandler
     
     internal func getProfile( profileId : Int64 ) throws -> APIResponse
     {
-        let request = APIRequest( urlPath : "/settings/profiles/\(profileId)", reqMethod : RequestMethod.GET )
+		setUrlPath(urlPath:  "/settings/profiles/\(profileId)" )
+		setRequestMethod(requestMethod: .GET )
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
         let responseJSON = response.getResponseJSON()
@@ -106,7 +115,9 @@ internal class UserAPIHandler
     
     internal func getRole( roleId : Int64 ) throws -> APIResponse
     {
-        let request = APIRequest( urlPath : "/settings/roles/\(roleId)", reqMethod : RequestMethod.GET )
+		setUrlPath(urlPath: "/settings/roles/\(roleId)" )
+		setRequestMethod(requestMethod: .GET )
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
         let responseJSON = response.getResponseJSON()
@@ -117,8 +128,10 @@ internal class UserAPIHandler
     
     internal func downloadPhoto( size : PhotoSize ) throws -> FileAPIResponse
     {
-        let request : APIRequest = APIRequest( url : PHOTOURL, reqMethod : RequestMethod.GET )
-        request.addParam( paramName : "photo_size", paramVal : size.rawValue )
+		setUrl(url: PHOTOURL )
+		setRequestMethod(requestMethod: .GET )
+		addRequestParam(param: "photo_size" , value: size.rawValue )
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         return try request.downloadFile()
     }
