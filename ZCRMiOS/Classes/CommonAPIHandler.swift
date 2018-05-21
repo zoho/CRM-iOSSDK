@@ -33,10 +33,7 @@ internal class CommonAPIHandler : APIHandler
 	private var requestParams : [ String : String ] = [String : String]()
 	private var requestHeaders : [ String : String ] = [String : String]()
 	private var isOAuthRequest : Bool = true
-	init() {
-		
-	}
-	
+
 	internal func setUrl( url : URL )
 	{
 		self.url = url
