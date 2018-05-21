@@ -6,7 +6,7 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
-internal class RelatedListAPIHandler
+internal class RelatedListAPIHandler : CommonAPIHandler
 {
 	private var parentRecord : ZCRMRecord
 	private var relatedList : ZCRMModuleRelation
@@ -32,18 +32,23 @@ internal class RelatedListAPIHandler
     internal func getRecords(page : Int, per_page : Int, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String? ) throws -> BulkAPIResponse
 	{
 		var records : [ZCRMRecord] = [ZCRMRecord]()
-        let request : APIRequest = APIRequest(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())", reqMethod: RequestMethod.GET)
-		request.addParam(paramName: "page", paramVal: String(page))
-		request.addParam(paramName: "per_page", paramVal: String(per_page))
-        if(sortByField != nil)
+		setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())" )
+		setRequestMethod(requestMethod: .GET )
+		addRequestParam(param:  "page" , value: String(page) )
+		addRequestParam(param: "per_page", value: String(per_page) )
+        if(sortByField.notNilandEmpty)
         {
-            request.addParam(paramName: "sort_by", paramVal: sortByField!)
-            request.addParam(paramName: "sort_order", paramVal: sortOrder!.rawValue)
+			addRequestParam(param: "sort_by" , value: sortByField! )
         }
-        if ( modifiedSince != nil )
+		if(sortOrder != nil )
+		{
+			addRequestParam(param: "sort_order" , value: sortOrder!.rawValue )
+		}
+        if ( modifiedSince.notNilandEmpty )
         {
-            request.addHeader( headerName : "If-Modified-Since", headerVal : modifiedSince! )
+			addRequestHeader(header: "If-Modified-Since" , value : modifiedSince! )
         }
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
 		
         let response = try request.getBulkAPIResponse()
@@ -66,18 +71,23 @@ internal class RelatedListAPIHandler
 	internal func getNotes(page : Int, per_page : Int, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String?) throws -> BulkAPIResponse
 	{
 		var notes : [ZCRMNote] = [ZCRMNote]()
-        let request : APIRequest = APIRequest(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())", reqMethod: RequestMethod.GET)
-		request.addParam(paramName: "page", paramVal: String(page))
-		request.addParam(paramName: "per_page", paramVal: String(per_page))
-        if(sortByField != nil)
+		setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())" )
+		setRequestMethod(requestMethod: .GET )
+		addRequestParam(param:  "page" , value: String(page) )
+		addRequestParam(param: "per_page", value: String(per_page) )
+        if(sortByField.notNilandEmpty)
         {
-            request.addParam(paramName: "sort_by", paramVal: sortByField!)
-            request.addParam(paramName: "sort_order", paramVal: sortOrder!.rawValue)
+			addRequestParam(param: "sort_by" , value: sortByField! )
         }
-        if ( modifiedSince != nil )
+		if(sortOrder != nil)
+		{
+			addRequestParam(param: "sort_order" , value: sortOrder!.rawValue )
+		}
+        if ( modifiedSince.notNilandEmpty)
         {
-            request.addHeader( headerName : "If-Modified-Since", headerVal : modifiedSince! )
+            addRequestHeader(header: "If-Modified-Since" , value : modifiedSince! )
         }
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
 		
         let response = try request.getBulkAPIResponse()
@@ -98,13 +108,15 @@ internal class RelatedListAPIHandler
 	internal func getAllAttachmentsDetails(page : Int, per_page : Int, modifiedSince : String?) throws -> BulkAPIResponse
 	{
 		var attachments : [ZCRMAttachment] = [ZCRMAttachment]()
-        let request : APIRequest = APIRequest(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())", reqMethod: RequestMethod.GET)
-		request.addParam(paramName: "page", paramVal: String(page))
-		request.addParam(paramName: "per_page", paramVal: String(per_page))
-        if ( modifiedSince != nil )
+		setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())" )
+		setRequestMethod(requestMethod: .GET )
+		addRequestParam(param:  "page" , value: String(page) )
+		addRequestParam(param: "per_page", value: String(per_page) )
+        if ( modifiedSince.notNilandEmpty)
         {
-            request.addHeader( headerName : "If-Modified-Since", headerVal : modifiedSince! )
+			addRequestHeader(header: "If-Modified-Since" , value : modifiedSince! )
         }
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
 		
         let response = try request.getBulkAPIResponse()
@@ -124,7 +136,10 @@ internal class RelatedListAPIHandler
 	
     internal func uploadAttachment( filePath : String ) throws -> APIResponse
     {
-        let request : APIRequest = APIRequest( urlPath : "/\(self.parentRecord.getModuleAPIName())/\(String( self.parentRecord.getId()))/\(self.relatedList.getAPIName())", reqMethod : RequestMethod.POST )
+		
+		setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String( self.parentRecord.getId()))/\(self.relatedList.getAPIName())" )
+		setRequestMethod(requestMethod: .POST )
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         let response = try request.uploadFile( filePath : filePath )
         
@@ -138,8 +153,11 @@ internal class RelatedListAPIHandler
     
     internal func uploadLinkAsAttachment( attachmentURL : String ) throws -> APIResponse
     {
-        let request : APIRequest = APIRequest( urlPath : "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())", reqMethod : RequestMethod.POST )
-        request.addParam( paramName : "attachmentUrl", paramVal : attachmentURL )
+		
+		setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())" )
+		addRequestParam(param:  "attachmentUrl" , value: attachmentURL )
+		setRequestMethod(requestMethod: .POST )
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         let response = try request.uploadLink()
         let responseJSONArray : [ [ String : Any ] ]  = response.getResponseJSON().getArrayOfDictionaries( key : "data" )
@@ -150,14 +168,19 @@ internal class RelatedListAPIHandler
     
 	internal func downloadAttachment(attachmentId: Int64) throws -> FileAPIResponse
 	{
-		let request : APIRequest = APIRequest(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String( self.parentRecord.getId()))/\(self.relatedList.getAPIName())/\(attachmentId)", reqMethod: RequestMethod.GET)
+		
+		setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String( self.parentRecord.getId()))/\(self.relatedList.getAPIName())/\(attachmentId)" )
+		setRequestMethod(requestMethod: .GET )
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
 		return try request.downloadFile()
 	}
     
     internal func deleteAttachment( attachmentId : Int64 ) throws -> APIResponse
     {
-        let request = APIRequest( urlPath : "/\(self.parentRecord.getModuleAPIName())/\(String( self.parentRecord.getId()))/\(self.relatedList.getAPIName())/\(attachmentId)", reqMethod: RequestMethod.DELETE )
+		setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String( self.parentRecord.getId()))/\(self.relatedList.getAPIName())/\(attachmentId)" )
+		setRequestMethod(requestMethod: .DELETE )
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
         return response
@@ -165,12 +188,16 @@ internal class RelatedListAPIHandler
 	
 	internal func addNote(note : ZCRMNote) throws -> APIResponse
 	{
-		let request : APIRequest = APIRequest(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String( self.parentRecord.getId()))/\(self.relatedList.getAPIName())", reqMethod: RequestMethod.POST)
+		
 		var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
 		var dataArray : [[String:Any]] = [[String:Any]]()
 		dataArray.append(self.getZCRMNoteAsJSON(note: note))
 		reqBodyObj["data"] = dataArray
-		request.setRequestBody(body: reqBodyObj)
+
+		setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String( self.parentRecord.getId()))/\(self.relatedList.getAPIName())" )
+		setRequestMethod(requestMethod: .POST )
+		setRequestBody(requestBody: reqBodyObj )
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
 		
 		let response = try request.getAPIResponse()
@@ -190,12 +217,15 @@ internal class RelatedListAPIHandler
             throw ZCRMSDKError.ProcessingError("Note ID MUST NOT be nil")
         }
         let noteId : String = String( note.getId()! )
-        let request : APIRequest = APIRequest(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())/\(noteId)", reqMethod: RequestMethod.PUT)
 		var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
 		var dataArray : [[String:Any]] = [[String:Any]]()
 		dataArray.append(self.getZCRMNoteAsJSON(note: note))
 		reqBodyObj["data"] = dataArray
-		request.setRequestBody(body: reqBodyObj)
+		
+		setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())/\(noteId)")
+		setRequestMethod(requestMethod: .PUT )
+		setRequestBody(requestBody: reqBodyObj)
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
 		
 		let response = try request.getAPIResponse()
@@ -215,7 +245,9 @@ internal class RelatedListAPIHandler
             throw ZCRMSDKError.ProcessingError("Note ID MUST NOT be nil")
         }
         let noteId : String = String( note.getId()! )
-		let request : APIRequest = APIRequest(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())/\( noteId )", reqMethod: RequestMethod.DELETE)
+		setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())/\( noteId )" )
+		setRequestMethod(requestMethod: .DELETE )
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
 		return try request.getAPIResponse()
 	}
@@ -319,8 +351,7 @@ internal class RelatedListAPIHandler
     
     internal func addRelation() throws -> APIResponse
     {
-        let request : APIRequest = APIRequest( urlPath : "/\(self.parentRecord.getModuleAPIName())/\(self.parentRecord.getId())/\(self.junctionRecord!.getApiName())/\(self.junctionRecord!.getId())", reqMethod : RequestMethod.PUT )
-        
+		
         var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
         var dataArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
         if( self.junctionRecord!.getRelatedDetails() != nil )
@@ -332,8 +363,13 @@ internal class RelatedListAPIHandler
             dataArray.append( [ String : Any ]() )
         }
         reqBodyObj["data"] = dataArray
-        request.setRequestBody( body : reqBodyObj )
+
+		setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(self.parentRecord.getId())/\(self.junctionRecord!.getApiName())/\(self.junctionRecord!.getId())" )
+		setRequestMethod(requestMethod: .PUT )
+		setRequestBody(requestBody: reqBodyObj )
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
+		
         return try request.getAPIResponse()
     }
     
@@ -350,7 +386,10 @@ internal class RelatedListAPIHandler
     
     internal func deleteRelation() throws -> APIResponse
     {
-        let request : APIRequest = APIRequest( urlPath : "/\(self.parentRecord.getModuleAPIName())/\( String( self.parentRecord.getId() ) )/\(self.junctionRecord!.getApiName())/\(self.junctionRecord!.getId())", reqMethod : RequestMethod.DELETE )
+
+		setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\( String( self.parentRecord.getId() ) )/\(self.junctionRecord!.getApiName())/\(self.junctionRecord!.getId())" )
+		setRequestMethod(requestMethod: .DELETE )
+		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         return try request.getAPIResponse()
     }
