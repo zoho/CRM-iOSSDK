@@ -577,7 +577,7 @@ internal class UserAPIHandler : CommonAPIHandler
         }
         else
         {
-            throw ZCRMSDKError.InValidError( "User must have role" )
+            print( "User must have role" )
         }
         if let role = user.getRole()
         {
@@ -585,7 +585,7 @@ internal class UserAPIHandler : CommonAPIHandler
         }
         else
         {
-            throw ZCRMSDKError.InValidError( "User must have profile" )
+            print( "User must have profile" )
         }
         
         if user.getData() != nil
