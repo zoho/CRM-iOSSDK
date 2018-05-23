@@ -14,7 +14,7 @@ public class ZCRMCustomView : ZCRMEntity
 	private var name : String?
 	private var displayName : String?
 	private var isDefault : Bool = true
-	private var fields : [String] = [String]()
+	private var fields : [String]?
 	private var favouriteSequence : Int = -1
 	private var sortByCol : String?
 	private var sortOrder : SortOrder?
@@ -149,7 +149,7 @@ public class ZCRMCustomView : ZCRMEntity
     /// Set list of fields in the custom view's column.
     ///
     /// - Parameter fieldsAPINames: list of fields to be set in custom view's column
-	internal func setDisplayFields(fieldsAPINames: [String])
+	internal func setDisplayFields(fieldsAPINames: [String]?)
 	{
 		self.fields = fieldsAPINames
 	}
@@ -157,7 +157,7 @@ public class ZCRMCustomView : ZCRMEntity
     /// Returns list of fields in the custom view's column.
     ///
     /// - Returns: list of fields in the custom view's column
-	public func getDisplayFieldsAPINames() -> [String]
+	public func getDisplayFieldsAPINames() -> [String]?
 	{
 		return self.fields
 	}

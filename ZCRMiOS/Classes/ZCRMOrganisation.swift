@@ -270,34 +270,54 @@ public class ZCRMOrganisation : ZCRMEntity
         return self.currency_symbol
     }
 	
-	public func getAllUsers() throws -> BulkAPIResponse
-	{
-		return try UserAPIHandler().getAllUsers( modifiedSince : nil )
-	}
-    
+    public func getAllUsers() throws -> BulkAPIResponse
+    {
+        return try UserAPIHandler().getAllUsers( modifiedSince : nil, page : 1, perPage : 200 )
+    }
+
     public func getAllUsers( modifiedSince : String? ) throws -> BulkAPIResponse
     {
-        return try UserAPIHandler().getAllUsers( modifiedSince : modifiedSince )
+        return try UserAPIHandler().getAllUsers( modifiedSince : modifiedSince, page : 1, perPage : 200 )
     }
-    
+
     public func getAllActiveConfirmedUsers() throws -> BulkAPIResponse
     {
-        return try UserAPIHandler().getAllActiveConfirmedUsers()
+        return try UserAPIHandler().getAllActiveConfirmedUsers( page : 1, perPage : 200 )
     }
     
+    public func getAllActiveConfirmedUsers( page : Int, perPage : Int ) throws -> BulkAPIResponse
+    {
+        return try UserAPIHandler().getAllActiveConfirmedAdmins( page : page, perPage : perPage )
+    }
+
     public func getAllAdminUsers() throws -> BulkAPIResponse
     {
-        return try UserAPIHandler().getAllAdminUsers()
+        return try UserAPIHandler().getAllAdminUsers( page : 1, perPage : 200 )
     }
     
+    public func getAllAdminUsers( page : Int, perPage : Int ) throws -> BulkAPIResponse
+    {
+        return try UserAPIHandler().getAllAdminUsers( page : page, perPage : perPage )
+    }
+
     public func getAllActiveUsers() throws -> BulkAPIResponse
     {
-        return try UserAPIHandler().getAllActiveUsers()
+        return try UserAPIHandler().getAllActiveUsers( page : 1, perPage : 200 )
     }
     
+    public func getAllActiveUsers( page : Int, perPage : Int ) throws -> BulkAPIResponse
+    {
+        return try UserAPIHandler().getAllActiveUsers( page : page, perPage : perPage )
+    }
+
     public func getAllInActiveUsers() throws -> BulkAPIResponse
     {
-        return try UserAPIHandler().getAllDeactiveUsers()
+        return try UserAPIHandler().getAllDeactiveUsers( page : 1, perPage : 200 )
+    }
+    
+    public func getAllInActiveUsers( page : Int, perPage : Int ) throws -> BulkAPIResponse
+    {
+        return try UserAPIHandler().getAllDeactiveUsers( page : page, perPage : perPage )
     }
 	
 	public func getUser(userId : Int64) throws -> APIResponse

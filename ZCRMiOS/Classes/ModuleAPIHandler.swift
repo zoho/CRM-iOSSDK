@@ -129,7 +129,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         customView.setIsDefault(isDefault: cvDetails.optBoolean(key: "default")!)
         customView.setCategory(category: cvDetails.optString(key: "category")!)
         customView.setFavouriteSequence(favourite: cvDetails.optInt(key: "favorite"))
-        customView.setDisplayFields(fieldsAPINames: cvDetails.optArray(key: "fields") as! [String])
+        customView.setDisplayFields(fieldsAPINames: cvDetails.optArray(key: "fields") as? [String])
         customView.setSortByCol(fieldAPIName: cvDetails.optString(key: "sort_by"))
         customView.setSortOrder(sortOrder: cvDetails.optString(key: "sort_order"))
         return customView

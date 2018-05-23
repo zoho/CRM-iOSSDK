@@ -98,7 +98,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         var convertData : [String:Any] = [String:Any]()
         if(assignTo != nil)
         {
-            convertData["assign_to"] = String(assignTo!.getId())
+            convertData["assign_to"] = String(assignTo!.getId()!)
         }
         if(newPotential != nil)
         {
