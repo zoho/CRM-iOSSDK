@@ -24,6 +24,15 @@ public class ZCRMField : ZCRMEntity
 	private var pickListValues : [ ZCRMPickListValue ]?
 	private var formulaReturnType : String?
 	private var formulaExpression : String?
+    
+    private var tooltip : String?
+    private var webhook : Bool?
+    private var isRestricted : Bool?
+    private var restrictedType : String?
+    private var isSupportExport : Bool?
+    private var createdSource : String?
+    private var bussinessCardSupported : Bool?
+    
 	
     /// Initialise the instance of ZCRMField with given field API name.
     ///
@@ -40,6 +49,76 @@ public class ZCRMField : ZCRMEntity
 	{
 		return self.apiName
 	}
+    
+    internal func setTooltip( tooltip : String? )
+    {
+        self.tooltip = tooltip
+    }
+    
+    public func getTooltip() -> String?
+    {
+        return self.tooltip
+    }
+    
+    internal func setWebHook( webhook : Bool? )
+    {
+        self.webhook = webhook
+    }
+    
+    public func getWebhook() -> Bool?
+    {
+        return self.webhook
+    }
+    
+    internal func setIsRestricted( isRestricted : Bool? )
+    {
+        self.isRestricted = isRestricted
+    }
+    
+    public func getIsRestricted() -> Bool?
+    {
+        return self.isRestricted
+    }
+    
+    internal func setRestrictedType( type : String? )
+    {
+        self.restrictedType = type
+    }
+    
+    public func getRestrictedType() -> String?
+    {
+        return self.restrictedType
+    }
+    
+    internal func setIsSupportExport( exportSupported : Bool? )
+    {
+        self.isSupportExport = exportSupported
+    }
+    
+    public func getIsSupportExport() -> Bool?
+    {
+        return self.isSupportExport
+    }
+    
+    internal func setBussinessCardSupported( bussinessCardSupported : Bool? )
+    {
+        self.bussinessCardSupported = bussinessCardSupported
+    }
+    
+    public func getBussinessCardSupported() -> Bool?
+    {
+        return self.bussinessCardSupported
+    }
+    
+    internal func setCreatedSource( createdSource : String )
+    {
+        self.createdSource = createdSource
+    }
+    
+    public func getCreatedSource() -> String
+    {
+        return self.createdSource!
+    }
 	
     /// Set the id of the ZCRMField.
     ///
@@ -311,4 +390,9 @@ public class ZCRMField : ZCRMEntity
 	{
 		return self.formulaExpression
 	}
+}
+
+public class ZCRMPrivateField
+{
+    
 }

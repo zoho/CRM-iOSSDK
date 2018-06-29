@@ -20,6 +20,8 @@ internal protocol APIHandler : class
 	func getRequestParams() -> [ String : String ]
 	
 	func getRequestType() -> Bool
+    
+    func getJSONRootKey() -> String
 	
 }
 
@@ -33,6 +35,7 @@ internal class CommonAPIHandler : APIHandler
 	private var requestParams : [ String : String ] = [String : String]()
 	private var requestHeaders : [ String : String ] = [String : String]()
 	private var isOAuthRequest : Bool = true
+    private var jsonRootKey : String = ""
 
 	internal func setUrl( url : URL )
 	{
@@ -102,4 +105,13 @@ internal class CommonAPIHandler : APIHandler
 	{
 		return self.isOAuthRequest
 	}
+    
+    internal func setJSONRootKey( key : String )
+    {
+        self.jsonRootKey = key
+    }
+    
+    internal func getJSONRootKey() -> String {
+        return self.jsonRootKey
+    }
 }

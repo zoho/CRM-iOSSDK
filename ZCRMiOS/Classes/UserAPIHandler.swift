@@ -10,6 +10,7 @@ internal class UserAPIHandler : CommonAPIHandler
 {
     internal func getUsers(type : String?, modifiedSince : String?, page : Int, perPage : Int ) throws -> BulkAPIResponse
     {
+        setJSONRootKey( key : USERS )
         var allUsers : [ZCRMUser] = [ZCRMUser]()
 		setUrlPath(urlPath: "/users" )
 		setRequestMethod(requestMethod: .GET )
@@ -29,7 +30,7 @@ internal class UserAPIHandler : CommonAPIHandler
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
         {
-            let usersList:[[String:Any]] = responseJSON.getArrayOfDictionaries( key : "users" )
+            let usersList:[[String:Any]] = responseJSON.getArrayOfDictionaries( key : getJSONRootKey() )
             for user in usersList
             {
                 allUsers.append(self.getZCRMUser(userDict: user))
@@ -41,6 +42,7 @@ internal class UserAPIHandler : CommonAPIHandler
     
     internal func getAllProfiles() throws -> BulkAPIResponse
     {
+        setJSONRootKey( key : PROFILES )
         var allProfiles : [ ZCRMProfile ] = [ ZCRMProfile ] ()
 		setUrlPath(urlPath: "/settings/profiles" )
 		setRequestMethod(requestMethod: .GET)
@@ -50,7 +52,7 @@ internal class UserAPIHandler : CommonAPIHandler
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
         {
-            let profileList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : "profiles" )
+            let profileList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : getJSONRootKey() )
             for profile in profileList
             {
                 allProfiles.append( self.getZCRMProfile( profileDetails : profile ) )
@@ -62,6 +64,7 @@ internal class UserAPIHandler : CommonAPIHandler
     
     internal func getAllRoles() throws -> BulkAPIResponse
     {
+        setJSONRootKey( key : ROLES )
         var allRoles : [ ZCRMRole ] = [ ZCRMRole ]()
 		setUrlPath(urlPath:  "/settings/roles" )
 		setRequestMethod(requestMethod: .GET)
@@ -71,7 +74,7 @@ internal class UserAPIHandler : CommonAPIHandler
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
         {
-            let rolesList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : "roles" )
+            let rolesList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : getJSONRootKey() )
             for role in rolesList
             {
                 allRoles.append( self.getZCRMRole( roleDetails : role ) )
@@ -83,6 +86,7 @@ internal class UserAPIHandler : CommonAPIHandler
     
 	internal func getUser(userId : Int64?) throws -> APIResponse
 	{
+        setJSONRootKey( key : USERS )
 		setRequestMethod(requestMethod: .GET )
         if(userId != nil)
         {
@@ -97,24 +101,25 @@ internal class UserAPIHandler : CommonAPIHandler
         print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
 		let responseJSON = response.getResponseJSON()
-		let usersList:[[String : Any]] = responseJSON.getArrayOfDictionaries( key : "users" )
+		let usersList:[[String : Any]] = responseJSON.getArrayOfDictionaries( key : getJSONRootKey() )
 		response.setData(data: self.getZCRMUser(userDict: usersList[0]))
         return response
     }
     
     internal func addUser( user : ZCRMUser ) throws -> APIResponse
     {
+        setJSONRootKey( key : USERS )
         setRequestMethod( requestMethod : .POST )
         setUrlPath( urlPath : "/users" )
         var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
         var dataArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
         dataArray.append( self.getZCRMUserAsJSON( user : user ) )
-        reqBodyObj[ "users" ] = dataArray
+        reqBodyObj[ USERS ] = dataArray
         setRequestBody( requestBody : reqBodyObj )
         let request = APIRequest( handler : self )
         print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
-        let responseJSONArray  = response.getResponseJSON().getArrayOfDictionaries( key : "users" )
+        let responseJSONArray  = response.getResponseJSON().getArrayOfDictionaries( key : getJSONRootKey() )
         let responseJSONData = responseJSONArray[ 0 ]
         let responseDetails : [ String : Any ] = responseJSONData[ "details" ] as! [ String : Any ]
         user.setId( id : Int64( responseDetails[ "id" ] as! String )! )
@@ -125,12 +130,13 @@ internal class UserAPIHandler : CommonAPIHandler
     
     internal func updateUser( user : ZCRMUser ) throws -> APIResponse
     {
+        setJSONRootKey( key : USERS )
         setRequestMethod( requestMethod : .PUT )
         setUrlPath( urlPath : "/users/\( user.getId()! )" )
         var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
         var dataArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
         dataArray.append( self.getZCRMUserAsJSON( user : user ) )
-        reqBodyObj[ "users" ] = dataArray
+        reqBodyObj[ getJSONRootKey() ] = dataArray
         setRequestBody( requestBody : reqBodyObj )
         let request = APIRequest( handler : self )
         print( "Request : \( request.toString() )" )
@@ -154,6 +160,7 @@ internal class UserAPIHandler : CommonAPIHandler
     
     private func searchUsers( criteria : String, page : Int, perPage : Int ) throws -> BulkAPIResponse
     {
+        setJSONRootKey( key : USERS )
         setRequestMethod( requestMethod : .PUT )
         setUrlPath( urlPath : "/users" )
         addRequestParam( param : "filters", value : criteria )
@@ -165,7 +172,7 @@ internal class UserAPIHandler : CommonAPIHandler
         var userList : [ ZCRMUser ] = [ ZCRMUser ]()
         if responseJSON.isEmpty == false
         {
-            let userDetailsList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : "users" )
+            let userDetailsList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : getJSONRootKey() )
             for userDetail in userDetailsList
             {
                 let user : ZCRMUser = self.getZCRMUser( userDict : userDetail )
@@ -178,26 +185,28 @@ internal class UserAPIHandler : CommonAPIHandler
     
     internal func getProfile( profileId : Int64 ) throws -> APIResponse
     {
+        setJSONRootKey( key : PROFILES )
 		setUrlPath(urlPath:  "/settings/profiles/\(profileId)" )
 		setRequestMethod(requestMethod: .GET )
 		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
         let responseJSON = response.getResponseJSON()
-        let profileList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : "profiles" )
+        let profileList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : getJSONRootKey() )
         response.setData( data : self.getZCRMProfile(profileDetails: profileList[ 0 ] ) )
         return response
     }
     
     internal func getRole( roleId : Int64 ) throws -> APIResponse
     {
+        setJSONRootKey( key : ROLES )
 		setUrlPath(urlPath: "/settings/roles/\(roleId)" )
 		setRequestMethod(requestMethod: .GET )
 		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
         let responseJSON = response.getResponseJSON()
-        let rolesList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : "roles" )
+        let rolesList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : getJSONRootKey() )
         response.setData( data : self.getZCRMRole( roleDetails : rolesList[ 0 ] ) )
         return response
     }

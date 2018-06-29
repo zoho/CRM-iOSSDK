@@ -20,6 +20,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     
     internal func createRecords(records: [ZCRMRecord]) throws -> BulkAPIResponse
     {
+        setJSONRootKey( key : DATA )
         if(records.count > 100)
         {
             throw ZCRMSDKError.MaxRecordCountExceeded("Cannot process more than 100 records at a time.")
@@ -30,7 +31,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         {
             dataArray.append(EntityAPIHandler(record: record).getZCRMRecordAsJSON() as Any as! [String : Any])
         }
-        reqBodyObj["data"] = dataArray
+        reqBodyObj[getJSONRootKey()] = dataArray
 		
 		setUrlPath(urlPath :  "/\(self.module.getAPIName())" )
 		setRequestMethod(requestMethod : .POST )
@@ -61,8 +62,9 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 		
     }
 	
-	internal func getRecords(cvId : Int64? ,fields : [String]? ,  sortByField : String? , sortOrder : SortOrder? , converted : Bool? , approved : Bool? , page : Int , per_page : Int , modifiedSince : String? ) throws -> BulkAPIResponse
+    internal func getRecords(cvId : Int64? ,fields : [String]? ,  sortByField : String? , sortOrder : SortOrder? , converted : Bool? , approved : Bool? , page : Int , per_page : Int , modifiedSince : String?, includePrivateFields : Bool ) throws -> BulkAPIResponse
 	{
+        setJSONRootKey( key : DATA )
 		var records : [ZCRMRecord] = [ZCRMRecord]()
 		setUrlPath(urlPath: "/\(self.module.getAPIName())" )
 		setRequestMethod( requestMethod : .GET )
@@ -107,6 +109,10 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         {
          	addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
         }
+        if( includePrivateFields == true )
+        {
+            addRequestParam( param : "include", value : PRIVATE_FIELDS )
+        }
 		addRequestParam(param: "page" , value: String(page) )
 		addRequestParam(param: "per_page" , value: String(per_page) )
 		let request : APIRequest = APIRequest(handler: self )
@@ -116,7 +122,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
         {
-            let recordsDetailsList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: "data")
+            let recordsDetailsList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: getJSONRootKey())
             for recordDetails in recordsDetailsList
             {
                 let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordDetails.getInt64(key: "id"))
@@ -151,6 +157,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 	
     internal func searchRecords( searchKey : String, searchValue : String, page : Int, per_page : Int) throws -> BulkAPIResponse
 	{
+        setJSONRootKey( key : DATA )
 		var records : [ZCRMRecord] = [ZCRMRecord]()
 		setUrlPath(urlPath : "/\(self.module.getAPIName())/search" )
 		setRequestMethod(requestMethod : .GET )
@@ -164,7 +171,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
         {
-            let recordsList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: "data")
+            let recordsList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: getJSONRootKey())
             for recordDetails in recordsList
             {
                 let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordDetails.getInt64(key: "id"))
@@ -178,6 +185,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 	
 	internal func updateRecords(ids: [Int64], fieldAPIName: String, value: Any?) throws -> BulkAPIResponse
 	{
+        setJSONRootKey( key : DATA )
         if(ids.count > 100)
         {
             throw ZCRMSDKError.MaxRecordCountExceeded("Cannot process more than 100 records at a time.")
@@ -191,7 +199,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 			dataJSON[fieldAPIName] = value
 			dataArray.append(dataJSON)
 		}
-		reqBodyObj["data"] = dataArray
+		reqBodyObj[getJSONRootKey()] = dataArray
 
 		setUrlPath(urlPath : "/\(self.module.getAPIName())")
 		setRequestMethod(requestMethod : .PUT )
@@ -225,6 +233,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     
     internal func upsertRecords( records : [ ZCRMRecord ] ) throws -> BulkAPIResponse
     {
+        setJSONRootKey( key : DATA )
         if ( records.count > 100 )
         {
             throw ZCRMSDKError.MaxRecordCountExceeded("Cannot process more than 100 records at a time.")
@@ -236,7 +245,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             let recordJSON = EntityAPIHandler(record : record ).getZCRMRecordAsJSON() as Any as! [String : Any]
             dataArray.append( recordJSON as Any as! [String : Any] )
         }
-        reqBodyObj["data"] = dataArray
+        reqBodyObj[getJSONRootKey()] = dataArray
 		
 		setUrlPath(urlPath:  "/\( self.module.getAPIName() )/upsert")
 		setRequestMethod(requestMethod: .POST )
@@ -359,4 +368,5 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             }
         }
     }
+    
 }

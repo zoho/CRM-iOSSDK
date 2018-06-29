@@ -19,7 +19,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
 	
     internal func getAllLayouts( modifiedSince : String? ) throws -> BulkAPIResponse
     {
-		
+		setJSONRootKey( key : LAYOUTS )
 		setUrlPath(urlPath: "/settings/layouts")
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param: "module" , value: self.module.getAPIName())
@@ -35,7 +35,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
         {
-            response.setData( data : self.getAllLayouts( layoutsList : responseJSON.getArrayOfDictionaries( key : "layouts" ) ) )
+            response.setData( data : self.getAllLayouts( layoutsList : responseJSON.getArrayOfDictionaries( key : getJSONRootKey() ) ) )
         }
 		
 		
@@ -44,6 +44,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
     
     internal func getLayout(layoutId : Int64) throws -> APIResponse
     {
+        setJSONRootKey( key : LAYOUTS )
 		setUrlPath(urlPath:  "/settings/layouts/\(layoutId)")
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param: "module" , value: self.module.getAPIName())
@@ -52,13 +53,14 @@ internal class ModuleAPIHandler : CommonAPIHandler
 		
         let response = try request.getAPIResponse()
         let responseJSON = response.getResponseJSON()
-        let layoutsList:[[String : Any]] = responseJSON.getArrayOfDictionaries( key : "layouts" )
+        let layoutsList:[[String : Any]] = responseJSON.getArrayOfDictionaries( key : getJSONRootKey() )
         response.setData(data: self.getZCRMLayout(layoutDetails: layoutsList[0]))
         return response
     }
     
     internal func getAllFields( modifiedSince : String? ) throws -> BulkAPIResponse
     {
+        setJSONRootKey( key : FIELDS )
 		setUrlPath(urlPath: "/settings/fields")
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param: "module" , value: self.module.getAPIName())
@@ -74,14 +76,14 @@ internal class ModuleAPIHandler : CommonAPIHandler
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
         {
-            response.setData( data : self.getAllFields( allFieldsDetails : responseJSON.getArrayOfDictionaries( key : "fields" ) ) )
+            response.setData( data : self.getAllFields( allFieldsDetails : responseJSON.getArrayOfDictionaries( key : getJSONRootKey() ) ) )
         }
         return response
     }
 
     internal func getAllCustomViews( modifiedSince : String? ) throws -> BulkAPIResponse
     {
- 
+        setJSONRootKey( key : CUSTOM_VIEWS )
 		setUrlPath(urlPath: "/settings/custom_views")
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param: "module" , value: self.module.getAPIName())
@@ -96,7 +98,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
         var allCVs : [ZCRMCustomView] = [ZCRMCustomView]()
-        let allCVsList : [[String:Any]] = responseJSON.getArrayOfDictionaries( key : "custom_views" )
+        let allCVsList : [[String:Any]] = responseJSON.getArrayOfDictionaries( key : getJSONRootKey() )
         for cvDetails in allCVsList
         {
             allCVs.append(self.getZCRMCustomView(cvDetails: cvDetails))
@@ -105,15 +107,57 @@ internal class ModuleAPIHandler : CommonAPIHandler
         return response
     }
     
+    internal func getRelatedList( id : Int64 ) throws -> APIResponse
+    {
+        setJSONRootKey( key : "related_lists" )
+        setUrlPath( urlPath : "settings/related_lists/\(id)" )
+        setRequestMethod( requestMethod : .GET )
+        addRequestParam( param : "module", value : self.module.getAPIName() )
+        let request : APIRequest = APIRequest(handler: self)
+        print( "Request : \( request.toString() )" )
+        
+        let response = try request.getAPIResponse()
+        let responseJSON = response.responseJSON
+        response.setData( data : self.getAllRelatedLists( relatedListsDetails : responseJSON.getArrayOfDictionaries( key : getJSONRootKey() ) )[ 0 ] )
+        return response
+    }
+    
+    internal func getAllRelatedLists() throws -> BulkAPIResponse
+    {
+        setJSONRootKey( key : "related_lists" )
+        setUrlPath( urlPath : "settings/related_lists" )
+        setRequestMethod( requestMethod : .GET )
+        addRequestParam( param : "module", value : self.module.getAPIName() )
+        let request : APIRequest = APIRequest(handler: self)
+        print( "Request : \( request.toString() )" )
+        
+        let response = try request.getBulkAPIResponse()
+        let responseJSON = response.getResponseJSON()
+        
+        response.setData( data : self.getAllRelatedLists( relatedListsDetails : responseJSON.getArrayOfDictionaries( key : getJSONRootKey() ) ) )
+        return response
+    }
+    
+    private func getAllRelatedLists( relatedListsDetails : [ [ String : Any ] ] ) -> [ ZCRMModuleRelation ]
+    {
+        var relatedLists : [ ZCRMModuleRelation ] = [ ZCRMModuleRelation ]()
+        for relatedListDetials in relatedListsDetails
+        {
+            relatedLists.append( self.getZCRMModuleRelation( relationListDetails : relatedListDetials ) )
+        }
+        return relatedLists
+    }
+    
     internal func getCustomView( cvId : Int64 ) throws -> APIResponse
     {
+        setJSONRootKey( key : CUSTOM_VIEWS )
 		setUrlPath(urlPath: "/settings/custom_views/\(cvId)" )
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param: "module" , value: self.module.getAPIName() )
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
-        let cvArray : [ [ String : Any ] ] = response.getResponseJSON().getArrayOfDictionaries( key : "custom_views" )
+        let cvArray : [ [ String : Any ] ] = response.getResponseJSON().getArrayOfDictionaries( key : getJSONRootKey() )
         response.setData( data : getZCRMCustomView( cvDetails : cvArray[ 0 ] ) )
         return response
     }
@@ -193,6 +237,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         section.setColumnCount(colCount: sectionDetails.optInt(key: "column_count"))
         section.setSequence(sequence: sectionDetails.optInt(key: "sequence_number"))
         section.setFields(allFields: self.getAllFields(allFieldsDetails: sectionDetails.getArrayOfDictionaries(key: "fields") ))
+        section.setIsSubformSection( isSubformSection : sectionDetails.getBoolean( key : "isSubformSection" ) )
         return section
     }
     
@@ -221,6 +266,10 @@ internal class ModuleAPIHandler : CommonAPIHandler
         field.setMandatory(isMandatory: fieldDetails.optBoolean(key: "required"))
         field.setSequenceNumber(sequenceNo: fieldDetails.optInt(key: "sequence_number"))
         field.setReadOnly(isReadOnly: fieldDetails.optBoolean(key: "read_only"))
+        field.setTooltip(tooltip: fieldDetails.optString(key: "tooltip"))
+        field.setWebHook(webhook: fieldDetails.optBoolean(key: "webhook"))
+        field.setCreatedSource(createdSource: fieldDetails.getString(key: "created_source"))
+        field.setBussinessCardSupported(bussinessCardSupported: fieldDetails.optBoolean(key: "businesscard_supported"))
         if ( fieldDetails.hasValue( forKey : "pick_list_values" ) )
         {
             let pickListValues = fieldDetails.getArrayOfDictionaries( key : "pick_list_values" )
@@ -268,7 +317,25 @@ internal class ModuleAPIHandler : CommonAPIHandler
             }
             field.setSubLayoutsPresent(subLayoutsPresent: layoutsPresent)
         }
+        if( fieldDetails.hasValue( forKey : "private" ) )
+        {
+            let privateDetails : [ String : Any ] = fieldDetails.getDictionary( key : "private" ) 
+            field.setIsRestricted( isRestricted : privateDetails.optBoolean( key : "restricted" ) )
+            field.setIsSupportExport( exportSupported : privateDetails.optBoolean( key : "export" ) )
+            field.setRestrictedType( type : privateDetails.optString( key : "type" )  )
+        }
         return field
+    }
+    
+    internal func getZCRMModuleRelation( relationListDetails : [ String : Any ] ) -> ZCRMModuleRelation
+    {
+        let moduleRelation : ZCRMModuleRelation = ZCRMModuleRelation( parentModuleAPIName : module.getAPIName(), relatedListId : relationListDetails.getInt64( key : "id" ) )
+        moduleRelation.setAPIName( apiName : relationListDetails.optString( key : "api_name" ) )
+        moduleRelation.setLabel( label : relationListDetails.optString( key : "display_label" ) )
+        moduleRelation.setModule( module : relationListDetails.optString( key : "module" ) )
+        moduleRelation.setName( name : relationListDetails.optString( key : "name" ) )
+        moduleRelation.setType( type : relationListDetails.optString( key : "type" ) )
+        return moduleRelation
     }
 	
 }

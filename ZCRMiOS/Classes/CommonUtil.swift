@@ -10,6 +10,11 @@ import Foundation
 
 let PhotoSupportedModules = ["Leads", "Contacts"]
 
+internal enum UnexpectedError : Error
+{
+    case ResponseNil( String )
+}
+
 public enum ZCRMSDKError : Error
 {
     case UnAuthenticatedError(String)
@@ -40,6 +45,14 @@ public enum PhotoSize : String
     case ORIGINAL = "original"
     case FAVICON = "favicon"
     case MEDIUM = "medium"
+}
+
+public enum ConsentProcessThrough : String
+{
+    case EMAIL = "Email"
+    case PHONE = "Phone"
+    case SURVEY = "Survey"
+    case SOCIAL = "Social"
 }
 
 internal extension Dictionary
@@ -502,6 +515,15 @@ let CODE_SUCCESS : String = "success"
 let INFO : String = "info"
 let DETAILS : String = "details"
 
+let MODULES : String = "modules"
+let USERS : String = "users"
+let ROLES : String = "roles"
+let PROFILES : String = "profiles"
+let LAYOUTS : String = "layouts"
+let FIELDS : String = "fields"
+let CUSTOM_VIEWS : String = "custom_views"
+
+let PRIVATE_FIELDS = "private_fields"
 let PER_PAGE : String = "per_page"
 let PAGE : String = "page"
 let COUNT : String = "count"

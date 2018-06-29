@@ -16,23 +16,29 @@ internal class OrganizationAPIHandler : CommonAPIHandler
     
     internal func getOrganizationDetails() throws -> APIResponse
     {
+        setJSONRootKey( key : "org" )
 		setUrlPath(urlPath:  "/org" )
 		setRequestMethod(requestMethod: .GET)
         let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
         let response : APIResponse = try request.getAPIResponse()
         let responseJSON : [ String :  Any ] = response.responseJSON
-        let orgArray = responseJSON.getArrayOfDictionaries( key : "org" )
+        let orgArray = responseJSON.getArrayOfDictionaries( key : getJSONRootKey() )
         response.setData( data : self.getZCRMOrganization( orgDetails : orgArray[ 0 ] ) )
         return response
     }
     
+    // check optional property in organization API
     private func getZCRMOrganization( orgDetails : [ String : Any ] ) -> ZCRMOrganisation
     {
         let organization : ZCRMOrganisation = ZCRMOrganisation()
         if( orgDetails.hasValue( forKey : "id" ) )
         {
             organization.setOrgId( orgId : orgDetails.getInt64( key : "id" ) )
+        }
+        if( orgDetails.hasValue( forKey : "fax" ) )
+        {
+            organization.setFax( fax : orgDetails.getString( key : "fax" ) )
         }
         if( orgDetails.hasValue( forKey : "company_name" ) )
         {
@@ -121,6 +127,10 @@ internal class OrganizationAPIHandler : CommonAPIHandler
         if( orgDetails.hasValue( forKey : "gapps_enabled" ) )
         {
             organization.setGappsEnabled( gappsEnabled : orgDetails.getBoolean( key : "gapps_enabled" ) )
+        }
+        if( orgDetails.hasValue( forKey : "privacy_settings" ) )
+        {
+            organization.setPrivacySettingsEnabled( privacyEnabled : orgDetails.getBoolean( key : "privacy_settings" ) )
         }
         return organization
     }

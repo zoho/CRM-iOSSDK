@@ -49,6 +49,7 @@ internal class APIRequest
     private var request : URLRequest?
     private var url : URL?
 	private var isOAuth : Bool = true
+    private var jsonRootKey : String = ""
 	
 	init( handler : APIHandler)
 	{
@@ -65,6 +66,7 @@ internal class APIRequest
 		self.headers = handler.getRequestHeaders()
 		self.requestBody = handler.getRequestBody()
 		self.isOAuth = handler.getRequestType()
+        self.jsonRootKey = handler.getJSONRootKey()
 	}
 	
     private func authenticateRequest()
@@ -73,10 +75,16 @@ internal class APIRequest
         {
             self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( ZCRMLoginHandler().getOauth2Token() )" )
         }
-        else
+        else if( APPTYPE == "ZVCRM" )
         {
             self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( ZVCRMLoginHandler().getOauth2Token() )" )
         }
+        else if( APPTYPE == "ZCRMCP" )
+        {
+            self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( ZVCRMLoginHandler().getOauth2Token() )" )
+            self.addHeader( headerName : "X-CRMPORTAL", headerVal : "SDKCLIENT" )
+        }
+        self.addHeader( headerName : "User-Agent", headerVal : "Zoho CRM iOS SDK" )
     }
 	
     private func addHeader(headerName : String, headerVal : String)
@@ -121,61 +129,28 @@ internal class APIRequest
         }
     }
     
-    internal func getResponse() throws -> ([String : Any])
-    {
-        let sema = DispatchSemaphore(value: 0)
-        self.initialiseRequest()
-        var urlResponse : URLResponse?
-        var responseData : Data?
-        URLSession.shared.dataTask(with: self.request!, completionHandler: { data, response, err in
-            responseData = data
-            urlResponse = response
-            sema.signal()
-        }).resume()
-        sema.wait()
-        try self.checkForException(response: urlResponse, responseData: responseData)
-        let jsonStr : Any? = try? JSONSerialization.jsonObject(with: responseData!, options: [])
-        var responseJSON : [String : Any] = [String : Any]()
-        if let tempJSON = jsonStr as? [String : Any]
-        {
-            responseJSON = tempJSON
-        }
-        return responseJSON
-    }
-    
     internal func getAPIResponse() throws -> APIResponse
     {
-        let sema = DispatchSemaphore(value: 0)
         self.initialiseRequest()
         var urlResponse : HTTPURLResponse = HTTPURLResponse()
         var responseData : Data?
-        var error : Error? = nil
-        URLSession.shared.dataTask(with: self.request!, completionHandler: { data, response, err in
+        try self.makeRequest(completion: { ( response, data ) in
+            urlResponse = response
             responseData = data
-            urlResponse = response as! HTTPURLResponse
-            sema.signal()
-        }).resume()
-        sema.wait()
-        if error != nil
-        {
-            throw ZCRMSDKError.ProcessingError( error!.localizedDescription )
-        }
-        return try APIResponse(response: urlResponse, responseData: responseData)
+        } )
+        return try APIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
     }
     
     internal func getBulkAPIResponse() throws -> BulkAPIResponse
     {
-        let sema = DispatchSemaphore(value: 0)
         self.initialiseRequest()
         var urlResponse : HTTPURLResponse = HTTPURLResponse()
         var responseData : Data?
-        URLSession.shared.dataTask(with: self.request!, completionHandler: { data, response, err in
+        try self.makeRequest( completion : { ( response, data ) in
+            urlResponse = response
             responseData = data
-			urlResponse = response as! HTTPURLResponse
-            sema.signal()
-        }).resume()
-        sema.wait()
-        return try BulkAPIResponse(response: urlResponse, responseData: responseData)
+        } )
+        return try BulkAPIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey)
     }
     
     internal func uploadLink() throws -> APIResponse
@@ -184,14 +159,11 @@ internal class APIRequest
         self.createMultipartRequest( bodyData : Data(), boundary : boundary )
         var urlResponse : HTTPURLResponse = HTTPURLResponse()
         var responseData : Data?
-        let sema = DispatchSemaphore( value : 0 )
-        URLSession.shared.dataTask( with : self.request!, completionHandler : { data, response, error in
+        try self.makeRequest( completion : { ( response, data ) in
+            urlResponse = response
             responseData = data
-            urlResponse = response as! HTTPURLResponse
-            sema.signal()
-        } ).resume()
-        sema.wait()
-        return try APIResponse( response : urlResponse, responseData : responseData )
+        } )
+        return try APIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
     }
     
     internal func uploadFile( filePath : String ) throws -> APIResponse
@@ -202,14 +174,44 @@ internal class APIRequest
         createMultipartRequest( bodyData : httpBodyData, boundary : boundary )
         var urlResponse : HTTPURLResponse = HTTPURLResponse()
         var responseData : Data?
-        let sema = DispatchSemaphore( value : 0 )
-        URLSession.shared.dataTask( with : self.request!, completionHandler : { data, response, error in
+        try self.makeRequest( completion : { ( response, data ) in
+            urlResponse = response
             responseData = data
-            urlResponse = response as! HTTPURLResponse
+        } )
+        return try APIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+    }
+    
+    private func makeRequest( completion : @escaping ( HTTPURLResponse, Data? ) -> () ) throws
+    {
+        let sema = DispatchSemaphore( value : 0 )
+        var error : Error? = nil
+        var isResponseNil = false
+        URLSession.shared.dataTask( with : self.request!, completionHandler : { data, response, err in
+            guard err == nil else
+            {
+                error = err
+                return
+            }
+            if let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse
+            {
+                completion( httpResponse, data )
+            }
+            else
+            {
+                isResponseNil = true
+                return
+            }
             sema.signal()
-        } ).resume()
+        }).resume()
         sema.wait()
-        return try APIResponse( response : urlResponse, responseData : responseData )
+        if( isResponseNil == true )
+        {
+            throw UnexpectedError.ResponseNil( "Response is nil." )
+        }
+        if( error != nil )
+        {
+            throw ZCRMSDKError.ProcessingError( error!.localizedDescription )
+        }
     }
     
     private func createMultipartRequest( bodyData : Data, boundary : String )
@@ -270,26 +272,6 @@ internal class APIRequest
             throw ZCRMSDKError.ProcessingError( error!.localizedDescription )
         }
         return try FileAPIResponse(response: fileResponse!, tempLocalUrl: localUrl!)
-    }
-    
-    private func checkForException(response : URLResponse?, responseData : Data?) throws
-    {
-        let httpResponse = response as! HTTPURLResponse
-        let responseCode : HTTPStatusCode = HTTPStatusCode(rawValue: httpResponse.statusCode)!
-        if(faultyStatusCodes.contains(responseCode))
-        {
-            if(responseCode == HTTPStatusCode.NO_CONTENT)
-            {
-                throw ZCRMSDKError.InValidError("The given id seems to be invalid.")
-            }
-            else
-            {
-                let responseJSON = try? JSONSerialization.jsonObject(with: responseData!, options: [])
-                let errJSON = (responseJSON as? [String:Any])!
-                let errMsg : String = "\(errJSON["status"]!) - \(errJSON["message"]!)"
-                throw ZCRMSDKError.ProcessingError(errMsg)
-            }
-        }
     }
     
     public func toString() -> String

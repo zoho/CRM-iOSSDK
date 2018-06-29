@@ -20,6 +20,7 @@ public class ZCRMOrganisation : ZCRMEntity
     private var website : String?
     private var mobile : String?
     private var phone : String?
+    private var fax : String?
     
     private var employee_count : String?
     private var description : String?
@@ -37,6 +38,7 @@ public class ZCRMOrganisation : ZCRMEntity
     
     private var mc_status : Bool?
     private var gapps_enabled : Bool?
+    private var privacySettingsEnable : Bool?
     
     public init() {}
     
@@ -128,6 +130,16 @@ public class ZCRMOrganisation : ZCRMEntity
     public func getPhone() -> String?
     {
         return self.phone
+    }
+    
+    internal func setFax( fax : String? )
+    {
+        self.fax = fax
+    }
+    
+    public func getFax() -> String?
+    {
+        return self.fax
     }
     
     internal func setEmployeeCount( count : String )
@@ -238,6 +250,19 @@ public class ZCRMOrganisation : ZCRMEntity
     public func getMcStatus() -> Bool?
     {
         return self.mc_status
+    }
+    
+    internal func setPrivacySettingsEnabled( privacyEnabled : Bool )
+    {
+        self.privacySettingsEnable = privacyEnabled
+    }
+    
+    public func getPrivacySettingsEnabled() -> Bool
+    {
+        if privacySettingsEnable == nil {
+            self.privacySettingsEnable = false
+        }
+        return self.privacySettingsEnable!
     }
     
     internal func setGappsEnabled( gappsEnabled : Bool )

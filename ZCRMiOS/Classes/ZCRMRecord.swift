@@ -29,6 +29,8 @@ public class ZCRMRecord : ZCRMEntity
     private var modifiedTime : String?
     private var layout : ZCRMLayout?
     
+    private var dataProcessingBasicDetails : ZCRMDataProcessBasicDetails?
+    
     /// Initialize the ZCRMRecord with the given module.
     ///
     /// - Parameter moduleAPIName: module whose associated ZCRMRecord to be initialized
@@ -75,7 +77,7 @@ public class ZCRMRecord : ZCRMEntity
     /// Set the lookup label of the ZCRMRecord.
     ///
     /// - Parameter label: lookup label of the ZCRMRecord
-    internal func setLookupLabel(label : String)
+    internal func setLookupLabel(label : String?)
     {
         self.lookupLabel = label
     }
@@ -181,6 +183,16 @@ public class ZCRMRecord : ZCRMEntity
     public func getLayout() -> ZCRMLayout?
     {
         return self.layout
+    }
+    
+    public func setDataProcessingBasicDetails( details : ZCRMDataProcessBasicDetails? )
+    {
+        self.dataProcessingBasicDetails = details
+    }
+    
+    public func getDataProcessingBasicDetails() -> ZCRMDataProcessBasicDetails?
+    {
+        return self.dataProcessingBasicDetails
     }
     
     /// Set the field value to the specified field name is mapped.

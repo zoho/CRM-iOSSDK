@@ -13,8 +13,7 @@ public class ZCRMModule : ZCRMEntity
 	private var singularLabel : String?
 	private var pluralLabel : String?
 	private var id : Int64?
-	
-	private var customModule : Bool?
+    
 	private var creatable : Bool?
 	private var viewable : Bool?
 	private var convertible : Bool?
@@ -30,6 +29,17 @@ public class ZCRMModule : ZCRMEntity
 	private var businessCardFields : [ZCRMField]?
 	private var relatedLists : [ZCRMModuleRelation]?
     private var accessibleProfiles : [ ZCRMProfile ]?
+    
+    private var globalSearchSupported : Bool?
+    private var visibility : Int?
+    private var apiSupported : Bool?
+    private var quickCreate : Bool?
+    private var scoringSupported : Bool?
+    private var sequenceNumber : Int?
+    private var generatedType : String?
+    private var bussinessCardFieldLimit : Int?
+    private var webLink : String?
+    
 	
     /// Initialize the instance of a module with the given module API name.
     ///
@@ -109,22 +119,96 @@ public class ZCRMModule : ZCRMEntity
 	{
 		return self.pluralLabel
 	}
-	
-    /// Set true if the module is custom module
-    ///
-    /// - Parameter isCustomModule: true if the module is custom module
-	internal func setIsCustomModule(isCustomModule : Bool?)
-	{
-		self.customModule = isCustomModule
-	}
-	
-    /// Returns true if the module is custom module
-    ///
-    /// - Returns: true if the module is custom module
-	public func isCustomModule() -> Bool?
-	{
-		return self.customModule
-	}
+    
+    internal func setIsGlobalSearchSupported( isSupport : Bool? )
+    {
+        self.globalSearchSupported = isSupport
+    }
+    
+    public func getIsGlobalSearchSupported() -> Bool?
+    {
+        return self.globalSearchSupported
+    }
+    
+    internal func setVisibility( visible : Int? )
+    {
+        self.visibility = visible
+    }
+    
+    public func getVisibility() -> Int?
+    {
+        return self.visibility
+    }
+    
+    internal func setIsAPISupported( isSupport : Bool? )
+    {
+        self.apiSupported = isSupport
+    }
+    
+    public func getIsAPISupported() -> Bool?
+    {
+        return self.apiSupported
+    }
+    
+    internal func setGeneratedType( type : String )
+    {
+        self.generatedType = type
+    }
+    
+    public func getGeneratedType() -> String
+    {
+        return self.generatedType!
+    }
+    
+    internal func setIsQuickCreate( isQuick : Bool? )
+    {
+        self.quickCreate = isQuick
+    }
+    
+    public func getIsQuickCreate() -> Bool?
+    {
+        return self.quickCreate
+    }
+    
+    internal func setIsScoringSupported( isSupport : Bool? )
+    {
+        self.scoringSupported = isSupport
+    }
+    
+    public func getIsScoringSupported() -> Bool?
+    {
+        return self.scoringSupported
+    }
+    
+    internal func setWebLink( link : String? )
+    {
+        self.webLink = link
+    }
+    
+    public func getWebLink() -> String?
+    {
+        return self.webLink
+    }
+    
+    internal func setSequenceNumber( number : Int? )
+    {
+        self.sequenceNumber = number
+    }
+    
+    public func getSequenceNumber() -> Int?
+    {
+        return self.sequenceNumber
+    }
+    
+    internal func setBussinessCardFieldLimit( limit : Int? )
+    {
+        self.bussinessCardFieldLimit = limit
+    }
+    
+    public func getBussinessCardFiledLimit() -> Int?
+    {
+        return self.bussinessCardFieldLimit
+    }
     
     /// Set true if the module is convertible.
     ///
@@ -265,9 +349,9 @@ public class ZCRMModule : ZCRMEntity
     /// Returns related list to the module.
     ///
     /// - Returns: related list to the module.
-	public func getAllRelatedLists() -> [ZCRMModuleRelation]?
+	public func getAllRelatedLists() throws -> BulkAPIResponse
 	{
-		return self.relatedLists
+		return try ModuleAPIHandler( module : self ).getAllRelatedLists()
 	}
 	
     /// Set list of business card fields to the module.
@@ -398,19 +482,19 @@ public class ZCRMModule : ZCRMEntity
     /// - Parameter recordId: Id of the record to be returned
     /// - Returns: ZCRMRecord with the given ID of the module
     /// - Throws: ZCRMSDKError if failed to get the record
-	public func getRecord(recordId : Int64) throws -> APIResponse
+    public func getRecord(recordId : Int64, includePrivateFileds : Bool) throws -> APIResponse
 	{
 		let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.getAPIName(), recordId: recordId)
-		return try EntityAPIHandler(record: record).getRecord()
+		return try EntityAPIHandler(record: record).getRecord( withPrivateFields : includePrivateFileds )
 	}
 	
     /// Returns List of all records of the module(BulkAPIResponse).
     ///
     /// - Returns: List of all records of the module
     /// - Throws: ZCRMSDKError if failed to get the records
-	public func getRecords() throws -> BulkAPIResponse
+	public func getRecords( includePrivateFields : Bool ) throws -> BulkAPIResponse
 	{
-		return try self.getRecords(cvId: nil)
+		return try self.getRecords(cvId: nil, includePrivateFields : includePrivateFields)
 	}
 	
     /// Returns list of all records of the module of a requested page number with records of per_page count(BulkAPIResponse).
@@ -420,9 +504,9 @@ public class ZCRMModule : ZCRMEntity
     ///   - per_page: number of records to be given for a single page.
     /// - Returns: list of all records of the module of a requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get the records
-	public func getRecords(page : Int, per_page : Int) throws -> BulkAPIResponse
+	public func getRecords(page : Int, per_page : Int, includePrivateFields : Bool) throws -> BulkAPIResponse
 	{
-		return try self.getRecords(cvId: nil, page: page, per_page: per_page)
+		return try self.getRecords(cvId: nil, page: page, per_page: per_page, includePrivateFields : includePrivateFields)
 	}
 	
     /// Returns List of all records of the module with the given cvID(BulkAPIResponse).
@@ -430,9 +514,9 @@ public class ZCRMModule : ZCRMEntity
     /// - Parameter cvId: custom view ID
     /// - Returns: List of all records of the module with the given cvID
     /// - Throws: ZCRMSDKError if failed to get the records
-	public func getRecords(cvId : Int64?) throws -> BulkAPIResponse
+	public func getRecords(cvId : Int64?, includePrivateFields : Bool) throws -> BulkAPIResponse
 	{
-		return try self.getRecords(cvId: cvId, page: 1, per_page: 100)
+		return try self.getRecords(cvId: cvId, page: 1, per_page: 100, includePrivateFields : includePrivateFields)
 	}
 	
     /// Returns list of all records of the module of a requested page number with records of per_page count(BulkAPIResponse).
@@ -443,9 +527,9 @@ public class ZCRMModule : ZCRMEntity
     ///   - per_page: number of records to be given for a single page.
     /// - Returns: list of all records of the module of a requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get the records
-	public func getRecords(cvId : Int64?, page : Int, per_page : Int) throws -> BulkAPIResponse
+	public func getRecords(cvId : Int64?, page : Int, per_page : Int, includePrivateFields : Bool) throws -> BulkAPIResponse
 	{
-		return try self.getRecords(cvId: cvId, sortByField: nil, sortOrder: nil, page: page, per_page: per_page, modifiedSince : nil)
+		return try self.getRecords(cvId: cvId, sortByField: nil, sortOrder: nil, page: page, per_page: per_page, modifiedSince : nil, includePrivateFields : includePrivateFields )
 	}
 	
     /// Returns list of all records of the module, before returning the list of records gets sorted with the given field and sort order(BulkAPIResponse).
@@ -456,9 +540,9 @@ public class ZCRMModule : ZCRMEntity
     ///   - sortOrder: sort order (asc, desc)
     /// - Returns: sorted list of records of the module
     /// - Throws: ZCRMSDKError if failed to get the records
-	public func getRecords(cvId : Int64?, sortByField : String?, sortOrder : SortOrder?) throws -> BulkAPIResponse
+	public func getRecords(cvId : Int64?, sortByField : String?, sortOrder : SortOrder?, includePrivateFields : Bool) throws -> BulkAPIResponse
 	{
-        return try self.getRecords(cvId: cvId, sortByField: sortByField, sortOrder: sortOrder, page: 1, per_page: 100, modifiedSince : nil )
+        return try self.getRecords(cvId: cvId, sortByField: sortByField, sortOrder: sortOrder, page: 1, per_page: 100, modifiedSince : nil, includePrivateFields : includePrivateFields )
 	}
 	
     /// Returns list of all records of the module of a requested page number with records of per_page count, before returning the list of records gets sorted with the given field and sort order(BulkAPIResponse).
@@ -472,9 +556,9 @@ public class ZCRMModule : ZCRMEntity
     ///   - modifiedSince: modified time
     /// - Returns: sorted list of records of the module of a requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get the records
-    public func getRecords(cvId : Int64?, sortByField : String?, sortOrder : SortOrder?, page : Int, per_page : Int, modifiedSince : String? ) throws -> BulkAPIResponse
+    public func getRecords(cvId : Int64?, sortByField : String?, sortOrder : SortOrder?, page : Int, per_page : Int, modifiedSince : String?, includePrivateFields : Bool ) throws -> BulkAPIResponse
 	{
-		return try self.getRecords(cvId: cvId, fields: nil , sortByField: sortByField, sortOrder: sortOrder, converted: nil , approved: nil , page: page, per_page: per_page , modifiedSince: modifiedSince)
+		return try self.getRecords(cvId: cvId, fields: nil , sortByField: sortByField, sortOrder: sortOrder, converted: nil , approved: nil , page: page, per_page: per_page , modifiedSince: modifiedSince, includePrivateFields : includePrivateFields )
 	}
 	/// Returns list of all records of the module which matches the requested params, before returning the list of records gets sorted with the given field and sort order(BulkAPIResponse).
 	///
@@ -490,9 +574,9 @@ public class ZCRMModule : ZCRMEntity
 	///   - modifiedSince: modified time
 	/// - Returns: sorted list of records of the module  matches the requested params
 	/// - Throws: ZCRMSDKError if failed to get the records
-	public func getRecords( cvId : Int64?, fields : [String]? , sortByField : String? , sortOrder : SortOrder? , converted : Bool? , approved : Bool? , page : Int , per_page : Int , modifiedSince : String? ) throws -> BulkAPIResponse
+    public func getRecords( cvId : Int64?, fields : [String]? , sortByField : String? , sortOrder : SortOrder? , converted : Bool? , approved : Bool? , page : Int , per_page : Int , modifiedSince : String?, includePrivateFields : Bool ) throws -> BulkAPIResponse
 	{
-		return try MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : fields , sortByField : sortByField, sortOrder : sortOrder, converted : converted , approved : approved, page : page, per_page : per_page, modifiedSince : modifiedSince)
+        return try MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : fields , sortByField : sortByField, sortOrder : sortOrder, converted : converted , approved : approved, page : page, per_page : per_page, modifiedSince : modifiedSince, includePrivateFields : includePrivateFields )
 	}
 	/// Returns list of all approved records of the module which matches the requested params, before returning the list of records gets sorted with the given field and sort order(BulkAPIResponse).
 	///
@@ -505,9 +589,9 @@ public class ZCRMModule : ZCRMEntity
 	///   - per_page: page number of the module
 	/// - Returns: sorted list of records of the module matches the requested params
 	/// - Throws: ZCRMSDKError if failed to get the records
-	public func getApprovedRecords( cvId : Int64? , fields : [String]? , sortByField : String? , sortOrder : SortOrder? , page : Int , per_page : Int ) throws -> BulkAPIResponse
+	public func getApprovedRecords( cvId : Int64? , fields : [String]? , sortByField : String? , sortOrder : SortOrder? , page : Int , per_page : Int, includePrivateFields : Bool ) throws -> BulkAPIResponse
 	{
-		return try self.getRecords( cvId : cvId , fields : fields , sortByField : sortByField , sortOrder : sortOrder , converted : nil , approved : true , page : page , per_page : per_page , modifiedSince : nil )
+        return try self.getRecords( cvId : cvId , fields : fields , sortByField : sortByField , sortOrder : sortOrder , converted : nil , approved : true , page : page , per_page : per_page , modifiedSince : nil, includePrivateFields : includePrivateFields )
 	}
 	/// Returns list of all unapproved records of the module which matches the requested params, before returning the list of records gets sorted with the given field and sort order(BulkAPIResponse).
 	///
@@ -520,9 +604,9 @@ public class ZCRMModule : ZCRMEntity
 	///   - per_page: page number of the module
 	/// - Returns: sorted list of records of the module matches the requested params
 	/// - Throws: ZCRMSDKError if failed to get the records
-	public func getUnApprovedRecords( cvId : Int64? , fields : [String]? , sortByField : String? , sortOrder : SortOrder? , page : Int , per_page : Int ) throws -> BulkAPIResponse
+	public func getUnApprovedRecords( cvId : Int64? , fields : [String]? , sortByField : String? , sortOrder : SortOrder? , page : Int , per_page : Int, includePrivateFields : Bool ) throws -> BulkAPIResponse
 	{
-		return try self.getRecords( cvId : cvId , fields : fields , sortByField : sortByField , sortOrder : sortOrder , converted : nil , approved : false , page : page , per_page : per_page , modifiedSince : nil )
+        return try self.getRecords( cvId : cvId , fields : fields , sortByField : sortByField , sortOrder : sortOrder , converted : nil , approved : false , page : page , per_page : per_page , modifiedSince : nil, includePrivateFields : includePrivateFields )
 	}
 	/// Returns list of all converted records of the module which matches the requested params, before returning the list of records gets sorted with the given field and sort order(BulkAPIResponse).
 	///
@@ -534,9 +618,9 @@ public class ZCRMModule : ZCRMEntity
 	///   - per_page: page number of the module
 	/// - Returns: sorted list of records of the module matches the requested params
 	/// - Throws: ZCRMSDKError if failed to get the records
-	public func getConvertedRecords(cvId : Int64? , fields : [String]? , sortByField : String? , sortOrder : SortOrder? , page : Int , per_page : Int) throws -> BulkAPIResponse
+	public func getConvertedRecords(cvId : Int64? , fields : [String]? , sortByField : String? , sortOrder : SortOrder? , page : Int , per_page : Int, includePrivateFields : Bool) throws -> BulkAPIResponse
 	{
-		return try self.getRecords(cvId : cvId, fields : fields , sortByField : sortByField , sortOrder : sortOrder , converted : true , approved : nil, page : page , per_page : per_page , modifiedSince : nil )
+        return try self.getRecords(cvId : cvId, fields : fields , sortByField : sortByField , sortOrder : sortOrder , converted : true , approved : nil, page : page , per_page : per_page , modifiedSince : nil, includePrivateFields : includePrivateFields )
 	}
 	/// Returns list of all unconverted records of the module which matches the requested params, before returning the list of records gets sorted with the given field and sort order(BulkAPIResponse).
 	///
@@ -549,9 +633,9 @@ public class ZCRMModule : ZCRMEntity
 	///   - per_page: page number of the module
 	/// - Returns: sorted list of records of the module matches the requested params
 	/// - Throws: ZCRMSDKError if failed to get the records
-	public func getUnConvertedRecords(cvId : Int64? , fields : [String]? , sortByField : String? , sortOrder : SortOrder? , page : Int , per_page : Int) throws -> BulkAPIResponse
+	public func getUnConvertedRecords(cvId : Int64? , fields : [String]? , sortByField : String? , sortOrder : SortOrder? , page : Int , per_page : Int, includePrivateFields : Bool) throws -> BulkAPIResponse
 	{
-		return try self.getRecords(cvId : cvId, fields : fields , sortByField : sortByField , sortOrder : sortOrder , converted : false , approved : nil, page : page , per_page : per_page , modifiedSince : nil )
+        return try self.getRecords(cvId : cvId, fields : fields , sortByField : sortByField , sortOrder : sortOrder , converted : false , approved : nil, page : page , per_page : per_page , modifiedSince : nil, includePrivateFields : includePrivateFields )
 	}
 	/// Returns list of all approved records of the module which the given fields.
 	///
@@ -559,9 +643,9 @@ public class ZCRMModule : ZCRMEntity
 	///   - fields : fields apiNames
 	/// - Returns: sorted list of records of the module matches the given fields
 	/// - Throws: ZCRMSDKError if failed to get the records
-	public func getRecordByFields( fields : [String] ) throws -> BulkAPIResponse
+	public func getRecordByFields( fields : [String], includePrivateFields : Bool ) throws -> BulkAPIResponse
 	{
-		return try self.getRecords(cvId : nil, fields : fields , sortByField : nil , sortOrder : nil , converted : nil , approved : nil, page : 1 , per_page : 200 , modifiedSince : nil )
+        return try self.getRecords(cvId : nil, fields : fields , sortByField : nil , sortOrder : nil , converted : nil , approved : nil, page : 1 , per_page : 200 , modifiedSince : nil, includePrivateFields : includePrivateFields )
 	}
     /// Returns List of all deleted records of the module(BulkAPIResponse).
     ///

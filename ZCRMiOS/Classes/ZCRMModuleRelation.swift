@@ -6,7 +6,7 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
-public class ZCRMModuleRelation
+public class ZCRMModuleRelation : ZCRMEntity
 {
 	private var apiName : String?
 	private var parentModuleAPIName : String?
@@ -15,6 +15,9 @@ public class ZCRMModuleRelation
 	private var id : Int64?
 	private var visible : Bool?
 	private var isDefault : Bool?
+    private var name : String?
+    private var type : String?
+    private var module : String?
     
     private var parentRecord : ZCRMRecord?
     private var junctionRecord : ZCRMJunctionRecord?
@@ -39,6 +42,17 @@ public class ZCRMModuleRelation
     {
         self.parentRecord = parentRecord
         self.junctionRecord = junctionRecord
+    }
+    
+    public init( parentModuleAPIName : String, relatedListId : Int64 )
+    {
+        self.parentModuleAPIName = parentModuleAPIName
+        self.id = relatedListId
+    }
+    
+    internal func setAPIName( apiName : String? )
+    {
+        self.apiName = apiName
     }
 	
     /// Returns related list apiname
@@ -88,6 +102,36 @@ public class ZCRMModuleRelation
 	{
 		return self.label
 	}
+    
+    internal func setName( name : String? )
+    {
+        self.name = name
+    }
+    
+    public func getName() -> String?
+    {
+        return self.name
+    }
+    
+    internal func setType( type : String? )
+    {
+        self.type = type
+    }
+    
+    public func getType() -> String?
+    {
+        return self.type
+    }
+    
+    internal func setModule( module : String? )
+    {
+        self.module = module
+    }
+    
+    public func getModule() -> String?
+    {
+        return self.module
+    }
 	
     /// Set the related list id
     ///

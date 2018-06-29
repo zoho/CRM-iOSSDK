@@ -23,7 +23,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
 		let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
         {
-            let modulesList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: "modules")
+            let modulesList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
             for module in modulesList
             {
                 allModules.append(getZCRMModule(moduleDetails: module))
@@ -41,7 +41,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
 		let responseJSON = response.getResponseJSON()
-		let modulesList:[[String : Any]] = responseJSON.getArrayOfDictionaries(key: "modules")
+		let modulesList:[[String : Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
 		let moduleDetails : [String : Any] = modulesList[0]
 		response.setData(data: getZCRMModule(moduleDetails: moduleDetails))
         return response
@@ -54,7 +54,15 @@ internal class MetaDataAPIHandler : CommonAPIHandler
 		module.setSystemName(sysName: moduleDetails.optString(key: "module_name"))
 		module.setSingularLabel(singularLabel: moduleDetails.optString(key: "singular_label"))
 		module.setPluralLabel(pluralLabel: moduleDetails.optString(key: "plural_label"))
-		module.setIsCustomModule(isCustomModule: moduleDetails.optString(key: "generated_type") == "custom")
+		module.setGeneratedType(type: moduleDetails.getString(key: "generated_type"))
+        module.setVisibility(visible: moduleDetails.optInt(key: "visibility"))
+        module.setIsGlobalSearchSupported( isSupport : moduleDetails.optBoolean(key: "global_search_supported"))
+        module.setIsAPISupported(isSupport: moduleDetails.optBoolean(key: "api_supported"))
+        module.setIsQuickCreate(isQuick: moduleDetails.optBoolean(key: "quick_create"))
+        module.setIsScoringSupported(isSupport: moduleDetails.optBoolean(key: "scoring_supported"))
+        module.setSequenceNumber(number: moduleDetails.optInt(key: "sequence_number"))
+        module.setBussinessCardFieldLimit(limit: moduleDetails.optInt(key: "business_card_field_limit"))
+        module.setWebLink(link: moduleDetails.optString(key: "web_link"))
 		if(moduleDetails.hasValue(forKey: "modified_by"))
 		{
 			let modifiedByObj : [String:Any] = moduleDetails.getDictionary(key: "modified_by")
@@ -108,5 +116,9 @@ internal class MetaDataAPIHandler : CommonAPIHandler
 		relatedList.setVisibility(isVisible: relatedListDetails.optBoolean(key: "visible"))
 		relatedList.setIsDefaultRelatedList(isDefault : ("default" == relatedListDetails.optString(key: "type")))
 	}
+    
+    internal override func getJSONRootKey() -> String {
+        return MODULES
+    }
 	
 }
