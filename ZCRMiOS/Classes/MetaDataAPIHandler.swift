@@ -8,7 +8,7 @@
 
 internal class MetaDataAPIHandler : CommonAPIHandler
 {
-    internal func getAllModules( modifiedSince : String? ) throws -> BulkAPIResponse
+    internal func getAllModules( modifiedSince : String?, completion: @escaping( BulkAPIResponse?, Error? ) -> () )
 	{
 		var allModules : [ZCRMModule] = [ZCRMModule]()
 		setUrlPath(urlPath: "/settings/modules" )
@@ -19,32 +19,48 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         }
 		let request : APIRequest = APIRequest(handler : self ) 
         print( "Request : \( request.toString() )" )
-        let response = try request.getBulkAPIResponse()
-		let responseJSON = response.getResponseJSON()
-        if responseJSON.isEmpty == false
-        {
-            let modulesList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
-            for module in modulesList
+        request.getBulkAPIResponse { ( response, err ) in
+            if let error = err
             {
-                allModules.append(getZCRMModule(moduleDetails: module))
+                completion( nil, error )
             }
-            response.setData(data: allModules)
+            if let bulkResponse = response
+            {
+                let responseJSON = bulkResponse.getResponseJSON()
+                if responseJSON.isEmpty == false
+                {
+                    let modulesList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                    for module in modulesList
+                    {
+                        allModules.append(self.getZCRMModule(moduleDetails: module))
+                    }
+                    bulkResponse.setData(data: allModules)
+                }
+                completion( bulkResponse, nil )
+            }
         }
-        return response
 	}
 	
-	internal func getModule(apiName : String) throws -> APIResponse
+    internal func getModule( apiName : String, completion: @escaping( APIResponse?, Error? ) -> () )
 	{
 		setUrlPath(urlPath: "/settings/modules/\(apiName)" )
 		setRequestMethod(requestMethod: .GET )
 		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
-        let response = try request.getAPIResponse()
-		let responseJSON = response.getResponseJSON()
-		let modulesList:[[String : Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
-		let moduleDetails : [String : Any] = modulesList[0]
-		response.setData(data: getZCRMModule(moduleDetails: moduleDetails))
-        return response
+        request.getAPIResponse { ( resp, err ) in
+            if let error = err
+            {
+                completion( nil, error )
+            }
+            if let response = resp
+            {
+                let responseJSON = response.getResponseJSON()
+                let modulesList:[[String : Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                let moduleDetails : [String : Any] = modulesList[0]
+                response.setData(data: self.getZCRMModule(moduleDetails: moduleDetails))
+                completion( response, nil )
+            }
+        }
 	}
 	
 	internal func getZCRMModule(moduleDetails : [String:Any]) -> ZCRMModule

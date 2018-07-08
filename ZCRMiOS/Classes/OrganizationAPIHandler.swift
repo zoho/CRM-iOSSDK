@@ -14,18 +14,26 @@ internal class OrganizationAPIHandler : CommonAPIHandler
 
 	}
     
-    internal func getOrganizationDetails() throws -> APIResponse
+    internal func getOrganizationDetails( completion : @escaping( APIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : "org" )
 		setUrlPath(urlPath:  "/org" )
 		setRequestMethod(requestMethod: .GET)
         let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
-        let response : APIResponse = try request.getAPIResponse()
-        let responseJSON : [ String :  Any ] = response.responseJSON
-        let orgArray = responseJSON.getArrayOfDictionaries( key : getJSONRootKey() )
-        response.setData( data : self.getZCRMOrganization( orgDetails : orgArray[ 0 ] ) )
-        return response
+        request.getAPIResponse { ( resp, err ) in
+            if let error = err
+            {
+                completion( nil, error )
+            }
+            if let response = resp
+            {
+                let responseJSON : [ String :  Any ] = response.responseJSON
+                let orgArray = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                response.setData( data : self.getZCRMOrganization( orgDetails : orgArray[ 0 ] ) )
+                completion( response, nil )
+            }
+        }
     }
     
     // check optional property in organization API

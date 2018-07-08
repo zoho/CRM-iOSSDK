@@ -12,28 +12,38 @@ public class ZCRMRestClient
 {
     public init() {}
     
-    public func getOrganisationDetails() throws -> APIResponse
+    public func getOrganisationDetails( completion : @escaping( APIResponse?, Error? ) -> () )
     {
-        return try OrganizationAPIHandler().getOrganizationDetails()
+        OrganizationAPIHandler().getOrganizationDetails() { ( response, error ) in
+            completion( response, error )
+        }
     }
     
-    public func getModule( moduleAPIName : String ) throws -> APIResponse
+    public func getModule( moduleAPIName : String, completion : @escaping( APIResponse?, Error? ) -> () )
     {
-        return try MetaDataAPIHandler().getModule( apiName : moduleAPIName )
+        MetaDataAPIHandler().getModule( apiName : moduleAPIName ) { ( response, error ) in
+            completion( response, error )
+        }
     }
     
-    public func getAllModules() throws -> BulkAPIResponse
+    public func getAllModules( completion : @escaping( BulkAPIResponse?, Error? ) -> () )
     {
-        return try self.getAllModules( modifiedSince : nil )
+        self.getAllModules( modifiedSince : nil ) { ( response, error ) in
+            completion( response, error )
+        }
     }
     
-    public func getAllModules( modifiedSince : String? ) throws -> BulkAPIResponse
+    public func getAllModules( modifiedSince : String?, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
     {
-        return try MetaDataAPIHandler().getAllModules( modifiedSince : modifiedSince )
+        MetaDataAPIHandler().getAllModules( modifiedSince : modifiedSince ) { ( response, error ) in
+            completion( response, error )
+        }
     }
     
-    public func getCurrentUser() throws -> APIResponse
+    public func getCurrentUser( completion : @escaping( APIResponse?, Error? ) -> () )
     {
-        return try UserAPIHandler().getCurrentUser()
+        UserAPIHandler().getCurrentUser() { ( response, error ) in
+            completion( response, error )
+        }
     }
 }

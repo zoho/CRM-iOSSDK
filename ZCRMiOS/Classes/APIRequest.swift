@@ -69,22 +69,49 @@ internal class APIRequest
         self.jsonRootKey = handler.getJSONRootKey()
 	}
 	
-    private func authenticateRequest()
+    private func authenticateRequest( completion : @escaping( Error? ) -> () )
     {
+        self.addHeader( headerName : "User-Agent", headerVal : "Zoho CRM iOS SDK" )
         if( APPTYPE == "ZCRM" )
         {
-            self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( ZCRMLoginHandler().getOauth2Token() )" )
+            ZCRMLoginHandler().getOauth2Token { ( token, error ) in
+                if let err = error
+                {
+                    completion( err )
+                }
+                if let oAuthtoken = token
+                {
+                    self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( oAuthtoken )" )
+                }
+                else
+                {
+                    print( "oAuthtoken is empty." )
+                    completion( UnexpectedError.ResponseNil( "oauthtoken is empty" ) )
+                }
+            }
         }
-        else if( APPTYPE == "ZVCRM" )
+        else
         {
-            self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( ZVCRMLoginHandler().getOauth2Token() )" )
+            ZVCRMLoginHandler().getOauth2Token { ( token, error ) in
+                if let err = error
+                {
+                    completion( err )
+                }
+                if let oAuthtoken = token
+                {
+                    self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( oAuthtoken )" )
+                }
+                else
+                {
+                    print( "oAuthtoken is empty." )
+                    completion( UnexpectedError.ResponseNil( "oauthtoken is empty" ) )
+                }
+                if( APPTYPE == "ZCRMCP" )
+                {
+                    self.addHeader( headerName : "X-CRMPORTAL", headerVal : "SDKCLIENT" )
+                }
+            }
         }
-        else if( APPTYPE == "ZCRMCP" )
-        {
-            self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( ZVCRMLoginHandler().getOauth2Token() )" )
-            self.addHeader( headerName : "X-CRMPORTAL", headerVal : "SDKCLIENT" )
-        }
-        self.addHeader( headerName : "User-Agent", headerVal : "Zoho CRM iOS SDK" )
     }
 	
     private func addHeader(headerName : String, headerVal : String)
@@ -92,11 +119,17 @@ internal class APIRequest
         self.headers[headerName] = headerVal
     }
 	
-    private func initialiseRequest()
+    private func initialiseRequest( completion : @escaping( Error? ) -> () )
     {
 		if isOAuth == true
 		{
-			self.authenticateRequest()
+            self.authenticateRequest { ( error ) in
+                if let err = error
+                {
+                    print( "Error Occured : \( err.localizedDescription )" )
+                    completion( err )
+                }
+            }
 		}
         if(!self.params.isEmpty)
         {
@@ -129,89 +162,147 @@ internal class APIRequest
         }
     }
     
-    internal func getAPIResponse() throws -> APIResponse
+    internal func getAPIResponse( completion : @escaping( APIResponse?, Error? ) -> () )
     {
-        self.initialiseRequest()
-        var urlResponse : HTTPURLResponse = HTTPURLResponse()
-        var responseData : Data?
-        try self.makeRequest(completion: { ( response, data ) in
-            urlResponse = response
-            responseData = data
-        } )
-        return try APIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+        self.initialiseRequest { ( err ) in
+            if let error = err
+            {
+                completion( nil, error )
+            }
+        }
+        self.makeRequest { ( urlResp, responseData, error ) in
+            if let err = error
+            {
+                completion( nil, err )
+            }
+            else if let urlResponse = urlResp
+            {
+                do
+                {
+                    let response = try APIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+                    completion( response, nil )
+                }
+                catch
+                {
+                    completion( nil, error )
+                }
+            }
+            else
+            {
+                completion( nil, UnexpectedError.ResponseNil( "Response is nil" ) )
+            }
+        }
     }
     
-    internal func getBulkAPIResponse() throws -> BulkAPIResponse
+    internal func getBulkAPIResponse( completion : @escaping( BulkAPIResponse?, Error? ) -> () )
     {
-        self.initialiseRequest()
-        var urlResponse : HTTPURLResponse = HTTPURLResponse()
-        var responseData : Data?
-        try self.makeRequest( completion : { ( response, data ) in
-            urlResponse = response
-            responseData = data
-        } )
-        return try BulkAPIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey)
+        self.initialiseRequest { ( err ) in
+            if let error = err
+            {
+                completion( nil, error )
+            }
+        }
+        self.makeRequest { ( urlResp, responseData, error ) in
+            if let err = error
+            {
+                completion( nil, err )
+            }
+            else if let urlResponse = urlResp
+            {
+                do
+                {
+                    let response = try BulkAPIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+                    completion( response, nil )
+                }
+                catch
+                {
+                    completion( nil, error )
+                }
+            }
+            else
+            {
+                completion( nil, UnexpectedError.ResponseNil( "Response is nil" ) )
+            }
+        }
     }
     
-    internal func uploadLink() throws -> APIResponse
+    internal func uploadLink( completion : @escaping( APIResponse?, Error? ) -> () )
     {
         let boundary = BOUNDARY
         self.createMultipartRequest( bodyData : Data(), boundary : boundary )
-        var urlResponse : HTTPURLResponse = HTTPURLResponse()
-        var responseData : Data?
-        try self.makeRequest( completion : { ( response, data ) in
-            urlResponse = response
-            responseData = data
-        } )
-        return try APIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+        self.makeRequest { ( urlResp, responseData, error ) in
+            if let err = error
+            {
+                completion( nil, err )
+            }
+            else if let urlResponse = urlResp
+            {
+                do
+                {
+                    let response = try APIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+                    completion( response, nil )
+                }
+                catch
+                {
+                    completion( nil, error )
+                }
+            }
+            else
+            {
+                completion( nil, UnexpectedError.ResponseNil( "Response is nil" ) )
+            }
+        }
     }
     
-    internal func uploadFile( filePath : String ) throws -> APIResponse
+    internal func uploadFile( filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
     {
         let fileURL = URL( fileURLWithPath : filePath )
         let boundary = BOUNDARY
         let httpBodyData = getFilePart( fileURL : fileURL, boundary : boundary )
         createMultipartRequest( bodyData : httpBodyData, boundary : boundary )
-        var urlResponse : HTTPURLResponse = HTTPURLResponse()
-        var responseData : Data?
-        try self.makeRequest( completion : { ( response, data ) in
-            urlResponse = response
-            responseData = data
-        } )
-        return try APIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+        self.makeRequest { ( urlResponse, responseData, error ) in
+            if let err = error
+            {
+                completion( nil, err )
+            }
+            else if let urlResp = urlResponse
+            {
+                do
+                {
+                    let response = try APIResponse( response : urlResp, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+                    completion( response, nil )
+                }
+                catch{
+                    completion( nil, error )
+                }
+            }
+            else
+            {
+                completion( nil, UnexpectedError.ResponseNil( "Response is nil" ) )
+            }
+        }
     }
     
-    private func makeRequest( completion : @escaping ( HTTPURLResponse, Data? ) -> () ) throws
+    private func makeRequest( completion : @escaping ( HTTPURLResponse?, Data?, Error? ) -> () )
     {
-        let sema = DispatchSemaphore( value : 0 )
         var error : Error? = nil
-        var isResponseNil = false
         URLSession.shared.dataTask( with : self.request!, completionHandler : { data, response, err in
             guard err == nil else
             {
                 error = err
+                completion( nil, nil, ZCRMSDKError.ProcessingError( error!.localizedDescription ) )
                 return
             }
             if let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse
             {
-                completion( httpResponse, data )
+                completion( httpResponse, data, err )
             }
             else
             {
-                isResponseNil = true
+                completion( nil, nil, UnexpectedError.ResponseNil( "Response is nil" ) )
                 return
             }
-            sema.signal()
         }).resume()
-        sema.wait()
-        if( isResponseNil == true )
-        {
-            throw UnexpectedError.ResponseNil( "Response is nil." )
-        }
-        if( error != nil )
-        {
-            throw ZCRMSDKError.ProcessingError( error!.localizedDescription )
-        }
     }
     
     private func createMultipartRequest( bodyData : Data, boundary : String )
@@ -219,11 +310,15 @@ internal class APIRequest
         var httpBodyData = bodyData
         httpBodyData.append( "\r\n--\(boundary)".data( using : String.Encoding.utf8 )! )
         
-        self.initialiseRequest()
-        self.request!.setValue( "multipart/form-data; boundary=\(boundary)", forHTTPHeaderField : "Content-Type" )
-        
-        self.request!.setValue( "\(httpBodyData.count)", forHTTPHeaderField : "Content-Length" )
-        self.request!.httpBody = httpBodyData
+        self.initialiseRequest { ( error ) in
+            if error == nil
+            {
+                self.request!.setValue( "multipart/form-data; boundary=\(boundary)", forHTTPHeaderField : "Content-Type" )
+                
+                self.request!.setValue( "\(httpBodyData.count)", forHTTPHeaderField : "Content-Length" )
+                self.request!.httpBody = httpBodyData
+            }
+        }
     }
     
     private func getFilePart( fileURL : URL, boundary : String ) -> Data
@@ -249,29 +344,39 @@ internal class APIRequest
         return "application/octet-stream"
     }
     
-    internal func downloadFile() throws -> FileAPIResponse
+    internal func downloadFile( completion : @escaping( FileAPIResponse?, Error? ) -> () )
     {
-        let sema = DispatchSemaphore(value: 0)
-        self.initialiseRequest()
-        var fileResponse : HTTPURLResponse?
-        var localUrl : URL?
+        self.initialiseRequest { ( err ) in
+            if let error = err
+            {
+                completion( nil, error )
+            }
+        }
         var error : Error?
-        URLSession.shared.downloadTask(with: self.request!, completionHandler: {tempLocalUrl, response, err in
+        URLSession.shared.downloadTask(with: self.request!, completionHandler: { tempLocalUrl, response, err in
             guard err == nil else
             {
                 error = err
+                completion( nil, ZCRMSDKError.ProcessingError( error!.localizedDescription ) )
                 return
             }
-            fileResponse = response as? HTTPURLResponse
-            localUrl = tempLocalUrl!
-            sema.signal()
+            if let fileResponse = response as? HTTPURLResponse, let localUrl = tempLocalUrl
+            {
+                do
+                {
+                    let response = try FileAPIResponse( response : fileResponse, tempLocalUrl : localUrl )
+                    completion( response, nil )
+                }
+                catch
+                {
+                    completion( nil, error )
+                }
+            }
+            else
+            {
+                completion( nil, UnexpectedError.ResponseNil( "Response is nil" ) )
+            }
         }).resume()
-        sema.wait()
-        if error != nil
-        {
-            throw ZCRMSDKError.ProcessingError( error!.localizedDescription )
-        }
-        return try FileAPIResponse(response: fileResponse!, tempLocalUrl: localUrl!)
     }
     
     public func toString() -> String

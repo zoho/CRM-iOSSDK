@@ -97,25 +97,11 @@ public class ZVCRMLoginHandler
         ZohoPortalAuth.handleURL( url, sourceApplication : sourceApplication, annotation : annotation )
     }
 
-    internal func getOauth2Token() -> String
+    internal func getOauth2Token( completion : @escaping( String?, Error? ) -> () )
     {
-        var oAuth2Token : String = String()
-        ZohoPortalAuth.getOauth2Token { ( accessToken, error ) in
-            if( accessToken == nil )
-            {
-                print( "Unable to get oAuthToken!" )
-            }
-            else
-            {
-                oAuth2Token = accessToken!
-                print( "Got the oAuthtoken!" )
-            }
-            if( error != nil )
-            {
-                print( "Error occured in getOauth2Token(): \(error!)" )
-            }
+        ZohoPortalAuth.getOauth2Token { ( token, error ) in
+            completion( token, error )
         }
-        return oAuth2Token
     }
 
     public func clearIAMLoginFirstLaunch()

@@ -17,7 +17,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
 	
 	// MARK: - Handler functions
 	
-    internal func getAllLayouts( modifiedSince : String? ) throws -> BulkAPIResponse
+    internal func getAllLayouts( modifiedSince : String?, completion: @escaping( BulkAPIResponse?, Error? ) -> () )
     {
 		setJSONRootKey( key : LAYOUTS )
 		setUrlPath(urlPath: "/settings/layouts")
@@ -31,18 +31,24 @@ internal class ModuleAPIHandler : CommonAPIHandler
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
 		
-        let response = try request.getBulkAPIResponse()
-        let responseJSON = response.getResponseJSON()
-        if responseJSON.isEmpty == false
-        {
-            response.setData( data : self.getAllLayouts( layoutsList : responseJSON.getArrayOfDictionaries( key : getJSONRootKey() ) ) )
+        request.getBulkAPIResponse { ( response, err ) in
+            if let error = err
+            {
+                completion( nil, error )
+            }
+            if let bulkResponse = response
+            {
+                let responseJSON = bulkResponse.getResponseJSON()
+                if responseJSON.isEmpty == false
+                {
+                    bulkResponse.setData( data : self.getAllLayouts( layoutsList : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) ) )
+                }
+                completion( bulkResponse, nil )
+            }
         }
-		
-		
-        return response
     }
     
-    internal func getLayout(layoutId : Int64) throws -> APIResponse
+    internal func getLayout( layoutId : Int64, completion: @escaping( APIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : LAYOUTS )
 		setUrlPath(urlPath:  "/settings/layouts/\(layoutId)")
@@ -51,14 +57,22 @@ internal class ModuleAPIHandler : CommonAPIHandler
 		let request : APIRequest = APIRequest(handler: self )
 		print( "Request : \( request.toString() )" )
 		
-        let response = try request.getAPIResponse()
-        let responseJSON = response.getResponseJSON()
-        let layoutsList:[[String : Any]] = responseJSON.getArrayOfDictionaries( key : getJSONRootKey() )
-        response.setData(data: self.getZCRMLayout(layoutDetails: layoutsList[0]))
-        return response
+        request.getAPIResponse { ( resp, err ) in
+            if let error = err
+            {
+                completion( nil, error )
+            }
+            if let response = resp
+            {
+                let responseJSON = response.getResponseJSON()
+                let layoutsList:[[String : Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                response.setData(data: self.getZCRMLayout(layoutDetails: layoutsList[0]))
+                completion( response, nil )
+            }
+        }
     }
     
-    internal func getAllFields( modifiedSince : String? ) throws -> BulkAPIResponse
+    internal func getAllFields( modifiedSince : String?, completion: @escaping( BulkAPIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : FIELDS )
 		setUrlPath(urlPath: "/settings/fields")
@@ -72,16 +86,24 @@ internal class ModuleAPIHandler : CommonAPIHandler
 		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
 		
-        let response = try request.getBulkAPIResponse()
-        let responseJSON = response.getResponseJSON()
-        if responseJSON.isEmpty == false
-        {
-            response.setData( data : self.getAllFields( allFieldsDetails : responseJSON.getArrayOfDictionaries( key : getJSONRootKey() ) ) )
+        request.getBulkAPIResponse { ( response, err ) in
+            if let error = err
+            {
+                completion( nil, error )
+            }
+            if let bulkResponse = response
+            {
+                let responseJSON = bulkResponse.getResponseJSON()
+                if responseJSON.isEmpty == false
+                {
+                    bulkResponse.setData( data : self.getAllFields( allFieldsDetails : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) ) )
+                }
+                completion( bulkResponse, nil )
+            }
         }
-        return response
     }
 
-    internal func getAllCustomViews( modifiedSince : String? ) throws -> BulkAPIResponse
+    internal func getAllCustomViews( modifiedSince : String?, completion: @escaping( BulkAPIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : CUSTOM_VIEWS )
 		setUrlPath(urlPath: "/settings/custom_views")
@@ -95,19 +117,27 @@ internal class ModuleAPIHandler : CommonAPIHandler
 		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
 		
-        let response = try request.getBulkAPIResponse()
-        let responseJSON = response.getResponseJSON()
-        var allCVs : [ZCRMCustomView] = [ZCRMCustomView]()
-        let allCVsList : [[String:Any]] = responseJSON.getArrayOfDictionaries( key : getJSONRootKey() )
-        for cvDetails in allCVsList
-        {
-            allCVs.append(self.getZCRMCustomView(cvDetails: cvDetails))
+        request.getBulkAPIResponse { ( response, err ) in
+            if let error = err
+            {
+                completion( nil, error )
+            }
+            if let bulkResponse = response
+            {
+                let responseJSON = bulkResponse.getResponseJSON()
+                var allCVs : [ZCRMCustomView] = [ZCRMCustomView]()
+                let allCVsList : [[String:Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                for cvDetails in allCVsList
+                {
+                    allCVs.append(self.getZCRMCustomView(cvDetails: cvDetails))
+                }
+                bulkResponse.setData(data: allCVs)
+                completion( bulkResponse, nil )
+            }
         }
-        response.setData(data: allCVs)
-        return response
     }
     
-    internal func getRelatedList( id : Int64 ) throws -> APIResponse
+    internal func getRelatedList( id : Int64, completion: @escaping( APIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : "related_lists" )
         setUrlPath( urlPath : "settings/related_lists/\(id)" )
@@ -116,13 +146,21 @@ internal class ModuleAPIHandler : CommonAPIHandler
         let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         
-        let response = try request.getAPIResponse()
-        let responseJSON = response.responseJSON
-        response.setData( data : self.getAllRelatedLists( relatedListsDetails : responseJSON.getArrayOfDictionaries( key : getJSONRootKey() ) )[ 0 ] )
-        return response
+        request.getAPIResponse { ( resp, err ) in
+            if let error = err
+            {
+                completion( nil, error )
+            }
+            if let response = resp
+            {
+                let responseJSON = response.responseJSON
+                response.setData( data : self.getAllRelatedLists( relatedListsDetails : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )[ 0 ] )
+                completion( response, nil )
+            }
+        }
     }
     
-    internal func getAllRelatedLists() throws -> BulkAPIResponse
+    internal func getAllRelatedLists( completion: @escaping( BulkAPIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : "related_lists" )
         setUrlPath( urlPath : "settings/related_lists" )
@@ -131,11 +169,18 @@ internal class ModuleAPIHandler : CommonAPIHandler
         let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         
-        let response = try request.getBulkAPIResponse()
-        let responseJSON = response.getResponseJSON()
-        
-        response.setData( data : self.getAllRelatedLists( relatedListsDetails : responseJSON.getArrayOfDictionaries( key : getJSONRootKey() ) ) )
-        return response
+        request.getBulkAPIResponse { ( response, err ) in
+            if let error = err
+            {
+                completion( nil, error )
+            }
+            if let bulkResponse = response
+            {
+                let responseJSON = bulkResponse.getResponseJSON()
+                bulkResponse.setData( data : self.getAllRelatedLists( relatedListsDetails : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) ) )
+                completion( bulkResponse, nil )
+            }
+        }
     }
     
     private func getAllRelatedLists( relatedListsDetails : [ [ String : Any ] ] ) -> [ ZCRMModuleRelation ]
@@ -148,7 +193,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         return relatedLists
     }
     
-    internal func getCustomView( cvId : Int64 ) throws -> APIResponse
+    internal func getCustomView( cvId : Int64, completion: @escaping( APIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : CUSTOM_VIEWS )
 		setUrlPath(urlPath: "/settings/custom_views/\(cvId)" )
@@ -156,10 +201,18 @@ internal class ModuleAPIHandler : CommonAPIHandler
 		addRequestParam(param: "module" , value: self.module.getAPIName() )
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
-        let response = try request.getAPIResponse()
-        let cvArray : [ [ String : Any ] ] = response.getResponseJSON().getArrayOfDictionaries( key : getJSONRootKey() )
-        response.setData( data : getZCRMCustomView( cvDetails : cvArray[ 0 ] ) )
-        return response
+        request.getAPIResponse { ( resp, err ) in
+            if let error = err
+            {
+                completion( nil, error )
+            }
+            if let response = resp
+            {
+                let cvArray : [ [ String : Any ] ] = response.getResponseJSON().getArrayOfDictionaries( key : self.getJSONRootKey() )
+                response.setData( data : self.getZCRMCustomView( cvDetails : cvArray[ 0 ] ) )
+                completion( response, nil )
+            }
+        }
     }
 	
 	// MARK: - Utility functions

@@ -433,29 +433,39 @@ public class ZCRMUser : ZCRMEntity
         return self.fieldNameVsValue
     }
     
-    public func create() throws -> APIResponse
+    public func create( completion : @escaping( APIResponse?, Error? ) -> () )
     {
-        return try UserAPIHandler().addUser( user : self )
+        UserAPIHandler().addUser( user : self ) { ( response, error ) in
+            completion( response, error )
+        }
     }
     
-    public func update() throws -> APIResponse
+    public func update( completion : @escaping( APIResponse?, Error? ) -> () )
     {
-        return try UserAPIHandler().updateUser( user : self )
+        UserAPIHandler().updateUser( user : self ) { ( response, error ) in
+            completion( response, error )
+        }
     }
     
-    public func delete() throws -> APIResponse
+    public func delete( completion : @escaping( APIResponse?, Error? ) -> () )
     {
-        return try UserAPIHandler().deleteUser( userId : self.getId()! )
+        UserAPIHandler().deleteUser( userId : self.getId()! ) { ( response, error ) in
+            completion( response, error )
+        }
     }
     
-    public func downloadProfilePhoto() throws -> FileAPIResponse
+    public func downloadProfilePhoto( completion : @escaping( FileAPIResponse?, Error? ) -> () )
     {
-        return try UserAPIHandler().downloadPhoto( size : PhotoSize.ORIGINAL )
+        UserAPIHandler().downloadPhoto( size : PhotoSize.ORIGINAL ) { ( response, error ) in
+            completion( response, error )
+        }
     }
     
-    public func downloadProfilePhoto( size : PhotoSize ) throws -> FileAPIResponse
+    public func downloadProfilePhoto( size : PhotoSize, completion : @escaping( FileAPIResponse?, Error? ) -> () )
     {
-        return try UserAPIHandler().downloadPhoto( size : size )
+        UserAPIHandler().downloadPhoto( size : size ) { ( response, error ) in
+            completion( response, error )
+        }
     }
 }
 

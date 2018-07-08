@@ -8,7 +8,7 @@
 
 import Foundation
 
-public class APIResponse : CommonAPIResponse
+public class  APIResponse : CommonAPIResponse
 {
     internal var data : ZCRMEntity?
     internal var status : String?
@@ -162,7 +162,6 @@ public class FileAPIResponse : APIResponse
 public class BulkAPIResponse : CommonAPIResponse
 {
     private var bulkData : [ZCRMEntity] = [ZCRMEntity]()
-//    private var info : ResponseInfo?
     private var bulkEntityResponses : [EntityResponse] = [EntityResponse]()
     
     override init()
@@ -173,21 +172,7 @@ public class BulkAPIResponse : CommonAPIResponse
     override init( response : HTTPURLResponse, responseData : Data?, responseJSONRootKey : String? ) throws
     {
         try super.init( response : response, responseData : responseData, responseJSONRootKey : responseJSONRootKey )
-//        self.setInfo()
     }
-    
-//    private func setInfo()
-//    {
-//        if(self.responseJSON.hasValue(forKey: INFO))
-//        {
-//            self.info = ResponseInfo(infoObj: self.responseJSON.optDictionary(key: INFO)!)
-//        }
-//    }
-//
-//    public func getInfo() -> ResponseInfo
-//    {
-//        return self.info!
-//    }
     
     public func getEntityResponses() -> [EntityResponse]
     {

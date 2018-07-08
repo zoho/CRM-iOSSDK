@@ -10,14 +10,18 @@ public class ZCRMMetaData
 {
     public init() {}
     
-    public func getAllModules( modifiedSince : String? ) throws -> BulkAPIResponse
+    public func getAllModules( modifiedSince : String?, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
 	{
-		return try MetaDataAPIHandler().getAllModules( modifiedSince : modifiedSince )
+        MetaDataAPIHandler().getAllModules( modifiedSince : modifiedSince) { ( response, error ) in
+            completion( response, error )
+        }
 	}
 	
-	public func getModule(moduleAPIName : String) throws -> APIResponse
+    public func getModule( moduleAPIName : String, completion : @escaping( APIResponse?, Error? ) -> () )
 	{
-		return try MetaDataAPIHandler().getModule(apiName: moduleAPIName)
+        MetaDataAPIHandler().getModule( apiName : moduleAPIName) { ( response, error ) in
+            completion( response, error )
+        }
 	}
 	
 }

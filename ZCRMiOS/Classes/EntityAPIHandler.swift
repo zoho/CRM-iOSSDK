@@ -17,7 +17,7 @@ internal class EntityAPIHandler : CommonAPIHandler
 	
 	// MARK: - Handler Functions
 	
-    internal func getRecord( withPrivateFields : Bool ) throws -> APIResponse
+    internal func getRecord( withPrivateFields : Bool, completion : @escaping( APIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : DATA )
         let urlPath = "/\(self.record.getModuleAPIName())/\(self.record.getId())"
@@ -30,15 +30,23 @@ internal class EntityAPIHandler : CommonAPIHandler
 		let request : APIRequest = APIRequest(handler: self)
 		
         print( "Request : \( request.toString() )" )
-        let response = try request.getAPIResponse()
-        let responseJSON : [String:Any] = response.getResponseJSON()
-        let responseDataArray : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: getJSONRootKey())
-        self.setRecordProperties(recordDetails: responseDataArray[0])
-        response.setData(data: self.record)
-        return response;
+        request.getAPIResponse { ( resp, err ) in
+            if let error = err
+            {
+                completion( nil, error )
+            }
+            if let response = resp
+            {
+                let responseJSON : [String:Any] = response.getResponseJSON()
+                let responseDataArray : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                self.setRecordProperties(recordDetails: responseDataArray[0])
+                response.setData(data: self.record)
+                completion( response, nil )
+            }
+        }
     }
     
-    internal func createRecord() throws -> APIResponse
+    internal func createRecord( completion : @escaping( APIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : DATA )
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
@@ -52,17 +60,25 @@ internal class EntityAPIHandler : CommonAPIHandler
 		let request : APIRequest = APIRequest(handler : self)
         print( "Request : \( request.toString() )" )
 		
-        let response = try request.getAPIResponse()
-        let responseJSON : [String:Any] = response.getResponseJSON()
-        let respDataArr : [[String:Any?]] = responseJSON.getArrayOfDictionaries(key: getJSONRootKey())
-        let respData : [String:Any?] = respDataArr[0]
-        let recordDetails : [String:Any] = respData.getDictionary(key: "details")
-        self.setRecordProperties(recordDetails: recordDetails)
-        response.setData(data: self.record)
-        return response
+        request.getAPIResponse { ( resp, err ) in
+            if let error = err
+            {
+                completion( nil, error )
+            }
+            if let response = resp
+            {
+                let responseJSON : [String:Any] = response.getResponseJSON()
+                let respDataArr : [[String:Any?]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                let respData : [String:Any?] = respDataArr[0]
+                let recordDetails : [String:Any] = respData.getDictionary(key: "details")
+                self.setRecordProperties(recordDetails: recordDetails)
+                response.setData(data: self.record)
+                completion( response, nil )
+            }
+        }
     }
     
-    internal func updateRecord() throws -> APIResponse
+    internal func updateRecord( completion : @escaping( APIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : DATA )
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
@@ -75,18 +91,26 @@ internal class EntityAPIHandler : CommonAPIHandler
 		setRequestBody( requestBody : reqBodyObj )
 		let request : APIRequest = APIRequest( handler : self)
         print( "Request : \( request.toString() )" )
-		
-        let response = try request.getAPIResponse()
-        let responseJSON : [String:Any] = response.getResponseJSON()
-        let respDataArr : [[String:Any?]] = responseJSON.getArrayOfDictionaries(key: getJSONRootKey())
-        let respData : [String:Any?] = respDataArr[0]
-        let recordDetails : [String:Any] = respData.getDictionary(key: "details")
-        self.setRecordProperties(recordDetails: recordDetails)
-        response.setData(data: self.record)
-        return response
+
+        request.getAPIResponse { ( resp, err ) in
+            if let error = err
+            {
+                completion( nil, error )
+            }
+            if let response = resp
+            {
+                let responseJSON : [String:Any] = response.getResponseJSON()
+                let respDataArr : [[String:Any?]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                let respData : [String:Any?] = respDataArr[0]
+                let recordDetails : [String:Any] = respData.getDictionary(key: "details")
+                self.setRecordProperties(recordDetails: recordDetails)
+                response.setData(data: self.record)
+                completion( response, nil )
+            }
+        }
     }
     
-    internal func deleteRecord() throws -> APIResponse
+    internal func deleteRecord( completion : @escaping( APIResponse?, Error? ) -> () )
     {
 		
 		setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\(self.record.getId())")
@@ -95,10 +119,12 @@ internal class EntityAPIHandler : CommonAPIHandler
 		let request : APIRequest = APIRequest(handler : self )
         print( "Request : \( request.toString() )" )
 		
-        return try request.getAPIResponse()
+        request.getAPIResponse { ( response, error ) in
+            completion( response, error )
+        }
     }
     
-    internal func convertRecord(newPotential: ZCRMRecord!, assignTo: ZCRMUser!) throws -> [String:Int64]
+    internal func convertRecord( newPotential : ZCRMRecord!, assignTo : ZCRMUser!, completion : @escaping( [ String : Int64 ]?, Error? ) -> () )
     {
 
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
@@ -121,59 +147,93 @@ internal class EntityAPIHandler : CommonAPIHandler
 		let request : APIRequest = APIRequest(handler : self)
         print( "Request : \( request.toString() )" )
         
-        let response : APIResponse = try request.getAPIResponse()
-        let responseJSON : [String:Any] = response.getResponseJSON()
-        let respDataArr : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: getJSONRootKey())
-        let respData : [String:Any] = respDataArr[0]
-        var convertedDetails : [String:Int64] = [String:Int64]()
-        if ( respData.hasValue( forKey : "Accounts" ) )
-        {
-            convertedDetails.updateValue( respData.optInt64(key: "Accounts")! , forKey : "Accounts" )
+        request.getAPIResponse { ( resp, err ) in
+            if let error = err
+            {
+                completion( nil, error )
+            }
+            if let response = resp
+            {
+                let responseJSON : [String:Any] = response.getResponseJSON()
+                let respDataArr : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                let respData : [String:Any] = respDataArr[0]
+                var convertedDetails : [String:Int64] = [String:Int64]()
+                if ( respData.hasValue( forKey : "Accounts" ) )
+                {
+                    convertedDetails.updateValue( respData.optInt64(key: "Accounts")! , forKey : "Accounts" )
+                }
+                if ( respData.hasValue( forKey : "Deals" ) )
+                {
+                    convertedDetails.updateValue( respData.optInt64(key: "Deals")! , forKey : "Deals" )
+                }
+                convertedDetails.updateValue( respData.optInt64(key: "Contacts")! , forKey : "Contacts" )
+                completion( convertedDetails, nil )
+            }
         }
-        if ( respData.hasValue( forKey : "Deals" ) )
+    }
+    
+    internal func uploadPhoto( filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
+    {
+        do
         {
-            convertedDetails.updateValue( respData.optInt64(key: "Deals")! , forKey : "Deals" )
+            try photoSupportedModuleCheck( moduleAPIName : self.record.getModuleAPIName() )
+            try fileDetailCheck( filePath : filePath )
+            
+            setUrlPath(urlPath :  "/\( self.record.getModuleAPIName() )/\( String( self.record.getId() ) )/photo" )
+            setRequestMethod(requestMethod : .POST )
+            let request : APIRequest = APIRequest(handler : self )
+            print( "Request : \( request.toString() )" )
+            
+            request.uploadFile( filePath : filePath) { ( response, error ) in
+                completion( response, error )
+            }
         }
-        convertedDetails.updateValue( respData.optInt64(key: "Contacts")! , forKey : "Contacts" )
-        return convertedDetails
-		
+        catch
+        {
+            completion( nil, ZCRMSDKError.ProcessingError( error.localizedDescription ) )
+        }
     }
     
-    internal func uploadPhoto( filePath : String ) throws -> APIResponse
+    internal func downloadPhoto( completion : @escaping( FileAPIResponse?, Error? ) -> () )
     {
-        try photoSupportedModuleCheck( moduleAPIName : self.record.getModuleAPIName() )
-        try fileDetailCheck( filePath : filePath )
-		
-		setUrlPath(urlPath :  "/\( self.record.getModuleAPIName() )/\( String( self.record.getId() ) )/photo" )
-		setRequestMethod(requestMethod : .POST )
-		let request : APIRequest = APIRequest(handler : self )
-        print( "Request : \( request.toString() )" )
-		
-        return try request.uploadFile( filePath : filePath )
+        do
+        {
+            try photoSupportedModuleCheck( moduleAPIName : self.record.getModuleAPIName() )
+            
+            setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )/photo" )
+            setRequestMethod(requestMethod : .GET )
+            let request : APIRequest = APIRequest(handler : self )
+            print( "Request : \( request.toString() )" )
+            
+            request.downloadFile { ( response, error ) in
+                completion( response, error )
+            }
+        }
+        catch
+        {
+            completion( nil, ZCRMSDKError.ProcessingError( error.localizedDescription ) )
+        }
     }
     
-    internal func downloadPhoto() throws -> FileAPIResponse
+    internal func deletePhoto( completion : @escaping( APIResponse?, Error? ) -> () )
     {
-        try photoSupportedModuleCheck( moduleAPIName : self.record.getModuleAPIName() )
-		
-		setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )/photo" )
-		setRequestMethod(requestMethod : .GET )
-		let request : APIRequest = APIRequest(handler : self )
-        print( "Request : \( request.toString() )" )
-		
-        return try request.downloadFile()
-    }
-    
-    internal func deletePhoto() throws -> APIResponse
-    {
-        try photoSupportedModuleCheck( moduleAPIName : self.record.getModuleAPIName() )
-		
-		setUrlPath(urlPath : "/\( self.record.getModuleAPIName() )/\( String( self.record.getId() ) )/photo" )
-		setRequestMethod(requestMethod : .DELETE )
-		let request : APIRequest = APIRequest(handler : self )
-        print( "Request : \( request.toString() )" )
-		
-        return try request.getAPIResponse()
+        do
+        {
+            try photoSupportedModuleCheck( moduleAPIName : self.record.getModuleAPIName() )
+            
+            setUrlPath(urlPath : "/\( self.record.getModuleAPIName() )/\( String( self.record.getId() ) )/photo" )
+            setRequestMethod(requestMethod : .DELETE )
+            let request : APIRequest = APIRequest(handler : self )
+            print( "Request : \( request.toString() )" )
+            
+            request.getAPIResponse { ( response, error ) in
+                completion( response, error )
+            }
+        }
+        catch
+        {
+            completion( nil, ZCRMSDKError.ProcessingError( error.localizedDescription ) )
+        }
     }
 	
 	// MARK: - Utility Functions

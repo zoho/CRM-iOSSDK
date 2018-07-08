@@ -179,9 +179,11 @@ public class ZCRMAttachment : ZCRMEntity
     ///
     /// - Returns: FileAPIResponse containing the data of the file downloaded.
     /// - Throws: ZCRMSDkError if failed to download the attachment
-	public func downloadFile() throws -> FileAPIResponse
+    public func downloadFile( completion : @escaping( FileAPIResponse?, Error? ) -> () )
 	{
-		return try ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: self.parentRecord.getModuleAPIName()).downloadAttachment(ofParentRecord: self.parentRecord, attachmentId: self.getId())
+        ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: self.parentRecord.getModuleAPIName()).downloadAttachment(ofParentRecord: self.parentRecord, attachmentId: self.getId()) { ( response, error ) in
+            completion( response, error )
+        }
 	}
     
 }
