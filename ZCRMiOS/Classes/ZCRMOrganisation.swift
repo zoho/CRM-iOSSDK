@@ -20,6 +20,7 @@ public class ZCRMOrganisation : ZCRMEntity
     private var website : String?
     private var mobile : String?
     private var phone : String?
+    private var fax : String?
     
     private var employee_count : String?
     private var description : String?
@@ -37,6 +38,7 @@ public class ZCRMOrganisation : ZCRMEntity
     
     private var mc_status : Bool?
     private var gapps_enabled : Bool?
+    private var privacySettingsEnable : Bool?
     
     public init() {}
     
@@ -128,6 +130,16 @@ public class ZCRMOrganisation : ZCRMEntity
     public func getPhone() -> String?
     {
         return self.phone
+    }
+    
+    internal func setFax( fax : String? )
+    {
+        self.fax = fax
+    }
+    
+    public func getFax() -> String?
+    {
+        return self.fax
     }
     
     internal func setEmployeeCount( count : String )
@@ -240,6 +252,19 @@ public class ZCRMOrganisation : ZCRMEntity
         return self.mc_status
     }
     
+    internal func setPrivacySettingsEnabled( privacyEnabled : Bool )
+    {
+        self.privacySettingsEnable = privacyEnabled
+    }
+    
+    public func getPrivacySettingsEnabled() -> Bool
+    {
+        if privacySettingsEnable == nil {
+            self.privacySettingsEnable = false
+        }
+        return self.privacySettingsEnable!
+    }
+    
     internal func setGappsEnabled( gappsEnabled : Bool )
     {
         self.gapps_enabled = gappsEnabled
@@ -270,79 +295,109 @@ public class ZCRMOrganisation : ZCRMEntity
         return self.currency_symbol
     }
 	
-    public func getAllUsers() throws -> BulkAPIResponse
+    public func getAllUsers( completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        return try UserAPIHandler().getAllUsers( modifiedSince : nil, page : 1, perPage : 200 )
+        UserAPIHandler().getAllUsers( modifiedSince : nil, page : 1, perPage : 200 ) { ( response, users, error ) in
+            completion( response, users, error )
+        }
     }
 
-    public func getAllUsers( modifiedSince : String? ) throws -> BulkAPIResponse
+    public func getAllUsers( modifiedSince : String?, completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        return try UserAPIHandler().getAllUsers( modifiedSince : modifiedSince, page : 1, perPage : 200 )
+        UserAPIHandler().getAllUsers( modifiedSince : modifiedSince, page : 1, perPage : 200 ) { ( response, users, error ) in
+            completion( response, users, error )
+        }
     }
 
-    public func getAllActiveConfirmedUsers() throws -> BulkAPIResponse
+    public func getAllActiveConfirmedUsers( completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        return try UserAPIHandler().getAllActiveConfirmedUsers( page : 1, perPage : 200 )
+        UserAPIHandler().getAllActiveConfirmedUsers( page : 1, perPage : 200 ) { ( response, users, error ) in
+            completion( response, users, error )
+        }
     }
     
-    public func getAllActiveConfirmedUsers( page : Int, perPage : Int ) throws -> BulkAPIResponse
+    public func getAllActiveConfirmedUsers( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        return try UserAPIHandler().getAllActiveConfirmedAdmins( page : page, perPage : perPage )
+        UserAPIHandler().getAllActiveConfirmedAdmins( page : page, perPage : perPage ) { ( response, users, error ) in
+            completion( response, users, error )
+        }
     }
 
-    public func getAllAdminUsers() throws -> BulkAPIResponse
+    public func getAllAdminUsers( completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        return try UserAPIHandler().getAllAdminUsers( page : 1, perPage : 200 )
+        UserAPIHandler().getAllAdminUsers( page : 1, perPage : 200 ) { ( response, users, error ) in
+            completion( response, users, error )
+        }
     }
     
-    public func getAllAdminUsers( page : Int, perPage : Int ) throws -> BulkAPIResponse
+    public func getAllAdminUsers( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        return try UserAPIHandler().getAllAdminUsers( page : page, perPage : perPage )
+        UserAPIHandler().getAllAdminUsers( page : page, perPage : perPage ) { ( response, users, error ) in
+            completion( response, users, error )
+        }
     }
 
-    public func getAllActiveUsers() throws -> BulkAPIResponse
+    public func getAllActiveUsers( completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        return try UserAPIHandler().getAllActiveUsers( page : 1, perPage : 200 )
+        UserAPIHandler().getAllActiveUsers( page : 1, perPage : 200 ) { ( response, users, error ) in
+            completion( response, users, error )
+        }
     }
     
-    public func getAllActiveUsers( page : Int, perPage : Int ) throws -> BulkAPIResponse
+    public func getAllActiveUsers( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        return try UserAPIHandler().getAllActiveUsers( page : page, perPage : perPage )
+        UserAPIHandler().getAllActiveUsers( page : page, perPage : perPage ) { ( response, users, error ) in
+            completion( response, users, error )
+        }
     }
 
-    public func getAllInActiveUsers() throws -> BulkAPIResponse
+    public func getAllInActiveUsers( completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        return try UserAPIHandler().getAllDeactiveUsers( page : 1, perPage : 200 )
+        UserAPIHandler().getAllDeactiveUsers( page : 1, perPage : 200 ) { ( response, users, error ) in
+            completion( response, users, error )
+        }
     }
     
-    public func getAllInActiveUsers( page : Int, perPage : Int ) throws -> BulkAPIResponse
+    public func getAllInActiveUsers( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        return try UserAPIHandler().getAllDeactiveUsers( page : page, perPage : perPage )
+        UserAPIHandler().getAllDeactiveUsers( page : page, perPage : perPage ) { ( response, users, error ) in
+            completion( response, users, error )
+        }
     }
 	
-	public func getUser(userId : Int64) throws -> APIResponse
+    public func getUser(userId : Int64, completion : @escaping( APIResponse?, ZCRMUser?, Error? ) -> () )
 	{
-		return try UserAPIHandler().getUser(userId: userId)
+        UserAPIHandler().getUser(userId: userId) { ( response, user, error ) in
+            completion( response, user, error )
+        }
 	}
     
-    public func getAllProfiles() throws -> BulkAPIResponse
+    public func getAllProfiles( completion : @escaping( BulkAPIResponse?, [ ZCRMProfile ]?, Error? ) -> () )
     {
-        return try UserAPIHandler().getAllProfiles()
+        UserAPIHandler().getAllProfiles() { ( response, profiles, error ) in
+            completion( response, profiles, error )
+        }
     }
     
-    public func getProfile( profileId : Int64 ) throws -> APIResponse
+    public func getProfile( profileId : Int64, completion : @escaping( APIResponse?, ZCRMProfile?, Error? ) -> () )
     {
-        return try UserAPIHandler().getProfile( profileId : profileId )
+        UserAPIHandler().getProfile( profileId : profileId ) { ( response, profile, error ) in
+            completion( response, profile, error )
+        }
     }
     
-    public func getAllRoles() throws -> BulkAPIResponse
+    public func getAllRoles( completion : @escaping( BulkAPIResponse?, [ ZCRMRole ]?, Error? ) -> () )
     {
-        return try UserAPIHandler().getAllRoles()
+        UserAPIHandler().getAllRoles() { ( response, roles, error ) in
+            completion( response, roles, error )
+        }
     }
     
-    public func getRole( roleId : Int64 ) throws -> APIResponse
+    public func getRole( roleId : Int64, completion : @escaping( APIResponse?, ZCRMRole?, Error? ) -> () )
     {
-        return try UserAPIHandler().getRole( roleId : roleId )
+        UserAPIHandler().getRole( roleId : roleId ) { ( response, role, error ) in
+            completion( response, role, error )
+        }
     }
 	
 }

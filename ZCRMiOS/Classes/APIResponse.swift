@@ -8,7 +8,7 @@
 
 import Foundation
 
-public class APIResponse : CommonAPIResponse
+public class  APIResponse : CommonAPIResponse
 {
     internal var data : ZCRMEntity?
     internal var status : String?
@@ -18,9 +18,9 @@ public class APIResponse : CommonAPIResponse
         super.init()
     }
     
-    override init(response: HTTPURLResponse, responseData: Data?) throws
+    override init( response : HTTPURLResponse, responseData : Data?, responseJSONRootKey : String? ) throws
     {
-        try super.init(response: response, responseData: responseData)
+        try super.init( response : response, responseData : responseData, responseJSONRootKey : responseJSONRootKey )
     }
     
     internal func setData(data : ZCRMEntity)
@@ -68,30 +68,37 @@ public class APIResponse : CommonAPIResponse
     
     override func processDataResponse() throws
     {
-        var msgJSON : [ String : Any ] = responseJSON
-        if( responseJSON.hasValue( forKey : DATA ) )
+        if let jsonRootKey = responseJSONRootKey
         {
-            let recordsArray : [ [ String : Any? ] ] = responseJSON[ DATA ] as! [ [ String : Any? ] ]
-            msgJSON = recordsArray[ 0 ] as Any as! [ String : Any ]
-        }
-        if ( msgJSON.hasValue( forKey : MESSAGE ) )
-        {
-            message = msgJSON[ MESSAGE ] as? String
-        }
-        if( msgJSON.hasValue( forKey : STATUS ) )
-        {
-            status = msgJSON[ STATUS ] as? String
-            if( status == CODE_ERROR )
+            var msgJSON : [ String : Any ] = responseJSON
+            if( responseJSON.hasValue( forKey : jsonRootKey ) )
             {
-                var msg : String = String()
-                if( msgJSON.hasValue( forKey : DETAILS ) )
+                let recordsArray : [ [ String : Any? ] ] = responseJSON[ jsonRootKey ] as! [ [ String : Any? ] ]
+                msgJSON = recordsArray[ 0 ] as Any as! [ String : Any ]
+            }
+            if ( msgJSON.hasValue( forKey : MESSAGE ) )
+            {
+                message = msgJSON[ MESSAGE ] as? String
+            }
+            if( msgJSON.hasValue( forKey : STATUS ) )
+            {
+                status = msgJSON[ STATUS ] as? String
+                if( status == CODE_ERROR )
                 {
-                    msg = "\( msgJSON[ CODE ] as! String ) - \( message! ) - \( msgJSON[ DETAILS] as! [ String : Any ] )"
+                    var msg : String = String()
+                    if( msgJSON.hasValue( forKey : DETAILS ) )
+                    {
+                        msg = "\( msgJSON[ CODE ] as! String ) - \( message! ) - \( msgJSON[ DETAILS] as! [ String : Any ] )"
+                        throw ZCRMSDKError.ProcessingError( msg )
+                    }
+                    msg = "\( msgJSON[ CODE ] as! String ) - \( message! )"
                     throw ZCRMSDKError.ProcessingError( msg )
                 }
-                msg = "\( msgJSON[ CODE ] as! String ) - \( message! )"
-                throw ZCRMSDKError.ProcessingError( msg )
             }
+        }
+        else
+        {
+            throw ZCRMSDKError.ProcessingError( "Response root key is nil." )
         }
     }
 }
@@ -104,7 +111,7 @@ public class FileAPIResponse : APIResponse
     init(response: HTTPURLResponse, tempLocalUrl: URL?) throws
     {
         self.tempLocalUrl = tempLocalUrl!
-        try super.init(response: response, responseData: nil)
+        try super.init(response: response, responseData: nil, responseJSONRootKey : nil )
     }
     
     public func getFileName() -> String
@@ -150,12 +157,15 @@ public class FileAPIResponse : APIResponse
         }
     }
     
+    override func processDataResponse() throws
+    {
+    }
+    
 }
 
 public class BulkAPIResponse : CommonAPIResponse
 {
     private var bulkData : [ZCRMEntity] = [ZCRMEntity]()
-    private var info : ResponseInfo?
     private var bulkEntityResponses : [EntityResponse] = [EntityResponse]()
     
     override init()
@@ -163,23 +173,9 @@ public class BulkAPIResponse : CommonAPIResponse
         super.init()
     }
     
-    override init(response: HTTPURLResponse, responseData: Data?) throws
+    override init( response : HTTPURLResponse, responseData : Data?, responseJSONRootKey : String? ) throws
     {
-        try super.init(response: response, responseData: responseData)
-        self.setInfo()
-    }
-    
-    private func setInfo()
-    {
-        if(self.responseJSON.hasValue(forKey: INFO))
-        {
-            self.info = ResponseInfo(infoObj: self.responseJSON.optDictionary(key: INFO)!)
-        }
-    }
-    
-    public func getInfo() -> ResponseInfo
-    {
-        return self.info!
+        try super.init( response : response, responseData : responseData, responseJSONRootKey : responseJSONRootKey )
     }
     
     public func getEntityResponses() -> [EntityResponse]
@@ -199,17 +195,24 @@ public class BulkAPIResponse : CommonAPIResponse
     
     override func processDataResponse() throws
     {
-        if(self.responseJSON.hasValue(forKey: DATA))
+        if let jsonRootKey = responseJSONRootKey
         {
-            let recordsArray : [[String:Any?]] = responseJSON.optArray(key: "data") as! [[String:Any?]]
-            for recordJSON in recordsArray
+            if(self.responseJSON.hasValue( forKey : jsonRootKey ) )
             {
-                if(recordJSON.hasValue(forKey: STATUS))
+                let recordsArray : [[String:Any?]] = responseJSON.optArray(key: jsonRootKey) as! [[String:Any?]]
+                for recordJSON in recordsArray
                 {
-                    let individualResponse : EntityResponse = EntityResponse(entityResponseJSON: recordJSON as Any as! [ String : Any ])
-                    self.bulkEntityResponses.append(individualResponse)
+                    if(recordJSON.hasValue(forKey: STATUS))
+                    {
+                        let individualResponse : EntityResponse = EntityResponse(entityResponseJSON: recordJSON as Any as! [ String : Any ])
+                        self.bulkEntityResponses.append(individualResponse)
+                    }
                 }
             }
+        }
+        else
+        {
+            throw ZCRMSDKError.ProcessingError( "Response root key is nil." )
         }
     }
     
@@ -286,42 +289,6 @@ public class EntityResponse
     public func getMessage() -> String
     {
         return self.message
-    }
-}
-
-public class ResponseInfo
-{
-    private var moreRecords : Bool;
-    private var recordCount : Int;
-    private var pageNo : Int;
-    private var perPage : Int;
-    
-    init(infoObj : [String:Any])
-    {
-        self.moreRecords = infoObj.optBoolean(key: MORE_RECORDS)!
-        self.recordCount = infoObj.optInt(key: COUNT)!
-        self.pageNo = infoObj.optInt(key: PAGE)!
-        self.perPage = infoObj.optInt(key: PER_PAGE)!
-    }
-    
-    public func hasMoreRecords() -> Bool
-    {
-        return self.moreRecords
-    }
-    
-    public func getRecordCount() -> Int
-    {
-        return self.recordCount
-    }
-    
-    public func getPageNo() -> Int
-    {
-        return self.pageNo
-    }
-    
-    public func getPerPageCount() -> Int
-    {
-        return self.perPage
     }
 }
 

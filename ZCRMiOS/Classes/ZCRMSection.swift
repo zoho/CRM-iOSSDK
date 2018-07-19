@@ -13,6 +13,7 @@ public class ZCRMSection : ZCRMEntity
 	private var columnCount : Int?
 	private var sequence : Int?
 	private var fields : [ZCRMField]?
+    private var isSubformSection : Bool?
 	
     /// Initialise the instance of a section with the given section name.
     ///
@@ -108,4 +109,14 @@ public class ZCRMSection : ZCRMEntity
 	{
 		return self.fields
 	}
+    
+    internal func setIsSubformSection( isSubformSection : Bool )
+    {
+        self.isSubformSection = isSubformSection
+    }
+    
+    public func getIsSubformSection() -> Bool
+    {
+        return self.isSubformSection!
+    }
 }
