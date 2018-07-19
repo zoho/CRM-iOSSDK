@@ -8,7 +8,7 @@
 
 internal class UserAPIHandler : CommonAPIHandler
 {
-    internal func getUsers(type : String?, modifiedSince : String?, page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func getUsers(type : String?, modifiedSince : String?, page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
         setJSONRootKey( key : USERS )
         var allUsers : [ZCRMUser] = [ZCRMUser]()
@@ -29,7 +29,7 @@ internal class UserAPIHandler : CommonAPIHandler
         request.getBulkAPIResponse { ( response, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let bulkResponse = response
             {
@@ -43,12 +43,12 @@ internal class UserAPIHandler : CommonAPIHandler
                     }
                 }
                 bulkResponse.setData(data: allUsers)
-                completion( bulkResponse, nil )
+                completion( bulkResponse, allUsers, nil )
             }
         }
     }
     
-    internal func getAllProfiles( completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func getAllProfiles( completion : @escaping( BulkAPIResponse?, [ ZCRMProfile ]?, Error? ) -> () )
     {
         setJSONRootKey( key : PROFILES )
         var allProfiles : [ ZCRMProfile ] = [ ZCRMProfile ] ()
@@ -59,7 +59,7 @@ internal class UserAPIHandler : CommonAPIHandler
         request.getBulkAPIResponse { ( response, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let bulkResponse = response
             {
@@ -73,12 +73,12 @@ internal class UserAPIHandler : CommonAPIHandler
                     }
                 }
                 bulkResponse.setData( data : allProfiles)
-                completion( bulkResponse, nil )
+                completion( bulkResponse, allProfiles, nil )
             }
         }
     }
     
-    internal func getAllRoles( completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func getAllRoles( completion : @escaping( BulkAPIResponse?, [ ZCRMRole ]?, Error? ) -> () )
     {
         setJSONRootKey( key : ROLES )
         var allRoles : [ ZCRMRole ] = [ ZCRMRole ]()
@@ -89,7 +89,7 @@ internal class UserAPIHandler : CommonAPIHandler
         request.getBulkAPIResponse { ( response, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let bulkResponse = response
             {
@@ -103,12 +103,12 @@ internal class UserAPIHandler : CommonAPIHandler
                     }
                 }
                 bulkResponse.setData( data : allRoles )
-                completion( bulkResponse, nil )
+                completion( bulkResponse, allRoles, nil )
             }
         }
     }
     
-    internal func getUser( userId : Int64?, completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func getUser( userId : Int64?, completion : @escaping( APIResponse?, ZCRMUser?, Error? ) -> () )
 	{
         setJSONRootKey( key : USERS )
 		setRequestMethod(requestMethod: .GET )
@@ -126,19 +126,20 @@ internal class UserAPIHandler : CommonAPIHandler
         request.getAPIResponse { ( resp, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let response = resp
             {
                 let responseJSON = response.getResponseJSON()
                 let usersList:[[String : Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
-                response.setData(data: self.getZCRMUser(userDict: usersList[0]))
-                completion( response, nil )
+                let user = self.getZCRMUser(userDict: usersList[0])
+                response.setData(data: user )
+                completion( response, user, nil )
             }
         }
     }
     
-    internal func addUser( user : ZCRMUser, completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func addUser( user : ZCRMUser, completion : @escaping( APIResponse?, ZCRMUser?, Error? ) -> () )
     {
         setJSONRootKey( key : USERS )
         setRequestMethod( requestMethod : .POST )
@@ -153,7 +154,7 @@ internal class UserAPIHandler : CommonAPIHandler
         request.getAPIResponse { ( resp, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let response = resp
             {
@@ -162,7 +163,7 @@ internal class UserAPIHandler : CommonAPIHandler
                 let responseDetails : [ String : Any ] = responseJSONData[ "details" ] as! [ String : Any ]
                 user.setId( id : Int64( responseDetails[ "id" ] as! String )! )
                 response.setData( data : user )
-                completion( response, nil )
+                completion( response, user, nil )
             }
         }
     }
@@ -194,14 +195,14 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    public func searchByCriteria( criteria : String, page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    public func searchByCriteria( criteria : String, page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        self.searchUsers( criteria : criteria, page : page, perPage : perPage) { ( response, error ) in
-            completion( response, error )
+        self.searchUsers( criteria : criteria, page : page, perPage : perPage) { ( response, users, error ) in
+            completion( response, users, error )
         }
     }
     
-    private func searchUsers( criteria : String, page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    private func searchUsers( criteria : String, page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
         setJSONRootKey( key : USERS )
         setRequestMethod( requestMethod : .PUT )
@@ -212,7 +213,7 @@ internal class UserAPIHandler : CommonAPIHandler
         APIRequest( handler : self ).getBulkAPIResponse { ( response, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let bulkResponse = response
             {
@@ -228,12 +229,12 @@ internal class UserAPIHandler : CommonAPIHandler
                     }
                 }
                 bulkResponse.setData( data : userList )
-                completion( bulkResponse, nil )
+                completion( bulkResponse, userList, nil )
             }
         }
     }
     
-    internal func getProfile( profileId : Int64, completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func getProfile( profileId : Int64, completion : @escaping( APIResponse?, ZCRMProfile?, Error? ) -> () )
     {
         setJSONRootKey( key : PROFILES )
 		setUrlPath(urlPath:  "/settings/profiles/\(profileId)" )
@@ -243,19 +244,20 @@ internal class UserAPIHandler : CommonAPIHandler
         request.getAPIResponse { ( resp, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let response = resp
             {
                 let responseJSON = response.getResponseJSON()
                 let profileList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
-                response.setData( data : self.getZCRMProfile(profileDetails: profileList[ 0 ] ) )
-                completion( response, nil )
+                let profile = self.getZCRMProfile( profileDetails: profileList[ 0 ] )
+                response.setData( data : profile )
+                completion( response, profile, nil )
             }
         }
     }
     
-    internal func getRole( roleId : Int64, completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func getRole( roleId : Int64, completion : @escaping( APIResponse?, ZCRMRole?, Error? ) -> () )
     {
         setJSONRootKey( key : ROLES )
 		setUrlPath(urlPath: "/settings/roles/\(roleId)" )
@@ -265,14 +267,15 @@ internal class UserAPIHandler : CommonAPIHandler
         request.getAPIResponse { ( resp, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let response = resp
             {
                 let responseJSON = response.getResponseJSON()
                 let rolesList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
-                response.setData( data : self.getZCRMRole( roleDetails : rolesList[ 0 ] ) )
-                completion( response, nil )
+                let role = self.getZCRMRole( roleDetails : rolesList[ 0 ] )
+                response.setData( data : role )
+                completion( response, role, nil )
             }
         }
     }
@@ -289,73 +292,73 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getCurrentUser( completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func getCurrentUser( completion : @escaping( APIResponse?, ZCRMUser?, Error? ) -> () )
     {
-        self.getUser( userId : nil) { ( response, error ) in
-            completion( response, error )
+        self.getUser( userId : nil) { ( response, user, error ) in
+            completion( response, user, error )
         }
     }
     
-    internal func getAllUsers( modifiedSince : String?, page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func getAllUsers( modifiedSince : String?, page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        self.getUsers( type: nil, modifiedSince : modifiedSince, page : page, perPage : perPage) { ( response, error ) in
-            completion( response, error )
+        self.getUsers( type: nil, modifiedSince : modifiedSince, page : page, perPage : perPage) { ( response, users, error ) in
+            completion( response, users, error )
         }
     }
     
-    internal func getAllActiveUsers( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func getAllActiveUsers( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        self.getUsers( type : "ActiveUsers", modifiedSince : nil, page : page, perPage : perPage) { ( response, error ) in
-            completion( response, error )
+        self.getUsers( type : "ActiveUsers", modifiedSince : nil, page : page, perPage : perPage) { ( response, users, error ) in
+            completion( response, users, error )
         }
     }
     
-    internal func getAllDeactiveUsers( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func getAllDeactiveUsers( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        self.getUsers( type : "DeactiveUsers", modifiedSince : nil, page : page, perPage : perPage) { ( response, error ) in
-            completion( response, error )
+        self.getUsers( type : "DeactiveUsers", modifiedSince : nil, page : page, perPage : perPage) { ( response, users, error ) in
+            completion( response, users, error )
         }
     }
     
-    internal func getAllUnConfirmedUsers( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func getAllUnConfirmedUsers( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        self.getUsers( type : "NotConfirmedUsers", modifiedSince : nil, page : page, perPage : perPage) { ( response, error ) in
-            completion( response, error )
+        self.getUsers( type : "NotConfirmedUsers", modifiedSince : nil, page : page, perPage : perPage) { ( response, users, error ) in
+            completion( response, users, error )
         }
     }
     
-    internal func getAllConfirmedUsers( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func getAllConfirmedUsers( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        self.getUsers( type : "ConfirmedUsers", modifiedSince : nil, page : page, perPage : perPage) { ( response, error ) in
-            completion( response, error )
+        self.getUsers( type : "ConfirmedUsers", modifiedSince : nil, page : page, perPage : perPage) { ( response, users, error ) in
+            completion( response, users, error )
         }
     }
 
-    internal func getAllActiveConfirmedUsers( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func getAllActiveConfirmedUsers( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        self.getUsers( type: "ActiveConfirmedUsers", modifiedSince : nil, page : page, perPage : perPage) { ( response, error ) in
-            completion( response, error )
+        self.getUsers( type: "ActiveConfirmedUsers", modifiedSince : nil, page : page, perPage : perPage) { ( response, users, error ) in
+            completion( response, users, error )
         }
     }
     
-    internal func getAllDeletedUsers( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func getAllDeletedUsers( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        self.getUsers( type: "DeletedUsers", modifiedSince : nil, page : page, perPage : perPage) { ( response, error ) in
-            completion( response, error )
+        self.getUsers( type: "DeletedUsers", modifiedSince : nil, page : page, perPage : perPage) { ( response, users, error ) in
+            completion( response, users, error )
         }
     }
     
-    internal func getAllAdminUsers( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func getAllAdminUsers( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        self.getUsers( type: "AdminUsers", modifiedSince : nil, page : page, perPage : perPage) { ( response, error ) in
-            completion( response, error )
+        self.getUsers( type: "AdminUsers", modifiedSince : nil, page : page, perPage : perPage) { ( response, users, error ) in
+            completion( response, users, error )
         }
     }
     
-    internal func getAllActiveConfirmedAdmins( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func getAllActiveConfirmedAdmins( page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMUser ]?, Error? ) -> () )
     {
-        self.getUsers( type: "ActiveConfirmedAdmins", modifiedSince : nil, page : page, perPage : perPage) { ( response, error ) in
-            completion( response, error )
+        self.getUsers( type: "ActiveConfirmedAdmins", modifiedSince : nil, page : page, perPage : perPage) { ( response, users, error ) in
+            completion( response, users, error )
         }
     }
 	
@@ -473,9 +476,9 @@ internal class UserAPIHandler : CommonAPIHandler
         return profile
     }
     
-    internal func getZCRMUserAsJSON( user : ZCRMUser ) -> [ String : Any? ]
+    internal func getZCRMUserAsJSON( user : ZCRMUser ) -> [ String : Any ]
     {
-        var userJSON : [ String : Any? ] = [ String : Any? ]()
+        var userJSON : [ String : Any ] = [ String : Any ]()
         if let id = user.getId()
         {
              userJSON[ "id" ] = id

@@ -29,7 +29,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         self.init(parentRecord: parentRecord, relatedList: ZCRMModuleRelation(parentRecord: parentRecord, junctionRecord: junctionRecord), junctionRecord: junctionRecord)
     }
     
-    internal func getRecords(page : Int, per_page : Int, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String?, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func getRecords(page : Int, per_page : Int, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String?, completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> () )
 	{
 		var records : [ZCRMRecord] = [ZCRMRecord]()
 		setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())" )
@@ -54,7 +54,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         request.getBulkAPIResponse { ( response, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let bulkResponse = response
             {
@@ -70,12 +70,12 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     }
                     bulkResponse.setData(data: records)
                 }
-                completion( bulkResponse, nil )
+                completion( bulkResponse, records, nil )
             }
         }
 	}
 	
-    internal func getNotes( page : Int, per_page : Int, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String?, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func getNotes( page : Int, per_page : Int, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String?, completion : @escaping( BulkAPIResponse?, [ ZCRMNote ]?, Error? ) -> () )
 	{
 		var notes : [ZCRMNote] = [ZCRMNote]()
 		setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())" )
@@ -100,7 +100,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         request.getBulkAPIResponse { ( response, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let bulkResponse = response
             {
@@ -114,12 +114,12 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     }
                     bulkResponse.setData(data: notes)
                 }
-                completion( bulkResponse, nil )
+                completion( bulkResponse, notes, nil )
             }
         }
 	}
 	
-    internal func getAllAttachmentsDetails( page : Int, per_page : Int, modifiedSince : String?, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func getAllAttachmentsDetails( page : Int, per_page : Int, modifiedSince : String?, completion : @escaping( BulkAPIResponse?, [ ZCRMAttachment ]?, Error? ) -> () )
 	{
 		var attachments : [ZCRMAttachment] = [ZCRMAttachment]()
 		setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())" )
@@ -136,7 +136,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         request.getBulkAPIResponse { ( response, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let bulkResponse = response
             {
@@ -150,12 +150,12 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     }
                     bulkResponse.setData(data: attachments)
                 }
-                completion( bulkResponse, nil )
+                completion( bulkResponse, attachments, nil )
             }
         }
 	}
 	
-    internal func uploadAttachment( filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func uploadAttachment( filePath : String, completion : @escaping( APIResponse?, ZCRMAttachment?, Error? ) -> () )
     {
 		
 		setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String( self.parentRecord.getId()))/\(self.relatedList.getAPIName())" )
@@ -165,7 +165,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         request.uploadFile( filePath : filePath, completion : { ( resp, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let response = resp
             {
@@ -173,13 +173,14 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                 let respDataArr : [[String:Any?]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                 let respData : [String:Any?] = respDataArr[0]
                 let recordDetails : [String:Any] = respData.getDictionary( key : "details" )
-                response.setData(data: self.getZCRMAttachment(attachmentDetails: recordDetails))
-                completion( response, nil )
+                let attachment = self.getZCRMAttachment(attachmentDetails: recordDetails)
+                response.setData(data: attachment)
+                completion( response, attachment, nil )
             }
         })
     }
     
-    internal func uploadLinkAsAttachment( attachmentURL : String, completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func uploadLinkAsAttachment( attachmentURL : String, completion : @escaping( APIResponse?, ZCRMAttachment?, Error? ) -> () )
     {
 		
 		setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())" )
@@ -190,14 +191,15 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         request.uploadLink { ( resp, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let response = resp
             {
                 let responseJSONArray : [ [ String : Any ] ]  = response.getResponseJSON().getArrayOfDictionaries( key : self.getJSONRootKey() )
                 let details = responseJSONArray[ 0 ].getDictionary( key : "details" )
-                response.setData( data : self.getZCRMAttachment(attachmentDetails: details))
-                completion( response, nil )
+                let attachment = self.getZCRMAttachment(attachmentDetails: details)
+                response.setData( data : attachment )
+                completion( response, attachment, nil )
             }
         }
     }
@@ -225,7 +227,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
     }
 	
-    internal func addNote( note : ZCRMNote, completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func addNote( note : ZCRMNote, completion : @escaping( APIResponse?, ZCRMNote?, Error? ) -> () )
 	{
 		var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
 		var dataArray : [[String:Any]] = [[String:Any]]()
@@ -241,7 +243,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         request.getAPIResponse { ( resp, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let response = resp
             {
@@ -249,17 +251,18 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                 let respDataArr : [[String:Any?]] = responseJSON.optArrayOfDictionaries(key: self.getJSONRootKey())!
                 let respData : [String:Any?] = respDataArr[0]
                 let recordDetails : [String:Any] = respData.getDictionary( key : "details" )
-                response.setData(data: self.getZCRMNote(noteDetails: recordDetails, note: note))
-                completion( response, nil )
+                let note = self.getZCRMNote(noteDetails: recordDetails, note: note)
+                response.setData(data: note )
+                completion( response, note, nil )
             }
         }
 	}
 	
-    internal func updateNote( note : ZCRMNote, completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func updateNote( note : ZCRMNote, completion : @escaping( APIResponse?, ZCRMNote?, Error? ) -> () )
 	{
         if note.getId() == nil
         {
-            completion( nil, ZCRMSDKError.ProcessingError( "Note ID MUST NOT be nil" ) )
+            completion( nil, nil, ZCRMSDKError.ProcessingError( "Note ID MUST NOT be nil" ) )
         }
         let noteId : String = String( note.getId()! )
 		var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
@@ -276,7 +279,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         request.getAPIResponse { ( resp, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let response = resp
             {
@@ -284,8 +287,9 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                 let respDataArr : [[String:Any?]] = responseJSON.optArrayOfDictionaries(key: self.getJSONRootKey())!
                 let respData : [String:Any?] = respDataArr[0]
                 let recordDetails : [String:Any] = respData.getDictionary(key: "details")
-                response.setData(data: self.getZCRMNote(noteDetails: recordDetails, note: note))
-                completion( response, nil )
+                let updatedNote = self.getZCRMNote(noteDetails: recordDetails, note: note)
+                response.setData(data: updatedNote )
+                completion( response, updatedNote, nil )
             }
         }
 	}

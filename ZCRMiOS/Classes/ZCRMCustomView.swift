@@ -201,10 +201,10 @@ public class ZCRMCustomView : ZCRMEntity
     ///
     /// - Returns: List of all records of the CustomView
     /// - Throws: ZCRMSDKError if failed to get the records
-    public func getRecords( includePrivateFields : Bool, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    public func getRecords( includePrivateFields : Bool, completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> () )
     {
-        self.getRecords( page : 1, perPage : 200, includePrivateFields : includePrivateFields ) { ( response, error ) in
-            completion( response, error )
+        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( page : 1, per_page : 200, includePrivateFields : includePrivateFields ){ ( response, records, error ) in
+            completion( response, records, error )
         }
     }
     
@@ -215,10 +215,10 @@ public class ZCRMCustomView : ZCRMEntity
     ///   - perPage: no of records to be given for a single page.
     /// - Returns: list of all records of the CustomView of a requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get the records
-    public func getRecords( page : Int, perPage : Int, includePrivateFields : Bool, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    public func getRecords( page : Int, perPage : Int, includePrivateFields : Bool, completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> () )
     {
-        self.getRecords( sortByField : nil, sortOrder : nil, startIndex : page, endIndex: perPage, modifiedSince : nil, includePrivateFields : includePrivateFields ) { ( response, error ) in
-            completion( response, error )
+        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( page : page, per_page : perPage, includePrivateFields : includePrivateFields ){ ( response, records, error ) in
+            completion( response, records, error )
         }
     }
     
@@ -229,10 +229,10 @@ public class ZCRMCustomView : ZCRMEntity
     ///   - sortOrder: sort order (asc, desc)
     /// - Returns: sorted list of records of the CustomView
     /// - Throws: ZCRMSDKError if failed to get the records
-    public func getRecords( sortByField : String, sortOrder : SortOrder, includePrivateFields : Bool, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    public func getRecords( sortByField : String, sortOrder : SortOrder, includePrivateFields : Bool, completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> () )
     {
-        self.getRecords( sortByField : sortByField, sortOrder : sortOrder, startIndex : 1, endIndex: 200, modifiedSince : nil, includePrivateFields : includePrivateFields ) { ( response, error ) in
-            completion( response, error )
+        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( cvId : self.id, sortByField : sortByField, sortOrder : sortOrder, includePrivateFields : includePrivateFields) { ( response, records, error ) in
+            completion( response, records, error )
         }
     }
     
@@ -246,10 +246,10 @@ public class ZCRMCustomView : ZCRMEntity
     ///   - modifiedSince: modified time
     /// - Returns: sorted list of records of the CustomView
     /// - Throws: ZCRMSDKError if failed to get the records
-    public func getRecords( sortByField : String?, sortOrder : SortOrder?, startIndex : Int, endIndex : Int, modifiedSince : String?, includePrivateFields : Bool, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    public func getRecords( sortByField : String, sortOrder : SortOrder, startIndex : Int, endIndex : Int, modifiedSince : String, includePrivateFields : Bool, completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( cvId : self.id, sortByField : sortByField, sortOrder : sortOrder, page: startIndex, per_page: endIndex, modifiedSince : modifiedSince, includePrivateFields : includePrivateFields ){ ( response, error ) in
-            completion( response, error )
+        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( cvId : self.id, sortByField : sortByField, sortOrder : sortOrder, page: startIndex, per_page: endIndex, modifiedSince : modifiedSince, includePrivateFields : includePrivateFields ){ ( response, records, error ) in
+            completion( response, records, error )
         }
     }
 	

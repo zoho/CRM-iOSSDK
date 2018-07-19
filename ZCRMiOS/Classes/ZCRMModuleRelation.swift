@@ -186,10 +186,10 @@ public class ZCRMModuleRelation : ZCRMEntity
     /// - Parameter ofParentRecord: list of records of the module
     /// - Returns: list of related records of the module
     /// - Throws: ZCRMSDKError if falied to get related records
-    public func getRelatedRecords(ofParentRecord: ZCRMRecord, completion : @escaping( BulkAPIResponse?, Error? ) -> ())
+    public func getRelatedRecords(ofParentRecord: ZCRMRecord, completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> ())
 	{
-        self.getRelatedRecords(ofParentRecord: ofParentRecord, page: 1, per_page: 20, sortByField: nil, sortOrder: nil, modifiedSince: nil) { ( response, error ) in
-            completion( response, error )
+        RelatedListAPIHandler(parentRecord: ofParentRecord, relatedList: self).getRecords(page: 1, per_page: 20, sortByField: nil, sortOrder: nil, modifiedSince: nil) { ( response, records, error ) in
+            completion( response, records, error )
         }
 	}
 	
@@ -204,10 +204,10 @@ public class ZCRMModuleRelation : ZCRMEntity
     ///   - modifiedSince: modified time
     /// - Returns: sorted list of module of the ZCRMRecord of a requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if falied to get related records
-    public func getRelatedRecords(ofParentRecord: ZCRMRecord, page: Int, per_page: Int, sortByField: String?, sortOrder: SortOrder?, modifiedSince: String?, completion : @escaping( BulkAPIResponse?, Error? ) -> ())
+    public func getRelatedRecords(ofParentRecord: ZCRMRecord, page: Int, per_page: Int, sortByField: String?, sortOrder: SortOrder?, modifiedSince: String?, completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> ())
 	{
-        RelatedListAPIHandler(parentRecord: ofParentRecord, relatedList: self).getRecords(page: page, per_page: per_page, sortByField: sortByField, sortOrder: sortOrder, modifiedSince: modifiedSince) { ( response, error ) in
-            completion( response, error )
+        RelatedListAPIHandler(parentRecord: ofParentRecord, relatedList: self).getRecords(page: page, per_page: per_page, sortByField: sortByField, sortOrder: sortOrder, modifiedSince: modifiedSince) { ( response, records, error ) in
+            completion( response, records, error )
         }
 	}
 	
@@ -218,10 +218,10 @@ public class ZCRMModuleRelation : ZCRMEntity
     ///   - toRecord: note to be added in the ZCRMRecord
     /// - Returns: APIResponse of the note addition
     /// - Throws: ZCRMSDKError if failed to add note
-    public func addNote(note: ZCRMNote, toRecord: ZCRMRecord, completion : @escaping( APIResponse?, Error? ) -> ())
+    public func addNote(note: ZCRMNote, toRecord: ZCRMRecord, completion : @escaping( APIResponse?, ZCRMNote?, Error? ) -> ())
 	{
-        RelatedListAPIHandler(parentRecord: toRecord, relatedList: self).addNote(note: note) { ( response, error ) in
-            completion( response, error )
+        RelatedListAPIHandler(parentRecord: toRecord, relatedList: self).addNote(note: note) { ( response, note, error ) in
+            completion( response, note, error )
         }
 	}
 	
@@ -232,10 +232,10 @@ public class ZCRMModuleRelation : ZCRMEntity
     ///   - ofRecord: note to be updated in the ZCRMRecord
     /// - Returns: APIResponse of the note update
     /// - Throws: ZCRMSDKError if failed to update note
-    public func updateNote(note: ZCRMNote, ofRecord: ZCRMRecord, completion : @escaping( APIResponse?, Error? ) -> ())
+    public func updateNote(note: ZCRMNote, ofRecord: ZCRMRecord, completion : @escaping( APIResponse?, ZCRMNote?, Error? ) -> ())
 	{
-        RelatedListAPIHandler(parentRecord: ofRecord, relatedList: self).updateNote(note: note) { ( response, error ) in
-            completion( response, error )
+        RelatedListAPIHandler(parentRecord: ofRecord, relatedList: self).updateNote(note: note) { ( response, note, error ) in
+            completion( response, note, error )
         }
     }
 	
@@ -288,10 +288,10 @@ public class ZCRMModuleRelation : ZCRMEntity
     /// - Parameter ofParentRecord: ZCRMRecord to which retuns all the attachments
     /// - Returns: list of all attachments of the ZCRMRecord
     /// - Throws: ZCRMSDKError if failed to get attachments of the ZCRMRecord
-    public func getAttachments(ofParentRecord : ZCRMRecord, completion : @escaping( BulkAPIResponse?, Error? ) -> ())
+    public func getAttachments(ofParentRecord : ZCRMRecord, completion : @escaping( BulkAPIResponse?, [ ZCRMAttachment ]?, Error? ) -> ())
 	{
-        self.getAttachments(ofParentRecord: ofParentRecord, page: 1, per_page: 20, modifiedSince : nil ) { ( response, error ) in
-            completion( response, error )
+        RelatedListAPIHandler(parentRecord: ofParentRecord, relatedList: self).getAllAttachmentsDetails(page: 1, per_page: 20, modifiedSince: nil) { ( response, attchemnets, error ) in
+            completion( response, attchemnets, error )
         }
 	}
 	
@@ -304,10 +304,10 @@ public class ZCRMModuleRelation : ZCRMEntity
     ///   - modifiedSince: modified time
     /// - Returns: list of all attachments of the ZCRMRecord of a requested page number with attachments of per_page count(BulkAPIResponse).
     /// - Throws: ZCRMSDKError if failed to get attachments of the ZCRMRecord
-    public func getAttachments(ofParentRecord : ZCRMRecord, page : Int, per_page : Int, modifiedSince : String?, completion : @escaping( BulkAPIResponse?, Error? ) -> ())
+    public func getAttachments(ofParentRecord : ZCRMRecord, page : Int, per_page : Int, modifiedSince : String?, completion : @escaping( BulkAPIResponse?, [ ZCRMAttachment ]?, Error? ) -> ())
 	{
-        RelatedListAPIHandler(parentRecord: ofParentRecord, relatedList: self).getAllAttachmentsDetails(page: page, per_page: per_page, modifiedSince: modifiedSince) { ( response, error ) in
-            completion( response, error )
+        RelatedListAPIHandler(parentRecord: ofParentRecord, relatedList: self).getAllAttachmentsDetails(page: page, per_page: per_page, modifiedSince: modifiedSince) { ( response, attchemnets, error ) in
+            completion( response, attchemnets, error )
         }
 	}
 	
@@ -346,18 +346,18 @@ public class ZCRMModuleRelation : ZCRMEntity
     ///   - filePath: file path of the attachment
     /// - Returns: APIResponse of the attachment upload
     /// - Throws: ZCRMSDKError if failed to upload the attachment
-    public func uploadAttachment( ofParentRecord : ZCRMRecord, filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
+    public func uploadAttachment( ofParentRecord : ZCRMRecord, filePath : String, completion : @escaping( APIResponse?, ZCRMAttachment?, Error? ) -> () )
     {
         do
         {
             try fileDetailCheck( filePath : filePath )
-            RelatedListAPIHandler( parentRecord : ofParentRecord, relatedList : self ).uploadAttachment( filePath : filePath) { ( response, error ) in
-                completion( response, error )
+            RelatedListAPIHandler( parentRecord : ofParentRecord, relatedList : self ).uploadAttachment( filePath : filePath) { ( response, attachment, error ) in
+                completion( response, attachment, error )
             }
         }
         catch
         {
-            completion( nil, ZCRMSDKError.ProcessingError( error.localizedDescription ) )
+            completion( nil, nil, ZCRMSDKError.ProcessingError( error.localizedDescription ) )
         }
     }
     
@@ -368,10 +368,10 @@ public class ZCRMModuleRelation : ZCRMEntity
     ///   - attachmentURL: URL of the attachment
     /// - Returns: APIResponse of the attachment upload
     /// - Throws: ZCRMSDKError if failed to upload the attachment
-    public func uploadLinkAsAttachment( ofParentRecord : ZCRMRecord, attachmentURL : String, completion : @escaping( APIResponse?, Error? ) -> () )
+    public func uploadLinkAsAttachment( ofParentRecord : ZCRMRecord, attachmentURL : String, completion : @escaping( APIResponse?, ZCRMAttachment?, Error? ) -> () )
     {
-        RelatedListAPIHandler( parentRecord : ofParentRecord, relatedList : self ).uploadLinkAsAttachment( attachmentURL : attachmentURL) { ( response, error ) in
-            completion( response, error )
+        RelatedListAPIHandler( parentRecord : ofParentRecord, relatedList : self ).uploadLinkAsAttachment( attachmentURL : attachmentURL) { ( response, attachement, error ) in
+            completion( response, attachement, error )
         }
     }
     

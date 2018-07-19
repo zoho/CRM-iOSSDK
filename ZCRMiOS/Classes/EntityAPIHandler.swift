@@ -17,7 +17,7 @@ internal class EntityAPIHandler : CommonAPIHandler
 	
 	// MARK: - Handler Functions
 	
-    internal func getRecord( withPrivateFields : Bool, completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func getRecord( withPrivateFields : Bool, completion : @escaping( APIResponse?, ZCRMRecord?, Error? ) -> () )
     {
         setJSONRootKey( key : DATA )
         let urlPath = "/\(self.record.getModuleAPIName())/\(self.record.getId())"
@@ -33,7 +33,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         request.getAPIResponse { ( resp, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let response = resp
             {
@@ -41,12 +41,12 @@ internal class EntityAPIHandler : CommonAPIHandler
                 let responseDataArray : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                 self.setRecordProperties(recordDetails: responseDataArray[0])
                 response.setData(data: self.record)
-                completion( response, nil )
+                completion( response, self.record, nil )
             }
         }
     }
     
-    internal func createRecord( completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func createRecord( completion : @escaping( APIResponse?, ZCRMRecord?, Error? ) -> () )
     {
         setJSONRootKey( key : DATA )
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
@@ -63,7 +63,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         request.getAPIResponse { ( resp, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let response = resp
             {
@@ -73,12 +73,12 @@ internal class EntityAPIHandler : CommonAPIHandler
                 let recordDetails : [String:Any] = respData.getDictionary(key: "details")
                 self.setRecordProperties(recordDetails: recordDetails)
                 response.setData(data: self.record)
-                completion( response, nil )
+                completion( response, self.record, nil )
             }
         }
     }
     
-    internal func updateRecord( completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func updateRecord( completion : @escaping( APIResponse?, ZCRMRecord?, Error? ) -> () )
     {
         setJSONRootKey( key : DATA )
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
@@ -95,7 +95,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         request.getAPIResponse { ( resp, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let response = resp
             {
@@ -105,7 +105,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 let recordDetails : [String:Any] = respData.getDictionary(key: "details")
                 self.setRecordProperties(recordDetails: recordDetails)
                 response.setData(data: self.record)
-                completion( response, nil )
+                completion( response, self.record, nil )
             }
         }
     }
@@ -176,7 +176,6 @@ internal class EntityAPIHandler : CommonAPIHandler
     {
         do
         {
-            try photoSupportedModuleCheck( moduleAPIName : self.record.getModuleAPIName() )
             try fileDetailCheck( filePath : filePath )
             
             setUrlPath(urlPath :  "/\( self.record.getModuleAPIName() )/\( String( self.record.getId() ) )/photo" )
@@ -196,43 +195,25 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     internal func downloadPhoto( completion : @escaping( FileAPIResponse?, Error? ) -> () )
     {
-        do
-        {
-            try photoSupportedModuleCheck( moduleAPIName : self.record.getModuleAPIName() )
-            
-            setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )/photo" )
-            setRequestMethod(requestMethod : .GET )
-            let request : APIRequest = APIRequest(handler : self )
-            print( "Request : \( request.toString() )" )
-            
-            request.downloadFile { ( response, error ) in
-                completion( response, error )
-            }
-        }
-        catch
-        {
-            completion( nil, ZCRMSDKError.ProcessingError( error.localizedDescription ) )
+        setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )/photo" )
+        setRequestMethod(requestMethod : .GET )
+        let request : APIRequest = APIRequest(handler : self )
+        print( "Request : \( request.toString() )" )
+        
+        request.downloadFile { ( response, error ) in
+            completion( response, error )
         }
     }
     
     internal func deletePhoto( completion : @escaping( APIResponse?, Error? ) -> () )
     {
-        do
-        {
-            try photoSupportedModuleCheck( moduleAPIName : self.record.getModuleAPIName() )
-            
-            setUrlPath(urlPath : "/\( self.record.getModuleAPIName() )/\( String( self.record.getId() ) )/photo" )
-            setRequestMethod(requestMethod : .DELETE )
-            let request : APIRequest = APIRequest(handler : self )
-            print( "Request : \( request.toString() )" )
-            
-            request.getAPIResponse { ( response, error ) in
-                completion( response, error )
-            }
-        }
-        catch
-        {
-            completion( nil, ZCRMSDKError.ProcessingError( error.localizedDescription ) )
+        setUrlPath(urlPath : "/\( self.record.getModuleAPIName() )/\( String( self.record.getId() ) )/photo" )
+        setRequestMethod(requestMethod : .DELETE )
+        let request : APIRequest = APIRequest(handler : self )
+        print( "Request : \( request.toString() )" )
+        
+        request.getAPIResponse { ( response, error ) in
+            completion( response, error )
         }
     }
 	

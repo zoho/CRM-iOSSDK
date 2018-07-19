@@ -8,7 +8,7 @@
 
 internal class MetaDataAPIHandler : CommonAPIHandler
 {
-    internal func getAllModules( modifiedSince : String?, completion: @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func getAllModules( modifiedSince : String?, completion: @escaping( BulkAPIResponse?, [ ZCRMModule ]?, Error? ) -> () )
 	{
 		var allModules : [ZCRMModule] = [ZCRMModule]()
 		setUrlPath(urlPath: "/settings/modules" )
@@ -22,7 +22,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         request.getBulkAPIResponse { ( response, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let bulkResponse = response
             {
@@ -36,12 +36,12 @@ internal class MetaDataAPIHandler : CommonAPIHandler
                     }
                     bulkResponse.setData(data: allModules)
                 }
-                completion( bulkResponse, nil )
+                completion( bulkResponse, allModules, nil )
             }
         }
 	}
 	
-    internal func getModule( apiName : String, completion: @escaping( APIResponse?, Error? ) -> () )
+    internal func getModule( apiName : String, completion: @escaping( APIResponse?, ZCRMModule?, Error? ) -> () )
 	{
 		setUrlPath(urlPath: "/settings/modules/\(apiName)" )
 		setRequestMethod(requestMethod: .GET )
@@ -50,15 +50,16 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         request.getAPIResponse { ( resp, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let response = resp
             {
                 let responseJSON = response.getResponseJSON()
                 let modulesList:[[String : Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                 let moduleDetails : [String : Any] = modulesList[0]
-                response.setData(data: self.getZCRMModule(moduleDetails: moduleDetails))
-                completion( response, nil )
+                let module = self.getZCRMModule( moduleDetails : moduleDetails )
+                response.setData( data : module )
+                completion( response, module, nil )
             }
         }
 	}

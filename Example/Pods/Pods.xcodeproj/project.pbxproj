@@ -224,7 +224,6 @@
 		510DA46606629697290E50B426DB586A /* ZCRMiOS */ = {
 			isa = PBXGroup;
 			children = (
-				FEF21FDE209248D9003CE1BF /* ZCRMSubformRecord.swift */,
 				FE768EF42088C54100CA492B /* CommonAPIHandler.swift */,
 				7844664BB00399EBCBC2D7B41FDA15D9 /* APIRequest.swift */,
 				D13CBD26668380A6326875084B838702 /* APIResponse.swift */,
@@ -264,6 +263,7 @@
 				BB3AF6BEF46E9E566A461D20CEC364AF /* ZCRMRestClient.swift */,
 				714B307EED6AABB200D56746B91B2203 /* ZCRMRole.swift */,
 				F22BB2D0B04BFC0F20F818727CBDBD38 /* ZCRMSection.swift */,
+				FEF21FDE209248D9003CE1BF /* ZCRMSubformRecord.swift */,
 				BBC1FC09AC4A5FE6FE52298C698B439E /* ZCRMTableDetails.swift */,
 				94F1F3FA213DD40598461584A09C85C2 /* ZCRMTax.swift */,
 				9D3CACEFC1F613D27D57F9A5B1ADD4BB /* ZCRMTrashRecord.swift */,
@@ -485,7 +485,7 @@
 				LastUpgradeCheck = 0700;
 				TargetAttributes = {
 					FC060D90F970F8EDB3AB33B8431E1F7D = {
-						LastSwiftMigration = 0930;
+						LastSwiftMigration = 0940;
 					};
 				};
 			};

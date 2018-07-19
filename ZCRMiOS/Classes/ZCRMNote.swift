@@ -229,10 +229,10 @@ public class ZCRMNote : ZCRMEntity
     /// - Parameter filePath: file path of the attachment
     /// - Returns: APIResponse of the attachment upload
     /// - Throws: ZCRMSDKError if failed to upload the attachment
-    public func uploadAttachment( filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
+    public func uploadAttachment( filePath : String, completion : @escaping( APIResponse?, ZCRMAttachment?, Error? ) -> () )
     {
-        ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: "Notes").uploadAttachment(ofParentRecord: ZCRMRecord(moduleAPIName: "Notes", recordId: self.getId()!), filePath: filePath) { ( response, error ) in
-            completion( response, error )
+        ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: "Notes").uploadAttachment(ofParentRecord: ZCRMRecord(moduleAPIName: "Notes", recordId: self.getId()!), filePath: filePath) { ( response, attachment, error ) in
+            completion( response, attachment, error )
         }
     }
     

@@ -433,10 +433,10 @@ public class ZCRMUser : ZCRMEntity
         return self.fieldNameVsValue
     }
     
-    public func create( completion : @escaping( APIResponse?, Error? ) -> () )
+    public func create( completion : @escaping( APIResponse?, ZCRMUser?, Error? ) -> () )
     {
-        UserAPIHandler().addUser( user : self ) { ( response, error ) in
-            completion( response, error )
+        UserAPIHandler().addUser( user : self ) { ( response, user, error ) in
+            completion( response, user, error )
         }
     }
     

@@ -73,7 +73,7 @@ public class  APIResponse : CommonAPIResponse
             var msgJSON : [ String : Any ] = responseJSON
             if( responseJSON.hasValue( forKey : jsonRootKey ) )
             {
-                let recordsArray : [ [ String : Any? ] ] = responseJSON[ DATA ] as! [ [ String : Any? ] ]
+                let recordsArray : [ [ String : Any? ] ] = responseJSON[ jsonRootKey ] as! [ [ String : Any? ] ]
                 msgJSON = recordsArray[ 0 ] as Any as! [ String : Any ]
             }
             if ( msgJSON.hasValue( forKey : MESSAGE ) )
@@ -155,6 +155,10 @@ public class FileAPIResponse : APIResponse
             }
             self.tempLocalUrl = nil
         }
+    }
+    
+    override func processDataResponse() throws
+    {
     }
     
 }

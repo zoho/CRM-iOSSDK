@@ -79,13 +79,14 @@ internal class APIRequest
                 {
                     completion( err )
                 }
-                if let oAuthtoken = token
+                if let oAuthtoken = token, token.notNilandEmpty
                 {
                     self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( oAuthtoken )" )
+                    completion( nil )
                 }
                 else
                 {
-                    print( "oAuthtoken is empty." )
+                    print( "oAuthtoken is nil." )
                     completion( UnexpectedError.ResponseNil( "oauthtoken is empty" ) )
                 }
             }
@@ -93,11 +94,15 @@ internal class APIRequest
         else
         {
             ZVCRMLoginHandler().getOauth2Token { ( token, error ) in
+                if( APPTYPE == "ZCRMCP" )
+                {
+                    self.addHeader( headerName : "X-CRMPORTAL", headerVal : "SDKCLIENT" )
+                }
                 if let err = error
                 {
                     completion( err )
                 }
-                if let oAuthtoken = token
+                if let oAuthtoken = token, token.notNilandEmpty
                 {
                     self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( oAuthtoken )" )
                 }
@@ -105,10 +110,6 @@ internal class APIRequest
                 {
                     print( "oAuthtoken is empty." )
                     completion( UnexpectedError.ResponseNil( "oauthtoken is empty" ) )
-                }
-                if( APPTYPE == "ZCRMCP" )
-                {
-                    self.addHeader( headerName : "X-CRMPORTAL", headerVal : "SDKCLIENT" )
                 }
             }
         }
@@ -129,37 +130,41 @@ internal class APIRequest
                     print( "Error Occured : \( err.localizedDescription )" )
                     completion( err )
                 }
+                else
+                {
+                    if(!self.params.isEmpty)
+                    {
+                        self.urlPath += "?"
+                        for (key, value) in self.params
+                        {
+                            self.urlPath += key + "=" + value + "&"
+                        }
+                        self.urlPath = String(self.urlPath.dropLast())
+                    }
+                    if ( self.url?.absoluteString == nil )
+                    {
+                        self.url = URL(string: (self.baseUrl + self.urlPath))!
+                    }
+                    else
+                    {
+                        let urlSting = self.url!.absoluteString
+                        self.url = URL( string : ( urlSting + self.urlPath ) )!
+                    }
+                    self.request = URLRequest(url: self.url!)
+                    self.request?.httpMethod = self.requestMethod.rawValue
+                    for (key, value) in self.headers
+                    {
+                        self.request?.setValue(value, forHTTPHeaderField: key)
+                    }
+                    if(self.requestBody != nil && (self.requestBody as! [ String : Any? ] ).isEmpty == false )
+                    {
+                        let reqBody = try? JSONSerialization.data(withJSONObject: self.requestBody!, options: [])
+                        self.request?.httpBody = reqBody
+                    }
+                    completion( nil )
+                }
             }
 		}
-        if(!self.params.isEmpty)
-        {
-            self.urlPath += "?"
-            for (key, value) in self.params
-            {
-                self.urlPath += key + "=" + value + "&"
-            }
-			self.urlPath = String(self.urlPath.dropLast())
-        }
-        if ( self.url?.absoluteString == nil )
-        {
-            self.url = URL(string: (self.baseUrl + self.urlPath))!
-        }
-        else
-        {
-            let urlSting = self.url!.absoluteString
-            self.url = URL( string : ( urlSting + self.urlPath ) )!
-        }
-        self.request = URLRequest(url: self.url!)
-        self.request?.httpMethod = self.requestMethod.rawValue
-        for (key, value) in self.headers
-        {
-            request?.setValue(value, forHTTPHeaderField: key)
-        }
-		if(self.requestBody != nil && (self.requestBody as! [ String : Any? ] ).isEmpty == false )
-        {
-            let reqBody = try? JSONSerialization.data(withJSONObject: self.requestBody!, options: [])
-            self.request?.httpBody = reqBody
-        }
     }
     
     internal func getAPIResponse( completion : @escaping( APIResponse?, Error? ) -> () )
@@ -169,27 +174,30 @@ internal class APIRequest
             {
                 completion( nil, error )
             }
-        }
-        self.makeRequest { ( urlResp, responseData, error ) in
-            if let err = error
-            {
-                completion( nil, err )
-            }
-            else if let urlResponse = urlResp
-            {
-                do
-                {
-                    let response = try APIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
-                    completion( response, nil )
-                }
-                catch
-                {
-                    completion( nil, error )
-                }
-            }
             else
             {
-                completion( nil, UnexpectedError.ResponseNil( "Response is nil" ) )
+                self.makeRequest { ( urlResp, responseData, error ) in
+                    if let err = error
+                    {
+                        completion( nil, err )
+                    }
+                    else if let urlResponse = urlResp
+                    {
+                        do
+                        {
+                            let response = try APIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+                            completion( response, nil )
+                        }
+                        catch
+                        {
+                            completion( nil, error )
+                        }
+                    }
+                    else
+                    {
+                        completion( nil, UnexpectedError.ResponseNil( "Response is nil" ) )
+                    }
+                }
             }
         }
     }
@@ -197,31 +205,34 @@ internal class APIRequest
     internal func getBulkAPIResponse( completion : @escaping( BulkAPIResponse?, Error? ) -> () )
     {
         self.initialiseRequest { ( err ) in
-            if let error = err
+            if let initialiseReqError = err
             {
-                completion( nil, error )
-            }
-        }
-        self.makeRequest { ( urlResp, responseData, error ) in
-            if let err = error
-            {
-                completion( nil, err )
-            }
-            else if let urlResponse = urlResp
-            {
-                do
-                {
-                    let response = try BulkAPIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
-                    completion( response, nil )
-                }
-                catch
-                {
-                    completion( nil, error )
-                }
+                completion( nil, initialiseReqError )
             }
             else
             {
-                completion( nil, UnexpectedError.ResponseNil( "Response is nil" ) )
+                self.makeRequest { ( urlResp, responseData, error ) in
+                    if let reqError = error
+                    {
+                        completion( nil, reqError )
+                    }
+                    else if let urlResponse = urlResp
+                    {
+                        do
+                        {
+                            let response = try BulkAPIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+                            completion( response, nil )
+                        }
+                        catch
+                        {
+                            completion( nil, error )
+                        }
+                    }
+                    else
+                    {
+                        completion( nil, UnexpectedError.ResponseNil( "Response is nil" ) )
+                    }
+                }
             }
         }
     }
@@ -286,23 +297,30 @@ internal class APIRequest
     private func makeRequest( completion : @escaping ( HTTPURLResponse?, Data?, Error? ) -> () )
     {
         var error : Error? = nil
-        URLSession.shared.dataTask( with : self.request!, completionHandler : { data, response, err in
-            guard err == nil else
-            {
-                error = err
-                completion( nil, nil, ZCRMSDKError.ProcessingError( error!.localizedDescription ) )
-                return
-            }
-            if let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse
-            {
-                completion( httpResponse, data, err )
-            }
-            else
-            {
-                completion( nil, nil, UnexpectedError.ResponseNil( "Response is nil" ) )
-                return
-            }
-        }).resume()
+        if let request = self.request
+        {
+            URLSession.shared.dataTask( with : request, completionHandler : { data, response, err in
+                guard err == nil else
+                {
+                    error = err
+                    completion( nil, nil, ZCRMSDKError.ProcessingError( error!.localizedDescription ) )
+                    return
+                }
+                if let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse
+                {
+                    completion( httpResponse, data, err )
+                }
+                else
+                {
+                    completion( nil, nil, UnexpectedError.ResponseNil( "Response is nil" ) )
+                    return
+                }
+            }).resume()
+        }
+        else
+        {
+            completion( nil, nil, UnexpectedError.ResponseNil( "Request is nil" ) )
+        }
     }
     
     private func createMultipartRequest( bodyData : Data, boundary : String )
@@ -351,32 +369,35 @@ internal class APIRequest
             {
                 completion( nil, error )
             }
-        }
-        var error : Error?
-        URLSession.shared.downloadTask(with: self.request!, completionHandler: { tempLocalUrl, response, err in
-            guard err == nil else
-            {
-                error = err
-                completion( nil, ZCRMSDKError.ProcessingError( error!.localizedDescription ) )
-                return
-            }
-            if let fileResponse = response as? HTTPURLResponse, let localUrl = tempLocalUrl
-            {
-                do
-                {
-                    let response = try FileAPIResponse( response : fileResponse, tempLocalUrl : localUrl )
-                    completion( response, nil )
-                }
-                catch
-                {
-                    completion( nil, error )
-                }
-            }
             else
             {
-                completion( nil, UnexpectedError.ResponseNil( "Response is nil" ) )
+                var error : Error?
+                URLSession.shared.downloadTask(with: self.request!, completionHandler: { tempLocalUrl, response, err in
+                    guard err == nil else
+                    {
+                        error = err
+                        completion( nil, ZCRMSDKError.ProcessingError( error!.localizedDescription ) )
+                        return
+                    }
+                    if let fileResponse = response as? HTTPURLResponse, let localUrl = tempLocalUrl
+                    {
+                        do
+                        {
+                            let response = try FileAPIResponse( response : fileResponse, tempLocalUrl : localUrl )
+                            completion( response, nil )
+                        }
+                        catch
+                        {
+                            completion( nil, error )
+                        }
+                    }
+                    else
+                    {
+                        completion( nil, UnexpectedError.ResponseNil( "Response is nil" ) )
+                    }
+                }).resume()
             }
-        }).resume()
+        }
     }
     
     public func toString() -> String

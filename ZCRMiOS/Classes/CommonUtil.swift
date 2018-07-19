@@ -442,14 +442,6 @@ public func moveFile(filePath: String, newFilePath: String)
     }
 }
 
-public func photoSupportedModuleCheck( moduleAPIName : String ) throws
-{
-    if ( !PhotoSupportedModules.contains( moduleAPIName ) )
-    {
-        throw ZCRMSDKError.InValidError( "Photo not supported for this module." )
-    }
-}
-
 public func fileDetailCheck( filePath : String ) throws
 {
     if ( FileManager.default.fileExists( atPath : filePath )  == false )
@@ -485,6 +477,7 @@ internal func getFileSize( filePath : String ) -> Int64
 
 var APPTYPE : String = "ZCRM"
 var APIBASEURL : String = String()
+var ACCOUNTSURL : String = String()
 var APIVERSION : String = String()
 var COUNTRYDOMAIN : String = "com"
 let PHOTOURL : URL = URL( string : "https://profile.zoho.com/api/v1/user/self/photo" )!

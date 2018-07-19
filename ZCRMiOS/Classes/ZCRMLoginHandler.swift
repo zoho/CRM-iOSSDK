@@ -95,14 +95,17 @@ public class ZCRMLoginHandler
         {
         case ( "com" ), ( "us" ) :
             APIBASEURL = "https://\( domain ).zohoapis.com"
+            ACCOUNTSURL = "https://accounts.zoho.com"
             break
             
         case "eu" :
             APIBASEURL = "https://\( domain ).zohoapis.eu"
+            ACCOUNTSURL = "https://accounts.zoho.eu"
             break
             
         case "cn" :
             APIBASEURL = "https://\( domain ).zohoapis.com.cn"
+            ACCOUNTSURL = "https://accounts.zoho.com.cn"
             break
             
         default :
