@@ -14,7 +14,7 @@ internal class OrganizationAPIHandler : CommonAPIHandler
 
 	}
     
-    internal func getOrganizationDetails( completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func getOrganizationDetails( completion : @escaping( ZCRMOrganisation?, APIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : "org" )
 		setUrlPath(urlPath:  "/org" )
@@ -24,14 +24,15 @@ internal class OrganizationAPIHandler : CommonAPIHandler
         request.getAPIResponse { ( resp, err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( nil, nil, error )
             }
             if let response = resp
             {
                 let responseJSON : [ String :  Any ] = response.responseJSON
                 let orgArray = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
-                response.setData( data : self.getZCRMOrganization( orgDetails : orgArray[ 0 ] ) )
-                completion( response, nil )
+                let org = self.getZCRMOrganization( orgDetails : orgArray[ 0 ] )
+                response.setData( data : org )
+                completion( org, response, nil )
             }
         }
     }

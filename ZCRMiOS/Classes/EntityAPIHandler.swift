@@ -17,7 +17,7 @@ internal class EntityAPIHandler : CommonAPIHandler
 	
 	// MARK: - Handler Functions
 	
-    internal func getRecord( withPrivateFields : Bool, completion : @escaping( APIResponse?, ZCRMRecord?, Error? ) -> () )
+    internal func getRecord( withPrivateFields : Bool, completion : @escaping( ZCRMRecord?, APIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : DATA )
         let urlPath = "/\(self.record.getModuleAPIName())/\(self.record.getId())"
@@ -41,12 +41,12 @@ internal class EntityAPIHandler : CommonAPIHandler
                 let responseDataArray : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                 self.setRecordProperties(recordDetails: responseDataArray[0])
                 response.setData(data: self.record)
-                completion( response, self.record, nil )
+                completion( self.record, response, nil )
             }
         }
     }
     
-    internal func createRecord( completion : @escaping( APIResponse?, ZCRMRecord?, Error? ) -> () )
+    internal func createRecord( completion : @escaping( ZCRMRecord?, APIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : DATA )
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
@@ -73,12 +73,12 @@ internal class EntityAPIHandler : CommonAPIHandler
                 let recordDetails : [String:Any] = respData.getDictionary(key: "details")
                 self.setRecordProperties(recordDetails: recordDetails)
                 response.setData(data: self.record)
-                completion( response, self.record, nil )
+                completion( self.record, response, nil )
             }
         }
     }
     
-    internal func updateRecord( completion : @escaping( APIResponse?, ZCRMRecord?, Error? ) -> () )
+    internal func updateRecord( completion : @escaping( ZCRMRecord?, APIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : DATA )
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
@@ -105,7 +105,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 let recordDetails : [String:Any] = respData.getDictionary(key: "details")
                 self.setRecordProperties(recordDetails: recordDetails)
                 response.setData(data: self.record)
-                completion( response, self.record, nil )
+                completion( self.record, response, nil )
             }
         }
     }
@@ -124,19 +124,19 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func convertRecord( newPotential : ZCRMRecord!, assignTo : ZCRMUser!, completion : @escaping( [ String : Int64 ]?, Error? ) -> () )
+    internal func convertRecord( newPotential : ZCRMRecord?, assignTo : ZCRMUser?, completion : @escaping( [ String : Int64 ]?, Error? ) -> () )
     {
 
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         var dataArray : [[String:Any]] = [[String:Any]]()
         var convertData : [String:Any] = [String:Any]()
-        if(assignTo != nil)
+        if let assignToUser = assignTo
         {
-            convertData["assign_to"] = String(assignTo!.getId()!)
+            convertData["assign_to"] = String(assignToUser.getId()!)
         }
-        if(newPotential != nil)
+        if let potential = newPotential
         {
-            convertData["Deals"] = EntityAPIHandler(record: newPotential).getZCRMRecordAsJSON()
+            convertData["Deals"] = EntityAPIHandler(record: potential).getZCRMRecordAsJSON()
         }
         dataArray.append(convertData)
         reqBodyObj[getJSONRootKey()] = dataArray
@@ -189,7 +189,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
         catch
         {
-            completion( nil, ZCRMSDKError.ProcessingError( error.localizedDescription ) )
+            completion( nil, ZCRMError.ProcessingError( error.localizedDescription ) )
         }
     }
     

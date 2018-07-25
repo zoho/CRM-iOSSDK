@@ -17,7 +17,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
 	
 	// MARK: - Handler functions
 	
-    internal func getAllLayouts( modifiedSince : String?, completion: @escaping( BulkAPIResponse?, [ ZCRMLayout ]?, Error? ) -> () )
+    internal func getAllLayouts( modifiedSince : String?, completion: @escaping( [ ZCRMLayout ]?, BulkAPIResponse?, Error? ) -> () )
     {
 		setJSONRootKey( key : LAYOUTS )
 		setUrlPath(urlPath: "/settings/layouts")
@@ -43,13 +43,13 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 {
                     let layouts = self.getAllLayouts( layoutsList : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )
                     bulkResponse.setData( data : self.getAllLayouts( layoutsList : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) ) )
-                    completion( bulkResponse, layouts, nil )
+                    completion( layouts, bulkResponse, nil )
                 }
             }
         }
     }
     
-    internal func getLayout( layoutId : Int64, completion: @escaping( APIResponse?, ZCRMLayout?, Error? ) -> () )
+    internal func getLayout( layoutId : Int64, completion: @escaping( ZCRMLayout?, APIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : LAYOUTS )
 		setUrlPath(urlPath:  "/settings/layouts/\(layoutId)")
@@ -69,12 +69,12 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 let layoutsList:[[String : Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                 let layout = self.getZCRMLayout( layoutDetails : layoutsList[ 0 ] )
                 response.setData(data: layout )
-                completion( response, layout, nil )
+                completion( layout, response, nil )
             }
         }
     }
     
-    internal func getAllFields( modifiedSince : String?, completion: @escaping( BulkAPIResponse?, [ ZCRMField ]?, Error? ) -> () )
+    internal func getAllFields( modifiedSince : String?, completion: @escaping( [ ZCRMField ]?, BulkAPIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : FIELDS )
 		setUrlPath(urlPath: "/settings/fields")
@@ -100,13 +100,13 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 {
                     let fields = self.getAllFields( allFieldsDetails : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )
                     bulkResponse.setData( data : fields )
-                    completion( bulkResponse, fields, nil )
+                    completion( fields, bulkResponse, nil )
                 }
             }
         }
     }
 
-    internal func getAllCustomViews( modifiedSince : String?, completion: @escaping( BulkAPIResponse?, [ ZCRMCustomView ]?, Error? ) -> () )
+    internal func getAllCustomViews( modifiedSince : String?, completion: @escaping( [ ZCRMCustomView ]?, BulkAPIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : CUSTOM_VIEWS )
 		setUrlPath(urlPath: "/settings/custom_views")
@@ -135,12 +135,12 @@ internal class ModuleAPIHandler : CommonAPIHandler
                     allCVs.append(self.getZCRMCustomView(cvDetails: cvDetails))
                 }
                 bulkResponse.setData(data: allCVs)
-                completion( bulkResponse, allCVs, nil )
+                completion( allCVs, bulkResponse, nil )
             }
         }
     }
     
-    internal func getRelatedList( id : Int64, completion: @escaping( APIResponse?, ZCRMModuleRelation?, Error? ) -> () )
+    internal func getRelatedList( id : Int64, completion: @escaping( ZCRMModuleRelation?, APIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : "related_lists" )
         setUrlPath( urlPath : "settings/related_lists/\(id)" )
@@ -159,12 +159,12 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 let responseJSON = response.responseJSON
                 let relatedList = self.getAllRelatedLists( relatedListsDetails : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )[ 0 ]
                 response.setData( data : relatedList )
-                completion( response, relatedList, nil )
+                completion( relatedList, response, nil )
             }
         }
     }
     
-    internal func getAllRelatedLists( completion: @escaping( BulkAPIResponse?, [ ZCRMModuleRelation ]?, Error? ) -> () )
+    internal func getAllRelatedLists( completion: @escaping( [ ZCRMModuleRelation ]?, BulkAPIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : "related_lists" )
         setUrlPath( urlPath : "settings/related_lists" )
@@ -183,7 +183,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 let responseJSON = bulkResponse.getResponseJSON()
                 let relatedLists = self.getAllRelatedLists( relatedListsDetails : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )
                 bulkResponse.setData( data : relatedLists )
-                completion( bulkResponse, relatedLists, nil )
+                completion( relatedLists, bulkResponse, nil )
             }
         }
     }
@@ -198,7 +198,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         return relatedLists
     }
     
-    internal func getCustomView( cvId : Int64, completion: @escaping( APIResponse?, ZCRMCustomView?, Error? ) -> () )
+    internal func getCustomView( cvId : Int64, completion: @escaping( ZCRMCustomView?, APIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : CUSTOM_VIEWS )
 		setUrlPath(urlPath: "/settings/custom_views/\(cvId)" )
@@ -216,7 +216,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 let cvArray : [ [ String : Any ] ] = response.getResponseJSON().getArrayOfDictionaries( key : self.getJSONRootKey() )
                 let customView = self.getZCRMCustomView( cvDetails : cvArray[ 0 ] )
                 response.setData( data : customView )
-                completion( response, customView, nil )
+                completion( customView, response, nil )
             }
         }
     }

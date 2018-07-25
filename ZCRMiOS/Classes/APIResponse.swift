@@ -57,12 +57,12 @@ public class  APIResponse : CommonAPIResponse
     {
         if(httpStatusCode == HTTPStatusCode.NO_CONTENT)
         {
-            throw ZCRMSDKError.InValidError(INVALID_ID_MSG)
+            throw ZCRMError.InValidError(INVALID_ID_MSG)
         }
         else
         {
             let msg : String = "\(responseJSON[CODE]!) - \(responseJSON[MESSAGE]!)"
-            throw ZCRMSDKError.ProcessingError(msg)
+            throw ZCRMError.ProcessingError(msg)
         }
     }
     
@@ -89,16 +89,16 @@ public class  APIResponse : CommonAPIResponse
                     if( msgJSON.hasValue( forKey : DETAILS ) )
                     {
                         msg = "\( msgJSON[ CODE ] as! String ) - \( message! ) - \( msgJSON[ DETAILS] as! [ String : Any ] )"
-                        throw ZCRMSDKError.ProcessingError( msg )
+                        throw ZCRMError.ProcessingError( msg )
                     }
                     msg = "\( msgJSON[ CODE ] as! String ) - \( message! )"
-                    throw ZCRMSDKError.ProcessingError( msg )
+                    throw ZCRMError.ProcessingError( msg )
                 }
             }
         }
         else
         {
-            throw ZCRMSDKError.ProcessingError( "Response root key is nil." )
+            throw ZCRMError.ProcessingError( "Response root key is nil." )
         }
     }
 }
@@ -212,7 +212,7 @@ public class BulkAPIResponse : CommonAPIResponse
         }
         else
         {
-            throw ZCRMSDKError.ProcessingError( "Response root key is nil." )
+            throw ZCRMError.ProcessingError( "Response root key is nil." )
         }
     }
     
@@ -225,7 +225,7 @@ public class BulkAPIResponse : CommonAPIResponse
         else
         {
             let message : String = "\(responseJSON[CODE]!) - \(responseJSON[MESSAGE]!)"
-            throw ZCRMSDKError.ProcessingError(message)
+            throw ZCRMError.ProcessingError(message)
         }
     }
 }

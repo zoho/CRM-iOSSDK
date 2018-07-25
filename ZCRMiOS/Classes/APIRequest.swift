@@ -71,7 +71,14 @@ internal class APIRequest
 	
     private func authenticateRequest( completion : @escaping( Error? ) -> () )
     {
-        self.addHeader( headerName : "User-Agent", headerVal : "Zoho CRM iOS SDK" )
+        if let bundleID = Bundle.main.bundleIdentifier
+        {
+            self.addHeader( headerName : "User-Agent", headerVal : "ZCRMiOS_\(bundleID)" )
+        }
+        else
+        {
+            self.addHeader( headerName : "User-Agent", headerVal : "ZCRMiOS_unknown_bundle" )
+        }
         if( APPTYPE == "ZCRM" )
         {
             ZCRMLoginHandler().getOauth2Token { ( token, error ) in
@@ -87,7 +94,7 @@ internal class APIRequest
                 else
                 {
                     print( "oAuthtoken is nil." )
-                    completion( UnexpectedError.ResponseNil( "oauthtoken is empty" ) )
+                    completion( ZCRMSDKError.ResponseNil( "oauthtoken is empty" ) )
                 }
             }
         }
@@ -109,7 +116,7 @@ internal class APIRequest
                 else
                 {
                     print( "oAuthtoken is empty." )
-                    completion( UnexpectedError.ResponseNil( "oauthtoken is empty" ) )
+                    completion( ZCRMSDKError.ResponseNil( "oauthtoken is empty" ) )
                 }
             }
         }
@@ -195,7 +202,7 @@ internal class APIRequest
                     }
                     else
                     {
-                        completion( nil, UnexpectedError.ResponseNil( "Response is nil" ) )
+                        completion( nil, ZCRMSDKError.ResponseNil( "Response is nil" ) )
                     }
                 }
             }
@@ -230,7 +237,7 @@ internal class APIRequest
                     }
                     else
                     {
-                        completion( nil, UnexpectedError.ResponseNil( "Response is nil" ) )
+                        completion( nil, ZCRMSDKError.ResponseNil( "Response is nil" ) )
                     }
                 }
             }
@@ -260,7 +267,7 @@ internal class APIRequest
             }
             else
             {
-                completion( nil, UnexpectedError.ResponseNil( "Response is nil" ) )
+                completion( nil, ZCRMSDKError.ResponseNil( "Response is nil" ) )
             }
         }
     }
@@ -289,7 +296,7 @@ internal class APIRequest
             }
             else
             {
-                completion( nil, UnexpectedError.ResponseNil( "Response is nil" ) )
+                completion( nil, ZCRMSDKError.ResponseNil( "Response is nil" ) )
             }
         }
     }
@@ -303,7 +310,7 @@ internal class APIRequest
                 guard err == nil else
                 {
                     error = err
-                    completion( nil, nil, ZCRMSDKError.ProcessingError( error!.localizedDescription ) )
+                    completion( nil, nil, ZCRMError.ProcessingError( error!.localizedDescription ) )
                     return
                 }
                 if let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse
@@ -312,14 +319,14 @@ internal class APIRequest
                 }
                 else
                 {
-                    completion( nil, nil, UnexpectedError.ResponseNil( "Response is nil" ) )
+                    completion( nil, nil, ZCRMSDKError.ResponseNil( "Response is nil" ) )
                     return
                 }
             }).resume()
         }
         else
         {
-            completion( nil, nil, UnexpectedError.ResponseNil( "Request is nil" ) )
+            completion( nil, nil, ZCRMSDKError.ResponseNil( "Request is nil" ) )
         }
     }
     
@@ -376,7 +383,7 @@ internal class APIRequest
                     guard err == nil else
                     {
                         error = err
-                        completion( nil, ZCRMSDKError.ProcessingError( error!.localizedDescription ) )
+                        completion( nil, ZCRMError.ProcessingError( error!.localizedDescription ) )
                         return
                     }
                     if let fileResponse = response as? HTTPURLResponse, let localUrl = tempLocalUrl
@@ -393,7 +400,7 @@ internal class APIRequest
                     }
                     else
                     {
-                        completion( nil, UnexpectedError.ResponseNil( "Response is nil" ) )
+                        completion( nil, ZCRMSDKError.ResponseNil( "Response is nil" ) )
                     }
                 }).resume()
             }

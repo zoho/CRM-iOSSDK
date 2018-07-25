@@ -8,7 +8,7 @@
 
 internal class MetaDataAPIHandler : CommonAPIHandler
 {
-    internal func getAllModules( modifiedSince : String?, completion: @escaping( BulkAPIResponse?, [ ZCRMModule ]?, Error? ) -> () )
+    internal func getAllModules( modifiedSince : String?, completion: @escaping( [ ZCRMModule ]?, BulkAPIResponse?, Error? ) -> () )
 	{
 		var allModules : [ZCRMModule] = [ZCRMModule]()
 		setUrlPath(urlPath: "/settings/modules" )
@@ -36,12 +36,12 @@ internal class MetaDataAPIHandler : CommonAPIHandler
                     }
                     bulkResponse.setData(data: allModules)
                 }
-                completion( bulkResponse, allModules, nil )
+                completion( allModules, bulkResponse, nil )
             }
         }
 	}
 	
-    internal func getModule( apiName : String, completion: @escaping( APIResponse?, ZCRMModule?, Error? ) -> () )
+    internal func getModule( apiName : String, completion: @escaping( ZCRMModule?, APIResponse?, Error? ) -> () )
 	{
 		setUrlPath(urlPath: "/settings/modules/\(apiName)" )
 		setRequestMethod(requestMethod: .GET )
@@ -59,7 +59,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
                 let moduleDetails : [String : Any] = modulesList[0]
                 let module = self.getZCRMModule( moduleDetails : moduleDetails )
                 response.setData( data : module )
-                completion( response, module, nil )
+                completion( module, response, nil )
             }
         }
 	}

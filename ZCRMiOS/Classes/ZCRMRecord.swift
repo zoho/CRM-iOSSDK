@@ -225,7 +225,7 @@ public class ZCRMRecord : ZCRMEntity
         }
         else
         {
-            throw ZCRMSDKError.ProcessingError("The given field is not present in the record.")
+            throw ZCRMError.ProcessingError("The given field is not present in the record.")
         }
     }
     
@@ -292,14 +292,17 @@ public class ZCRMRecord : ZCRMEntity
     ///
     /// - Returns: API response of the ZCRMRecord creation
     /// - Throws: ZCRMSDKError if Entity ID of the record is not nil
-    public func create( completion : @escaping( APIResponse?, ZCRMRecord?, Error? ) -> () )
+    public func create( completion : @escaping( ZCRMRecord?, APIResponse?, Error? ) -> () )
     {
         if( self.id != nil )
         {
-            completion( nil, nil, ZCRMSDKError.ProcessingError("Entity ID MUST be null for create operation.") )
+            completion( nil, nil, ZCRMError.ProcessingError("Entity ID MUST be null for create operation.") )
         }
-        EntityAPIHandler(record: self).createRecord { ( response, record, error ) in
-            completion( response, record, error )
+        else
+        {
+            EntityAPIHandler(record: self).createRecord { ( record, response, error ) in
+                completion( record, response, error )
+            }
         }
     }
     
@@ -307,14 +310,17 @@ public class ZCRMRecord : ZCRMEntity
     ///
     /// - Returns: API response of the ZCRMRecord update
     /// - Throws: ZCRMSDKError if Entity ID of the record is nil
-    public func update( completion : @escaping( APIResponse?, ZCRMRecord?, Error? ) -> () )
+    public func update( completion : @escaping( ZCRMRecord?, APIResponse?, Error? ) -> () )
     {
         if(self.id == nil)
         {
-            completion( nil, nil, ZCRMSDKError.ProcessingError("Entity ID MUST NOT be null for update operation.") )
+            completion( nil, nil, ZCRMError.ProcessingError("Entity ID MUST NOT be null for update operation.") )
         }
-        EntityAPIHandler(record: self).updateRecord { ( response, record, error ) in
-            completion( response, record, error )
+        else
+        {
+            EntityAPIHandler(record: self).updateRecord { ( record, response, error ) in
+                completion( record, response, error )
+            }
         }
     }
     
@@ -326,10 +332,13 @@ public class ZCRMRecord : ZCRMEntity
     {
         if(self.id == nil)
         {
-            completion( nil, ZCRMSDKError.ProcessingError("Entity ID MUST NOT be null for delete operation.") )
+            completion( nil, ZCRMError.ProcessingError("Entity ID MUST NOT be null for delete operation.") )
         }
-        EntityAPIHandler(record: self).deleteRecord { ( response, error ) in
-            completion( response, error )
+        else
+        {
+            EntityAPIHandler(record: self).deleteRecord { ( response, error ) in
+                completion( response, error )
+            }
         }
     }
     
@@ -363,7 +372,7 @@ public class ZCRMRecord : ZCRMEntity
     ///   - assignTo: assignee for the converted ZCRMRecord
     /// - Returns: dictionary containing deal, contact and account vs its ID of the converted ZCRMRecord
     /// - Throws: ZCRMSDKError if the ZCRMRecord is not convertible
-    public func convert(newPotential: ZCRMRecord!, assignTo: ZCRMUser!, completion : @escaping( [ String : Any ]?, Error? ) -> () )
+    public func convert(newPotential: ZCRMRecord?, assignTo: ZCRMUser?, completion : @escaping( [ String : Any ]?, Error? ) -> () )
     {
         EntityAPIHandler(record: self).convertRecord(newPotential: newPotential, assignTo: assignTo) { ( convertedRecordDict, error ) in
             completion( convertedRecordDict, error )
@@ -396,10 +405,10 @@ public class ZCRMRecord : ZCRMEntity
     /// - Parameter relatedListAPIName: related list name to be returned
     /// - Returns: records of the related list of the ZCRMRecord
     /// - Throws: ZCRMSDKError if failed to get related list of the ZCRMRecord
-    public func getRelatedListRecords(relatedListAPIName : String, completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> () )
+    public func getRelatedListRecords(relatedListAPIName : String, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        ZCRMModuleRelation(relatedListAPIName: relatedListAPIName, parentModuleAPIName: self.getModuleAPIName()).getRelatedRecords( ofParentRecord : self, page : 1, per_page : 20, sortByField : nil, sortOrder : nil, modifiedSince : nil ) { ( response, records, error ) in
-            completion( response, records, error )
+        ZCRMModuleRelation(relatedListAPIName: relatedListAPIName, parentModuleAPIName: self.getModuleAPIName()).getRelatedRecords( ofParentRecord : self, page : 1, per_page : 20 ) { ( records, response, error ) in
+            completion( records, response, error )
         }
     }
     
@@ -411,10 +420,10 @@ public class ZCRMRecord : ZCRMEntity
     ///   - per_page: number of records to be given for a single page
     /// - Returns: related list records of the ZCRMRecord of a requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get related list of the ZCRMRecord
-    public func getRelatedListRecords(relatedListAPIName : String, page : Int, per_page : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> ())
+    public func getRelatedListRecords(relatedListAPIName : String, page : Int, per_page : Int, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> ())
     {
-        ZCRMModuleRelation(relatedListAPIName: relatedListAPIName, parentModuleAPIName: self.getModuleAPIName()).getRelatedRecords( ofParentRecord : self, page : page, per_page : per_page, sortByField : nil, sortOrder : nil, modifiedSince : nil ) { ( response, records, error ) in
-            completion( response, records, error )
+        ZCRMModuleRelation(relatedListAPIName: relatedListAPIName, parentModuleAPIName: self.getModuleAPIName()).getRelatedRecords( ofParentRecord : self, page : page, per_page : per_page ) { ( records, response, error ) in
+            completion( records, response, error )
         }
     }
     
@@ -426,10 +435,10 @@ public class ZCRMRecord : ZCRMEntity
     ///   - sortOrder: sort order (asc, desc)
     /// - Returns: sorted list records of the ZCRMRecord
     /// - Throws: ZCRMSDKError if failed to get related list of the ZCRMRecord
-    public func getRelatedListRecords( relatedListAPIName : String, sortByField : String, sortOrder : SortOrder, completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> () )
+    public func getRelatedListRecords( relatedListAPIName : String, sortByField : String, sortOrder : SortOrder, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        ZCRMModuleRelation(relatedListAPIName: relatedListAPIName, parentModuleAPIName: self.getModuleAPIName()).getRelatedRecords( ofParentRecord : self, page : 1, per_page : 20, sortByField : sortByField, sortOrder : sortOrder, modifiedSince : nil ) { ( response, records, error ) in
-            completion( response, records, error )
+        ZCRMModuleRelation(relatedListAPIName: relatedListAPIName, parentModuleAPIName: self.getModuleAPIName()).getRelatedRecords( ofParentRecord : self, sortByField : sortByField, sortOrder : sortOrder ) { ( records, response, error ) in
+            completion( records, response, error )
         }
     }
     
@@ -444,10 +453,10 @@ public class ZCRMRecord : ZCRMEntity
     ///   - modifiedSince: modified time
     /// - Returns: sorted list of records of the ZCRMRecord of a requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get related list of the ZCRMRecord
-    public func getRelatedListRecords( relatedListAPIName : String, sortByField : String?, sortOrder : SortOrder?, page : Int, per_page : Int, modifiedSince : String?, completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> () )
+    public func getRelatedListRecords( relatedListAPIName : String, sortByField : String, sortOrder : SortOrder, page : Int, per_page : Int, modifiedSince : String, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        ZCRMModuleRelation(relatedListAPIName: relatedListAPIName, parentModuleAPIName: self.getModuleAPIName()).getRelatedRecords( ofParentRecord : self, page : page, per_page : per_page, sortByField : sortByField, sortOrder : sortOrder, modifiedSince : modifiedSince ) { ( response, records, error ) in
-            completion( response, records, error )
+        ZCRMModuleRelation(relatedListAPIName: relatedListAPIName, parentModuleAPIName: self.getModuleAPIName()).getRelatedRecords( ofParentRecord : self, page : page, per_page : per_page, sortByField : sortByField, sortOrder : sortOrder, modifiedSince : modifiedSince ) { ( records, response, error ) in
+            completion( records, response, error )
         }
     }
     
@@ -456,13 +465,13 @@ public class ZCRMRecord : ZCRMEntity
     /// - Parameter note: ZCRMNote to be added
     /// - Returns: APIResponse of the note addition
     /// - Throws: ZCRMSDKError if Note id is not nil
-    public func addNote(note: ZCRMNote, completion : @escaping( APIResponse?, ZCRMNote?, Error? ) -> () )
+    public func addNote(note: ZCRMNote, completion : @escaping( ZCRMNote?, APIResponse?, Error? ) -> () )
     {
         if( note.getId() != nil )
         {
-            completion( nil, nil, ZCRMSDKError.ProcessingError( "Note ID must be nil for create operation." ) )
-        ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.moduleAPIName).addNote(note: note, toRecord: self) { ( response, note, error ) in
-            completion( response, note, error )
+            completion( nil, nil, ZCRMError.ProcessingError( "Note ID must be nil for create operation." ) )
+        ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.moduleAPIName).addNote(note: note, toRecord: self) { ( note, response, error ) in
+            completion( note, response, error )
             }
         }
     }
@@ -472,14 +481,14 @@ public class ZCRMRecord : ZCRMEntity
     /// - Parameter note: ZCRMNote to be updated
     /// - Returns: APIResponse of the note update
     /// - Throws: ZCRMSDKError if Note id is nil
-    public func updateNote(note: ZCRMNote, completion : @escaping( APIResponse?, ZCRMNote?, Error? ) -> ())
+    public func updateNote(note: ZCRMNote, completion : @escaping( ZCRMNote?, APIResponse?, Error? ) -> ())
     {
         if( note.getId() == nil )
         {
-            completion( nil, nil, ZCRMSDKError.ProcessingError( "Note ID must not be nil for update operation." ) )
+            completion( nil, nil, ZCRMError.ProcessingError( "Note ID must not be nil for update operation." ) )
         }
-        ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.moduleAPIName).updateNote(note: note, ofRecord: self) { ( response, note, error ) in
-            completion( response, note, error )
+        ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.moduleAPIName).updateNote(note: note, ofRecord: self) { ( note, response, error ) in
+            completion( note, response, error )
         }
     }
     
@@ -492,7 +501,7 @@ public class ZCRMRecord : ZCRMEntity
     {
         if( note.getId() == nil )
         {
-            completion( nil, ZCRMSDKError.ProcessingError( "Note ID must not be nil for delete operation." ) )
+            completion( nil, ZCRMError.ProcessingError( "Note ID must not be nil for delete operation." ) )
         }
         ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.moduleAPIName).deleteNote(note: note, ofRecord: self) { ( response, error ) in
             completion( response, error )
@@ -559,10 +568,10 @@ public class ZCRMRecord : ZCRMEntity
     ///
     /// - Returns: list of all attachments of the ZCRMRecord
     /// - Throws: ZCRMSDKError if failed to get the list of attachments
-    public func getAttachments( completion : @escaping( BulkAPIResponse?, [ ZCRMAttachment ]?, Error? ) -> ())
+    public func getAttachments( completion : @escaping( [ ZCRMAttachment ]?, BulkAPIResponse?, Error? ) -> ())
     {
-        ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: self.getModuleAPIName()).getAttachments(ofParentRecord: self, page: 1, per_page: 20, modifiedSince : nil) { ( response, attachments, error ) in
-            completion( response, attachments, error )
+        ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: self.getModuleAPIName()).getAttachments(ofParentRecord: self, page: 1, per_page: 20, modifiedSince : nil) { ( attachments, response, error ) in
+            completion( attachments, response, error )
         }
     }
     
@@ -574,10 +583,10 @@ public class ZCRMRecord : ZCRMEntity
     ///   - modifiedSince: modified time
     /// - Returns: list of all attachments of the ZCRMRecord of a requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get the list of attachments
-    public func getAttachments(page : Int, per_page : Int, modifiedSince : String?, completion : @escaping( BulkAPIResponse?, [ ZCRMAttachment ]?, Error? ) -> ())
+    public func getAttachments(page : Int, per_page : Int, modifiedSince : String?, completion : @escaping( [ ZCRMAttachment ]?, BulkAPIResponse?, Error? ) -> ())
     {
-        ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: self.getModuleAPIName()).getAttachments(ofParentRecord: self, page: page, per_page: per_page, modifiedSince : modifiedSince) { ( response, attachments, error ) in
-            completion( response, attachments, error )
+        ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: self.getModuleAPIName()).getAttachments(ofParentRecord: self, page: page, per_page: per_page, modifiedSince : modifiedSince) { ( attachments, response, error ) in
+            completion( attachments, response, error )
         }
     }
     
@@ -605,10 +614,10 @@ public class ZCRMRecord : ZCRMEntity
     /// - Parameter filePath: file path of the attachment
     /// - Returns: APIResponse of the attachment upload
     /// - Throws: ZCRMSDKError if failed to upload the attachment
-    public func uploadAttachment( filePath : String, completion : @escaping( APIResponse?, ZCRMAttachment?, Error? ) -> () )
+    public func uploadAttachment( filePath : String, completion : @escaping( ZCRMAttachment?, APIResponse?, Error? ) -> () )
     {
-        ZCRMModuleRelation( relatedListAPIName : "Attachments", parentModuleAPIName : self.getModuleAPIName() ).uploadAttachment( ofParentRecord : self, filePath : filePath ) { ( response, attachment, error ) in
-            completion( response, attachment, error )
+        ZCRMModuleRelation( relatedListAPIName : "Attachments", parentModuleAPIName : self.getModuleAPIName() ).uploadAttachment( ofParentRecord : self, filePath : filePath ) { ( attachment, response, error ) in
+            completion( attachment, response, error )
         }
     }
     
@@ -617,10 +626,10 @@ public class ZCRMRecord : ZCRMEntity
     /// - Parameter attachmentURL: URL of the attachment
     /// - Returns: APIResponse of the attachment upload
     /// - Throws: ZCRMSDKError if failed to upload the attachment
-    public func uploadLinkAsAttachment( attachmentURL : String, completion : @escaping( APIResponse?, ZCRMAttachment?, Error? ) -> () )
+    public func uploadLinkAsAttachment( attachmentURL : String, completion : @escaping( ZCRMAttachment?, APIResponse?, Error? ) -> () )
     {
-        ZCRMModuleRelation( relatedListAPIName : "Attachments", parentModuleAPIName : self.getModuleAPIName() ).uploadLinkAsAttachment( ofParentRecord : self, attachmentURL : attachmentURL ) { ( response, attachment, error ) in
-            completion( response, attachment, error )
+        ZCRMModuleRelation( relatedListAPIName : "Attachments", parentModuleAPIName : self.getModuleAPIName() ).uploadLinkAsAttachment( ofParentRecord : self, attachmentURL : attachmentURL ) { ( attachment, response, error ) in
+            completion( attachment, response, error )
         }
     }
     
@@ -679,8 +688,7 @@ public class ZCRMRecord : ZCRMEntity
     /// - Throws: ZCRMError if failed to add relation
     public func addRelation( junctionRecord : ZCRMJunctionRecord, completion : @escaping( APIResponse?, Error? ) -> () )
     {
-//        return try ZCRMModuleRelation( parentRecord : self, junctionRecord : junctionRecord ).addRelation()
-        ZCRMModuleRelation( parentRecord : self, junctionRecord : junctionRecord ).addRelation() { ( response, error ) in
+        ZCRMModuleRelation().addRelation( parentRecord: self, junctionRecord : junctionRecord ) { ( response, error ) in
             completion( response, error )
         }
     }
@@ -692,7 +700,7 @@ public class ZCRMRecord : ZCRMEntity
     /// - Throws: ZCRMError if failed to delete the relation
     public func deleteRelation( junctionRecord : ZCRMJunctionRecord, completion : @escaping( APIResponse?, Error? ) -> () )
     {
-        ZCRMModuleRelation( parentRecord : self, junctionRecord : junctionRecord ).deleteRelation() { ( response, error ) in
+        ZCRMModuleRelation().deleteRelation( parentRecord: self, junctionRecord : junctionRecord ) { ( response, error ) in
             completion( response, error )
         }
     }

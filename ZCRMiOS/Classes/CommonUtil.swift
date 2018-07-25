@@ -10,19 +10,19 @@ import Foundation
 
 let PhotoSupportedModules = ["Leads", "Contacts"]
 
-internal enum UnexpectedError : Error
+internal enum ZCRMSDKError : Error
 {
+    case InternalError( String )
     case ResponseNil( String )
 }
 
-public enum ZCRMSDKError : Error
+public enum ZCRMError : Error
 {
     case UnAuthenticatedError(String)
     case InValidError(String)
-    case ProcessingError(String)
     case MaxRecordCountExceeded(String)
     case FileSizeExceeded(String)
-    case InternalError( String )
+    case ProcessingError(String)
 }
 
 public enum SortOrder : String
@@ -446,11 +446,11 @@ public func fileDetailCheck( filePath : String ) throws
 {
     if ( FileManager.default.fileExists( atPath : filePath )  == false )
     {
-        throw ZCRMSDKError.InValidError( "File not found at given path : \( filePath )" )
+        throw ZCRMError.InValidError( "File not found at given path : \( filePath )" )
     }
     if ( getFileSize( filePath : filePath ) > 2097152 )
     {
-        throw ZCRMSDKError.FileSizeExceeded( "Cannot upload. File size should not exceed to 20MB" )
+        throw ZCRMError.FileSizeExceeded( "Cannot upload. File size should not exceed to 20MB" )
     }
 }
 

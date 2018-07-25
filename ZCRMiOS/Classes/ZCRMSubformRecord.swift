@@ -75,7 +75,7 @@ public class ZCRMSubformRecord : ZCRMEntity
 		}
 		else
 		{
-			throw ZCRMSDKError.ProcessingError("The given field is not present in the record.")
+			throw ZCRMError.ProcessingError("The given field is not present in the record.")
 		}
 	}
 	

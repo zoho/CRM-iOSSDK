@@ -18,12 +18,12 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 	
 	// MARK: - Handler Functions
     
-    internal func createRecords( records : [ ZCRMRecord ], completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> () )
+    internal func createRecords( records : [ ZCRMRecord ], completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : DATA )
         if(records.count > 100)
         {
-            completion( nil, nil, ZCRMSDKError.MaxRecordCountExceeded( "Cannot process more than 100 records at a time." ) )
+            completion( nil, nil, ZCRMError.MaxRecordCountExceeded( "Cannot process more than 100 records at a time." ) )
         }
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         var dataArray : [[String:Any]] = [[String:Any]]()
@@ -65,12 +65,12 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     }
                 }
                 bulkResponse.setData( data : updatedRecords )
-                completion( bulkResponse, updatedRecords, nil )
+                completion( updatedRecords, bulkResponse, nil )
             }
         }
     }
 	
-    internal func getRecords(cvId : Int64? ,fields : [String]? ,  sortByField : String? , sortOrder : SortOrder? , converted : Bool? , approved : Bool? , page : Int , per_page : Int , modifiedSince : String?, includePrivateFields : Bool, completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> () )
+    internal func getRecords(cvId : Int64? ,fields : [String]? ,  sortByField : String? , sortOrder : SortOrder? , converted : Bool? , approved : Bool? , page : Int , per_page : Int , modifiedSince : String?, includePrivateFields : Bool, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
 	{
         setJSONRootKey( key : DATA )
 		var records : [ZCRMRecord] = [ZCRMRecord]()
@@ -145,41 +145,41 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     }
                     bulkResponse.setData(data: records)
                 }
-                completion( bulkResponse, records, nil )
+                completion( records, bulkResponse, nil )
             }
         }
 		
 	}
     
-    internal func searchByText( searchText : String, page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> () )
+    internal func searchByText( searchText : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.searchRecords( searchKey : "word", searchValue : searchText, page : page, per_page : perPage ) { ( response, records, error ) in
-            completion( response, records, error )
+        self.searchRecords( searchKey : "word", searchValue : searchText, page : page, per_page : perPage ) { ( records, response, error ) in
+            completion( records, response, error )
         }
     }
     
-    internal func searchByCriteria( searchCriteria : String, page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> () )
+    internal func searchByCriteria( searchCriteria : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.searchRecords( searchKey : "criteria", searchValue : searchCriteria, page : page, per_page : perPage ) { ( response, records, error ) in
-            completion( response, records, error )
+        self.searchRecords( searchKey : "criteria", searchValue : searchCriteria, page : page, per_page : perPage ) { ( records, response, error ) in
+            completion( records, response, error )
         }
     }
     
-    internal func searchByEmail( searchValue : String, page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> () )
+    internal func searchByEmail( searchValue : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.searchRecords( searchKey : "email", searchValue : searchValue, page : page, per_page : perPage) { ( response, records, error ) in
-            completion( response, records, error )
+        self.searchRecords( searchKey : "email", searchValue : searchValue, page : page, per_page : perPage) { ( records, response, error ) in
+            completion( records, response, error )
         }
     }
     
-    internal func searchByPhone( searchValue : String, page : Int, perPage : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> () )
+    internal func searchByPhone( searchValue : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.searchRecords( searchKey : "phone", searchValue : searchValue, page : page, per_page : perPage) { ( response, records, error ) in
-            completion( response, records, error )
+        self.searchRecords( searchKey : "phone", searchValue : searchValue, page : page, per_page : perPage) { ( records, response, error ) in
+            completion( records, response, error )
         }
     }
 	
-    internal func searchRecords( searchKey : String, searchValue : String, page : Int, per_page : Int, completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> () )
+    internal func searchRecords( searchKey : String, searchValue : String, page : Int, per_page : Int, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
 	{
         setJSONRootKey( key : DATA )
 		var records : [ZCRMRecord] = [ZCRMRecord]()
@@ -210,17 +210,17 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     }
                 }
                 bulkResponse.setData( data : records )
-                completion( bulkResponse, records, nil )
+                completion( records, bulkResponse, nil )
             }
         }
 	}
 	
-    internal func updateRecords( ids : [ Int64 ], fieldAPIName : String, value : Any?, completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> () )
+    internal func updateRecords( ids : [ Int64 ], fieldAPIName : String, value : Any?, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
 	{
         setJSONRootKey( key : DATA )
         if(ids.count > 100)
         {
-            completion( nil, nil, ZCRMSDKError.MaxRecordCountExceeded("Cannot process more than 100 records at a time.") )
+            completion( nil, nil, ZCRMError.MaxRecordCountExceeded("Cannot process more than 100 records at a time.") )
         }
 		var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
 		var dataArray : [[String:Any]] = [[String:Any]]()
@@ -266,17 +266,17 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     }
                 }
                 bulkResponse.setData( data : updatedRecords )
-                completion( bulkResponse, updatedRecords, nil )
+                completion( updatedRecords, bulkResponse, nil )
             }
         }
 	}
     
-    internal func upsertRecords( records : [ ZCRMRecord ], completion : @escaping( BulkAPIResponse?, [ ZCRMRecord ]?, Error? ) -> () )
+    internal func upsertRecords( records : [ ZCRMRecord ], completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : DATA )
         if ( records.count > 100 )
         {
-            completion( nil, nil, ZCRMSDKError.MaxRecordCountExceeded( "Cannot process more than 100 records at a time." ) )
+            completion( nil, nil, ZCRMError.MaxRecordCountExceeded( "Cannot process more than 100 records at a time." ) )
         }
         var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
         var dataArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
@@ -319,7 +319,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     }
                 }
                 bulkResponse.setData( data : upsertRecords )
-                completion( bulkResponse, upsertRecords, nil )
+                completion( upsertRecords, bulkResponse, nil )
             }
         }
     }
@@ -328,7 +328,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     {
         if(ids.count > 100)
         {
-            completion( nil, ZCRMSDKError.MaxRecordCountExceeded("Cannot process more than 100 records at a time.") )
+            completion( nil, ZCRMError.MaxRecordCountExceeded("Cannot process more than 100 records at a time.") )
         }
         var idsStr : String = "\(ids)"
         idsStr = idsStr.replacingOccurrences(of: " ", with: "")
@@ -360,28 +360,28 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getAllDeletedRecords( completion : @escaping( BulkAPIResponse?, [ ZCRMTrashRecord ]?, Error? ) -> () )
+    internal func getAllDeletedRecords( completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.getDeletedRecords( type : "all") { ( response, deletedRecords, error ) in
-            completion( response,deletedRecords, error )
+        self.getDeletedRecords( type : "all") { ( deletedRecords, response, error ) in
+            completion( deletedRecords, response, error )
         }
     }
     
-    internal func getRecycleBinRecords( completion : @escaping( BulkAPIResponse?, [ ZCRMTrashRecord ]?, Error? ) -> () )
+    internal func getRecycleBinRecords( completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.getDeletedRecords( type : "recycle") { ( response, deletedRecords, error ) in
-            completion( response, deletedRecords, error )
+        self.getDeletedRecords( type : "recycle") { ( deletedRecords, response, error ) in
+            completion( deletedRecords, response, error )
         }
     }
     
-    internal func getPermanentlyDeletedRecords( completion : @escaping( BulkAPIResponse?, [ ZCRMTrashRecord ]?, Error? ) -> () )
+    internal func getPermanentlyDeletedRecords( completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.getDeletedRecords( type : "permanent") { ( response, deletedRecords, error ) in
-            completion( response, deletedRecords, error )
+        self.getDeletedRecords( type : "permanent") { ( deletedRecords, response, error ) in
+            completion( deletedRecords, response, error )
         }
     }
     
-    internal func getDeletedRecords( type : String, completion : @escaping( BulkAPIResponse?, [ ZCRMTrashRecord ]?, Error? ) -> () )
+    internal func getDeletedRecords( type : String, completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
 		setUrlPath(urlPath : "/\( self.module.getAPIName() )/deleted")
 		setRequestMethod(requestMethod : .GET )
@@ -405,7 +405,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     trashRecords.append( self.trashRecord )
                 }
                 bulkResponse.setData( data : trashRecords )
-                completion( bulkResponse, trashRecords, nil )
+                completion( trashRecords, bulkResponse, nil )
             }
         }
     }

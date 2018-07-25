@@ -424,7 +424,7 @@ public class ZCRMUser : ZCRMEntity
         }
         else
         {
-            throw ZCRMSDKError.ProcessingError( "The given field is not present in this user - \( fieldAPIName )" )
+            throw ZCRMError.ProcessingError( "The given field is not present in this user - \( fieldAPIName )" )
         }
     }
     
@@ -433,10 +433,10 @@ public class ZCRMUser : ZCRMEntity
         return self.fieldNameVsValue
     }
     
-    public func create( completion : @escaping( APIResponse?, ZCRMUser?, Error? ) -> () )
+    public func create( completion : @escaping( ZCRMUser?, APIResponse?, Error? ) -> () )
     {
-        UserAPIHandler().addUser( user : self ) { ( response, user, error ) in
-            completion( response, user, error )
+        UserAPIHandler().addUser( user : self ) { ( user, response, error ) in
+            completion( user, response, error )
         }
     }
     
