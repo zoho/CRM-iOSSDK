@@ -10,14 +10,19 @@ import Foundation
 
 let PhotoSupportedModules = ["Leads", "Contacts"]
 
-public enum ZCRMSDKError : Error
+internal enum ZCRMSDKError : Error
+{
+    case InternalError( String )
+    case ResponseNil( String )
+}
+
+public enum ZCRMError : Error
 {
     case UnAuthenticatedError(String)
     case InValidError(String)
-    case ProcessingError(String)
     case MaxRecordCountExceeded(String)
     case FileSizeExceeded(String)
-    case InternalError( String )
+    case ProcessingError(String)
 }
 
 public enum SortOrder : String
@@ -40,6 +45,14 @@ public enum PhotoSize : String
     case ORIGINAL = "original"
     case FAVICON = "favicon"
     case MEDIUM = "medium"
+}
+
+public enum ConsentProcessThrough : String
+{
+    case EMAIL = "Email"
+    case PHONE = "Phone"
+    case SURVEY = "Survey"
+    case SOCIAL = "Social"
 }
 
 internal extension Dictionary
@@ -429,23 +442,15 @@ public func moveFile(filePath: String, newFilePath: String)
     }
 }
 
-public func photoSupportedModuleCheck( moduleAPIName : String ) throws
-{
-    if ( !PhotoSupportedModules.contains( moduleAPIName ) )
-    {
-        throw ZCRMSDKError.InValidError( "Photo not supported for this module." )
-    }
-}
-
 public func fileDetailCheck( filePath : String ) throws
 {
     if ( FileManager.default.fileExists( atPath : filePath )  == false )
     {
-        throw ZCRMSDKError.InValidError( "File not found at given path : \( filePath )" )
+        throw ZCRMError.InValidError( "File not found at given path : \( filePath )" )
     }
     if ( getFileSize( filePath : filePath ) > 2097152 )
     {
-        throw ZCRMSDKError.FileSizeExceeded( "Cannot upload. File size should not exceed to 20MB" )
+        throw ZCRMError.FileSizeExceeded( "Cannot upload. File size should not exceed to 20MB" )
     }
 }
 
@@ -472,6 +477,7 @@ internal func getFileSize( filePath : String ) -> Int64
 
 var APPTYPE : String = "ZCRM"
 var APIBASEURL : String = String()
+var ACCOUNTSURL : String = String()
 var APIVERSION : String = String()
 var COUNTRYDOMAIN : String = "com"
 let PHOTOURL : URL = URL( string : "https://profile.zoho.com/api/v1/user/self/photo" )!
@@ -502,6 +508,15 @@ let CODE_SUCCESS : String = "success"
 let INFO : String = "info"
 let DETAILS : String = "details"
 
+let MODULES : String = "modules"
+let USERS : String = "users"
+let ROLES : String = "roles"
+let PROFILES : String = "profiles"
+let LAYOUTS : String = "layouts"
+let FIELDS : String = "fields"
+let CUSTOM_VIEWS : String = "custom_views"
+
+let PRIVATE_FIELDS = "private_fields"
 let PER_PAGE : String = "per_page"
 let PAGE : String = "page"
 let COUNT : String = "count"

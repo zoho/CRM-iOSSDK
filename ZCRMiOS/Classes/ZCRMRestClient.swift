@@ -12,28 +12,38 @@ public class ZCRMRestClient
 {
     public init() {}
     
-    public func getOrganisationDetails() throws -> APIResponse
+    public func getOrganisationDetails( completion : @escaping( ZCRMOrganisation?, APIResponse?, Error? ) -> () )
     {
-        return try OrganizationAPIHandler().getOrganizationDetails()
+        OrganizationAPIHandler().getOrganizationDetails() { ( org, response, error ) in
+            completion( org, response, error )
+        }
     }
     
-    public func getModule( moduleAPIName : String ) throws -> APIResponse
+    public func getModule( moduleAPIName : String, completion : @escaping( ZCRMModule?, APIResponse?, Error? ) -> () )
     {
-        return try MetaDataAPIHandler().getModule( apiName : moduleAPIName )
+        MetaDataAPIHandler().getModule( apiName : moduleAPIName ) { ( module, response, error ) in
+            completion( module, response, error )
+        }
     }
     
-    public func getAllModules() throws -> BulkAPIResponse
+    public func getAllModules( completion : @escaping( [ ZCRMModule ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        return try self.getAllModules( modifiedSince : nil )
+        MetaDataAPIHandler().getAllModules( modifiedSince : nil ) { ( modules, response, error ) in
+            completion( modules, response, error )
+        }
     }
     
-    public func getAllModules( modifiedSince : String? ) throws -> BulkAPIResponse
+    public func getAllModules( modifiedSince : String, completion : @escaping( [ ZCRMModule ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        return try MetaDataAPIHandler().getAllModules( modifiedSince : modifiedSince )
+        MetaDataAPIHandler().getAllModules( modifiedSince : modifiedSince ) { ( modules, response, error ) in
+            completion( modules, response, error )
+        }
     }
     
-    public func getCurrentUser() throws -> APIResponse
+    public func getCurrentUser( completion : @escaping( ZCRMUser?, APIResponse?, Error? ) -> () )
     {
-        return try UserAPIHandler().getCurrentUser()
+        UserAPIHandler().getCurrentUser() { ( user, response, error ) in
+            completion( user, response, error )
+        }
     }
 }

@@ -95,14 +95,17 @@ public class ZCRMLoginHandler
         {
         case ( "com" ), ( "us" ) :
             APIBASEURL = "https://\( domain ).zohoapis.com"
+            ACCOUNTSURL = "https://accounts.zoho.com"
             break
             
         case "eu" :
             APIBASEURL = "https://\( domain ).zohoapis.eu"
+            ACCOUNTSURL = "https://accounts.zoho.eu"
             break
             
         case "cn" :
             APIBASEURL = "https://\( domain ).zohoapis.com.cn"
+            ACCOUNTSURL = "https://accounts.zoho.com.cn"
             break
             
         default :
@@ -190,26 +193,11 @@ public class ZCRMLoginHandler
         })
     }
     
-    internal func getOauth2Token() -> String
+    internal func getOauth2Token( completion : @escaping( String?, Error? ) -> () )
     {
-        var oAuth2Token : String = String()
-        
-        ZohoAuth.getOauth2Token { (accessToken, error) in
-            if( accessToken == nil )
-            {
-                print( "Unable to get oAuthToken!" )
-            }
-            else
-            {
-                oAuth2Token = accessToken!
-                print( "Got the oAuthtoken!" )
-            }
-            if( error != nil )
-            {
-                print( "Error occured in getOauth2Token(): \(error!)" )
-            }
+        ZohoAuth.getOauth2Token { ( token, error ) in
+            completion( token, error )
         }
-        return oAuth2Token
     }
     
     internal func getLoginScreenParams() -> String

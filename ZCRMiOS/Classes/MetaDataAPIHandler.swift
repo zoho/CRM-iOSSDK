@@ -8,7 +8,7 @@
 
 internal class MetaDataAPIHandler : CommonAPIHandler
 {
-    internal func getAllModules( modifiedSince : String? ) throws -> BulkAPIResponse
+    internal func getAllModules( modifiedSince : String?, completion: @escaping( [ ZCRMModule ]?, BulkAPIResponse?, Error? ) -> () )
 	{
 		var allModules : [ZCRMModule] = [ZCRMModule]()
 		setUrlPath(urlPath: "/settings/modules" )
@@ -19,32 +19,49 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         }
 		let request : APIRequest = APIRequest(handler : self ) 
         print( "Request : \( request.toString() )" )
-        let response = try request.getBulkAPIResponse()
-		let responseJSON = response.getResponseJSON()
-        if responseJSON.isEmpty == false
-        {
-            let modulesList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: "modules")
-            for module in modulesList
+        request.getBulkAPIResponse { ( response, err ) in
+            if let error = err
             {
-                allModules.append(getZCRMModule(moduleDetails: module))
+                completion( nil, nil, error )
             }
-            response.setData(data: allModules)
+            if let bulkResponse = response
+            {
+                let responseJSON = bulkResponse.getResponseJSON()
+                if responseJSON.isEmpty == false
+                {
+                    let modulesList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                    for module in modulesList
+                    {
+                        allModules.append(self.getZCRMModule(moduleDetails: module))
+                    }
+                    bulkResponse.setData(data: allModules)
+                }
+                completion( allModules, bulkResponse, nil )
+            }
         }
-        return response
 	}
 	
-	internal func getModule(apiName : String) throws -> APIResponse
+    internal func getModule( apiName : String, completion: @escaping( ZCRMModule?, APIResponse?, Error? ) -> () )
 	{
 		setUrlPath(urlPath: "/settings/modules/\(apiName)" )
 		setRequestMethod(requestMethod: .GET )
 		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
-        let response = try request.getAPIResponse()
-		let responseJSON = response.getResponseJSON()
-		let modulesList:[[String : Any]] = responseJSON.getArrayOfDictionaries(key: "modules")
-		let moduleDetails : [String : Any] = modulesList[0]
-		response.setData(data: getZCRMModule(moduleDetails: moduleDetails))
-        return response
+        request.getAPIResponse { ( resp, err ) in
+            if let error = err
+            {
+                completion( nil, nil, error )
+            }
+            if let response = resp
+            {
+                let responseJSON = response.getResponseJSON()
+                let modulesList:[[String : Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                let moduleDetails : [String : Any] = modulesList[0]
+                let module = self.getZCRMModule( moduleDetails : moduleDetails )
+                response.setData( data : module )
+                completion( module, response, nil )
+            }
+        }
 	}
 	
 	internal func getZCRMModule(moduleDetails : [String:Any]) -> ZCRMModule
@@ -54,7 +71,15 @@ internal class MetaDataAPIHandler : CommonAPIHandler
 		module.setSystemName(sysName: moduleDetails.optString(key: "module_name"))
 		module.setSingularLabel(singularLabel: moduleDetails.optString(key: "singular_label"))
 		module.setPluralLabel(pluralLabel: moduleDetails.optString(key: "plural_label"))
-		module.setIsCustomModule(isCustomModule: moduleDetails.optString(key: "generated_type") == "custom")
+		module.setGeneratedType(type: moduleDetails.getString(key: "generated_type"))
+        module.setVisibility(visible: moduleDetails.optInt(key: "visibility"))
+        module.setIsGlobalSearchSupported( isSupport : moduleDetails.optBoolean(key: "global_search_supported"))
+        module.setIsAPISupported(isSupport: moduleDetails.optBoolean(key: "api_supported"))
+        module.setIsQuickCreate(isQuick: moduleDetails.optBoolean(key: "quick_create"))
+        module.setIsScoringSupported(isSupport: moduleDetails.optBoolean(key: "scoring_supported"))
+        module.setSequenceNumber(number: moduleDetails.optInt(key: "sequence_number"))
+        module.setBussinessCardFieldLimit(limit: moduleDetails.optInt(key: "business_card_field_limit"))
+        module.setWebLink(link: moduleDetails.optString(key: "web_link"))
 		if(moduleDetails.hasValue(forKey: "modified_by"))
 		{
 			let modifiedByObj : [String:Any] = moduleDetails.getDictionary(key: "modified_by")
@@ -108,5 +133,9 @@ internal class MetaDataAPIHandler : CommonAPIHandler
 		relatedList.setVisibility(isVisible: relatedListDetails.optBoolean(key: "visible"))
 		relatedList.setIsDefaultRelatedList(isDefault : ("default" == relatedListDetails.optString(key: "type")))
 	}
+    
+    internal override func getJSONRootKey() -> String {
+        return MODULES
+    }
 	
 }
