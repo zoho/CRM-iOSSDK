@@ -150,7 +150,23 @@ internal class APIRequest
                     }
                     if ( self.url?.absoluteString == nil )
                     {
-                        self.url = URL(string: (self.baseUrl + self.urlPath))!
+                        let urlString = self.baseUrl+self.urlPath
+                        if let encodedURLString = urlString.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed)
+                        {
+                            let requestURL = URL(string: encodedURLString )
+                            if let reqURL = requestURL
+                            {
+                                self.url = reqURL
+                            }
+                            else
+                            {
+                                completion(ZCRMSDKError.InternalError("Unable to construct URL"))
+                            }
+                        }
+                        else
+                        {
+                            completion(ZCRMSDKError.InternalError("Adding percent encoding error occured"))
+                        }
                     }
                     else
                     {

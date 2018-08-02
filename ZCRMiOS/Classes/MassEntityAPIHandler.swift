@@ -416,7 +416,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     {
         for ( fieldAPIName, value ) in record
         {
-            if( "Created_By" == fieldAPIName )
+            if( "created_By" == fieldAPIName )
             {
                 let createdBy : [ String : Any ] = value as! [ String : Any ]
                 let createdByUser : ZCRMUser = ZCRMUser( userId : createdBy.getInt64( key : "id" ), userFullName : createdBy.getString( key : "name") )

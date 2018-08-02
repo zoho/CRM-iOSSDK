@@ -8,27 +8,24 @@
 
 public class ZCRMModule : ZCRMEntity
 {
-	private var apiName : String
-	private var systemName : String?
-	private var singularLabel : String?
-	private var pluralLabel : String?
-	private var id : Int64?
+    private var apiName : String
+    private var systemName : String?
+    private var singularLabel : String?
+    private var pluralLabel : String?
+    private var id : Int64?
     
-	private var creatable : Bool?
-	private var viewable : Bool?
-	private var convertible : Bool?
-	private var editable : Bool?
-	private var deletable : Bool?
-	
-	private var modifiedBy : ZCRMUser?
-	private var modifiedTime : String?
-	
-	private var allowedProfiles : [ZCRMProfile]?
-	private var layouts : [ZCRMLayout]?
-	private var fields : [ZCRMField]?
-	private var businessCardFields : [ZCRMField]?
-	private var relatedLists : [ZCRMModuleRelation]?
-    private var accessibleProfiles : [ ZCRMProfile ]?
+    private var creatable : Bool?
+    private var viewable : Bool?
+    private var convertible : Bool?
+    private var editable : Bool?
+    private var deletable : Bool?
+    
+    private var modifiedBy : ZCRMUser?
+    private var modifiedTime : String?
+    
+    private var allowedProfiles : [ZCRMProfile]?
+    private var relatedLists : [ZCRMModuleRelation]?
+
     
     private var globalSearchSupported : Bool?
     private var visibility : Int?
@@ -37,8 +34,16 @@ public class ZCRMModule : ZCRMEntity
     private var scoringSupported : Bool?
     private var sequenceNumber : Int?
     private var generatedType : String?
-    private var bussinessCardFieldLimit : Int?
+    private var businessCardFieldLimit : Int?
     private var webLink : String?
+    
+    private var arguments : [ String : Any ]?
+    private var properties : [ String ]?
+    
+    private var displayField : String?
+    private var searchLayoutFields : [ String ]?
+    private var parentModule : ZCRMModule?
+    private var customView : ZCRMCustomView?
     
 	
     /// Initialize the instance of a module with the given module API name.
@@ -200,14 +205,14 @@ public class ZCRMModule : ZCRMEntity
         return self.sequenceNumber
     }
     
-    internal func setBussinessCardFieldLimit( limit : Int? )
+    internal func setBusinessCardFieldLimit( limit : Int? )
     {
-        self.bussinessCardFieldLimit = limit
+        self.businessCardFieldLimit = limit
     }
     
-    public func getBussinessCardFiledLimit() -> Int?
+    public func getBusinessCardFiledLimit() -> Int?
     {
-        return self.bussinessCardFieldLimit
+        return self.businessCardFieldLimit
     }
     
     /// Set true if the module is convertible.
@@ -355,62 +360,67 @@ public class ZCRMModule : ZCRMEntity
             completion(  moduleRealtionList, response, error )
         }
 	}
-	
-    /// Set list of business card fields to the module.
-    ///
-    /// - Parameter businessCardFields: list of business card fields
-	internal func setBusinessCardFields(businessCardFields : [ZCRMField]?)
-	{
-		self.businessCardFields = businessCardFields
-	}
-	
-    /// Returns list of business card fields of the module.
-    ///
-    /// - Returns: list of business card fields of the module
-	public func getAllBusinessCardFields() -> [ZCRMField]?
-	{
-		return self.businessCardFields
-	}
-	
-    /// Set List of ZCRMLayouts to the module.
-    ///
-    /// - Parameter allLayouts: List of ZCRMLayouts
-	internal func setLayouts(allLayouts : [ZCRMLayout]?)
-	{
-		self.layouts = allLayouts
-	}
-	
-    /// Set list of ZCRMFields to the module.
-    ///
-    /// - Parameter allFields: list of ZCRMFields
-	internal func setFields(allFields : [ZCRMField]?)
-	{
-		self.fields = allFields
-	}
     
-    /// Set the accessible ZCRMProfile
-    ///
-    /// - Parameter profile: ZCRMProfile
-    internal func addAccessibleProfile( profile : ZCRMProfile )
+    internal func setArguments( arguments : [ String : Any ]? )
     {
-        if( self.accessibleProfiles != nil )
-        {
-            self.accessibleProfiles?.append( profile )
-        }
-        else
-        {
-            self.accessibleProfiles = [ profile ]
-        }
+        self.arguments = arguments
     }
     
-    /// Returns list of accessible ZCRMProfiles.
-    ///
-    /// - Returns: list of accessible ZCRMProfiles
-    public func getAccessibleProfiles() -> [ ZCRMProfile ]?
+    public func getArguments() -> [ String : Any ]?
     {
-        return self.accessibleProfiles
+        return self.arguments
     }
-	
+    
+    internal func setProperties( properties : [ String ]? )
+    {
+        self.properties = properties
+    }
+    
+    public func getProperties() -> [ String ]?
+    {
+        return self.properties
+    }
+    
+    internal func setDisplayField( displayField : String? )
+    {
+        self.displayField = displayField
+    }
+    
+    public func getDisplayField() -> String?
+    {
+        return self.displayField
+    }
+    
+    internal func setSearchLayoutFields(searchLayoutFields : [String]? )
+    {
+        self.searchLayoutFields = searchLayoutFields
+    }
+    
+    public func getSearchLayoutFields() -> [String]?
+    {
+        return self.searchLayoutFields
+    }
+    
+    internal func setParentModule( parentModule : ZCRMModule? )
+    {
+        self.parentModule = parentModule
+    }
+    
+    public func getParentModule() -> ZCRMModule?
+    {
+        return self.parentModule
+    }
+    
+    internal func setCustomView( customView : ZCRMCustomView? )
+    {
+        self.customView = customView
+    }
+    
+    public func getCustomView() -> ZCRMCustomView?
+    {
+        return self.customView
+    }
+		
     /// Returns all the layouts of the module(BulkAPIResponse).
     ///
     /// - Returns: all the layouts of the module
@@ -985,5 +995,47 @@ public class ZCRMModule : ZCRMEntity
         MassEntityAPIHandler(module: self).deleteRecords( ids : recordIds) { ( response, error ) in
             completion( response, error )
         }
+    }
+    
+    public func getTags( completion : @escaping ( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+    {
+        TagAPIHandler(module: self).getTags(completion: { ( tags, response, error ) in
+            completion( tags, response, error )
+        } )
+    }
+    
+    public func createTags( tags : [ZCRMTag], completion : @escaping ( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+    {
+        TagAPIHandler(module: self).createTags(tags: tags, completion: { ( tags, response, error ) in
+            completion( tags, response, error )
+        } )
+    }
+    
+    public func updateTags(tagIds : [Int64], names : [String], completion : @escaping ( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+    {
+        TagAPIHandler(module: self).updateTags(tagIds: tagIds, names: names, completion: { ( tags, response, error ) in
+            completion( tags, response, error )
+        } )
+    }
+    
+    public func deleteTag( tag : ZCRMTag, completion : @escaping ( APIResponse?, Error? ) -> () )
+    {
+        TagAPIHandler(tag: tag).deleteTag(completion: { ( response, error ) in
+            completion( response, error )
+        } )
+    }
+    
+    public func addTags( recordIds : [Int64], params : [String], values : [Any], completion : @escaping ( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+    {
+        TagAPIHandler(module: self).addTags(recordIds: recordIds, params: params, values: values, completion: { ( tags, response, error ) in
+            completion( tags, response, error )
+        } )
+    }
+    
+    public func removeTags( recordIds : [Int64], params : [String], values : [Any], completion : @escaping ( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+    {
+        TagAPIHandler(module: self).removeTags(recordIds: recordIds, params: params, values: values, completion: { ( tags, response, error ) in
+            completion( tags, response, error )
+        } )
     }
 }

@@ -9,12 +9,12 @@
 internal class EntityAPIHandler : CommonAPIHandler
 {
     private var record : ZCRMRecord
-    
+
     init(record : ZCRMRecord)
     {
         self.record = record
     }
-	
+    
 	// MARK: - Handler Functions
 	
     internal func getRecord( withPrivateFields : Bool, completion : @escaping( ZCRMRecord?, APIResponse?, Error? ) -> () )
@@ -727,6 +727,5 @@ internal class EntityAPIHandler : CommonAPIHandler
         participant.setInvited( invited : participantDetails.getBoolean( key : "invited" ) )
         return participant
     }
-    
 }
 

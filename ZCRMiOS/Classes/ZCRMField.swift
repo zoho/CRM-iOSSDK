@@ -33,6 +33,13 @@ public class ZCRMField : ZCRMEntity
     private var createdSource : String?
     private var bussinessCardSupported : Bool?
     
+    private var roundingOption : CurrencyRoundingOption?
+    private var decimalPlace : Int?
+    private var lookup : [String : Any]?
+    private var multiSelectLookup : [String : Any]?
+    private var subFormTabId : Int64?
+    private var subForm : [String : Any]?
+    
 	
     /// Initialise the instance of ZCRMField with given field API name.
     ///
@@ -60,7 +67,7 @@ public class ZCRMField : ZCRMEntity
         return self.tooltip
     }
     
-    internal func setWebHook( webhook : Bool? )
+    internal func setWebhook( webhook : Bool? )
     {
         self.webhook = webhook
     }
@@ -118,6 +125,66 @@ public class ZCRMField : ZCRMEntity
     public func getCreatedSource() -> String
     {
         return self.createdSource!
+    }
+    
+    internal func setRoundingOption(roundingOption : CurrencyRoundingOption?)
+    {
+        self.roundingOption = roundingOption
+    }
+    
+    public func getRoundingOption() -> CurrencyRoundingOption?
+    {
+        return self.roundingOption
+    }
+    
+    internal func setDecimalPlace(decimalPlace : Int?)
+    {
+        self.decimalPlace = decimalPlace
+    }
+    
+    public func getDecimalPlace() -> Int?
+    {
+        return self.decimalPlace
+    }
+    
+    internal func setLookup(lookup : [String : Any]?)
+    {
+        self.lookup = lookup
+    }
+    
+    public func getLookup() -> [String : Any]?
+    {
+        return self.lookup
+    }
+    
+    internal func setMultiSelectLookup(multiSelectLookup : [String : Any]?)
+    {
+        self.multiSelectLookup = multiSelectLookup
+    }
+    
+    public func getMultiSelectLookup() -> [String : Any]?
+    {
+        return self.multiSelectLookup
+    }
+    
+    internal func setSubFormTabId(subFormTabId : Int64?)
+    {
+        self.subFormTabId = subFormTabId
+    }
+    
+    public func getSubFormTabId() -> Int64?
+    {
+        return self.subFormTabId
+    }
+    
+    internal func setSubForm(subForm : [String : Any]?)
+    {
+        self.subForm = subForm
+    }
+    
+    public func getSubForm() -> [String : Any]?
+    {
+        return self.subForm
     }
 	
     /// Set the id of the ZCRMField.

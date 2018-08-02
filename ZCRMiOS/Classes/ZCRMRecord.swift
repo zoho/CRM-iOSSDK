@@ -348,6 +348,10 @@ public class ZCRMRecord : ZCRMEntity
     /// - Throws: ZCRMSDKError if the ZCRMRecord is not convertible
     public func convert( completion : @escaping( [ String : Any ]?, Error? ) -> () )
     {
+        if(self.moduleAPIName != "Leads")
+        {
+            completion( nil, ZCRMError.ProcessingError("This module does not support convert operation"))
+        }
         self.convert(newPotential: nil, assignTo: nil) { ( convertedRecordDict, error ) in
             completion( convertedRecordDict, error )
         }
@@ -360,6 +364,10 @@ public class ZCRMRecord : ZCRMEntity
     /// - Throws: ZCRMSDKError if the ZCRMRecord is not convertible
     public func convert( newPotential : ZCRMRecord, completion : @escaping( [ String : Any ]?, Error? ) -> () )
     {
+        if(self.moduleAPIName != "Leads")
+        {
+            completion( nil, ZCRMError.ProcessingError("This module does not support convert operation"))
+        }
         self.convert( newPotential: newPotential, assignTo: nil) { ( convertedRecordDict, error ) in
             completion( convertedRecordDict, error )
         }
@@ -374,6 +382,10 @@ public class ZCRMRecord : ZCRMEntity
     /// - Throws: ZCRMSDKError if the ZCRMRecord is not convertible
     public func convert(newPotential: ZCRMRecord?, assignTo: ZCRMUser?, completion : @escaping( [ String : Any ]?, Error? ) -> () )
     {
+        if(self.moduleAPIName != "Leads")
+        {
+            completion( nil, ZCRMError.ProcessingError("This module does not support convert operation"))
+        }
         EntityAPIHandler(record: self).convertRecord(newPotential: newPotential, assignTo: assignTo) { ( convertedRecordDict, error ) in
             completion( convertedRecordDict, error )
         }
@@ -715,6 +727,20 @@ public class ZCRMRecord : ZCRMEntity
         cloneRecord.setId( recordId : nil )
         cloneRecord.setProperties( properties : [ String : Any? ]() )
         return cloneRecord
+    }
+    
+    public func addTags( module : ZCRMModule, params : [String], values : [Any], completion : @escaping ( ZCRMTag?, APIResponse?, Error? ) -> () )
+    {
+        TagAPIHandler(module: module).addTags(recordId: self.getId(), params: params, values: values, completion: { ( tag, response, error ) in
+            completion( tag, response, error )
+        } )
+    }
+    
+    public func removeTags( module : ZCRMModule, params : [String], values : [Any], completion : @escaping ( ZCRMTag?, APIResponse?, Error? ) -> () )
+    {
+        TagAPIHandler(module: module).removeTags(recordId: self.getId(), params: params, values: values, completion: { ( tag, response, error ) in
+            completion( tag, response, error )
+        } )
     }
 }
 

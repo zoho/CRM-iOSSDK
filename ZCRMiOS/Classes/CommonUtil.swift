@@ -55,6 +55,14 @@ public enum ConsentProcessThrough : String
     case SOCIAL = "Social"
 }
 
+public enum CurrencyRoundingOption : String
+{
+    case RoundOff = "round_off"
+    case RoundDown = "round_down"
+    case RoundUp = "round_up"
+    case Normal = "normal"
+}
+
 internal extension Dictionary
 {
     func hasKey( forKey : Key ) -> Bool
@@ -515,6 +523,7 @@ let PROFILES : String = "profiles"
 let LAYOUTS : String = "layouts"
 let FIELDS : String = "fields"
 let CUSTOM_VIEWS : String = "custom_views"
+let TAGS : String = "tags"
 
 let PRIVATE_FIELDS = "private_fields"
 let PER_PAGE : String = "per_page"

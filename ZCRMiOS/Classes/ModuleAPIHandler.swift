@@ -105,6 +105,31 @@ internal class ModuleAPIHandler : CommonAPIHandler
             }
         }
     }
+    
+    internal func getField( fieldId : Int64, completion: @escaping( ZCRMField?, APIResponse?, Error? ) -> () )
+    {
+        setJSONRootKey( key : FIELDS )
+        setUrlPath( urlPath : "/settings/fields/\( fieldId )" )
+        setRequestMethod( requestMethod : .GET )
+        addRequestParam( param : "module", value : self.module.getAPIName() )
+        let request : APIRequest = APIRequest( handler : self )
+        print( "Request : \( request.toString() )" )
+        
+        request.getAPIResponse { ( resp, err ) in
+            if let error = err
+            {
+                completion( nil, nil, error )
+            }
+            if let response = resp
+            {
+                let responseJSON = response.getResponseJSON()
+                let fieldsList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                let field = self.getZCRMField( fieldDetails : fieldsList[ 0 ] )
+                response.setData( data : field )
+                completion( field, response, nil )
+            }
+        }
+    }
 
     internal func getAllCustomViews( modifiedSince : String?, completion: @escaping( [ ZCRMCustomView ]?, BulkAPIResponse?, Error? ) -> () )
     {
@@ -318,7 +343,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         field.setMaxLength(maxLen: fieldDetails.optInt(key: "length"))
         field.setDataType(dataType: fieldDetails.optString(key: "data_type"))
         field.setVisible(isVisible: fieldDetails.optBoolean(key: "visible"))
-        field.setPrecision(precision: fieldDetails.optInt(key: "decimal_place"))
+        field.setDecimalPlace(decimalPlace: fieldDetails.optInt(key: "decimal_place"))
         field.setReadOnly(isReadOnly: fieldDetails.optBoolean(key: "read_only"))
         field.setCustomField(isCustomField: fieldDetails.optBoolean(key: "custom_field"))
         field.setDefaultValue(defaultValue: fieldDetails.optValue(key: "default_value"))
@@ -326,8 +351,34 @@ internal class ModuleAPIHandler : CommonAPIHandler
         field.setSequenceNumber(sequenceNo: fieldDetails.optInt(key: "sequence_number"))
         field.setReadOnly(isReadOnly: fieldDetails.optBoolean(key: "read_only"))
         field.setTooltip(tooltip: fieldDetails.optString(key: "tooltip"))
-        field.setWebHook(webhook: fieldDetails.optBoolean(key: "webhook"))
+        field.setWebhook(webhook: fieldDetails.optBoolean(key: "webhook"))
         field.setCreatedSource(createdSource: fieldDetails.getString(key: "created_source"))
+        field.setLookup(lookup: fieldDetails.optDictionary(key: "lookup"))
+        field.setMultiSelectLookup(multiSelectLookup: fieldDetails.optDictionary(key: "multiselectlookup"))
+        field.setSubFormTabId(subFormTabId: fieldDetails.optInt64(key: "subformtabid"))
+        field.setSubForm(subForm: fieldDetails.optDictionary(key: "subform"))
+        if(fieldDetails.hasValue(forKey: "currency"))
+        {
+            let currencyDetails : [String:Any] = fieldDetails.getDictionary(key: "currency")
+            field.setPrecision(precision: currencyDetails.optInt(key: "precision"))
+            if (currencyDetails.optString(key: "rounding_option") == "round_off")
+            {
+                field.setRoundingOption(roundingOption: CurrencyRoundingOption.RoundOff)
+            }
+            else if (currencyDetails.optString(key: "rounding_option") == "round_down")
+            {
+                field.setRoundingOption(roundingOption: CurrencyRoundingOption.RoundDown)
+            }
+            else if (currencyDetails.optString(key: "rounding_option") == "round_up")
+            {
+                field.setRoundingOption(roundingOption: CurrencyRoundingOption.RoundUp)
+            }
+            else if (currencyDetails.optString(key: "rounding_option") == "normal")
+            {
+                field.setRoundingOption(roundingOption: CurrencyRoundingOption.Normal)
+            }
+        }
+        
         field.setBussinessCardSupported(bussinessCardSupported: fieldDetails.optBoolean(key: "businesscard_supported"))
         if ( fieldDetails.hasValue( forKey : "pick_list_values" ) )
         {
@@ -357,9 +408,9 @@ internal class ModuleAPIHandler : CommonAPIHandler
         if(fieldDetails.hasValue(forKey: "view_type"))
         {
             let subLayouts : [String:Bool] = fieldDetails.getDictionary(key: "view_type") as! [String : Bool]
-			var layoutsPresent : [String] = [String]()
+            var layoutsPresent : [String] = [String]()
             if(subLayouts.optBoolean(key: "create")!)
-			{
+            {
                 layoutsPresent.append("CREATE")
             }
             if(subLayouts.optBoolean(key: "edit")!)
@@ -378,7 +429,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
         if( fieldDetails.hasValue( forKey : "private" ) )
         {
-            let privateDetails : [ String : Any ] = fieldDetails.getDictionary( key : "private" ) 
+            let privateDetails : [ String : Any ] = fieldDetails.getDictionary( key : "private" )
             field.setIsRestricted( isRestricted : privateDetails.optBoolean( key : "restricted" ) )
             field.setIsSupportExport( exportSupported : privateDetails.optBoolean( key : "export" ) )
             field.setRestrictedType( type : privateDetails.optString( key : "type" )  )

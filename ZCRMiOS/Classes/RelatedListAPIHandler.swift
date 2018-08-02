@@ -463,6 +463,19 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                 note.addAttachment(attachment: self.getZCRMAttachment(attachmentDetails: attachmentDetails))
             }
         }
+        if(noteDetails.hasValue(forKey: "Parent_Id"))
+        {
+            let parentRecordList : [ String : Any ] = noteDetails.getDictionary(key: "Parent_Id")
+            if( parentRecordList.optString(key: "name") != nil)
+            {
+                note.setParentRecord(parentRecord: ZCRMRecord(moduleAPIName: noteDetails.getString(key: "$se_module"), recordId: self.parentRecord.getId()))
+                note.getParentRecord().setValue(forField: "name", value: parentRecordList.getString(key: "name"))
+            }
+            else
+            {
+                note.setParentRecord(parentRecord: ZCRMRecord(moduleAPIName: self.parentRecord.getModuleAPIName(), recordId: self.parentRecord.getId()))
+            }
+        }
 		return note
 	}
 	
