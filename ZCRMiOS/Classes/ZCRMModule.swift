@@ -49,7 +49,8 @@ public class ZCRMModule : ZCRMEntity
     /// Initialize the instance of a module with the given module API name.
     ///
     /// - Parameter moduleAPIName: apiName whose associated module is to be initialized
-	public init(moduleAPIName : String) {
+	public init(moduleAPIName : String)
+    {
 		self.apiName = moduleAPIName
 	}
 	
@@ -1011,9 +1012,9 @@ public class ZCRMModule : ZCRMEntity
         } )
     }
     
-    public func updateTags(tagIds : [Int64], names : [String], completion : @escaping ( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+    public func updateTags(tags : [ZCRMTag], completion : @escaping ( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
     {
-        TagAPIHandler(module: self).updateTags(tagIds: tagIds, names: names, completion: { ( tags, response, error ) in
+        TagAPIHandler(module: self).updateTags(tags: tags, completion: { ( tags, response, error ) in
             completion( tags, response, error )
         } )
     }
@@ -1024,18 +1025,25 @@ public class ZCRMModule : ZCRMEntity
             completion( response, error )
         } )
     }
-    
-    public func addTags( recordIds : [Int64], params : [String], values : [Any], completion : @escaping ( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+
+    public func addTags( recordIds : [Int64], tagNames : [String], completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
     {
-        TagAPIHandler(module: self).addTags(recordIds: recordIds, params: params, values: values, completion: { ( tags, response, error ) in
+        TagAPIHandler(module: self).addTags(recordIds: recordIds, tagNames: tagNames, overWrite: nil) { (tags, response, error) in
             completion( tags, response, error )
-        } )
+        }
     }
     
-    public func removeTags( recordIds : [Int64], params : [String], values : [Any], completion : @escaping ( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+    public func addTags( recordIds : [Int64], tagNames : [String], overWrite : Bool?, completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
     {
-        TagAPIHandler(module: self).removeTags(recordIds: recordIds, params: params, values: values, completion: { ( tags, response, error ) in
+        TagAPIHandler(module: self).addTags(recordIds: recordIds, tagNames: tagNames, overWrite: overWrite) { (tags, response, error) in
             completion( tags, response, error )
-        } )
+        }
+    }
+    
+    public func removeTags( recordIds: [Int64], tagNames : [String], completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+    {
+        TagAPIHandler(module: self).removeTags(recordIds: recordIds, tagNames: tagNames) { (tag, response, error) in
+            completion( tag, response, error )
+        }
     }
 }

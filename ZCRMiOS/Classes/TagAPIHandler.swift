@@ -257,19 +257,16 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func updateTags( tagIds : [Int64], names : [String], completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+    internal func updateTags( tags : [ZCRMTag], completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
     {
         if let module = self.module
         {
             setJSONRootKey(key: TAGS)
             var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
             var dataArray : [[String:Any]] = [[String:Any]]()
-            for index in 0..<tagIds.count
+            for tag in tags
             {
-                var dataJSON : [String:Any] = [String:Any]()
-                dataJSON["id"] = String(tagIds[index])
-                dataJSON["name"] = names[index]
-                dataArray.append(dataJSON)
+                dataArray.append( self.getZCRMTagAsJSON(tag: tag) as Any as! [String:Any] )
             }
             reqBodyObj[getJSONRootKey()] = dataArray
             
@@ -338,7 +335,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func addTags( recordId : Int64, params : [String], values : [Any], completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
+    internal func addTags( recordId : Int64, tagNames : [String], overWrite : Bool?, completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
     {
         if let module = module
         {
@@ -349,9 +346,17 @@ internal class TagAPIHandler : CommonAPIHandler
             
             setUrlPath(urlPath: "/\(module.getAPIName())/\(recordId)/actions/add_tags")
             setRequestMethod(requestMethod: .POST)
-            for index in 0..<params.count
+            var tagNamesString : String = String()
+            for name in tagNames
             {
-                addRequestParam(param: params[index], value: values[index] as! String)
+                tagNamesString.append(name)
+                tagNamesString.append(",")
+            }
+            tagNamesString.removeLast()
+            addRequestParam(param: "tag_names", value: tagNamesString)
+            if overWrite != nil
+            {
+                addRequestParam(param: "over_write", value: String(overWrite!))
             }
             setRequestBody(requestBody: reqBodyObj)
             
@@ -381,7 +386,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
      }
     
-    internal func addTags( recordIds : [Int64], params : [String], values : [Any], completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+    internal func addTags( recordIds : [Int64], tagNames : [String], overWrite : Bool?, completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
     {
         if let module = module
         {
@@ -397,13 +402,22 @@ internal class TagAPIHandler : CommonAPIHandler
                 idString.append(",")
             }
             idString.removeLast()
+            var tagNamesString : String = String()
+            for name in tagNames
+            {
+                tagNamesString.append(name)
+                tagNamesString.append(",")
+            }
+            tagNamesString.removeLast()
+            
             
             setUrlPath(urlPath: "/\(module.getAPIName())/actions/add_tags")
             setRequestMethod(requestMethod: .POST)
             addRequestParam(param: "ids", value: idString)
-            for index in 0..<params.count
+            addRequestParam(param: "tag_names", value: tagNamesString)
+            if overWrite != nil
             {
-                addRequestParam(param: params[index], value: values[index] as! String)
+                addRequestParam(param: "over_write", value: String(overWrite!))
             }
             setRequestBody(requestBody: reqBodyObj)
             
@@ -444,7 +458,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func removeTags( recordId : Int64, params : [String], values : [Any], completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
+    internal func removeTags( recordId : Int64, tagNames : [String], completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
     {
         if let module = module
         {
@@ -455,10 +469,14 @@ internal class TagAPIHandler : CommonAPIHandler
             
             setUrlPath(urlPath: "/\(module.getAPIName())/\(recordId)/actions/remove_tags")
             setRequestMethod(requestMethod: .POST)
-            for index in 0..<params.count
+            var tagNamesString : String = String()
+            for name in tagNames
             {
-                addRequestParam(param: params[index], value: values[index] as! String)
+                tagNamesString.append(name)
+                tagNamesString.append(",")
             }
+            tagNamesString.removeLast()
+            addRequestParam(param: "tag_names", value: tagNamesString)
             setRequestBody(requestBody: reqBodyObj)
             
             let request : APIRequest = APIRequest(handler: self)
@@ -487,7 +505,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func removeTags( recordIds : [Int64], params : [String], values : [Any], completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+    internal func removeTags( recordIds : [Int64], tagNames : [String], completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
     {
         if let module = module
         {
@@ -503,14 +521,18 @@ internal class TagAPIHandler : CommonAPIHandler
                 idString.append(",")
             }
             idString.removeLast()
+            var tagNamesString : String = String()
+            for name in tagNames
+            {
+                tagNamesString.append(name)
+                tagNamesString.append(",")
+            }
+            tagNamesString.removeLast()
             
             setUrlPath(urlPath: "/\(module.getAPIName())/actions/remove_tags")
             setRequestMethod(requestMethod: .POST)
             addRequestParam(param: "ids", value: idString)
-            for index in 0..<params.count
-            {
-                addRequestParam(param: params[index], value: values[index] as! String)
-            }
+            addRequestParam(param: "tag_names", value: tagNamesString)
             setRequestBody(requestBody: reqBodyObj)
             
             let request : APIRequest = APIRequest(handler: self)
