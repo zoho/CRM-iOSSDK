@@ -729,23 +729,23 @@ public class ZCRMRecord : ZCRMEntity
         return cloneRecord
     }
     
-    public func addTags( tagNames : [String], completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
+    public func addTags( tags : [ZCRMTag], completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
     {
-        TagAPIHandler(module: ZCRMModule(moduleAPIName: self.moduleAPIName)).addTags(recordId: self.getId(), tagNames: tagNames, overWrite: nil) { (tag, response, error) in
+        EntityAPIHandler(record: self).addTags(tags: tags, overWrite: nil) { (tag, response, error) in
             completion( tag, response, error )
         }
     }
     
-    public func addTags( tagNames : [String], overWrite : Bool?, completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
+    public func addTags( tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
     {
-        TagAPIHandler(module: ZCRMModule(moduleAPIName: self.moduleAPIName)).addTags(recordId: self.getId(), tagNames: tagNames, overWrite: overWrite) { (tag, response, error) in
+        EntityAPIHandler(record: self).addTags(tags: tags, overWrite: overWrite) { (tag, response, error) in
             completion( tag, response, error )
         }
     }
     
-    public func removeTags( tagNames : [String], completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
+    public func removeTags( tags : [ZCRMTag], completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
     {
-        TagAPIHandler(module: ZCRMModule(moduleAPIName: self.moduleAPIName)).removeTags(recordId: self.getId(), tagNames: tagNames) { (tag, response, error) in
+        EntityAPIHandler(record: self).removeTags(tags: tags) { (tag, response, error) in
             completion( tag, response, error )
         }
     }

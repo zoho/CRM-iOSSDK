@@ -165,7 +165,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func mergeTag( conflictId : Int64, completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
+    internal func mergeTag( conflictTag : ZCRMTag, completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
     {
         if let tag = self.tag
         {
@@ -173,8 +173,9 @@ internal class TagAPIHandler : CommonAPIHandler
             {
                 completion( nil, nil, ZCRMError.ProcessingError( "Tag ID MUST NOT be nil" ) )
             }
+            var conflictTagJSON : [String:Any] = self.getZCRMTagAsJSON(tag: conflictTag) as Any as! [String:Any]
             var conflictIdJSON : [String:Any] = [String:Any]()
-            conflictIdJSON["conflict_id"] = conflictId
+            conflictIdJSON["conflict_id"] = conflictTagJSON["id"]
             setJSONRootKey(key: TAGS)
             var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
             var dataArray : [[String:Any]] = [[String:Any]]()
@@ -210,7 +211,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func updateTag(name : String, completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
+    internal func updateTag(updateTag : ZCRMTag, completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
     {
         if let module = self.module, let tag = self.tag
         {
@@ -222,9 +223,10 @@ internal class TagAPIHandler : CommonAPIHandler
             let tagId : String = String( tag.getId()! )
             var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
             var dataArray : [[String:Any]] = [[String:Any]]()
-            var updateTagJSON : [String:Any] = [String:Any]()
-            updateTagJSON["name"] = name
-            dataArray.append(updateTagJSON)
+            var updateTagJSON = self.getZCRMTagAsJSON(tag: updateTag) as Any as! [String:Any]
+            var nameJSON : [String:Any] = [String:Any]()
+            nameJSON["name"] = updateTagJSON["name"]
+            dataArray.append(nameJSON)
             reqBodyObj[getJSONRootKey()] = dataArray
             
             setUrlPath(urlPath: "/settings/tags/\(tagId)")
@@ -335,244 +337,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func addTags( recordId : Int64, tagNames : [String], overWrite : Bool?, completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
-    {
-        if let module = module
-        {
-            setJSONRootKey(key: DATA)
-            var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
-            let dataArray : [[String:Any]] = [[String:Any]]()
-            reqBodyObj[getJSONRootKey()] = dataArray
-            
-            setUrlPath(urlPath: "/\(module.getAPIName())/\(recordId)/actions/add_tags")
-            setRequestMethod(requestMethod: .POST)
-            var tagNamesString : String = String()
-            for name in tagNames
-            {
-                tagNamesString.append(name)
-                tagNamesString.append(",")
-            }
-            tagNamesString.removeLast()
-            addRequestParam(param: "tag_names", value: tagNamesString)
-            if overWrite != nil
-            {
-                addRequestParam(param: "over_write", value: String(overWrite!))
-            }
-            setRequestBody(requestBody: reqBodyObj)
-            
-            let request : APIRequest = APIRequest(handler: self)
-            print("Request : \(request.toString())")
-            
-            request.getAPIResponse { ( resp, err ) in
-                if let error = err
-                {
-                    completion( nil, nil, error )
-                }
-                if let response = resp
-                {
-                    let responseJSON = response.getResponseJSON()
-                    let respDataArray : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
-                    let respData : [String:Any] = respDataArray[0]
-                    let tagDetails : [String:Any] = respData.getDictionary(key: DETAILS)
-                    let tag = self.getZCRMTag(tagDetails: tagDetails)
-                    response.setData(data: tag)
-                    completion( tag, response, nil )
-                }
-            }
-        }
-        else
-        {
-            completion( nil, nil, ZCRMError.ProcessingError( "Module MUST NOT be nil" ) )
-        }
-     }
-    
-    internal func addTags( recordIds : [Int64], tagNames : [String], overWrite : Bool?, completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
-    {
-        if let module = module
-        {
-            setJSONRootKey(key: TAGS)
-            var addedTags : [ZCRMTag] = [ZCRMTag]()
-            var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
-            let dataArray : [[String:Any]] = [[String:Any]]()
-            reqBodyObj[getJSONRootKey()] = dataArray
-            var idString : String = String()
-            for id in recordIds
-            {
-                idString.append(String(id))
-                idString.append(",")
-            }
-            idString.removeLast()
-            var tagNamesString : String = String()
-            for name in tagNames
-            {
-                tagNamesString.append(name)
-                tagNamesString.append(",")
-            }
-            tagNamesString.removeLast()
-            
-            
-            setUrlPath(urlPath: "/\(module.getAPIName())/actions/add_tags")
-            setRequestMethod(requestMethod: .POST)
-            addRequestParam(param: "ids", value: idString)
-            addRequestParam(param: "tag_names", value: tagNamesString)
-            if overWrite != nil
-            {
-                addRequestParam(param: "over_write", value: String(overWrite!))
-            }
-            setRequestBody(requestBody: reqBodyObj)
-            
-            let request : APIRequest = APIRequest(handler: self)
-            print( "Request : \(request.toString())" )
-            
-            request.getBulkAPIResponse { ( response, err ) in
-                if let error = err
-                {
-                    completion( nil, nil, error )
-                }
-                if let bulkResponse = response
-                {
-                    let responses : [EntityResponse] = bulkResponse.getEntityResponses()
-                    for entityResponse in responses
-                    {
-                        if(CODE_SUCCESS == entityResponse.getStatus())
-                        {
-                            let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                            let tagJSON : [String:Any] = entResponseJSON.getDictionary(key: DATA)
-                            let tag : ZCRMTag = self.getZCRMTag(tagDetails: tagJSON)
-                            addedTags.append(tag)
-                            entityResponse.setData(data: tag)
-                        }
-                        else
-                        {
-                            entityResponse.setData(data: nil)
-                        }
-                    }
-                    bulkResponse.setData(data: addedTags)
-                    completion( addedTags, bulkResponse, nil )
-                }
-            }
-        }
-        else
-        {
-            completion( nil, nil, ZCRMError.ProcessingError( "Module MUST NOT be nil" ) )
-        }
-    }
-    
-    internal func removeTags( recordId : Int64, tagNames : [String], completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
-    {
-        if let module = module
-        {
-            setJSONRootKey(key: DATA)
-            var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
-            let dataArray : [[String:Any]] = [[String:Any]]()
-            reqBodyObj[getJSONRootKey()] = dataArray
-            
-            setUrlPath(urlPath: "/\(module.getAPIName())/\(recordId)/actions/remove_tags")
-            setRequestMethod(requestMethod: .POST)
-            var tagNamesString : String = String()
-            for name in tagNames
-            {
-                tagNamesString.append(name)
-                tagNamesString.append(",")
-            }
-            tagNamesString.removeLast()
-            addRequestParam(param: "tag_names", value: tagNamesString)
-            setRequestBody(requestBody: reqBodyObj)
-            
-            let request : APIRequest = APIRequest(handler: self)
-            print("Request : \(request.toString())")
-            
-            request.getAPIResponse { ( resp, err ) in
-                if let error = err
-                {
-                    completion( nil, nil, error )
-                }
-                if let response = resp
-                {
-                    let responseJSON = response.getResponseJSON()
-                    let respDataArray : [[String:Any]] = responseJSON.optArrayOfDictionaries(key: self.getJSONRootKey())!
-                    let respData : [String:Any] = respDataArray[0]
-                    let tagDetails : [String:Any] = respData.getDictionary(key: DETAILS)
-                    let tag = self.getZCRMTag(tagDetails: tagDetails)
-                    response.setData(data: tag)
-                    completion( tag, response, nil )
-                }
-            }
-        }
-        else
-        {
-            completion( nil, nil, ZCRMError.ProcessingError( "Module MUST NOT be nil" ) )
-        }
-    }
-    
-    internal func removeTags( recordIds : [Int64], tagNames : [String], completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
-    {
-        if let module = module
-        {
-            setJSONRootKey(key: TAGS)
-            var removedTags : [ZCRMTag] = [ZCRMTag]()
-            var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
-            let dataArray : [[String:Any]] = [[String:Any]]()
-            reqBodyObj[getJSONRootKey()] = dataArray
-            var idString : String = String()
-            for id in recordIds
-            {
-                idString.append(String(id))
-                idString.append(",")
-            }
-            idString.removeLast()
-            var tagNamesString : String = String()
-            for name in tagNames
-            {
-                tagNamesString.append(name)
-                tagNamesString.append(",")
-            }
-            tagNamesString.removeLast()
-            
-            setUrlPath(urlPath: "/\(module.getAPIName())/actions/remove_tags")
-            setRequestMethod(requestMethod: .POST)
-            addRequestParam(param: "ids", value: idString)
-            addRequestParam(param: "tag_names", value: tagNamesString)
-            setRequestBody(requestBody: reqBodyObj)
-            
-            let request : APIRequest = APIRequest(handler: self)
-            print( "Request : \(request.toString())" )
-            
-            request.getBulkAPIResponse { ( response, err ) in
-                if let error = err
-                {
-                    completion( nil, nil, error )
-                }
-                if let bulkResponse = response
-                {
-                    let responses : [EntityResponse] = bulkResponse.getEntityResponses()
-                    for entityResponse in responses
-                    {
-                        if(CODE_SUCCESS == entityResponse.getStatus())
-                        {
-                            let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                            let tagJSON : [String:Any] = entResponseJSON.getDictionary(key: DETAILS)
-                            let tag : ZCRMTag = self.getZCRMTag(tagDetails : tagJSON)
-                            removedTags.append(tag)
-                            entityResponse.setData(data: tag)
-                        }
-                        else
-                        {
-                            entityResponse.setData(data: nil)
-                        }
-                    }
-                    bulkResponse.setData(data: removedTags)
-                    completion( removedTags, bulkResponse, nil )
-                }
-            }
-        }
-        else
-        {
-            completion( nil, nil, ZCRMError.ProcessingError( "Module MUST NOT be nil" ) )
-        }
-    }
-    
-    private func getZCRMTag( tagDetails : [String : Any?] ) -> ZCRMTag
+    internal func getZCRMTag( tagDetails : [String : Any?] ) -> ZCRMTag
     {
         let tag : ZCRMTag = ZCRMTag()
         if tagDetails.hasKey(forKey: "id")
@@ -600,7 +365,7 @@ internal class TagAPIHandler : CommonAPIHandler
         return tag
     }
     
-    private func getZCRMTagAsJSON( tag : ZCRMTag ) -> [String : Any?]
+    internal func getZCRMTagAsJSON( tag : ZCRMTag ) -> [String : Any?]
     {
         var tagJSON : [String:Any?] = [String:Any?]()
         if let id = tag.getId()

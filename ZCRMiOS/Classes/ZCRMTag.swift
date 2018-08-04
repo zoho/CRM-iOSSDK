@@ -102,16 +102,16 @@ public class ZCRMTag : ZCRMEntity
         }
     }
     
-    public func mergeTags( conflictId : Int64, completion : @escaping ( ZCRMTag?, APIResponse?, Error? ) -> () )
+    public func mergeTags( conflictTag : ZCRMTag, completion : @escaping ( ZCRMTag?, APIResponse?, Error? ) -> () )
     {
-        TagAPIHandler(tag: self).mergeTag(conflictId: conflictId, completion: { ( tag, response, error ) in
+        TagAPIHandler(tag: self).mergeTag(conflictTag: conflictTag) { (tag, response, error) in
             completion( tag, response, error )
-        } )
+        }
     }
     
-    public func updateTag( name : String, module : ZCRMModule, completion : @escaping ( ZCRMTag?, APIResponse?, Error? ) -> () )
+    public func updateTag( updateTag : ZCRMTag, module : ZCRMModule, completion : @escaping ( ZCRMTag?, APIResponse?, Error? ) -> () )
     {
-        TagAPIHandler(tag: self, module: module).updateTag(name: name, completion: { ( tag, response, error ) in
+        TagAPIHandler(tag: self, module: module).updateTag(updateTag : updateTag, completion: { ( tag, response, error ) in
             completion( tag, response, error )
         } )
     }
