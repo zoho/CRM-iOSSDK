@@ -1021,7 +1021,7 @@ public class ZCRMModule : ZCRMEntity
     
     public func deleteTag( tag : ZCRMTag, completion : @escaping ( APIResponse?, Error? ) -> () )
     {
-        TagAPIHandler(tag: tag).deleteTag(completion: { ( response, error ) in
+        TagAPIHandler(tag: tag).delete(completion: { ( response, error ) in
             completion( response, error )
         } )
     }

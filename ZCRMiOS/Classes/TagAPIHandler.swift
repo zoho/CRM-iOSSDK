@@ -314,7 +314,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func deleteTag( completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func delete( completion : @escaping( APIResponse?, Error? ) -> () )
     {
         if let tag = self.tag
         {

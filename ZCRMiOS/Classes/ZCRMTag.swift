@@ -109,16 +109,16 @@ public class ZCRMTag : ZCRMEntity
         }
     }
     
-    public func updateTag( updateTag : ZCRMTag, module : ZCRMModule, completion : @escaping ( ZCRMTag?, APIResponse?, Error? ) -> () )
+    public func update( updateTag : ZCRMTag, module : ZCRMModule, completion : @escaping ( ZCRMTag?, APIResponse?, Error? ) -> () )
     {
         TagAPIHandler(tag: self, module: module).update(updateTag : updateTag, completion: { ( tag, response, error ) in
             completion( tag, response, error )
         } )
     }
     
-    public func deleteTag( completion : @escaping ( APIResponse?, Error? ) -> () )
+    public func delete( completion : @escaping ( APIResponse?, Error? ) -> () )
     {
-        TagAPIHandler(tag: self).deleteTag(completion: { ( response, error ) in
+        TagAPIHandler(tag: self).delete(completion: { ( response, error ) in
             completion( response, error )
         } )
     }
