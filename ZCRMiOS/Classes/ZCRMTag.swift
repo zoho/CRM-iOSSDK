@@ -104,14 +104,14 @@ public class ZCRMTag : ZCRMEntity
     
     public func mergeTags( conflictTag : ZCRMTag, completion : @escaping ( ZCRMTag?, APIResponse?, Error? ) -> () )
     {
-        TagAPIHandler(tag: self).mergeTag(conflictTag: conflictTag) { (tag, response, error) in
+        TagAPIHandler(tag: self).mergeTag(anotherTag: conflictTag) { (tag, response, error) in
             completion( tag, response, error )
         }
     }
     
     public func updateTag( updateTag : ZCRMTag, module : ZCRMModule, completion : @escaping ( ZCRMTag?, APIResponse?, Error? ) -> () )
     {
-        TagAPIHandler(tag: self, module: module).updateTag(updateTag : updateTag, completion: { ( tag, response, error ) in
+        TagAPIHandler(tag: self, module: module).update(updateTag : updateTag, completion: { ( tag, response, error ) in
             completion( tag, response, error )
         } )
     }
