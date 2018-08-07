@@ -65,6 +65,14 @@ public class ZCRMNote : ZCRMEntity
         self.parentRecord = record
     }
     
+    /// Set the parent record of the note
+    ///
+    /// - Parameter parentRecord: parent record of the note
+    internal func setParentRecord( parentRecord : ZCRMRecord )
+    {
+        self.parentRecord = parentRecord
+    }
+    
     /// Returns note's ZCRMRecord
     ///
     /// - Returns: <#return value description#>

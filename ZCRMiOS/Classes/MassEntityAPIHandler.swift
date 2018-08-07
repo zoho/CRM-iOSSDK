@@ -416,7 +416,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     {
         for ( fieldAPIName, value ) in record
         {
-            if( "Created_By" == fieldAPIName )
+            if( "created_By" == fieldAPIName )
             {
                 let createdBy : [ String : Any ] = value as! [ String : Any ]
                 let createdByUser : ZCRMUser = ZCRMUser( userId : createdBy.getInt64( key : "id" ), userFullName : createdBy.getString( key : "name") )
@@ -438,5 +438,136 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             }
         }
     }
+    
+    internal func addTags( recordIds : [Int64], tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+    {
+        setJSONRootKey(key: TAGS)
+        var addedTags : [ZCRMTag] = [ZCRMTag]()
+        var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
+        let dataArray : [[String:Any]] = [[String:Any]]()
+        reqBodyObj[getJSONRootKey()] = dataArray
+        var idString : String = String()
+        for id in recordIds
+        {
+            idString.append(String(id))
+            idString.append(",")
+        }
+        idString.removeLast()
+        var tagNamesString : String = String()
+        for tag in tags
+        {
+            if let name = tag.getName()
+            {
+                tagNamesString.append( name )
+                tagNamesString.append(",")
+            }
+        }
+        tagNamesString.removeLast()
+        
+        
+        setUrlPath(urlPath: "/\(module.getAPIName())/actions/add_tags")
+        setRequestMethod(requestMethod: .POST)
+        addRequestParam(param: "ids", value: idString)
+        addRequestParam(param: "tag_names", value: tagNamesString)
+        if overWrite != nil
+        {
+            addRequestParam(param: "over_write", value: String(overWrite!))
+        }
+        setRequestBody(requestBody: reqBodyObj)
+        
+        let request : APIRequest = APIRequest(handler: self)
+        print( "Request : \(request.toString())" )
+        
+        request.getBulkAPIResponse { ( response, err ) in
+            if let error = err
+            {
+                completion( nil, nil, error )
+            }
+            if let bulkResponse = response
+            {
+                let responses : [EntityResponse] = bulkResponse.getEntityResponses()
+                for entityResponse in responses
+                {
+                    if(CODE_SUCCESS == entityResponse.getStatus())
+                    {
+                        let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
+                        let tagJSON : [String:Any] = entResponseJSON.getDictionary(key: DATA)
+                        let tag : ZCRMTag = TagAPIHandler(module : self.module).getZCRMTag(tagDetails: tagJSON)
+                        addedTags.append(tag)
+                        entityResponse.setData(data: tag)
+                    }
+                    else
+                    {
+                        entityResponse.setData(data: nil)
+                    }
+                }
+                bulkResponse.setData(data: addedTags)
+                completion( addedTags, bulkResponse, nil )
+            }
+        }
+    }
+    
+    internal func removeTags( recordIds : [Int64], tags : [ZCRMTag], completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+    {
+        setJSONRootKey(key: TAGS)
+        var removedTags : [ZCRMTag] = [ZCRMTag]()
+        var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
+        let dataArray : [[String:Any]] = [[String:Any]]()
+        reqBodyObj[getJSONRootKey()] = dataArray
+        var idString : String = String()
+        for id in recordIds
+        {
+            idString.append(String(id))
+            idString.append(",")
+        }
+        idString.removeLast()
+        var tagNamesString : String = String()
+        for tag in tags
+        {
+            if let name = tag.getName()
+            {
+                tagNamesString.append( name )
+                tagNamesString.append(",")
+            }
+        }
+        tagNamesString.removeLast()
+        
+        setUrlPath(urlPath: "/\(module.getAPIName())/actions/remove_tags")
+        setRequestMethod(requestMethod: .POST)
+        addRequestParam(param: "ids", value: idString)
+        addRequestParam(param: "tag_names", value: tagNamesString)
+        setRequestBody(requestBody: reqBodyObj)
+        
+        let request : APIRequest = APIRequest(handler: self)
+        print( "Request : \(request.toString())" )
+        
+        request.getBulkAPIResponse { ( response, err ) in
+            if let error = err
+            {
+                completion( nil, nil, error )
+            }
+            if let bulkResponse = response
+            {
+                let responses : [EntityResponse] = bulkResponse.getEntityResponses()
+                for entityResponse in responses
+                {
+                    if(CODE_SUCCESS == entityResponse.getStatus())
+                    {
+                        let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
+                        let tagJSON : [String:Any] = entResponseJSON.getDictionary(key: DETAILS)
+                        let tag : ZCRMTag = TagAPIHandler(module : self.module).getZCRMTag(tagDetails : tagJSON)
+                        removedTags.append(tag)
+                        entityResponse.setData(data: tag)
+                    }
+                    else
+                    {
+                        entityResponse.setData(data: nil)
+                    }
+                }
+                bulkResponse.setData(data: removedTags)
+                completion( removedTags, bulkResponse, nil )
+            }
+        }
+}
     
 }
