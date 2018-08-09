@@ -319,32 +319,35 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             {
                 completion( nil, nil, ZCRMError.ProcessingError( "Note ID MUST NOT be nil" ) )
             }
-            let noteId : String = String( note.getId()! )
-            var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
-            var dataArray : [[String:Any]] = [[String:Any]]()
-            dataArray.append(self.getZCRMNoteAsJSON(note: note))
-            reqBodyObj[getJSONRootKey()] = dataArray
-            
-            setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(relatedList.getAPIName())/\(noteId)")
-            setRequestMethod(requestMethod: .PUT )
-            setRequestBody(requestBody: reqBodyObj)
-            let request : APIRequest = APIRequest(handler: self)
-            print( "Request : \( request.toString() )" )
-            
-            request.getAPIResponse { ( resp, err ) in
-                if let error = err
-                {
-                    completion( nil, nil, error )
-                }
-                if let response = resp
-                {
-                    let responseJSON = response.getResponseJSON()
-                    let respDataArr : [[String:Any?]] = responseJSON.optArrayOfDictionaries(key: self.getJSONRootKey())!
-                    let respData : [String:Any?] = respDataArr[0]
-                    let recordDetails : [String:Any] = respData.getDictionary(key: "details")
-                    let updatedNote = self.getZCRMNote(noteDetails: recordDetails, note: note)
-                    response.setData(data: updatedNote )
-                    completion( updatedNote, response, nil )
+            else
+            {
+                let noteId : String = String( note.getId()! )
+                var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
+                var dataArray : [[String:Any]] = [[String:Any]]()
+                dataArray.append(self.getZCRMNoteAsJSON(note: note))
+                reqBodyObj[getJSONRootKey()] = dataArray
+                
+                setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(relatedList.getAPIName())/\(noteId)")
+                setRequestMethod(requestMethod: .PUT )
+                setRequestBody(requestBody: reqBodyObj)
+                let request : APIRequest = APIRequest(handler: self)
+                print( "Request : \( request.toString() )" )
+                
+                request.getAPIResponse { ( resp, err ) in
+                    if let error = err
+                    {
+                        completion( nil, nil, error )
+                    }
+                    if let response = resp
+                    {
+                        let responseJSON = response.getResponseJSON()
+                        let respDataArr : [[String:Any?]] = responseJSON.optArrayOfDictionaries(key: self.getJSONRootKey())!
+                        let respData : [String:Any?] = respDataArr[0]
+                        let recordDetails : [String:Any] = respData.getDictionary(key: "details")
+                        let updatedNote = self.getZCRMNote(noteDetails: recordDetails, note: note)
+                        response.setData(data: updatedNote )
+                        completion( updatedNote, response, nil )
+                    }
                 }
             }
         }
@@ -362,13 +365,16 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             {
                 completion( nil, ZCRMError.ProcessingError( "Note ID MUST NOT be nil" ) )
             }
-            let noteId : String = String( note.getId()! )
-            setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(relatedList.getAPIName())/\( noteId )" )
-            setRequestMethod(requestMethod: .DELETE )
-            let request : APIRequest = APIRequest(handler: self)
-            print( "Request : \( request.toString() )" )
-            request.getAPIResponse { ( response, error ) in
-                completion( response, error )
+            else
+            {
+                let noteId : String = String( note.getId()! )
+                setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(relatedList.getAPIName())/\( noteId )" )
+                setRequestMethod(requestMethod: .DELETE )
+                let request : APIRequest = APIRequest(handler: self)
+                print( "Request : \( request.toString() )" )
+                request.getAPIResponse { ( response, error ) in
+                    completion( response, error )
+                }
             }
         }
         else

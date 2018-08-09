@@ -183,6 +183,13 @@ public class ZCRMModuleRelation : ZCRMEntity
             completion( records, response, error )
         }
 	}
+    
+    public func getRelatedRecords(ofParentRecord: ZCRMRecord, modifiedSince : String, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> ())
+    {
+        RelatedListAPIHandler(parentRecord: ofParentRecord, relatedList: self).getRecords(page: 1, per_page: 20, sortByField: nil, sortOrder: nil, modifiedSince: modifiedSince) { ( records, response, error ) in
+            completion( records, response, error )
+        }
+    }
 	
     /// Returns list of all records of the module of a requested page number with records of per_page count, before returning the list of records gets sorted with the given field and sort order(BulkAPIResponse).
     ///
@@ -298,7 +305,7 @@ public class ZCRMModuleRelation : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to get notes of the ZCRMRecord
     public func getNotes(ofParentRecord : ZCRMRecord, page : Int, per_page : Int, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String?, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
 	{
-        self.getNotes(ofParentRecord: ofParentRecord, page: 1, per_page: 20, sortByField: nil, sortOrder: nil, modifiedSince: nil) { ( response, error ) in
+        RelatedListAPIHandler(parentRecord: ofParentRecord, relatedList: self).getNotes(ofParentRecord: ofParentRecord, page: page, per_page: per_page, sortByField: sortByField, sortOrder: sortOrder, modifiedSince: modifiedSince) { ( response, error ) in
             completion( response, error )
         }
 	}
