@@ -305,7 +305,7 @@ public class ZCRMModuleRelation : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to get notes of the ZCRMRecord
     public func getNotes(ofParentRecord : ZCRMRecord, page : Int, per_page : Int, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String?, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
 	{
-        RelatedListAPIHandler(parentRecord: ofParentRecord, relatedList: self).getNotes(ofParentRecord: ofParentRecord, page: page, per_page: per_page, sortByField: sortByField, sortOrder: sortOrder, modifiedSince: modifiedSince) { ( response, error ) in
+        RelatedListAPIHandler(parentRecord: ofParentRecord, relatedList: self).getNotes(page: page, per_page: per_page, sortByField: sortByField, sortOrder: sortOrder, modifiedSince: modifiedSince) { ( response, error ) in
             completion( response, error )
         }
 	}
