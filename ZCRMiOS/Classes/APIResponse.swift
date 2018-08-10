@@ -202,7 +202,7 @@ public class BulkAPIResponse : CommonAPIResponse
                 let recordsArray : [[String:Any?]] = responseJSON.optArray(key: jsonRootKey) as! [[String:Any?]]
                 for recordJSON in recordsArray
                 {
-                    if(recordJSON.hasValue(forKey: STATUS))
+                    if(recordJSON.hasValue(forKey: STATUS) && recordJSON.hasValue(forKey: MESSAGE))
                     {
                         let individualResponse : EntityResponse = EntityResponse(entityResponseJSON: recordJSON as Any as! [ String : Any ])
                         self.bulkEntityResponses.append(individualResponse)
