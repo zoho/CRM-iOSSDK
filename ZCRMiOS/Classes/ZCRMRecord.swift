@@ -531,10 +531,10 @@ public class ZCRMRecord : ZCRMEntity
     ///
     /// - Returns: list of notes of the ZCRMRecord
     /// - Throws: ZCRMSDKError if failed to get notes of the ZCRMRecord
-    public func getNotes( completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    public func getNotes( completion : @escaping( [ ZCRMNote ]?,  BulkAPIResponse?, Error? ) -> () )
     {
-        ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.getModuleAPIName()).getNotes( page : 0, per_page : 20 ) { ( response, error ) in
-            completion( response, error )
+        ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.getModuleAPIName()).getNotes( ofParentRecord: self, page : 0, per_page : 20 ) { ( notes,  response, error ) in
+            completion( notes, response, error )
         }
     }
     
@@ -545,10 +545,10 @@ public class ZCRMRecord : ZCRMEntity
     ///   - per_page: number of notes to be given for a single page
     /// - Returns: list of notes of the ZCRMRecord of a requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get notes of the ZCRMRecord
-    public func getNotes( page : Int, per_page : Int, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    public func getNotes( page : Int, per_page : Int, completion : @escaping( [ ZCRMNote ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.getModuleAPIName()).getNotes( page : page, per_page : per_page, sortByField : nil, sortOrder : nil, modifiedSince : nil ) { ( response, error ) in
-            completion( response, error )
+        ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.getModuleAPIName()).getNotes( ofParentRecord: self, page : page, per_page : per_page, sortByField : nil, sortOrder : nil, modifiedSince : nil ) { ( notes, response, error ) in
+            completion( notes, response, error )
         }
     }
     
@@ -559,10 +559,10 @@ public class ZCRMRecord : ZCRMEntity
     ///   - sortOrder: sort order (asc, desc)
     /// - Returns: sorted list of notes of the ZCRMRecord
     /// - Throws: ZCRMSDKError if failed to get notes of the ZCRMRecord
-    public func getNotes( sortByField : String, sortOrder : SortOrder, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    public func getNotes( sortByField : String, sortOrder : SortOrder, completion : @escaping( [ ZCRMNote ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.getModuleAPIName()).getNotes( page : 0, per_page : 20, sortByField : sortByField, sortOrder : sortOrder, modifiedSince : nil ) { ( response, error ) in
-            completion( response, error )
+        ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.getModuleAPIName()).getNotes( ofParentRecord: self, page : 0, per_page : 20, sortByField : sortByField, sortOrder : sortOrder, modifiedSince : nil ) { ( notes, response, error ) in
+            completion( notes, response, error )
         }
     }
     
@@ -576,10 +576,10 @@ public class ZCRMRecord : ZCRMEntity
     ///   - modifiedSince: modified timesorted list of notes of the ZCRMRecord of a requested page number with records of per_page count
     /// - Returns: <#return value description#>
     /// - Throws: ZCRMSDKError if failed to get notes of the ZCRMRecord
-    public func getNotes(page : Int, per_page : Int, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String?, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    public func getNotes(page : Int, per_page : Int, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String?, completion : @escaping( [ ZCRMNote ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.getModuleAPIName()).getNotes(ofParentRecord: self, page: page, per_page: per_page, sortByField: sortByField, sortOrder: sortOrder, modifiedSince: modifiedSince ) { ( response, error ) in
-            completion( response, error )
+        ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.getModuleAPIName()).getNotes(ofParentRecord: self, page: page, per_page: per_page, sortByField: sortByField, sortOrder: sortOrder, modifiedSince: modifiedSince ) { ( notes, response, error ) in
+            completion( notes, response, error )
         }
     }
     
