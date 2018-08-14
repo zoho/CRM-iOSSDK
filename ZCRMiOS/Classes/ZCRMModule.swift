@@ -37,7 +37,7 @@ public class ZCRMModule : ZCRMEntity
     private var businessCardFieldLimit : Int?
     private var webLink : String?
     
-    private var arguments : [ String : Any ]?
+    private var arguments : [ [ String : Any ] ]?
     private var properties : [ String ]?
     
     private var displayField : String?
@@ -362,12 +362,12 @@ public class ZCRMModule : ZCRMEntity
         }
 	}
     
-    internal func setArguments( arguments : [ String : Any ]? )
+    internal func setArguments( arguments : [ [ String : Any ] ]? )
     {
         self.arguments = arguments
     }
     
-    public func getArguments() -> [ String : Any ]?
+    public func getArguments() -> [ [ String : Any ] ]?
     {
         return self.arguments
     }
