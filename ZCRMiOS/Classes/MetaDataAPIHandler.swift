@@ -115,7 +115,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
             }
             module.setRelatedLists(allRelatedLists: relatedLists)
         }
-        module.setArguments(arguments: moduleDetails.optDictionary(key: "arguments"))
+        module.setArguments(arguments: moduleDetails.optArrayOfDictionaries(key: "arguments"))
         if(moduleDetails.hasValue(forKey: "$properties"))
         {
             let dollarProperties = moduleDetails.optArray(key: "$properties") as! [String]
@@ -131,7 +131,13 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         module.setSearchLayoutFields(searchLayoutFields: moduleDetails.optArray(key: "search_layout_fields") as? [String])
         if(moduleDetails.hasValue(forKey: "parent_module"))
         {
-            module.setParentModule(parentModule: MetaDataAPIHandler().getZCRMModule(moduleDetails: moduleDetails.getDictionary(key: "parent_module")))
+            let parentModuleDetails = moduleDetails.getDictionary(key: "parent_module")
+            if let apiname = parentModuleDetails.getString(key: "api_name")
+            {
+                let parentModule : ZCRMModule = ZCRMModule(moduleAPIName: apiname)
+                parentModule.setId(moduleId: parentModuleDetails.getInt64(key: "id"))
+                module.setParentModule(parentModule: parentModule)
+            }
         }
         if(moduleDetails.hasValue(forKey: "custom_view"))
         {
