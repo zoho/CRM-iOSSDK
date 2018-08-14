@@ -352,8 +352,11 @@ public class ZCRMRecord : ZCRMEntity
         {
             completion( nil, ZCRMError.ProcessingError("This module does not support convert operation"))
         }
-        self.convert(newPotential: nil, assignTo: nil) { ( convertedRecordDict, error ) in
-            completion( convertedRecordDict, error )
+        else
+        {
+            self.convert(newPotential: nil, assignTo: nil) { ( convertedRecordDict, error ) in
+                completion( convertedRecordDict, error )
+            }
         }
     }
     
@@ -368,8 +371,11 @@ public class ZCRMRecord : ZCRMEntity
         {
             completion( nil, ZCRMError.ProcessingError("This module does not support convert operation"))
         }
-        self.convert( newPotential: newPotential, assignTo: nil) { ( convertedRecordDict, error ) in
-            completion( convertedRecordDict, error )
+        else
+        {
+            self.convert( newPotential: newPotential, assignTo: nil) { ( convertedRecordDict, error ) in
+                completion( convertedRecordDict, error )
+            }
         }
     }
     
@@ -386,8 +392,11 @@ public class ZCRMRecord : ZCRMEntity
         {
             completion( nil, ZCRMError.ProcessingError("This module does not support convert operation"))
         }
-        EntityAPIHandler(record: self).convertRecord(newPotential: newPotential, assignTo: assignTo) { ( convertedRecordDict, error ) in
-            completion( convertedRecordDict, error )
+        else
+        {
+            EntityAPIHandler(record: self).convertRecord(newPotential: newPotential, assignTo: assignTo) { ( convertedRecordDict, error ) in
+                completion( convertedRecordDict, error )
+            }
         }
     }
     
@@ -490,8 +499,11 @@ public class ZCRMRecord : ZCRMEntity
         {
             completion( nil, nil, ZCRMError.ProcessingError( "Note ID must be nil for create operation." ) )
         }
-        ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.moduleAPIName).addNote(note: note, toRecord: self) { ( note, response, error ) in
-            completion( note, response, error )
+        else
+        {
+            ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.moduleAPIName).addNote(note: note, toRecord: self) { ( note, response, error ) in
+                completion( note, response, error )
+            }
         }
     }
     
@@ -506,8 +518,11 @@ public class ZCRMRecord : ZCRMEntity
         {
             completion( nil, nil, ZCRMError.ProcessingError( "Note ID must not be nil for update operation." ) )
         }
-        ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.moduleAPIName).updateNote(note: note, ofRecord: self) { ( note, response, error ) in
-            completion( note, response, error )
+        else
+        {
+            ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.moduleAPIName).updateNote(note: note, ofRecord: self) { ( note, response, error ) in
+                completion( note, response, error )
+            }
         }
     }
     
@@ -522,8 +537,11 @@ public class ZCRMRecord : ZCRMEntity
         {
             completion( nil, ZCRMError.ProcessingError( "Note ID must not be nil for delete operation." ) )
         }
-        ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.moduleAPIName).deleteNote(note: note, ofRecord: self) { ( response, error ) in
-            completion( response, error )
+        else
+        {
+            ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.moduleAPIName).deleteNote(note: note, ofRecord: self) { ( response, error ) in
+                completion( response, error )
+            }
         }
     }
     
