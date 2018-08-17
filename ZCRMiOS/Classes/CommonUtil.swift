@@ -10,19 +10,48 @@ import Foundation
 
 let PhotoSupportedModules = ["Leads", "Contacts"]
 
-internal enum ZCRMSDKError : Error
-{
-    case InternalError( String )
-    case ResponseNil( String )
+
+internal enum ZCRMSDKError : Error {
+    case InternalError(String)
+    case ResponseNil(String)
+    
+    func getMessage() -> String {
+        
+        switch self {
+        case .InternalError(let errorString):
+            return errorString
+        case .ResponseNil(let errorString):
+            return errorString
+        }
+    }
+    
 }
 
-public enum ZCRMError : Error
-{
+public enum ZCRMError : Error {
     case UnAuthenticatedError(String)
     case InValidError(String)
     case MaxRecordCountExceeded(String)
     case FileSizeExceeded(String)
     case ProcessingError(String)
+    
+    func getMessage() -> String{
+        
+        switch self {
+        case .UnAuthenticatedError(let errorString):
+            return errorString
+        case .InValidError(let errorString):
+            return errorString
+        case .MaxRecordCountExceeded(let errorString):
+            return errorString
+        case .FileSizeExceeded(let errorString):
+            return errorString
+        case .ProcessingError(let errorString):
+            return errorString
+            
+        }
+        
+    }
+    
 }
 
 public enum SortOrder : String

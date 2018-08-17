@@ -30,6 +30,7 @@ internal class EntityAPIHandler : CommonAPIHandler
 		let request : APIRequest = APIRequest(handler: self)
 		
         print( "Request : \( request.toString() )" )
+   
         request.getAPIResponse { ( resp, err ) in
             if let error = err
             {
@@ -39,6 +40,7 @@ internal class EntityAPIHandler : CommonAPIHandler
             {
                 let responseJSON : [String:Any] = response.getResponseJSON()
                 let responseDataArray : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                print("RESPONSE DATA ARRAY !\(responseDataArray)")
                 self.setRecordProperties(recordDetails: responseDataArray[0])
                 response.setData(data: self.record)
                 completion( self.record, response, nil )
@@ -52,6 +54,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         var dataArray : [[String:Any]] = [[String:Any]]()
         dataArray.append(self.getZCRMRecordAsJSON() as Any as! [ String : Any ] )
+        print("DATA ARRAY FOR CREATE \(dataArray)")
         reqBodyObj[ getJSONRootKey() ] = dataArray
 		
 		setUrlPath(urlPath : "/\(self.record.getModuleAPIName())")
@@ -141,6 +144,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         dataArray.append(convertData)
         reqBodyObj[getJSONRootKey()] = dataArray
 		
+        
 		setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )/actions/convert" )
 		setRequestMethod(requestMethod : .POST )
 		setRequestBody(requestBody : reqBodyObj )
@@ -172,24 +176,30 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func uploadPhoto( filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
-    {
-        do
-        {
-            try fileDetailCheck( filePath : filePath )
+    
+    func uploadPhoto(filePath : String,completion: @escaping(APIResponse?,Error?)->Void){
+        
+        do {
+
+            try fileDetailCheck(filePath:filePath)
+            guard UIImage(contentsOfFile: filePath) != nil else {
+                completion(nil,
+                ZCRMError.ProcessingError("INVALID_FILE_TYPE -> PLEASE UPLOAD AN IMAGE FILE"))
+                return
+            }
             
-            setUrlPath(urlPath :  "/\( self.record.getModuleAPIName() )/\( String( self.record.getId() ) )/photo" )
+            setUrlPath(urlPath :"/\(self.record.getModuleAPIName())/\(String(self.record.getId()))/photo")
             setRequestMethod(requestMethod : .POST )
             let request : APIRequest = APIRequest(handler : self )
+            
             print( "Request : \( request.toString() )" )
             
             request.uploadFile( filePath : filePath) { ( response, error ) in
                 completion( response, error )
             }
-        }
-        catch
-        {
-            completion( nil, ZCRMError.ProcessingError( error.localizedDescription ) )
+            
+        } catch {
+            completion(nil,error)
         }
     }
     
@@ -219,24 +229,34 @@ internal class EntityAPIHandler : CommonAPIHandler
 	
 	// MARK: - Utility Functions
 	
-    private func setPriceDetails( priceDetails : [ [ String : Any ] ] )
-    {
-        for index in ( 0..<priceDetails.count )
-        {
-            let priceDetailDict : Dictionary< String, Any > = priceDetails[ index ]
-            try! self.record.addPriceDetail( priceDetail : self.getZCRMPriceDetail( priceDetailDict : priceDetailDict ) )
+    private func setPriceDetails(priceDetails priceDetailsArrayOfJSON : [[ String : Any]]) {
+        
+        for priceDetailJSON in priceDetailsArrayOfJSON {
+            
+             let ZCRMPriceBookPricing = try! getZCRMPriceDetail(From: priceDetailJSON)
+             record.addPriceDetail(priceDetail: ZCRMPriceBookPricing)
         }
     }
     
-    internal func getZCRMPriceDetail( priceDetailDict : [ String : Any ] ) throws -> ZCRMPriceBookPricing
+    
+    internal func getZCRMPriceDetail(From priceDetailDict : [ String : Any ] ) throws -> ZCRMPriceBookPricing
     {
         let priceDetail = ZCRMPriceBookPricing()
+        
         priceDetail.setId(id : priceDetailDict.getInt64( key : "id" ) )
-        priceDetail.setDiscount( discount : priceDetailDict.optDouble( key : "discount" ) )
-        priceDetail.setToRange( toRange : priceDetailDict.optDouble( key : "to_range" ) )
-        priceDetail.setFromRange( fromRange : priceDetailDict.optDouble(key : "from_range" ) )
+        
+        if let discount = priceDetailDict.optDouble(key : "discount"){
+            priceDetail.setDiscount(discount:discount)
+        }
+        
+        if let fromRange = priceDetailDict.optDouble( key : "to_range" ),
+           let toRange = priceDetailDict.optDouble(key : "from_range" ){
+            priceDetail.setRange(From: fromRange, To: toRange)
+        }
+        
         return priceDetail
     }
+    
     
     internal func getZCRMRecordAsJSON() -> [String:Any?]
     {
@@ -393,6 +413,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         for priceDetail in allPriceDetails
         {
             priceDetails.append( self.getZCRMPriceDetailAsJSON(priceDetail : priceDetail ) as Any as! [ String : Any ] )
+ 
         }
         return priceDetails
     }

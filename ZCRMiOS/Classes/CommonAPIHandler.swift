@@ -35,7 +35,7 @@ internal class CommonAPIHandler : APIHandler
 	private var requestParams : [ String : String ] = [String : String]()
 	private var requestHeaders : [ String : String ] = [String : String]()
 	private var isOAuthRequest : Bool = true
-    private var jsonRootKey : String = ""
+    private var jsonRootKey : String = DATA  // most handlers use DATA as root key
 
 	internal func setUrl( url : URL )
 	{
