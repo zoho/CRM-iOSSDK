@@ -341,7 +341,6 @@ internal class APIRequest
                 }
                 if let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse
                 {
-                    print("RESPONSE CODE \(httpResponse.statusCode)")
                     completion( httpResponse, data, err )
                 }
                 else

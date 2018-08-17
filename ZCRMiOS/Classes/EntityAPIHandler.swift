@@ -40,7 +40,6 @@ internal class EntityAPIHandler : CommonAPIHandler
             {
                 let responseJSON : [String:Any] = response.getResponseJSON()
                 let responseDataArray : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
-                print("RESPONSE DATA ARRAY !\(responseDataArray)")
                 self.setRecordProperties(recordDetails: responseDataArray[0])
                 response.setData(data: self.record)
                 completion( self.record, response, nil )
@@ -54,7 +53,6 @@ internal class EntityAPIHandler : CommonAPIHandler
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         var dataArray : [[String:Any]] = [[String:Any]]()
         dataArray.append(self.getZCRMRecordAsJSON() as Any as! [ String : Any ] )
-        print("DATA ARRAY FOR CREATE \(dataArray)")
         reqBodyObj[ getJSONRootKey() ] = dataArray
 		
 		setUrlPath(urlPath : "/\(self.record.getModuleAPIName())")
@@ -413,7 +411,6 @@ internal class EntityAPIHandler : CommonAPIHandler
         for priceDetail in allPriceDetails
         {
             priceDetails.append( self.getZCRMPriceDetailAsJSON(priceDetail : priceDetail ) as Any as! [ String : Any ] )
- 
         }
         return priceDetails
     }
@@ -629,16 +626,25 @@ internal class EntityAPIHandler : CommonAPIHandler
 		return zcrmSubformRecords
 	}
 	
-	internal func getZCRMSubformRecord( apiName : String , subformDetails : [ String : Any ] ) -> ZCRMSubformRecord
-	{
-		let zcrmSubform : ZCRMSubformRecord = ZCRMSubformRecord(apiName : apiName, id: subformDetails.getInt64(key: "id" ))
-		zcrmSubform.setModifiedTime(modifiedTime: subformDetails.getString(key: "Modified_Time" ) )
-		zcrmSubform.setCreatedTime(createdTime: subformDetails.getString(key: "Created_Time" ) )
-		let ownerDetails : [ String : Any ] = subformDetails.getDictionary(key: "Owner")
-		let owner : ZCRMUser = ZCRMUser(userId: ownerDetails.getInt64(key: "id"), userFullName: ownerDetails.getString(key: "name"))
-		zcrmSubform.setOwner(owner: owner)
-		return zcrmSubform
-	}
+    internal func getZCRMSubformRecord(apiName:String,subformDetails:[String:Any]) -> ZCRMSubformRecord
+    {
+        let zcrmSubform : ZCRMSubformRecord = ZCRMSubformRecord(apiName : apiName, id: subformDetails.getInt64(key: "id" ))
+        
+        zcrmSubform.setModifiedTime(modifiedTime:
+        subformDetails.optString(key: "Modified_Time"))
+        
+        zcrmSubform.setCreatedTime(createdTime: subformDetails.optString(key: "Created_Time") )
+        
+        if subformDetails.hasValue( forKey : "Owner" )
+        {
+            let ownerDict = subformDetails.getDictionary( key : "Owner" )
+            let owner : ZCRMUser = ZCRMUser(userId: ownerDict.getInt64(key: "id"),
+                                            userFullName: ownerDict.getString(key: "name"))
+            
+            zcrmSubform.setOwner(owner: owner)
+        }
+        return zcrmSubform
+    }
     
     internal func getZCRMDataProcessingBasicDetails( details : [ String : Any ] ) -> ZCRMDataProcessBasicDetails
     {
