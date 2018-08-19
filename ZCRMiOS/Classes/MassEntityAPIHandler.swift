@@ -439,10 +439,10 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func addTags( recordIds : [Int64], tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+    internal func addTags( recordIds : [Int64], tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( [ZCRMRecord]?, BulkAPIResponse?, Error? ) -> () )
     {
-        setJSONRootKey(key: TAGS)
-        var addedTags : [ZCRMTag] = [ZCRMTag]()
+        setJSONRootKey(key: DATA)
+        var addedRecords : [ZCRMRecord] = [ZCRMRecord]()
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         let dataArray : [[String:Any]] = [[String:Any]]()
         reqBodyObj[getJSONRootKey()] = dataArray
@@ -452,7 +452,10 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             idString.append(String(id))
             idString.append(",")
         }
-        idString.removeLast()
+        if idString.startIndex != idString.endIndex
+        {
+            idString.removeLast()
+        }
         var tagNamesString : String = String()
         for tag in tags
         {
@@ -462,7 +465,10 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 tagNamesString.append(",")
             }
         }
-        tagNamesString.removeLast()
+        if tagNamesString.startIndex != tagNamesString.endIndex
+        {
+            tagNamesString.removeLast()
+        }
         
         
         setUrlPath(urlPath: "/\(module.getAPIName())/actions/add_tags")
@@ -491,26 +497,32 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     if(CODE_SUCCESS == entityResponse.getStatus())
                     {
                         let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                        let tagJSON : [String:Any] = entResponseJSON.getDictionary(key: DATA)
-                        let tag : ZCRMTag = TagAPIHandler(module : self.module).getZCRMTag(tagDetails: tagJSON)
-                        addedTags.append(tag)
-                        entityResponse.setData(data: tag)
+                        let recordDetails : [String : Any] = entResponseJSON.getDictionary(key: DETAILS)
+                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordDetails.getInt64(key: "id"))
+                        let tagNames : [String] = recordDetails.getArray(key: "tags") as! [String]
+                        for name in tagNames
+                        {
+                            let tag : ZCRMTag = ZCRMTag(tagName: name)
+                            record.setTags(tag: tag)
+                        }
+                        entityResponse.setData(data: record)
+                        addedRecords.append(record)
                     }
                     else
                     {
                         entityResponse.setData(data: nil)
                     }
                 }
-                bulkResponse.setData(data: addedTags)
-                completion( addedTags, bulkResponse, nil )
+                bulkResponse.setData(data: addedRecords)
+                completion( addedRecords, bulkResponse, nil )
             }
         }
     }
     
-    internal func removeTags( recordIds : [Int64], tags : [ZCRMTag], completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+    internal func removeTags( recordIds : [Int64], tags : [ZCRMTag], completion : @escaping( [ZCRMRecord]?, BulkAPIResponse?, Error? ) -> () )
     {
-        setJSONRootKey(key: TAGS)
-        var removedTags : [ZCRMTag] = [ZCRMTag]()
+        setJSONRootKey(key: DATA)
+        var removedRecords : [ZCRMRecord] = [ZCRMRecord]()
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         let dataArray : [[String:Any]] = [[String:Any]]()
         reqBodyObj[getJSONRootKey()] = dataArray
@@ -520,7 +532,10 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             idString.append(String(id))
             idString.append(",")
         }
-        idString.removeLast()
+        if idString.startIndex != idString.endIndex
+        {
+            idString.removeLast()
+        }
         var tagNamesString : String = String()
         for tag in tags
         {
@@ -530,7 +545,10 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 tagNamesString.append(",")
             }
         }
-        tagNamesString.removeLast()
+        if tagNamesString.startIndex != tagNamesString.endIndex
+        {
+            tagNamesString.removeLast()
+        }
         
         setUrlPath(urlPath: "/\(module.getAPIName())/actions/remove_tags")
         setRequestMethod(requestMethod: .POST)
@@ -554,20 +572,25 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     if(CODE_SUCCESS == entityResponse.getStatus())
                     {
                         let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                        let tagJSON : [String:Any] = entResponseJSON.getDictionary(key: DETAILS)
-                        let tag : ZCRMTag = TagAPIHandler(module : self.module).getZCRMTag(tagDetails : tagJSON)
-                        removedTags.append(tag)
-                        entityResponse.setData(data: tag)
+                        let recordDetails : [String : Any] = entResponseJSON.getDictionary(key: DETAILS)
+                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordDetails.getInt64(key: "id"))
+                        let tagNames : [String] = recordDetails.getArray(key: "tags") as! [String]
+                        for name in tagNames
+                        {
+                            let tag : ZCRMTag = ZCRMTag(tagName: name)
+                            record.setTags(tag: tag)
+                        }
+                        entityResponse.setData(data: record)
+                        removedRecords.append(record)
                     }
                     else
                     {
                         entityResponse.setData(data: nil)
                     }
                 }
-                bulkResponse.setData(data: removedTags)
-                completion( removedTags, bulkResponse, nil )
+                bulkResponse.setData(data: removedRecords)
+                completion( removedRecords, bulkResponse, nil )
             }
         }
-}
-    
+    }
 }

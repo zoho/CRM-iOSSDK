@@ -122,8 +122,9 @@ internal class MetaDataAPIHandler : CommonAPIHandler
             var properties : [String] = [String]()
             for dollarProperty in dollarProperties
             {
-                dollarProperty.replacingOccurrences(of: "$", with: "")
-                properties.append(dollarProperty)
+                var property = dollarProperty
+                property.removeFirst()
+                properties.append(property)
             }
             module.setProperties(properties: properties)
         }
@@ -132,9 +133,9 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         if(moduleDetails.hasValue(forKey: "parent_module"))
         {
             let parentModuleDetails = moduleDetails.getDictionary(key: "parent_module")
-            if let apiname = parentModuleDetails.getString(key: "api_name")
+            if parentModuleDetails.hasValue(forKey: "api_name")
             {
-                let parentModule : ZCRMModule = ZCRMModule(moduleAPIName: apiname)
+                let parentModule : ZCRMModule = ZCRMModule(moduleAPIName: parentModuleDetails.getString( key : "api_name" ) )
                 parentModule.setId(moduleId: parentModuleDetails.getInt64(key: "id"))
                 module.setParentModule(parentModule: parentModule)
             }

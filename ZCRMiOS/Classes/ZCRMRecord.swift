@@ -28,6 +28,7 @@ public class ZCRMRecord : ZCRMEntity
     private var createdTime : String?
     private var modifiedTime : String?
     private var layout : ZCRMLayout?
+    private var tags : [ZCRMTag]?
     
     private var dataProcessingBasicDetails : ZCRMDataProcessBasicDetails?
     
@@ -288,6 +289,16 @@ public class ZCRMRecord : ZCRMEntity
         return self.lineItems
     }
     
+    internal func setTags( tag : ZCRMTag )
+    {
+        self.tags?.append(tag)
+    }
+    
+    public func getTags() -> [ZCRMTag]?
+    {
+        return self.tags
+    }
+    
     /// Returns the API response of the ZCRMRecord creation.
     ///
     /// - Returns: API response of the ZCRMRecord creation
@@ -531,17 +542,10 @@ public class ZCRMRecord : ZCRMEntity
     /// - Parameter note: ZCRMNote to be deleted
     /// - Returns: APIResponse of the note deletion
     /// - Throws: ZCRMSDKError if Note id is nil
-    public func deleteNote(note: ZCRMNote, completion : @escaping( APIResponse?, Error? ) -> ())
+    public func deleteNote(noteId: Int64, completion : @escaping( APIResponse?, Error? ) -> ())
     {
-        if( note.getId() == nil )
-        {
-            completion( nil, ZCRMError.ProcessingError( "Note ID must not be nil for delete operation." ) )
-        }
-        else
-        {
-            ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.moduleAPIName).deleteNote(note: note, ofRecord: self) { ( response, error ) in
-                completion( response, error )
-            }
+        ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.moduleAPIName).deleteNote(noteId: noteId, ofRecord: self) { ( response, error ) in
+            completion( response, error )
         }
     }
     
@@ -754,24 +758,24 @@ public class ZCRMRecord : ZCRMEntity
         return cloneRecord
     }
     
-    public func addTags( tags : [ZCRMTag], completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
+    public func addTags( tags : [ZCRMTag], completion : @escaping( [ZCRMTag]?, APIResponse?, Error? ) -> () )
     {
-        EntityAPIHandler(record: self).addTags(tags: tags, overWrite: nil) { (tag, response, error) in
-            completion( tag, response, error )
+        EntityAPIHandler(record: self).addTags(tags: tags, overWrite: nil) { (tags, response, error) in
+            completion( tags, response, error )
         }
     }
     
-    public func addTags( tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
+    public func addTags( tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( [ZCRMTag]?, APIResponse?, Error? ) -> () )
     {
-        EntityAPIHandler(record: self).addTags(tags: tags, overWrite: overWrite) { (tag, response, error) in
-            completion( tag, response, error )
+        EntityAPIHandler(record: self).addTags(tags: tags, overWrite: overWrite) { (tags, response, error) in
+            completion( tags, response, error )
         }
     }
     
-    public func removeTags( tags : [ZCRMTag], completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
+    public func removeTags( tags : [ZCRMTag], completion : @escaping( [ZCRMTag]?, APIResponse?, Error? ) -> () )
     {
-        EntityAPIHandler(record: self).removeTags(tags: tags) { (tag, response, error) in
-            completion( tag, response, error )
+        EntityAPIHandler(record: self).removeTags(tags: tags) { (tags, response, error) in
+            completion( tags, response, error )
         }
     }
 }

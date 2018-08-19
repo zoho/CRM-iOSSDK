@@ -1019,31 +1019,24 @@ public class ZCRMModule : ZCRMEntity
         } )
     }
     
-    public func deleteTag( tag : ZCRMTag, completion : @escaping ( APIResponse?, Error? ) -> () )
+    public func addTags( recordIds : [Int64], tags : [ZCRMTag], completion : @escaping( [ZCRMRecord]?, BulkAPIResponse?, Error? ) -> () )
     {
-        TagAPIHandler(tag: tag).delete(completion: { ( response, error ) in
-            completion( response, error )
-        } )
-    }
-
-    public func addTags( recordIds : [Int64], tags : [ZCRMTag], completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
-    {
-        MassEntityAPIHandler(module: self).addTags(recordIds: recordIds, tags: tags, overWrite: nil) { (tags, response, error) in
-            completion( tags, response, error )
+        MassEntityAPIHandler(module: self).addTags(recordIds: recordIds, tags: tags, overWrite: nil) { (records, response, error) in
+            completion( records, response, error )
         }
     }
     
-    public func addTags( recordIds : [Int64], tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+    public func addTags( recordIds : [Int64], tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( [ZCRMRecord]?, BulkAPIResponse?, Error? ) -> () )
     {
-        MassEntityAPIHandler(module: self).addTags(recordIds: recordIds, tags: tags, overWrite: overWrite) { (tags, response, error) in
-            completion( tags, response, error )
+        MassEntityAPIHandler(module: self).addTags(recordIds: recordIds, tags: tags, overWrite: overWrite) { (records, response, error) in
+            completion( records, response, error )
         }
     }
     
-    public func removeTags( recordIds: [Int64], tags : [ZCRMTag], completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+    public func removeTags( recordIds: [Int64], tags : [ZCRMTag], completion : @escaping( [ZCRMRecord]?, BulkAPIResponse?, Error? ) -> () )
     {
-        MassEntityAPIHandler(module: self).removeTags(recordIds: recordIds, tags: tags) { (tags, response, error) in
-            completion( tags, response, error )
+        MassEntityAPIHandler(module: self).removeTags(recordIds: recordIds, tags: tags) { (records, response, error) in
+            completion( records, response, error )
         }
     }
 }
