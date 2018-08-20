@@ -289,7 +289,7 @@ public class ZCRMRecord : ZCRMEntity
         return self.lineItems
     }
     
-    internal func setTags( tag : ZCRMTag )
+    internal func addTags( tag : ZCRMTag )
     {
         self.tags?.append(tag)
     }
@@ -772,10 +772,10 @@ public class ZCRMRecord : ZCRMEntity
         }
     }
     
-    public func removeTags( tags : [ZCRMTag], completion : @escaping( [ZCRMTag]?, APIResponse?, Error? ) -> () )
+    public func removeTags( tags : [ZCRMTag], completion : @escaping( APIResponse?, Error? ) -> () )
     {
-        EntityAPIHandler(record: self).removeTags(tags: tags) { (tags, response, error) in
-            completion( tags, response, error )
+        EntityAPIHandler(record: self).removeTags(tags: tags) { (response, error) in
+            completion( response, error )
         }
     }
 }

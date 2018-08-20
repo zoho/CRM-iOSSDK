@@ -452,7 +452,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             idString.append(String(id))
             idString.append(",")
         }
-        if idString.startIndex != idString.endIndex
+        if idString.count != 0 && idString.last == ","
         {
             idString.removeLast()
         }
@@ -465,7 +465,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 tagNamesString.append(",")
             }
         }
-        if tagNamesString.startIndex != tagNamesString.endIndex
+        if tagNamesString.count != 0 && tagNamesString.last == ","
         {
             tagNamesString.removeLast()
         }
@@ -503,7 +503,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         for name in tagNames
                         {
                             let tag : ZCRMTag = ZCRMTag(tagName: name)
-                            record.setTags(tag: tag)
+                            record.addTags(tag: tag)
                         }
                         entityResponse.setData(data: record)
                         addedRecords.append(record)
@@ -519,10 +519,9 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func removeTags( recordIds : [Int64], tags : [ZCRMTag], completion : @escaping( [ZCRMRecord]?, BulkAPIResponse?, Error? ) -> () )
+    internal func removeTags( recordIds : [Int64], tags : [ZCRMTag], completion : @escaping( BulkAPIResponse?, Error? ) -> () )
     {
         setJSONRootKey(key: DATA)
-        var removedRecords : [ZCRMRecord] = [ZCRMRecord]()
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         let dataArray : [[String:Any]] = [[String:Any]]()
         reqBodyObj[getJSONRootKey()] = dataArray
@@ -532,7 +531,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             idString.append(String(id))
             idString.append(",")
         }
-        if idString.startIndex != idString.endIndex
+        if idString.count != 0 && idString.last == ","
         {
             idString.removeLast()
         }
@@ -545,7 +544,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 tagNamesString.append(",")
             }
         }
-        if tagNamesString.startIndex != tagNamesString.endIndex
+        if tagNamesString.count != 0 && tagNamesString.last == ","
         {
             tagNamesString.removeLast()
         }
@@ -560,37 +559,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         print( "Request : \(request.toString())" )
         
         request.getBulkAPIResponse { ( response, err ) in
-            if let error = err
-            {
-                completion( nil, nil, error )
-            }
-            if let bulkResponse = response
-            {
-                let responses : [EntityResponse] = bulkResponse.getEntityResponses()
-                for entityResponse in responses
-                {
-                    if(CODE_SUCCESS == entityResponse.getStatus())
-                    {
-                        let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                        let recordDetails : [String : Any] = entResponseJSON.getDictionary(key: DETAILS)
-                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordDetails.getInt64(key: "id"))
-                        let tagNames : [String] = recordDetails.getArray(key: "tags") as! [String]
-                        for name in tagNames
-                        {
-                            let tag : ZCRMTag = ZCRMTag(tagName: name)
-                            record.setTags(tag: tag)
-                        }
-                        entityResponse.setData(data: record)
-                        removedRecords.append(record)
-                    }
-                    else
-                    {
-                        entityResponse.setData(data: nil)
-                    }
-                }
-                bulkResponse.setData(data: removedRecords)
-                completion( removedRecords, bulkResponse, nil )
-            }
+            completion( response, err )
         }
     }
 }

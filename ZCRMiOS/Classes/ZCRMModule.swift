@@ -1033,10 +1033,10 @@ public class ZCRMModule : ZCRMEntity
         }
     }
     
-    public func removeTags( recordIds: [Int64], tags : [ZCRMTag], completion : @escaping( [ZCRMRecord]?, BulkAPIResponse?, Error? ) -> () )
+    public func removeTags( recordIds: [Int64], tags : [ZCRMTag], completion : @escaping( BulkAPIResponse?, Error? ) -> () )
     {
-        MassEntityAPIHandler(module: self).removeTags(recordIds: recordIds, tags: tags) { (records, response, error) in
-            completion( records, response, error )
+        MassEntityAPIHandler(module: self).removeTags(recordIds: recordIds, tags: tags) { ( response, error) in
+            completion( response, error )
         }
     }
 }

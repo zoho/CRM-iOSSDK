@@ -747,7 +747,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 tagNamesString.append(",")
             }
         }
-        if tagNamesString.startIndex != tagNamesString.endIndex
+        if tagNamesString.count != 0 && tagNamesString.last == ","
         {
             tagNamesString.removeLast()
         }
@@ -783,7 +783,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func removeTags( tags : [ZCRMTag], completion : @escaping( [ZCRMTag]?, APIResponse?, Error? ) -> () )
+    internal func removeTags( tags : [ZCRMTag], completion : @escaping( APIResponse?, Error? ) -> () )
     {
         setJSONRootKey(key: DATA)
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
@@ -802,7 +802,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 tagNamesString.append(",")
             }
         }
-        if tagNamesString.startIndex != tagNamesString.endIndex
+        if tagNamesString.count != 0 && tagNamesString.last == ","
         {
             tagNamesString.removeLast()
         }
@@ -813,25 +813,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         print("Request : \(request.toString())")
         
         request.getAPIResponse { ( resp, err ) in
-            if let error = err
-            {
-                completion( nil, nil, error )
-            }
-            if let response = resp
-            {
-                let responseJSON = response.getResponseJSON()
-                let respDataArray : [[String:Any]] = responseJSON.optArrayOfDictionaries(key: self.getJSONRootKey())!
-                let respData : [String:Any] = respDataArray[0]
-                let tagDetails : [String] = respData.getDictionary(key: DETAILS).getArray(key: TAGS) as! [String]
-                var tags : [ZCRMTag] = [ZCRMTag]()
-                for tagDetail in tagDetails
-                {
-                    let singleTag : ZCRMTag = ZCRMTag( tagName: tagDetail )
-                    tags.append(singleTag)
-                }
-                completion( tags, response, nil )
-            }
-                
+            completion( resp, err )
         }
     }
     
