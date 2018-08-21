@@ -39,7 +39,7 @@ public class ZCRMSubformRecord : ZCRMEntity
 		return self.owner
 	}
 	
-	internal func setModifiedTime( modifiedTime : String? )
+	internal func setModifiedTime( modifiedTime : String)
 	{
 		self.modifiedTime = modifiedTime
 	}
@@ -49,7 +49,7 @@ public class ZCRMSubformRecord : ZCRMEntity
 		return self.modifiedTime
 	}
 	
-	internal func setCreatedTime( createdTime : String? )
+	internal func setCreatedTime( createdTime : String)
 	{
 		self.createdTime = createdTime
 	}

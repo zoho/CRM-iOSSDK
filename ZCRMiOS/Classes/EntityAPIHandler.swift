@@ -628,12 +628,22 @@ internal class EntityAPIHandler : CommonAPIHandler
 	
     internal func getZCRMSubformRecord(apiName:String,subformDetails:[String:Any]) -> ZCRMSubformRecord
     {
+        
         let zcrmSubform : ZCRMSubformRecord = ZCRMSubformRecord(apiName : apiName, id: subformDetails.getInt64(key: "id" ))
         
-        zcrmSubform.setModifiedTime(modifiedTime:
-        subformDetails.optString(key: "Modified_Time"))
+        if subformDetails.hasValue(forKey: "Modified_Time"){
+            
+            let modifiedTime = subformDetails.optString(key: "Modified_Time")!
+            zcrmSubform.setModifiedTime(modifiedTime: modifiedTime)
+            
+        }
         
-        zcrmSubform.setCreatedTime(createdTime: subformDetails.optString(key: "Created_Time") )
+        if subformDetails.hasValue(forKey: "Created_Time"){
+            
+            let createdTime = subformDetails.optString(key: "Created_Time")!
+            zcrmSubform.setCreatedTime(createdTime: createdTime)
+        }
+        
         
         if subformDetails.hasValue( forKey : "Owner" )
         {
@@ -643,6 +653,7 @@ internal class EntityAPIHandler : CommonAPIHandler
             
             zcrmSubform.setOwner(owner: owner)
         }
+        
         return zcrmSubform
     }
     
