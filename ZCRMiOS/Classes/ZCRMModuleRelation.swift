@@ -273,9 +273,9 @@ public class ZCRMModuleRelation : ZCRMEntity
     ///   - ofRecord: note to be deleted in the ZCRMRecord
     /// - Returns: APIResponse of the note deletion
     /// - Throws: ZCRMSDKError if failed to delete note
-    public func deleteNote(note: ZCRMNote, ofRecord: ZCRMRecord, completion : @escaping( APIResponse?, Error? ) -> ())
+    public func deleteNote(noteId: Int64, ofRecord: ZCRMRecord, completion : @escaping( APIResponse?, Error? ) -> ())
 	{
-        RelatedListAPIHandler(parentRecord: ofRecord, relatedList: self).deleteNote(note: note) { ( response, error ) in
+        RelatedListAPIHandler(parentRecord: ofRecord, relatedList: self).deleteNote(noteId: noteId) { ( response, error ) in
             completion( response, error )
         }
 	}

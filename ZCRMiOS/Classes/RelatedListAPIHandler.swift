@@ -357,24 +357,17 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
 	}
 	
-    internal func deleteNote( note : ZCRMNote, completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func deleteNote( noteId : Int64, completion : @escaping( APIResponse?, Error? ) -> () )
 	{
         if let relatedList = self.relatedList
         {
-            if note.getId() == nil
-            {
-                completion( nil, ZCRMError.ProcessingError( "Note ID MUST NOT be nil" ) )
-            }
-            else
-            {
-                let noteId : String = String( note.getId()! )
-                setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(relatedList.getAPIName())/\( noteId )" )
-                setRequestMethod(requestMethod: .DELETE )
-                let request : APIRequest = APIRequest(handler: self)
-                print( "Request : \( request.toString() )" )
-                request.getAPIResponse { ( response, error ) in
-                    completion( response, error )
-                }
+            let noteIdString : String = String( noteId )
+            setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(relatedList.getAPIName())/\( noteIdString )" )
+            setRequestMethod(requestMethod: .DELETE )
+            let request : APIRequest = APIRequest(handler: self)
+            print( "Request : \( request.toString() )" )
+            request.getAPIResponse { ( response, error ) in
+                completion( response, error )
             }
         }
         else
