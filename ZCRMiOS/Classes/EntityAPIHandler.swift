@@ -19,7 +19,7 @@ internal class EntityAPIHandler : CommonAPIHandler
 	
     internal func getRecord( withPrivateFields : Bool, completion : @escaping( ZCRMRecord?, APIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : DATA )
+        setJSONRootKey( key : JSONRootKey.DATA )
         let urlPath = "/\(self.record.getModuleAPIName())/\(self.record.getId())"
 		setUrlPath(urlPath : urlPath )
         if( withPrivateFields == true )
@@ -49,7 +49,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     internal func createRecord( completion : @escaping( ZCRMRecord?, APIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : DATA )
+        setJSONRootKey( key : JSONRootKey.DATA )
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         var dataArray : [[String:Any]] = [[String:Any]]()
         dataArray.append(self.getZCRMRecordAsJSON() as Any as! [ String : Any ] )
@@ -81,7 +81,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     internal func updateRecord( completion : @escaping( ZCRMRecord?, APIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : DATA )
+        setJSONRootKey( key : JSONRootKey.DATA )
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         var dataArray : [[String:Any]] = [[String:Any]]()
         dataArray.append(self.getZCRMRecordAsJSON() as Any as! [ String : Any ])
@@ -772,7 +772,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         {
             completion( nil, nil, ZCRMError.ProcessingError( "Record ID MUST NOT be nil" ) )
         }
-        setJSONRootKey(key: DATA)
+        setJSONRootKey(key: JSONRootKey.DATA)
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         let dataArray : [[String:Any]] = [[String:Any]]()
         let recordIdString = String(record.getId())
@@ -821,7 +821,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     internal func removeTags( tags : [ZCRMTag], completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
     {
-        setJSONRootKey(key: DATA)
+        setJSONRootKey(key: JSONRootKey.DATA)
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         let dataArray : [[String:Any]] = [[String:Any]]()
         let recordIdString = String(record.getId())

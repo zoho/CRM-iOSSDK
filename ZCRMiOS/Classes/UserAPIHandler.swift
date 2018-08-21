@@ -10,7 +10,7 @@ internal class UserAPIHandler : CommonAPIHandler
 {
     internal func getUsers(type : String?, modifiedSince : String?, page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : USERS )
+        setJSONRootKey( key : JSONRootKey.USERS )
         var allUsers : [ZCRMUser] = [ZCRMUser]()
 		setUrlPath(urlPath: "/users" )
 		setRequestMethod(requestMethod: .GET )
@@ -50,7 +50,7 @@ internal class UserAPIHandler : CommonAPIHandler
     
     internal func getAllProfiles( completion : @escaping( [ ZCRMProfile ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : PROFILES )
+        setJSONRootKey( key : JSONRootKey.PROFILES )
         var allProfiles : [ ZCRMProfile ] = [ ZCRMProfile ] ()
 		setUrlPath(urlPath: "/settings/profiles" )
 		setRequestMethod(requestMethod: .GET)
@@ -80,7 +80,7 @@ internal class UserAPIHandler : CommonAPIHandler
     
     internal func getAllRoles( completion : @escaping( [ ZCRMRole ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : ROLES )
+        setJSONRootKey( key : JSONRootKey.ROLES )
         var allRoles : [ ZCRMRole ] = [ ZCRMRole ]()
 		setUrlPath(urlPath:  "/settings/roles" )
 		setRequestMethod(requestMethod: .GET)
@@ -110,7 +110,7 @@ internal class UserAPIHandler : CommonAPIHandler
     
     internal func getUser( userId : Int64?, completion : @escaping( ZCRMUser?, APIResponse?, Error? ) -> () )
 	{
-        setJSONRootKey( key : USERS )
+        setJSONRootKey( key : JSONRootKey.USERS )
 		setRequestMethod(requestMethod: .GET )
         if(userId != nil)
         {
@@ -141,13 +141,13 @@ internal class UserAPIHandler : CommonAPIHandler
     
     internal func addUser( user : ZCRMUser, completion : @escaping( ZCRMUser?, APIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : USERS )
+        setJSONRootKey( key : JSONRootKey.USERS )
         setRequestMethod( requestMethod : .POST )
         setUrlPath( urlPath : "/users" )
         var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
         var dataArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
         dataArray.append( self.getZCRMUserAsJSON( user : user ) )
-        reqBodyObj[ USERS ] = dataArray
+        reqBodyObj[JSONRootKey.USERS] = dataArray
         setRequestBody( requestBody : reqBodyObj )
         let request = APIRequest( handler : self )
         print( "Request : \( request.toString() )" )
@@ -170,7 +170,7 @@ internal class UserAPIHandler : CommonAPIHandler
     
     internal func updateUser( user : ZCRMUser, completion : @escaping( APIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : USERS )
+        setJSONRootKey( key : JSONRootKey.USERS )
         setRequestMethod( requestMethod : .PUT )
         setUrlPath( urlPath : "/users/\( user.getId()! )" )
         var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
@@ -204,7 +204,7 @@ internal class UserAPIHandler : CommonAPIHandler
     
     private func searchUsers( criteria : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : USERS )
+        setJSONRootKey( key : JSONRootKey.USERS )
         setRequestMethod( requestMethod : .PUT )
         setUrlPath( urlPath : "/users" )
         addRequestParam( param : "filters", value : criteria )
@@ -236,7 +236,7 @@ internal class UserAPIHandler : CommonAPIHandler
     
     internal func getProfile( profileId : Int64, completion : @escaping( ZCRMProfile?, APIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : PROFILES )
+        setJSONRootKey( key : JSONRootKey.PROFILES)
 		setUrlPath(urlPath:  "/settings/profiles/\(profileId)" )
 		setRequestMethod(requestMethod: .GET )
 		let request : APIRequest = APIRequest(handler: self)
@@ -259,7 +259,7 @@ internal class UserAPIHandler : CommonAPIHandler
     
     internal func getRole( roleId : Int64, completion : @escaping( ZCRMRole?, APIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : ROLES )
+        setJSONRootKey( key : JSONRootKey.ROLES )
 		setUrlPath(urlPath: "/settings/roles/\(roleId)" )
 		setRequestMethod(requestMethod: .GET )
 		let request : APIRequest = APIRequest(handler: self)
