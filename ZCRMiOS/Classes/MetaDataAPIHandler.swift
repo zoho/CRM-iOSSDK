@@ -118,7 +118,15 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         module.setArguments(arguments: moduleDetails.optArrayOfDictionaries(key: "arguments"))
         if(moduleDetails.hasValue(forKey: "$properties"))
         {
-            module.setProperties(properties: moduleDetails.optArray(key: "$properties") as! [String])
+            let dollarProperties = moduleDetails.optArray(key: "$properties") as! [String]
+            var properties : [String] = [String]()
+            for dollarProperty in dollarProperties
+            {
+                var property = dollarProperty
+                property.removeFirst()
+                properties.append(property)
+            }
+            module.setProperties(properties: properties)
         }
         module.setDisplayField(displayField: moduleDetails.optString(key: "display_field"))
         module.setSearchLayoutFields(searchLayoutFields: moduleDetails.optArray(key: "search_layout_fields") as? [String])

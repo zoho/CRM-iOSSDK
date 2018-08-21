@@ -739,17 +739,16 @@ internal class EntityAPIHandler : CommonAPIHandler
         setUrlPath(urlPath: "/\(self.record.getModuleAPIName())/\(recordIdString)/actions/add_tags")
         setRequestMethod(requestMethod: .POST)
         var tagNamesString : String = String()
-        for tag in tags
+        for index in 0..<tags.count
         {
-            if let name = tag.getName()
+            if let name = tags[index].getName()
             {
                 tagNamesString.append( name )
-                tagNamesString.append(",")
+                if ( index != ( tags.count - 1 ) )
+                {
+                    tagNamesString.append(",")
+                }
             }
-        }
-        if tagNamesString.count != 0 && tagNamesString.last == ","
-        {
-            tagNamesString.removeLast()
         }
         addRequestParam(param: "tag_names", value: tagNamesString)
         if overWrite != nil
@@ -794,17 +793,16 @@ internal class EntityAPIHandler : CommonAPIHandler
         setUrlPath(urlPath: "/\(self.record.getModuleAPIName())/\(recordIdString)/actions/remove_tags")
         setRequestMethod(requestMethod: .POST)
         var tagNamesString : String = String()
-        for tag in tags
+        for index in 0..<tags.count
         {
-            if let name = tag.getName()
+            if let name = tags[index].getName()
             {
                 tagNamesString.append( name )
-                tagNamesString.append(",")
+                if ( index != ( tags.count - 1 ) )
+                {
+                    tagNamesString.append(",")
+                }
             }
-        }
-        if tagNamesString.count != 0 && tagNamesString.last == ","
-        {
-            tagNamesString.removeLast()
         }
         addRequestParam(param: "tag_names", value: tagNamesString)
         setRequestBody(requestBody: reqBodyObj)

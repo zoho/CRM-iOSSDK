@@ -360,32 +360,38 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getAllDeletedRecords( completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    internal func getDeletedRecords( modifiedSince : String?, page : Int, perPage : Int, completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.getDeletedRecords( type : "all") { ( deletedRecords, response, error ) in
+        self.getDeletedRecords( type : "all", modifiedSince : modifiedSince, page : page, perPage : perPage ) { ( deletedRecords, response, error ) in
             completion( deletedRecords, response, error )
         }
     }
     
     internal func getRecycleBinRecords( completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.getDeletedRecords( type : "recycle") { ( deletedRecords, response, error ) in
+        self.getDeletedRecords(type: "recycle", modifiedSince: nil, page: 1, perPage: 100) { ( deletedRecords, response, error ) in
             completion( deletedRecords, response, error )
         }
     }
     
     internal func getPermanentlyDeletedRecords( completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.getDeletedRecords( type : "permanent") { ( deletedRecords, response, error ) in
+        self.getDeletedRecords(type: "permanent", modifiedSince: nil, page: 1, perPage: 100) { ( deletedRecords, response, error ) in
             completion( deletedRecords, response, error )
         }
     }
     
-    internal func getDeletedRecords( type : String, completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    private func getDeletedRecords( type : String, modifiedSince : String?, page : Int, perPage : Int, completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
 		setUrlPath(urlPath : "/\( self.module.getAPIName() )/deleted")
 		setRequestMethod(requestMethod : .GET )
 		addRequestParam(param: "type" , value: type )
+        if ( modifiedSince.notNilandEmpty)
+        {
+            addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
+        }
+        addRequestParam( param : "page", value : String( page ) )
+        addRequestParam( param : "per_page", value : String( perPage ) )
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
         request.getBulkAPIResponse { ( response, err ) in
@@ -447,27 +453,25 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         let dataArray : [[String:Any]] = [[String:Any]]()
         reqBodyObj[getJSONRootKey()] = dataArray
         var idString : String = String()
-        for id in recordIds
+        for index in 0..<recordIds.count
         {
-            idString.append(String(id))
-            idString.append(",")
-        }
-        if idString.count != 0 && idString.last == ","
-        {
-            idString.removeLast()
-        }
-        var tagNamesString : String = String()
-        for tag in tags
-        {
-            if let name = tag.getName()
+            idString.append(String(recordIds[index]))
+            if ( index != ( recordIds.count - 1 ) )
             {
-                tagNamesString.append( name )
-                tagNamesString.append(",")
+                idString.append(",")
             }
         }
-        if tagNamesString.count != 0 && tagNamesString.last == ","
+        var tagNamesString : String = String()
+        for index in 0..<tags.count
         {
-            tagNamesString.removeLast()
+            if let name = tags[index].getName()
+            {
+                tagNamesString.append( name )
+                if ( index != ( tags.count - 1 ) )
+                {
+                    tagNamesString.append(",")
+                }
+            }
         }
         
         
@@ -503,7 +507,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         for name in tagNames
                         {
                             let tag : ZCRMTag = ZCRMTag(tagName: name)
-                            record.addTags(tag: tag)
+                            record.addTag(tag: tag)
                         }
                         entityResponse.setData(data: record)
                         addedRecords.append(record)
@@ -526,28 +530,27 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         let dataArray : [[String:Any]] = [[String:Any]]()
         reqBodyObj[getJSONRootKey()] = dataArray
         var idString : String = String()
-        for id in recordIds
+        for index in 0..<recordIds.count
         {
-            idString.append(String(id))
-            idString.append(",")
-        }
-        if idString.count != 0 && idString.last == ","
-        {
-            idString.removeLast()
-        }
-        var tagNamesString : String = String()
-        for tag in tags
-        {
-            if let name = tag.getName()
+            idString.append(String(recordIds[index]))
+            if ( index != ( recordIds.count - 1 ) )
             {
-                tagNamesString.append( name )
-                tagNamesString.append(",")
+                idString.append(",")
             }
         }
-        if tagNamesString.count != 0 && tagNamesString.last == ","
+        var tagNamesString : String = String()
+        for index in 0..<tags.count
         {
-            tagNamesString.removeLast()
+            if let name = tags[index].getName()
+            {
+                tagNamesString.append( name )
+                if ( index != ( tags.count - 1 ) )
+                {
+                    tagNamesString.append(",")
+                }
+            }
         }
+//        tagNamesString = tagNamesString.removeLastCharacter(char: ",")
         
         setUrlPath(urlPath: "/\(module.getAPIName())/actions/remove_tags")
         setRequestMethod(requestMethod: .POST)

@@ -289,7 +289,7 @@ public class ZCRMRecord : ZCRMEntity
         return self.lineItems
     }
     
-    internal func addTags( tag : ZCRMTag )
+    internal func addTag( tag : ZCRMTag )
     {
         self.tags?.append(tag)
     }

@@ -810,12 +810,34 @@ public class ZCRMModule : ZCRMEntity
     ///
     /// - Returns: List of all deleted records of the module
     /// - Throws: ZCRMSDKError if failed to get the records
-    public func getAllDeletedRecords( completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    public func getDeletedRecords( completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        MassEntityAPIHandler( module : self ).getAllDeletedRecords { ( trashRecords, response, error ) in
+        MassEntityAPIHandler( module : self ).getDeletedRecords(modifiedSince: nil, page: 1, perPage: 100) { ( trashRecords, response, error ) in
             completion( trashRecords, response, error )
         }
     }
+    
+    public func getDeletedRecords( modifiedSince : String, completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).getDeletedRecords(modifiedSince: modifiedSince, page: 1, perPage: 100) { ( trashRecords, response, error ) in
+            completion( trashRecords, response, error )
+        }
+    }
+    
+    public func getDeletedRecords( page : Int, perPage : Int, completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).getDeletedRecords(modifiedSince: nil, page: page, perPage: perPage) { ( trashRecords, response, error ) in
+            completion( trashRecords, response, error )
+        }
+    }
+    
+    public func getDeletedRecords( modifiedSince : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).getDeletedRecords(modifiedSince: modifiedSince, page: page, perPage: perPage) { ( trashRecords, response, error) in
+            completion( trashRecords, response, error )
+        }
+    }
+    
     
     /// Returns List of recycle bin records of the module(BulkAPIResponse).
     ///
