@@ -529,9 +529,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     
     internal func removeTags( recordIds : [Int64], tags : [ZCRMTag], completion : @escaping( BulkAPIResponse?, Error? ) -> () )
     {
-
         setJSONRootKey(key: JSONRootKey.DATA)
-
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         let dataArray : [[String:Any]] = [[String:Any]]()
         reqBodyObj[getJSONRootKey()] = dataArray
