@@ -37,7 +37,7 @@ public class ZCRMModule : ZCRMEntity
     private var businessCardFieldLimit : Int?
     private var webLink : String?
     
-    private var arguments : [ String : Any ]?
+    private var arguments : [ [ String : Any ] ]?
     private var properties : [ String ]?
     
     private var displayField : String?
@@ -362,12 +362,12 @@ public class ZCRMModule : ZCRMEntity
         }
 	}
     
-    internal func setArguments( arguments : [ String : Any ]? )
+    internal func setArguments( arguments : [ [ String : Any ] ]? )
     {
         self.arguments = arguments
     }
     
-    public func getArguments() -> [ String : Any ]?
+    public func getArguments() -> [ [ String : Any ] ]?
     {
         return self.arguments
     }
@@ -810,12 +810,34 @@ public class ZCRMModule : ZCRMEntity
     ///
     /// - Returns: List of all deleted records of the module
     /// - Throws: ZCRMSDKError if failed to get the records
-    public func getAllDeletedRecords( completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    public func getDeletedRecords( completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        MassEntityAPIHandler( module : self ).getAllDeletedRecords { ( trashRecords, response, error ) in
+        MassEntityAPIHandler( module : self ).getDeletedRecords(modifiedSince: nil, page: 1, perPage: 100) { ( trashRecords, response, error ) in
             completion( trashRecords, response, error )
         }
     }
+    
+    public func getDeletedRecords( modifiedSince : String, completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).getDeletedRecords(modifiedSince: modifiedSince, page: 1, perPage: 100) { ( trashRecords, response, error ) in
+            completion( trashRecords, response, error )
+        }
+    }
+    
+    public func getDeletedRecords( page : Int, perPage : Int, completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).getDeletedRecords(modifiedSince: nil, page: page, perPage: perPage) { ( trashRecords, response, error ) in
+            completion( trashRecords, response, error )
+        }
+    }
+    
+    public func getDeletedRecords( modifiedSince : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).getDeletedRecords(modifiedSince: modifiedSince, page: page, perPage: perPage) { ( trashRecords, response, error) in
+            completion( trashRecords, response, error )
+        }
+    }
+    
     
     /// Returns List of recycle bin records of the module(BulkAPIResponse).
     ///
@@ -1019,31 +1041,24 @@ public class ZCRMModule : ZCRMEntity
         } )
     }
     
-    public func deleteTag( tag : ZCRMTag, completion : @escaping ( APIResponse?, Error? ) -> () )
+    public func addTags( recordIds : [Int64], tags : [ZCRMTag], completion : @escaping( [ZCRMRecord]?, BulkAPIResponse?, Error? ) -> () )
     {
-        TagAPIHandler(tag: tag).delete(completion: { ( response, error ) in
+        MassEntityAPIHandler(module: self).addTags(recordIds: recordIds, tags: tags, overWrite: nil) { (records, response, error) in
+            completion( records, response, error )
+        }
+    }
+    
+    public func addTags( recordIds : [Int64], tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( [ZCRMRecord]?, BulkAPIResponse?, Error? ) -> () )
+    {
+        MassEntityAPIHandler(module: self).addTags(recordIds: recordIds, tags: tags, overWrite: overWrite) { (records, response, error) in
+            completion( records, response, error )
+        }
+    }
+    
+    public func removeTags( recordIds: [Int64], tags : [ZCRMTag], completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    {
+        MassEntityAPIHandler(module: self).removeTags(recordIds: recordIds, tags: tags) { ( response, error) in
             completion( response, error )
-        } )
-    }
-
-    public func addTags( recordIds : [Int64], tags : [ZCRMTag], completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
-    {
-        MassEntityAPIHandler(module: self).addTags(recordIds: recordIds, tags: tags, overWrite: nil) { (tags, response, error) in
-            completion( tags, response, error )
-        }
-    }
-    
-    public func addTags( recordIds : [Int64], tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
-    {
-        MassEntityAPIHandler(module: self).addTags(recordIds: recordIds, tags: tags, overWrite: overWrite) { (tags, response, error) in
-            completion( tags, response, error )
-        }
-    }
-    
-    public func removeTags( recordIds: [Int64], tags : [ZCRMTag], completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
-    {
-        MassEntityAPIHandler(module: self).removeTags(recordIds: recordIds, tags: tags) { (tags, response, error) in
-            completion( tags, response, error )
         }
     }
 }
