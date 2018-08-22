@@ -118,8 +118,15 @@ public class ZCRMTag : ZCRMEntity
     
     public func delete( completion : @escaping ( APIResponse?, Error? ) -> () )
     {
-        TagAPIHandler(tag: self).delete(completion: { ( response, error ) in
-            completion( response, error )
-        } )
+        if ( self.getId() == nil )
+        {
+            completion( nil, ZCRMError.ProcessingError( "Tag ID must not be nil for delete operation." ) )
+        }
+        else
+        {
+            TagAPIHandler().delete( tagId : self.getId()! , completion: { ( response, error ) in
+                completion( response, error )
+            } )
+        }
     }
 }
