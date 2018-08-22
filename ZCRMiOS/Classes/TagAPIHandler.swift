@@ -229,6 +229,7 @@ internal class TagAPIHandler : CommonAPIHandler
             {
                 completion( nil, nil, ZCRMError.ProcessingError( "Tag ID MUST NOT be nil" ) )
             }
+
             else
             {
                 setJSONRootKey(key: JSONRootKey.TAGS)

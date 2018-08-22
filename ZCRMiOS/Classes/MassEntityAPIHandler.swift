@@ -447,8 +447,10 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     
     internal func addTags( recordIds : [Int64], tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( [ZCRMRecord]?, BulkAPIResponse?, Error? ) -> () )
     {
+
         setJSONRootKey(key: JSONRootKey.DATA)
         var addedRecords : [ZCRMRecord] = [ZCRMRecord]()
+
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         let dataArray : [[String:Any]] = [[String:Any]]()
         reqBodyObj[getJSONRootKey()] = dataArray
@@ -501,6 +503,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     if(CODE_SUCCESS == entityResponse.getStatus())
                     {
                         let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
+
                         let recordDetails : [String : Any] = entResponseJSON.getDictionary(key: DETAILS)
                         let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordDetails.getInt64(key: "id"))
                         let tagNames : [String] = recordDetails.getArray(key: "tags") as! [String]
@@ -511,6 +514,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         }
                         entityResponse.setData(data: record)
                         addedRecords.append(record)
+
                     }
                     else
                     {
@@ -550,6 +554,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 }
             }
         }
+
         
         setUrlPath(urlPath: "/\(module.getAPIName())/actions/remove_tags")
         setRequestMethod(requestMethod: .POST)

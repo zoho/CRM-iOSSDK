@@ -809,7 +809,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 let responseJSON = response.getResponseJSON()
                 let respDataArray : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                 let respData : [String:Any] = respDataArray[0]
-                let tagDetails : [String] = respData.getDictionary(key: DETAILS).getArray(key: TAGS) as! [String]
+                let tagDetails : [String] = respData.getDictionary(key: DETAILS).getArray(key: JSONRootKey.TAGS) as! [String]
                 var tags : [ZCRMTag] = [ZCRMTag]()
                 for tagDetail in tagDetails
                 {
