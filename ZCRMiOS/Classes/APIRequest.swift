@@ -49,7 +49,7 @@ internal class APIRequest
     private var request : URLRequest?
     private var url : URL?
 	private var isOAuth : Bool = true
-    private var jsonRootKey : String = ""
+    private var jsonRootKey = String()
 	
 	init( handler : APIHandler)
 	{
@@ -68,7 +68,8 @@ internal class APIRequest
 		self.isOAuth = handler.getRequestType()
         self.jsonRootKey = handler.getJSONRootKey()
 	}
-	
+    
+    
     private func authenticateRequest( completion : @escaping( Error? ) -> () )
     {
         if let bundleID = Bundle.main.bundleIdentifier
@@ -121,6 +122,7 @@ internal class APIRequest
             }
         }
     }
+    
 	
     private func addHeader(headerName : String, headerVal : String)
     {
@@ -151,7 +153,9 @@ internal class APIRequest
                     if ( self.url?.absoluteString == nil )
                     {
                         let urlString = self.baseUrl+self.urlPath
-                        if let encodedURLString = urlString.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed)
+    
+                        let set = CharacterSet(charactersIn: " ").inverted
+                        if let encodedURLString = urlString.addingPercentEncoding(withAllowedCharacters: set)
                         {
                             let requestURL = URL(string: encodedURLString )
                             if let reqURL = requestURL
@@ -187,12 +191,16 @@ internal class APIRequest
                     completion( nil )
                 }
             }
-		}
+        } else {
+            completion(nil)
+        }
     }
     
     internal func getAPIResponse( completion : @escaping( APIResponse?, Error? ) -> () )
     {
+    
         self.initialiseRequest { ( err ) in
+            
             if let error = err
             {
                 completion( nil, error )
@@ -322,7 +330,9 @@ internal class APIRequest
         var error : Error? = nil
         if let request = self.request
         {
-            URLSession.shared.dataTask( with : request, completionHandler : { data, response, err in
+            URLSession.shared.dataTask( with : request, completionHandler:{
+                ( data, response, err ) in
+                
                 guard err == nil else
                 {
                     error = err

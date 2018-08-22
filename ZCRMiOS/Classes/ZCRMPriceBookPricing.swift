@@ -21,7 +21,7 @@ public class ZCRMPriceBookPricing
     /// Set id of the ZCRMPriceBookPricing.
     ///
     /// - Parameter id: id of the ZCRMPriceBookPricing
-    internal func setId( id : Int64 )
+    public func setId( id : Int64 )
     {
         self.id = id
     }
@@ -34,28 +34,23 @@ public class ZCRMPriceBookPricing
         return self.id
     }
     
-    /// Set to range of ZCRMPriceBookPricing.
+    /// Set the range of ZCRMPriceBookPricing.
     ///
-    /// - Parameter toRange: to range of the ZCRMPriceBookPricing
-    internal func setToRange( toRange : Double? )
+    /// - Parameters:
+    ///   - From: lower limit of the Range
+    ///   - To: upper limit of the Range
+    public func setRange(From lowerLimit:Double,To upperLimit:Double)
     {
-        self.toRange = toRange
+        self.fromRange = lowerLimit
+        self.toRange = upperLimit
     }
     
-    /// Returns the to range of ZCRMPriceBookPricing.
+    /// Returns the range of ZCRMPriceBookPricing.
     ///
-    /// - Returns: to range of ZCRMPriceBookPricing
-    public func getToRange() -> Double?
+    /// - Returns: Range of ZCRMPriceBookPricing
+    public func getRange() -> [String:Double?]
     {
-        return self.toRange
-    }
-    
-    /// Set from range of ZCRMPriceBookPricing.
-    ///
-    /// - Parameter fromRange: from range of ZCRMPriceBookPricing
-    internal func setFromRange( fromRange : Double? )
-    {
-        self.fromRange = fromRange
+        return ["From":fromRange,"To":toRange]
     }
     
     /// Returns the from range of ZCRMPriceBookPricing.
@@ -66,13 +61,23 @@ public class ZCRMPriceBookPricing
         return self.fromRange
     }
     
+    /// Returns the to range of ZCRMPriceBookPricing.
+    ///
+    /// - Returns: to range of ZCRMPriceBookPricing
+    public func getToRange() -> Double?
+    {
+        return self.toRange
+    }
+    
+    
     /// Set discount of the ZCRMPriceBookPricing.
     ///
     /// - Parameter discount: discount of the ZCRMPriceBookPricing
-    internal func setDiscount( discount : Double? )
+    public func setDiscount( discount : Double)
     {
         self.discount = discount
     }
+    
     
     /// Returns the discount of the ZCRMPriceBookPricing.
     ///

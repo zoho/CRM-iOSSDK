@@ -10,19 +10,48 @@ import Foundation
 
 let PhotoSupportedModules = ["Leads", "Contacts"]
 
-internal enum ZCRMSDKError : Error
-{
-    case InternalError( String )
-    case ResponseNil( String )
+
+internal enum ZCRMSDKError : Error {
+    case InternalError(String)
+    case ResponseNil(String)
+    
+    func getMessage() -> String {
+        
+        switch self {
+        case .InternalError(let errorString):
+            return errorString
+        case .ResponseNil(let errorString):
+            return errorString
+        }
+    }
+    
 }
 
-public enum ZCRMError : Error
-{
+public enum ZCRMError : Error {
     case UnAuthenticatedError(String)
     case InValidError(String)
     case MaxRecordCountExceeded(String)
     case FileSizeExceeded(String)
     case ProcessingError(String)
+    
+    func getMessage() -> String{
+        
+        switch self {
+        case .UnAuthenticatedError(let errorString):
+            return errorString
+        case .InValidError(let errorString):
+            return errorString
+        case .MaxRecordCountExceeded(let errorString):
+            return errorString
+        case .FileSizeExceeded(let errorString):
+            return errorString
+        case .ProcessingError(let errorString):
+            return errorString
+            
+        }
+        
+    }
+    
 }
 
 public enum SortOrder : String
@@ -508,7 +537,6 @@ let ACTION : String = "action"
 let DUPLICATE_FIELD : String = "duplicate_field"
 
 let MESSAGE : String = "message"
-let DATA : String = "data"
 let STATUS : String = "status"
 let CODE : String = "code"
 let CODE_ERROR : String = "error"
@@ -517,14 +545,6 @@ let INFO : String = "info"
 let DETAILS : String = "details"
 
 let MODULES : String = "modules"
-let USERS : String = "users"
-let ROLES : String = "roles"
-let PROFILES : String = "profiles"
-let LAYOUTS : String = "layouts"
-let FIELDS : String = "fields"
-let CUSTOM_VIEWS : String = "custom_views"
-let TAGS : String = "tags"
-
 let PRIVATE_FIELDS = "private_fields"
 let PER_PAGE : String = "per_page"
 let PAGE : String = "page"
@@ -534,4 +554,20 @@ let MORE_RECORDS : String = "more_records"
 let REMAINING_COUNT_FOR_THIS_DAY : String = "X-RATELIMIT-LIMIT"
 let REMAINING_COUNT_FOR_THIS_WINDOW : String = "X-RATELIMIT-REMAINING"
 let REMAINING_TIME_FOR_THIS_WINDOW_RESET : String = "X-RATELIMIT-RESET"
+
+
+struct JSONRootKey {
+    static let DATA : String = "data"
+    static let NILL : String = "NoRootKey" // used by FileAPIResponse
+    static let TAGS : String = "tags"
+    static let LAYOUTS : String = "layouts"
+    static let FIELDS : String = "fields"
+    static let CUSTOM_VIEWS : String = "custom_views"
+    static let RELATED_LISTS : String = "related_lists"
+    static let ORG : String = "org"
+    static let USERS : String = "users"
+    static let PROFILES : String = "profiles"
+    static let ROLES : String = "roles"
+    static let ANALYTICS : String = "Analytics"
+}
 

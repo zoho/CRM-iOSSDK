@@ -14,9 +14,9 @@ public class CommonAPIResponse
     internal var responseJSON : [String:Any] = [String:Any]()
     internal var httpStatusCode : HTTPStatusCode?
     internal var info : ResponseInfo?
-    internal var responseJSONRootKey : String?
+    internal var responseJSONRootKey = String()
     
-    init(response : HTTPURLResponse, responseData : Data?, responseJSONRootKey : String?) throws
+    init(response : HTTPURLResponse, responseData : Data?, responseJSONRootKey : String) throws
     {
         self.response = response
         self.httpStatusCode = HTTPStatusCode(rawValue: response.statusCode)!

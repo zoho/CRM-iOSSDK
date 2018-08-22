@@ -549,7 +549,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     
     internal override func getJSONRootKey() -> String
     {
-        return DATA
+        return JSONRootKey.DATA
     }
     
 }

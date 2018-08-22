@@ -16,7 +16,7 @@ internal class OrganizationAPIHandler : CommonAPIHandler
     
     internal func getOrganizationDetails( completion : @escaping( ZCRMOrganisation?, APIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : "org" )
+        setJSONRootKey( key : JSONRootKey.ORG )
 		setUrlPath(urlPath:  "/org" )
 		setRequestMethod(requestMethod: .GET)
         let request : APIRequest = APIRequest(handler: self )

@@ -40,7 +40,7 @@ internal class TagAPIHandler : CommonAPIHandler
         if let module = self.module
         {
             var tags : [ZCRMTag] = [ZCRMTag]()
-            setJSONRootKey(key: TAGS)
+            setJSONRootKey(key: JSONRootKey.TAGS)
             setUrlPath(urlPath: "/settings/tags")
             setRequestMethod(requestMethod: .GET)
             addRequestParam(param: "module", value: module.getAPIName())
@@ -84,7 +84,7 @@ internal class TagAPIHandler : CommonAPIHandler
                 completion( nil, ZCRMError.ProcessingError( "Tag ID MUST NOT be nil" ) )
             }
             let tagIdString : String = String(tag.getId()!)
-            setJSONRootKey(key: TAGS)
+            setJSONRootKey(key: JSONRootKey.TAGS)
             setUrlPath(urlPath: "/settings/tags/\(tagIdString)/actions/records_count")
             setRequestMethod(requestMethod: .GET)
             addRequestParam(param: "module", value: module.getAPIName())
@@ -115,7 +115,7 @@ internal class TagAPIHandler : CommonAPIHandler
     {
         if let module = module
         {
-            setJSONRootKey(key: TAGS)
+            setJSONRootKey(key: JSONRootKey.TAGS)
             var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
             var dataArray : [[String:Any]] = [[String:Any]]()
             for tag in tags
@@ -185,7 +185,7 @@ internal class TagAPIHandler : CommonAPIHandler
                 var conflictTagJSON : [String:Any] = self.getZCRMTagAsJSON(tag: withTag) as Any as! [String:Any]
                 var conflictIdJSON : [String:Any] = [String:Any]()
                 conflictIdJSON["conflict_id"] = conflictTagJSON["id"]
-                setJSONRootKey(key: TAGS)
+                setJSONRootKey(key: JSONRootKey.TAGS)
                 var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
                 var dataArray : [[String:Any]] = [[String:Any]]()
                 dataArray.append(conflictIdJSON)
@@ -231,7 +231,7 @@ internal class TagAPIHandler : CommonAPIHandler
             }
             else
             {
-                setJSONRootKey(key: TAGS)
+                setJSONRootKey(key: JSONRootKey.TAGS)
                 let tagId : String = String( tag.getId()! )
                 var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
                 var dataArray : [[String:Any]] = [[String:Any]]()
@@ -276,7 +276,7 @@ internal class TagAPIHandler : CommonAPIHandler
     {
         if let module = self.module
         {
-            setJSONRootKey(key: TAGS)
+            setJSONRootKey(key: JSONRootKey.TAGS)
             var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
             var dataArray : [[String:Any]] = [[String:Any]]()
             for tag in tags

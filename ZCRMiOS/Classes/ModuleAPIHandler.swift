@@ -19,7 +19,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
 	
     internal func getAllLayouts( modifiedSince : String?, completion: @escaping( [ ZCRMLayout ]?, BulkAPIResponse?, Error? ) -> () )
     {
-		setJSONRootKey( key : LAYOUTS )
+		setJSONRootKey( key : JSONRootKey.LAYOUTS )
 		setUrlPath(urlPath: "/settings/layouts")
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param: "module" , value: self.module.getAPIName())
@@ -51,7 +51,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
     
     internal func getLayout( layoutId : Int64, completion: @escaping( ZCRMLayout?, APIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : LAYOUTS )
+        setJSONRootKey( key : JSONRootKey.LAYOUTS )
 		setUrlPath(urlPath:  "/settings/layouts/\(layoutId)")
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param: "module" , value: self.module.getAPIName())
@@ -76,7 +76,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
     
     internal func getAllFields( modifiedSince : String?, completion: @escaping( [ ZCRMField ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : FIELDS )
+        setJSONRootKey( key : JSONRootKey.FIELDS )
 		setUrlPath(urlPath: "/settings/fields")
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param: "module" , value: self.module.getAPIName())
@@ -108,7 +108,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
     
     internal func getField( fieldId : Int64, completion: @escaping( ZCRMField?, APIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : FIELDS )
+        setJSONRootKey( key : JSONRootKey.FIELDS )
         setUrlPath( urlPath : "/settings/fields/\( fieldId )" )
         setRequestMethod( requestMethod : .GET )
         addRequestParam( param : "module", value : self.module.getAPIName() )
@@ -133,7 +133,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
 
     internal func getAllCustomViews( modifiedSince : String?, completion: @escaping( [ ZCRMCustomView ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : CUSTOM_VIEWS )
+        setJSONRootKey( key : JSONRootKey.CUSTOM_VIEWS )
 		setUrlPath(urlPath: "/settings/custom_views")
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param: "module" , value: self.module.getAPIName())
@@ -167,7 +167,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
     
     internal func getRelatedList( id : Int64, completion: @escaping( ZCRMModuleRelation?, APIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : "related_lists" )
+        setJSONRootKey( key : JSONRootKey.RELATED_LISTS )
         setUrlPath( urlPath : "settings/related_lists/\(id)" )
         setRequestMethod( requestMethod : .GET )
         addRequestParam( param : "module", value : self.module.getAPIName() )
@@ -191,7 +191,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
     
     internal func getAllRelatedLists( completion: @escaping( [ ZCRMModuleRelation ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : "related_lists" )
+        setJSONRootKey( key : JSONRootKey.RELATED_LISTS )
         setUrlPath( urlPath : "settings/related_lists" )
         setRequestMethod( requestMethod : .GET )
         addRequestParam( param : "module", value : self.module.getAPIName() )
@@ -225,7 +225,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
     
     internal func getCustomView( cvId : Int64, completion: @escaping( ZCRMCustomView?, APIResponse?, Error? ) -> () )
     {
-        setJSONRootKey( key : CUSTOM_VIEWS )
+        setJSONRootKey( key :  JSONRootKey.CUSTOM_VIEWS )
 		setUrlPath(urlPath: "/settings/custom_views/\(cvId)" )
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param: "module" , value: self.module.getAPIName() )
