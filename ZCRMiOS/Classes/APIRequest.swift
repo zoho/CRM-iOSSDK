@@ -112,7 +112,8 @@ internal class APIRequest
                 }
                 if let oAuthtoken = token, token.notNilandEmpty
                 {
-                    self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( oAuthtoken )" )
+                    self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( oAuthtoken )")
+                    completion( nil )
                 }
                 else
                 {
