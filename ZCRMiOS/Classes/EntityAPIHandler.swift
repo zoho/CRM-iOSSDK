@@ -224,6 +224,32 @@ internal class EntityAPIHandler : CommonAPIHandler
             completion( response, error )
         }
     }
+    
+    internal func follow( completion : @escaping( APIResponse?, Error? ) -> () )
+    {
+        setJSONRootKey( key : JSONRootKey.DATA )
+        setUrlPath( urlPath : "/\(self.record.getModuleAPIName())/\(self.record.getId())/actions/follow" )
+        setRequestMethod( requestMethod : .PUT )
+        let request : APIRequest = APIRequest( handler : self )
+        print( "Request : \( request.toString() )" )
+        
+        request.getAPIResponse { ( response, error ) in
+            completion( response, error )
+        }
+    }
+    
+    internal func unfollow( completion : @escaping( APIResponse?, Error? ) -> () )
+    {
+        setJSONRootKey( key : JSONRootKey.DATA )
+        setUrlPath( urlPath : "/\(self.record.getModuleAPIName())/\(self.record.getId())/actions/follow" )
+        setRequestMethod( requestMethod : .DELETE )
+        let request : APIRequest = APIRequest( handler : self )
+        print( "Request : \( request.toString() )" )
+        
+        request.getAPIResponse { ( response, error ) in
+            completion( response, error )
+        }
+    }
 	
 	// MARK: - Utility Functions
 	
@@ -586,7 +612,21 @@ internal class EntityAPIHandler : CommonAPIHandler
             {
                 var propertyName : String = fieldAPIName
                 propertyName.remove(at: propertyName.startIndex)
-                self.record.setValue(ofProperty: propertyName, value: value)
+                if propertyName == "followers"
+                {
+                    var users : [ ZCRMUser ] = [ ZCRMUser ]()
+                    let userDetails : [ [ String : Any ] ] = value as! [ [ String : Any ] ]
+                    for userDetail in userDetails
+                    {
+                        let user : ZCRMUser = ZCRMUser( userId : userDetail.getInt64( key : "id" ), userFullName : userDetail.getString( key : "name") )
+                        users.append( user )
+                    }
+                    self.record.setValue( ofProperty : propertyName, value : users )
+                }
+                else
+                {
+                    self.record.setValue(ofProperty: propertyName, value: value)
+                }
             }
             else if( "Remind_At" == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) )
             {
