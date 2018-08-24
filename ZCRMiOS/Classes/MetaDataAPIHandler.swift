@@ -62,6 +62,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
                 completion( module, response, nil )
             }
         }
+        
 	}
 	
 	internal func getZCRMModule(moduleDetails : [String:Any]) -> ZCRMModule
@@ -144,6 +145,13 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         {
             module.setCustomView(customView: ModuleAPIHandler(module: module).getZCRMCustomView(cvDetails: moduleDetails.getDictionary(key: "custom_view")))
         }
+        module.setIsGlobalSearchSupported( isSupport : moduleDetails.optBoolean(key: "global_search_supported"))
+        module.setIsKanbanView(isKanbanView: moduleDetails.optBoolean(key: "kanban_view"))
+        module.setFilterStatus(filterStatus: moduleDetails.optBoolean(key: "filter_status"))
+        module.setIsSubMenuPresent(isSubMenuPresent: moduleDetails.optBoolean(key: "presence_sub_menu"))
+        module.setPerPage(perPage: moduleDetails.optInt(key: "per_page"))
+        module.setIsFilterSupported(isFilterSupported: moduleDetails.optBoolean(key: "filter_supported"))
+        module.setIsFeedsRequired(isFeedsRequired: moduleDetails.optBoolean(key: "feeds_required"))
         return module
 	}
 	
@@ -159,5 +167,4 @@ internal class MetaDataAPIHandler : CommonAPIHandler
     internal override func getJSONRootKey() -> String {
         return MODULES
     }
-	
 }

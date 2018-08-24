@@ -260,6 +260,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
         customView.setDisplayFields(fieldsAPINames: cvDetails.optArray(key: "fields") as? [String])
         customView.setSortByCol(fieldAPIName: cvDetails.optString(key: "sort_by"))
         customView.setSortOrder(sortOrder: cvDetails.optString(key: "sort_order"))
+        customView.setIsOffline(isOffline: cvDetails.optBoolean(key: "offline"))
+        customView.setIsSystemDefined(isSystemDefined: cvDetails.optBoolean(key: "system_defined"))
         return customView
     }
     
@@ -447,6 +449,49 @@ internal class ModuleAPIHandler : CommonAPIHandler
         moduleRelation.setType( type : relationListDetails.optString( key : "type" ) )
         return moduleRelation
     }
-	
+    
+    internal func getStages( completion: @escaping( [ ZCRMStage ]?, BulkAPIResponse?, Error? ) -> () )
+    {
+        var stages : [ ZCRMStage ] = [ ZCRMStage ]()
+        setJSONRootKey( key : JSONRootKey.STAGES )
+        setUrlPath(urlPath: "/settings/stages")
+        setRequestMethod(requestMethod: .GET)
+        addRequestParam(param: "module", value: self.module.getAPIName())
+        let request : APIRequest = APIRequest( handler: self )
+        print( "Request : \( request.toString() )" )
+        
+        request.getBulkAPIResponse { ( response, err ) in
+            if let error = err
+            {
+                completion( nil, nil, error )
+            }
+            if let bulkResponse = response
+            {
+                let responseJSON = bulkResponse.getResponseJSON()
+                if responseJSON.isEmpty == false
+                {
+                    let stagesList:[[String:Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                    for stageList in stagesList
+                    {
+                        stages.append( self.getZCRMStage( stageDetails : stageList ) )
+                    }
+                    bulkResponse.setData( data : stages )
+                    completion( stages, bulkResponse, nil )
+                }
+            }
+        }
+    }
+    
+    internal func getZCRMStage( stageDetails : [ String : Any ] ) -> ZCRMStage
+    {
+        let stage : ZCRMStage = ZCRMStage( stageId : stageDetails.getInt64( key : "id" ) )
+        stage.setName(name: stageDetails.optString(key: "name"))
+        stage.setDisplayLabel(displayLabel: stageDetails.optString(key: "display_label"))
+        stage.setProbability(probability: stageDetails.optInt(key: "probability"))
+        stage.setForecastCategory(forecastCategory: stageDetails.optDictionary(key: "forecast_category"))
+        stage.setForecastType(forecastType: stageDetails.optString(key: "forecast_type"))
+        return stage
+    }
+    
 }
 

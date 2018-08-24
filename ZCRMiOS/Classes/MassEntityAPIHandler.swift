@@ -70,7 +70,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
     }
 	
-    internal func getRecords(cvId : Int64? ,fields : [String]? ,  sortByField : String? , sortOrder : SortOrder? , converted : Bool? , approved : Bool? , page : Int , per_page : Int , modifiedSince : String?, includePrivateFields : Bool, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    internal func getRecords(cvId : Int64? ,fields : [String]? ,  sortByField : String? , sortOrder : SortOrder? , converted : Bool? , approved : Bool? , page : Int , per_page : Int , modifiedSince : String?, includePrivateFields : Bool, kanbanView : String?, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
 	{
         setJSONRootKey( key : JSONRootKey.DATA )
 		var records : [ZCRMRecord] = [ZCRMRecord]()
@@ -120,6 +120,10 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         if( includePrivateFields == true )
         {
             addRequestParam( param : "include", value : PRIVATE_FIELDS )
+        }
+        if( kanbanView.notNilandEmpty )
+        {
+            addRequestParam( param : "kanban_view", value : kanbanView! )
         }
 		addRequestParam(param: "page" , value: String(page) )
 		addRequestParam(param: "per_page" , value: String(per_page) )
