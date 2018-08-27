@@ -333,6 +333,7 @@ internal class TagAPIHandler : CommonAPIHandler
     
     internal func delete( tagId : Int64, completion : @escaping( APIResponse?, Error? ) -> () )
     {
+        setJSONRootKey(key: JSONRootKey.TAGS)
         let idString = String(tagId)
         setUrlPath(urlPath: "/settings/tags/\(idString)" )
         setRequestMethod(requestMethod: .DELETE )
