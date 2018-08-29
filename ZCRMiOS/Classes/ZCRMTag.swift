@@ -120,7 +120,7 @@ public class ZCRMTag : ZCRMEntity
     {
         if ( self.getId() == nil )
         {
-            completion( nil, ZCRMError.ProcessingError( "Tag ID must not be nil for delete operation." ) )
+            completion( nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Tag ID must not be nil for delete operation." ) )
         }
         else
         {

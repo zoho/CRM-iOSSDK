@@ -18,9 +18,7 @@ public class ZCRMModuleRelation : ZCRMEntity
     private var name : String?
     private var type : String?
     private var module : String?
-    
-//    private var parentRecord : ZCRMRecord?
-//    private var junctionRecord : ZCRMJunctionRecord?
+
     
     /// Initialize the instance of a ZCRMModuleRelation with the given module and related list
     ///
@@ -391,7 +389,7 @@ public class ZCRMModuleRelation : ZCRMEntity
         }
         catch
         {
-            completion( nil, nil, ZCRMError.ProcessingError( error.localizedDescription ) )
+            completion( nil, nil, error )
         }
     }
     

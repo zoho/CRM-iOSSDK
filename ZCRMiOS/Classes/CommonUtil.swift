@@ -11,47 +11,74 @@ import Foundation
 let PhotoSupportedModules = ["Leads", "Contacts"]
 
 
-internal enum ZCRMSDKError : Error {
-    case InternalError(String)
-    case ResponseNil(String)
+public enum ZCRMSDKError : Error
+{
+    case InternalError( code : String, message : String )
+    case ResponseNil( code : String, message : String )
     
-    func getMessage() -> String {
-        
-        switch self {
-        case .InternalError(let errorString):
-            return errorString
-        case .ResponseNil(let errorString):
-            return errorString
+    var details : ( code : String, description : String )
+    {
+        switch self
+        {
+            case .InternalError( let code, let desc ):
+                return ( code, desc )
+            case .ResponseNil( let code, let desc ):
+                return ( code, desc )
         }
     }
     
+//    func getMessage() -> String {
+//
+//        switch self {
+//        case .InternalError(let errorString):
+//            return errorString
+//        case .ResponseNil(let errorString):
+//            return errorString
+//        }
+//    }
 }
 
-public enum ZCRMError : Error {
-    case UnAuthenticatedError(String)
-    case InValidError(String)
-    case MaxRecordCountExceeded(String)
-    case FileSizeExceeded(String)
-    case ProcessingError(String)
+public enum ZCRMError : Error
+{
+    case UnAuthenticatedError( code : String, message : String )
+    case InValidError( code : String, message : String )
+    case MaxRecordCountExceeded( code : String, message : String )
+    case FileSizeExceeded( code : String, message : String )
+    case ProcessingError( code : String, message : String )
     
-    func getMessage() -> String{
-        
-        switch self {
-        case .UnAuthenticatedError(let errorString):
-            return errorString
-        case .InValidError(let errorString):
-            return errorString
-        case .MaxRecordCountExceeded(let errorString):
-            return errorString
-        case .FileSizeExceeded(let errorString):
-            return errorString
-        case .ProcessingError(let errorString):
-            return errorString
-            
+    var details : ( code : String, description : String )
+    {
+        switch self
+        {
+            case .UnAuthenticatedError( let code, let desc ):
+                return ( code, desc )
+            case .InValidError( let code, let desc ):
+                return ( code, desc )
+            case .MaxRecordCountExceeded( let code, let desc ):
+                return ( code, desc )
+            case .FileSizeExceeded( let code, let desc ):
+                return ( code, desc )
+            case .ProcessingError( let code, let desc ):
+                return ( code, desc )
         }
-        
     }
     
+//    func getMessage() -> String
+//    {
+//        switch self
+//        {
+//        case .UnAuthenticatedError(let errorString):
+//            return errorString
+//        case .InValidError(let errorString):
+//            return errorString
+//        case .MaxRecordCountExceeded(let errorString):
+//            return errorString
+//        case .FileSizeExceeded(let errorString):
+//            return errorString
+//        case .ProcessingError(let errorString):
+//            return errorString
+//        }
+//    }
 }
 
 public enum SortOrder : String
@@ -483,11 +510,11 @@ public func fileDetailCheck( filePath : String ) throws
 {
     if ( FileManager.default.fileExists( atPath : filePath )  == false )
     {
-        throw ZCRMError.InValidError( "File not found at given path : \( filePath )" )
+        throw ZCRMError.InValidError( code : MANDATORY_NOT_FOUND, message : "File not found at given path : \( filePath )" )
     }
     if ( getFileSize( filePath : filePath ) > 2097152 )
     {
-        throw ZCRMError.FileSizeExceeded( "Cannot upload. File size should not exceed to 20MB" )
+        throw ZCRMError.FileSizeExceeded( code : FILE_SIZE_EXCEEDED, message : "Cannot upload. File size should not exceed to 20MB" )
     }
 }
 
@@ -532,6 +559,13 @@ let PURCHASEORDERS : String = "PurchaseOrders"
 let INVALID_ID_MSG : String = "The given id seems to be invalid."
 let INVALID_DATA : String = "INVALID_DATA"
 let API_MAX_RECORDS_MSG : String = "Cannot process more than 100 records at a time."
+let INTERNAL_ERROR : String = "INTERNAL_ERROR"
+let RESPONSE_NIL : String = "RESPONSE_NIL"
+let MANDATORY_NOT_FOUND : String = "MANDATORY_NOT_FOUND"
+let RESPONSE_ROOT_KEY_NIL : String = "RESPONSE_ROOT_KEY_NIL"
+let FILE_SIZE_EXCEEDED : String = "FILE_SIZE_EXCEEDED"
+let MAX_COUNT_EXCEEDED : String = "MAX_COUNT_EXCEEDED"
+let FIELD_NOT_FOUND : String = "FIELD_NOT_FOUND"
 
 let ACTION : String = "action"
 let DUPLICATE_FIELD : String = "duplicate_field"

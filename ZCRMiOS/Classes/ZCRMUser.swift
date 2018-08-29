@@ -424,7 +424,7 @@ public class ZCRMUser : ZCRMEntity
         }
         else
         {
-            throw ZCRMError.ProcessingError( "The given field is not present in this user - \( fieldAPIName )" )
+            throw ZCRMError.ProcessingError( code : FIELD_NOT_FOUND, message : "The given field is not present in this user - \( fieldAPIName )" )
         }
     }
     

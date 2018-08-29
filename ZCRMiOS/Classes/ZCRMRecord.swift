@@ -226,7 +226,7 @@ public class ZCRMRecord : ZCRMEntity
         }
         else
         {
-            throw ZCRMError.ProcessingError("The given field is not present in the record.")
+            throw ZCRMError.ProcessingError( code : FIELD_NOT_FOUND, message : "The given field is not present in the record.")
         }
     }
     
@@ -307,7 +307,7 @@ public class ZCRMRecord : ZCRMEntity
     {
         if( self.id != nil )
         {
-            completion( nil, nil, ZCRMError.ProcessingError("Entity ID MUST be null for create operation.") )
+            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Entity ID MUST be null for create operation.") )
         }
         else
         {
@@ -325,7 +325,7 @@ public class ZCRMRecord : ZCRMEntity
     {
         if(self.id == nil)
         {
-            completion( nil, nil, ZCRMError.ProcessingError("Entity ID MUST NOT be null for update operation.") )
+            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Entity ID MUST NOT be null for update operation.") )
         }
         else
         {
@@ -343,7 +343,7 @@ public class ZCRMRecord : ZCRMEntity
     {
         if(self.id == nil)
         {
-            completion( nil, ZCRMError.ProcessingError("Entity ID MUST NOT be null for delete operation.") )
+            completion( nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Entity ID MUST NOT be null for delete operation.") )
         }
         else
         {
@@ -361,7 +361,7 @@ public class ZCRMRecord : ZCRMEntity
     {
         if(self.moduleAPIName != "Leads")
         {
-            completion( nil, ZCRMError.ProcessingError("This module does not support convert operation"))
+            completion( nil, ZCRMError.ProcessingError( code : "INVALID_MODULE", message : "This module does not support convert operation"))
         }
         else
         {
@@ -380,7 +380,7 @@ public class ZCRMRecord : ZCRMEntity
     {
         if(self.moduleAPIName != "Leads")
         {
-            completion( nil, ZCRMError.ProcessingError("This module does not support convert operation"))
+            completion( nil, ZCRMError.ProcessingError( code : "INVALID_MODULE", message : "This module does not support convert operation"))
         }
         else
         {
@@ -401,7 +401,7 @@ public class ZCRMRecord : ZCRMEntity
     {
         if(self.moduleAPIName != "Leads")
         {
-            completion( nil, ZCRMError.ProcessingError("This module does not support convert operation"))
+            completion( nil, ZCRMError.ProcessingError( code : "INVALID_MODULE", message : "This module does not support convert operation"))
         }
         else
         {
@@ -508,7 +508,7 @@ public class ZCRMRecord : ZCRMEntity
     {
         if( note.getId() != nil )
         {
-            completion( nil, nil, ZCRMError.ProcessingError( "Note ID must be nil for create operation." ) )
+            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Note ID must be nil for create operation." ) )
         }
         else
         {
@@ -527,7 +527,7 @@ public class ZCRMRecord : ZCRMEntity
     {
         if( note.getId() == nil )
         {
-            completion( nil, nil, ZCRMError.ProcessingError( "Note ID must not be nil for update operation." ) )
+            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Note ID must not be nil for update operation." ) )
         }
         else
         {

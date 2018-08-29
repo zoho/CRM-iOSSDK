@@ -95,7 +95,7 @@ internal class APIRequest
                 else
                 {
                     print( "oAuthtoken is nil." )
-                    completion( ZCRMSDKError.ResponseNil( "oauthtoken is empty" ) )
+                    completion( ZCRMSDKError.ResponseNil( code: RESPONSE_NIL, message: "oauthtoken is empty" ) )
                 }
             }
         }
@@ -118,7 +118,7 @@ internal class APIRequest
                 else
                 {
                     print( "oAuthtoken is empty." )
-                    completion( ZCRMSDKError.ResponseNil( "oauthtoken is empty" ) )
+                    completion( ZCRMSDKError.ResponseNil( code: RESPONSE_NIL, message: "oauthtoken is empty" ) )
                 }
             }
         }
@@ -165,12 +165,12 @@ internal class APIRequest
                             }
                             else
                             {
-                                completion(ZCRMSDKError.InternalError("Unable to construct URL"))
+                                completion(ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : "Unable to construct URL"))
                             }
                         }
                         else
                         {
-                            completion(ZCRMSDKError.InternalError("Adding percent encoding error occured"))
+                            completion(ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : "Adding percent encoding error occured" ))
                         }
                     }
                     else
@@ -227,7 +227,7 @@ internal class APIRequest
                     }
                     else
                     {
-                        completion( nil, ZCRMSDKError.ResponseNil( "Response is nil" ) )
+                        completion( nil, ZCRMSDKError.ResponseNil( code: RESPONSE_NIL, message: "Response is nil" ) )
                     }
                 }
             }
@@ -262,7 +262,7 @@ internal class APIRequest
                     }
                     else
                     {
-                        completion( nil, ZCRMSDKError.ResponseNil( "Response is nil" ) )
+                        completion( nil, ZCRMSDKError.ResponseNil( code: RESPONSE_NIL, message: "Response is nil" ) )
                     }
                 }
             }
@@ -292,7 +292,7 @@ internal class APIRequest
             }
             else
             {
-                completion( nil, ZCRMSDKError.ResponseNil( "Response is nil" ) )
+                completion( nil, ZCRMSDKError.ResponseNil( code: RESPONSE_NIL, message: "Response is nil" ) )
             }
         }
     }
@@ -321,7 +321,7 @@ internal class APIRequest
             }
             else
             {
-                completion( nil, ZCRMSDKError.ResponseNil( "Response is nil" ) )
+                completion( nil, ZCRMSDKError.ResponseNil( code: RESPONSE_NIL, message: "Response is nil" ) )
             }
         }
     }
@@ -337,7 +337,7 @@ internal class APIRequest
                 guard err == nil else
                 {
                     error = err
-                    completion( nil, nil, ZCRMError.ProcessingError( error!.localizedDescription ) )
+                    completion( nil, nil, ZCRMError.ProcessingError( code: String( error!.code ), message: error!.localizedDescription ) )
                     return
                 }
                 if let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse
@@ -346,14 +346,14 @@ internal class APIRequest
                 }
                 else
                 {
-                    completion( nil, nil, ZCRMSDKError.ResponseNil( "Response is nil" ) )
+                    completion( nil, nil, ZCRMSDKError.ResponseNil( code: RESPONSE_NIL, message: "Response is nil" ) )
                     return
                 }
             }).resume()
         }
         else
         {
-            completion( nil, nil, ZCRMSDKError.ResponseNil( "Request is nil" ) )
+            completion( nil, nil, ZCRMSDKError.ResponseNil( code: RESPONSE_NIL, message: "Request is nil" ) )
         }
     }
     
@@ -410,7 +410,7 @@ internal class APIRequest
                     guard err == nil else
                     {
                         error = err
-                        completion( nil, ZCRMError.ProcessingError( error!.localizedDescription ) )
+                        completion( nil, ZCRMError.ProcessingError( code: String( error!.code ), message: error!.localizedDescription ) )
                         return
                     }
                     if let fileResponse = response as? HTTPURLResponse, let localUrl = tempLocalUrl
@@ -427,7 +427,7 @@ internal class APIRequest
                     }
                     else
                     {
-                        completion( nil, ZCRMSDKError.ResponseNil( "Response is nil" ) )
+                        completion( nil, ZCRMSDKError.ResponseNil( code: RESPONSE_NIL, message: "Response is nil" ) )
                     }
                 }).resume()
             }

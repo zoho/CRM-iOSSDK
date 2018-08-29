@@ -23,7 +23,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.DATA )
         if(records.count > 100)
         {
-            completion( nil, nil, ZCRMError.MaxRecordCountExceeded( "Cannot process more than 100 records at a time." ) )
+            completion( nil, nil, ZCRMError.MaxRecordCountExceeded( code : MAX_COUNT_EXCEEDED, message : "Cannot process more than 100 records at a time." ) )
         }
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         var dataArray : [[String:Any]] = [[String:Any]]()
@@ -220,7 +220,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.DATA )
         if(ids.count > 100)
         {
-            completion( nil, nil, ZCRMError.MaxRecordCountExceeded("Cannot process more than 100 records at a time.") )
+            completion( nil, nil, ZCRMError.MaxRecordCountExceeded( code : MAX_COUNT_EXCEEDED, message : "Cannot process more than 100 records at a time.") )
         }
 		var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
 		var dataArray : [[String:Any]] = [[String:Any]]()
@@ -276,7 +276,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.DATA )
         if ( records.count > 100 )
         {
-            completion( nil, nil, ZCRMError.MaxRecordCountExceeded( "Cannot process more than 100 records at a time." ) )
+            completion( nil, nil, ZCRMError.MaxRecordCountExceeded( code : MAX_COUNT_EXCEEDED, message : "Cannot process more than 100 records at a time." ) )
         }
         var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
         var dataArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
@@ -328,7 +328,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     {
         if(ids.count > 100)
         {
-            completion( nil, ZCRMError.MaxRecordCountExceeded("Cannot process more than 100 records at a time.") )
+            completion( nil, ZCRMError.MaxRecordCountExceeded( code : MAX_COUNT_EXCEEDED, message : "Cannot process more than 100 records at a time.") )
         }
         var idsStr : String = "\(ids)"
         idsStr = idsStr.replacingOccurrences(of: " ", with: "")
