@@ -415,6 +415,9 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         {
             attachment.setOwner( owner : createdBy! )
         }
+        attachment.setIsEditable( isEditable : attachmentDetails.optBoolean( key : "$editable" ) )
+        attachment.setType( type : attachmentDetails.optString( key : "$type" ) )
+        attachment.setLinkURL( linkURL : attachmentDetails.optString( key : "$link_url" ) )
 		return attachment
 	}
 	
