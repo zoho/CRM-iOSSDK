@@ -464,20 +464,23 @@ internal class ModuleAPIHandler : CommonAPIHandler
             if let error = err
             {
                 completion( nil, nil, error )
+                return
             }
-            if let bulkResponse = response
+            guard let bulkResponse = response else
             {
-                let responseJSON = bulkResponse.getResponseJSON()
-                if responseJSON.isEmpty == false
+                completion( nil, nil, ZCRMSDKError.ResponseNil("Response is nil") )
+                return
+            }
+            let responseJSON = bulkResponse.getResponseJSON()
+            if responseJSON.isEmpty == false
+            {
+                let stagesList:[[String:Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                for stageList in stagesList
                 {
-                    let stagesList:[[String:Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
-                    for stageList in stagesList
-                    {
-                        stages.append( self.getZCRMStage( stageDetails : stageList ) )
-                    }
-                    bulkResponse.setData( data : stages )
-                    completion( stages, bulkResponse, nil )
+                    stages.append( self.getZCRMStage( stageDetails : stageList ) )
                 }
+                bulkResponse.setData( data : stages )
+                completion( stages, bulkResponse, nil )
             }
         }
     }

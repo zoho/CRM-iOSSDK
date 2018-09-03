@@ -369,7 +369,7 @@ internal class TagAPIHandler : CommonAPIHandler
             tag.setModifiedBy(modifiedBy : modifiedBy)
             tag.setModifiedTime(modifiedTime : tagDetails.getString(key: "modified_time"))
         }
-x        return tag
+        return tag
     }
     
     internal func getZCRMTagAsJSON( tag : ZCRMTag ) -> [String : Any?]
