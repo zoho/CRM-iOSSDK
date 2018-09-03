@@ -75,13 +75,13 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getRecordCount( completion : @escaping( Int64?, Error? ) -> () )
+    internal func getRecordCount( completion : @escaping( Int64?, APIResponse?, Error? ) -> () )
     {
         if let tag = self.tag, let module = self.module
         {
             if tag.getId() == nil
             {
-                completion( nil, ZCRMError.ProcessingError( "Tag ID MUST NOT be nil" ) )
+                completion( nil, nil, ZCRMError.ProcessingError( "Tag ID MUST NOT be nil" ) )
             }
             let tagIdString : String = String(tag.getId()!)
             setJSONRootKey(key: JSONRootKey.TAGS)
@@ -91,23 +91,23 @@ internal class TagAPIHandler : CommonAPIHandler
             
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \(request.toString())" )
-        
+            
             request.getAPIResponse { ( resp, error ) in
                 if let err = error
                 {
-                    completion( nil, err )
+                    completion( nil, resp, err )
                 }
                 if let response = resp
                 {
                     let responseJSON = response.getResponseJSON()
                     let count = Int64( responseJSON.getString( key : "count" ) )
-                    completion( count, nil )
+                    completion( count, response, nil )
                 }
             }
         }
         else
         {
-            completion( nil, ZCRMError.ProcessingError( "Module and Tag MUST NOT be nil" ) )
+            completion( nil, nil, ZCRMError.ProcessingError( "Module and Tag MUST NOT be nil" ) )
         }
     }
     
@@ -229,7 +229,7 @@ internal class TagAPIHandler : CommonAPIHandler
             {
                 completion( nil, nil, ZCRMError.ProcessingError( "Tag ID MUST NOT be nil" ) )
             }
-
+                
             else
             {
                 setJSONRootKey(key: JSONRootKey.TAGS)

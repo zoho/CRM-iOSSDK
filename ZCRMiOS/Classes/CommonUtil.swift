@@ -28,6 +28,8 @@ internal enum ZCRMSDKError : Error {
 }
 
 public enum ZCRMError : Error {
+    
+    case SDKError(String)
     case UnAuthenticatedError(String)
     case InValidError(String)
     case MaxRecordCountExceeded(String)
@@ -37,6 +39,9 @@ public enum ZCRMError : Error {
     func getMessage() -> String{
         
         switch self {
+        
+        case .SDKError(let errorString):
+            return errorString
         case .UnAuthenticatedError(let errorString):
             return errorString
         case .InValidError(let errorString):
@@ -118,50 +123,46 @@ internal extension Dictionary
     
     func optString(key : Key) -> String?
     {
-        return optValue(key: key) as! String?
+        return optValue(key: key) as? String
     }
     
     func optInt(key : Key) -> Int?
     {
-        return optValue(key: key) as! Int?
+        return optValue(key: key) as? Int
     }
     
     func optInt64(key : Key) -> Int64?
     {
-        let str = optValue(key: key) as! String?
-        if(str != nil)
-        {
-            return Int64(str!)
-        }
-        else
-        {
+        guard let stringID = optValue(key: key) as? String else {
             return nil
         }
+        
+        return Int64(stringID)
     }
     
     func optDouble(key : Key) -> Double?
     {
-        return optValue(key: key) as! Double?
+        return optValue(key: key) as? Double
     }
     
     func optBoolean(key : Key) -> Bool?
     {
-        return optValue(key: key) as! Bool?
+        return optValue(key: key) as? Bool
     }
     
     func optDictionary(key : Key) -> Dictionary<String, Any>?
     {
-        return optValue(key: key) as! Dictionary<String, Any>?
+        return optValue(key: key) as? Dictionary<String, Any>
     }
     
     func optArray(key : Key) -> Array<Any>?
     {
-        return optValue(key: key) as! Array<Any>?
+        return optValue(key: key) as? Array<Any>
     }
     
     func optArrayOfDictionaries( key : Key ) -> Array< Dictionary < String, Any > >?
     {
-        return ( optValue( key : key ) as! Array< Dictionary < String, Any > >? )
+        return ( optValue( key : key ) as? Array< Dictionary < String, Any > > )
     }
     
     func getInt( key : Key ) -> Int
@@ -210,22 +211,22 @@ internal extension Dictionary
         let jsonString = String(data: jsonData!, encoding: String.Encoding.ascii)
         return jsonString!
     }
-	
-	func equateKeys( dictionary : [ String : Any ] ) -> Bool
-	{
-		let dictKeys = dictionary.keys
-		var isEqual : Bool = true
-		for key in self.keys
-		{
-			if dictKeys.index(of: key as! String) == nil
-			{
-				isEqual = false
-			}
-		}
-		return isEqual
-	}
-	
-	
+    
+    func equateKeys( dictionary : [ String : Any ] ) -> Bool
+    {
+        let dictKeys = dictionary.keys
+        var isEqual : Bool = true
+        for key in self.keys
+        {
+            if dictKeys.index(of: key as! String) == nil
+            {
+                isEqual = false
+            }
+        }
+        return isEqual
+    }
+    
+    
 }
 
 public extension Array
@@ -241,7 +242,7 @@ public extension Array
         let dup = stringArray.joined(separator: "-")
         return dup
     }
-	
+    
 }
 
 public extension String
@@ -296,7 +297,7 @@ public extension String
         let date : Date = Formatter.iso8601.date( from : self )!
         return date.millisecondsSince1970
     }
-	
+    
     func convertToDictionary() -> [String: String]? {
         let data = self.data(using: .utf8)
         let anyResult = try? JSONSerialization.jsonObject(with: data!, options: .mutableContainers)
@@ -429,17 +430,17 @@ public extension Date
     }
 }
 
-internal extension Optional where Wrapped == String 
+internal extension Optional where Wrapped == String
 {
-	var notNilandEmpty : Bool
-	{
-		if(self != nil && !(self?.isEmpty)!)
-		{
-			return true
-		}
-		
-		return false ;
-	}
+    var notNilandEmpty : Bool
+    {
+        if(self != nil && !(self?.isEmpty)!)
+        {
+            return true
+        }
+        
+        return false ;
+    }
 }
 
 public func getCurrentMillisecSince1970() -> Double
@@ -571,3 +572,69 @@ struct JSONRootKey {
     static let ANALYTICS : String = "Analytics"
 }
 
+
+
+
+//MARK:- RESULT TYPES
+//MARK:  Error Type (ZCRMError) is common to every Result Type
+//MARK:  Result types can be handled in 2 ways:
+//MARK:  1) Handle Result Types either by calling Resolve()
+//MARK:  2) on them or use the traditional switch case pattern to handle success and failure seperately
+
+struct Result {
+    
+    //MARK: DATA RESPONSE RESULT TYPE (Data,Response,Error)
+    //MARK: This either gives (DATA,RESPONSE) as TUPLE OR (ERROR) but NOT BOTH AT THE SAME TIME
+    //MARK: Data -> Any ZCRMInstance
+    //MARK: Response -> (FileAPIResponse,APIResponse,BulkAPIResponse)->>> (Any Class inhering from CommonAPIResponse)
+    //MARK: Error -> ZCRMError ->>> (Conforms to Error Type)
+    enum DataResponse<Value: Any,Response: CommonAPIResponse>{
+        
+        case success(Value,Response)
+        case failure(ZCRMError)
+        
+        func resolve() throws -> (value:Value,response:Response){
+            
+            switch self {
+            case .success(let value,let response):
+                return (value,response)
+                
+            case .failure(let error):
+                throw error
+            } // switch
+            
+        } // func ends
+        
+    }
+    
+    
+    
+    //MARK: RESPONSE RESULT TYPE (Only Response and Error)
+    //MARK: This either gives (RESPONSE) OR (ERROR) but NOT BOTH AT THE SAME TIME
+    //MARK: Response -> (FileAPIResponse,APIResponse,BulkAPIResponse)->>> (Any Class inhering from CommonAPIResponse)
+    //MARK: Error -> ZCRMError ->>> (Conforms to Error Type)
+    enum Response<Response: CommonAPIResponse> {
+        
+        case success(Response)
+        case failure(ZCRMError)
+        
+        func resolve() throws -> Response{
+            
+            switch self {
+            case .success(let response):
+                return response
+                
+            case .failure(let error):
+                throw error
+            } // switch
+            
+        } // func ends
+        
+        
+    }
+    
+    
+} // struct ends ..
+
+
+//MARK:-

@@ -70,7 +70,7 @@ internal class APIRequest
 	}
     
     
-    private func authenticateRequest( completion : @escaping( Error? ) -> () )
+    private func authenticateRequest( completion : @escaping( ZCRMError? ) -> () )
     {
         if let bundleID = Bundle.main.bundleIdentifier
         {
@@ -85,7 +85,7 @@ internal class APIRequest
             ZCRMLoginHandler().getOauth2Token { ( token, error ) in
                 if let err = error
                 {
-                    completion( err )
+                    completion( ZCRMError.SDKError(err.localizedDescription) )
                 }
                 if let oAuthtoken = token, token.notNilandEmpty
                 {
@@ -95,7 +95,7 @@ internal class APIRequest
                 else
                 {
                     print( "oAuthtoken is nil." )
-                    completion( ZCRMSDKError.ResponseNil( "oauthtoken is empty" ) )
+                    completion(ZCRMError.SDKError("Oauthtoken is Empty"))
                 }
             }
         }
@@ -108,7 +108,7 @@ internal class APIRequest
                 }
                 if let err = error
                 {
-                    completion( err )
+                    completion( ZCRMError.SDKError(err.localizedDescription) )
                 }
                 if let oAuthtoken = token, token.notNilandEmpty
                 {
@@ -118,7 +118,7 @@ internal class APIRequest
                 else
                 {
                     print( "oAuthtoken is empty." )
-                    completion( ZCRMSDKError.ResponseNil( "oauthtoken is empty" ) )
+                    completion(ZCRMError.SDKError("Oauthtoken is Empty"))
                 }
             }
         }
@@ -130,7 +130,7 @@ internal class APIRequest
         self.headers[headerName] = headerVal
     }
 	
-    private func initialiseRequest( completion : @escaping( Error? ) -> () )
+    private func initialiseRequest( completion : @escaping( ZCRMError? ) -> () )
     {
 		if isOAuth == true
 		{
@@ -165,12 +165,12 @@ internal class APIRequest
                             }
                             else
                             {
-                                completion(ZCRMSDKError.InternalError("Unable to construct URL"))
+                                completion(ZCRMError.SDKError("Unable to construct URL"))
                             }
                         }
                         else
                         {
-                            completion(ZCRMSDKError.InternalError("Adding percent encoding error occured"))
+                            completion(ZCRMError.SDKError("Adding percent encoding error occured"))
                         }
                     }
                     else
@@ -196,73 +196,78 @@ internal class APIRequest
             completion(nil)
         }
     }
+   
     
-    internal func getAPIResponse( completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func getAPIResponse( completion : @escaping (Result.Response<APIResponse>) -> Void )
     {
     
         self.initialiseRequest { ( err ) in
             
             if let error = err
             {
-                completion( nil, error )
+                completion(.failure(error))
             }
             else
             {
                 self.makeRequest { ( urlResp, responseData, error ) in
                     if let err = error
                     {
-                        completion( nil, err )
+                        completion(.failure(err))
                     }
                     else if let urlResponse = urlResp
                     {
                         do
                         {
                             let response = try APIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
-                            completion( response, nil )
+                            
+                            completion(.success(response))
                         }
                         catch
                         {
-                            completion( nil, error )
+                            completion(.failure(error as! ZCRMError))
                         }
                     }
                     else
                     {
-                        completion( nil, ZCRMSDKError.ResponseNil( "Response is nil" ) )
+                        completion(.failure(ZCRMError.SDKError("Response is nil")))
                     }
                 }
             }
         }
     }
     
-    internal func getBulkAPIResponse( completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    
+    
+    internal func getBulkAPIResponse( completion : @escaping(Result.Response<BulkAPIResponse>) -> () )
     {
         self.initialiseRequest { ( err ) in
             if let initialiseReqError = err
             {
-                completion( nil, initialiseReqError )
+                completion(.failure(initialiseReqError))
             }
             else
             {
                 self.makeRequest { ( urlResp, responseData, error ) in
                     if let reqError = error
                     {
-                        completion( nil, reqError )
+                        completion(.failure(reqError))
                     }
                     else if let urlResponse = urlResp
                     {
                         do
                         {
                             let response = try BulkAPIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
-                            completion( response, nil )
+                            
+                            completion(.success(response))
                         }
                         catch
                         {
-                            completion( nil, error )
+                            completion(.failure(error as! ZCRMError))
                         }
                     }
                     else
                     {
-                        completion( nil, ZCRMSDKError.ResponseNil( "Response is nil" ) )
+                        completion(.failure(ZCRMError.SDKError("Response is nil")))
                     }
                 }
             }
@@ -292,7 +297,7 @@ internal class APIRequest
             }
             else
             {
-                completion( nil, ZCRMSDKError.ResponseNil( "Response is nil" ) )
+                completion(nil, ZCRMError.SDKError("Response is nil"))
             }
         }
     }
@@ -321,12 +326,12 @@ internal class APIRequest
             }
             else
             {
-                completion( nil, ZCRMSDKError.ResponseNil( "Response is nil" ) )
+                completion(nil, ZCRMError.SDKError("Response is nil"))
             }
         }
     }
     
-    private func makeRequest( completion : @escaping ( HTTPURLResponse?, Data?, Error? ) -> () )
+    private func makeRequest( completion : @escaping ( HTTPURLResponse?, Data?, ZCRMError? ) -> () )
     {
         var error : Error? = nil
         if let request = self.request
@@ -342,18 +347,18 @@ internal class APIRequest
                 }
                 if let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse
                 {
-                    completion( httpResponse, data, err )
+                    completion( httpResponse, data, nil )
                 }
                 else
                 {
-                    completion( nil, nil, ZCRMSDKError.ResponseNil( "Response is nil" ) )
+                    completion(nil, nil, ZCRMError.SDKError("Response is nil"))
                     return
                 }
             }).resume()
         }
         else
         {
-            completion( nil, nil, ZCRMSDKError.ResponseNil( "Request is nil" ) )
+            completion(nil, nil, ZCRMError.SDKError("Request is nil"))
         }
     }
     
@@ -427,7 +432,7 @@ internal class APIRequest
                     }
                     else
                     {
-                        completion( nil, ZCRMSDKError.ResponseNil( "Response is nil" ) )
+                        completion(nil,ZCRMError.SDKError("Response is nil"))
                     }
                 }).resume()
             }

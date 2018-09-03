@@ -59,10 +59,10 @@ extension ZCRMDashBoardMetaComponent: CustomDebugStringConvertible{
         
         COMPONENT LAYOUT PROPERTIES
         
-        xPosition: \(properties.componentXPosition ?? -00)
-        yPosition: \(properties.componentYPosition ?? -00)
-        Width: \(properties.componentWidth ?? -00)
-        Height: \(properties.componentHeight ?? -00)
+        xPosition: \(String(describing: properties.componentXPosition))
+        yPosition: \(String(describing: properties.componentYPosition))
+        Width: \(String(describing: properties.componentWidth))
+        Height: \(String(describing: properties.componentHeight))
         
         <-------------------------------------------->
         

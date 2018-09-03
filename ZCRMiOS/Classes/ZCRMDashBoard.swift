@@ -55,6 +55,7 @@ extension ZCRMDashBoard: CustomDebugStringConvertible{
         System Generated Dashboard : \(isSystemGenerated)
         Sales Trend : \(isSalesTrends)
         Access Type : \(accessType)
+        Meta Component : \(String(describing: getArrayOfDashBoardMetaComponent()))
         
         <-------------------------------------------->
         

@@ -95,10 +95,10 @@ public class ZCRMTag : ZCRMEntity
         return modifiedTime
     }
     
-    public func getRecordCount( module : ZCRMModule, completion : @escaping ( Int64?, Error? ) -> () )
+    public func getRecordCount( module : ZCRMModule, completion : @escaping ( Int64?, APIResponse?, Error? ) -> () )
     {
-        TagAPIHandler(tag: self, module: module).getRecordCount { (count, error) in
-            completion( count, error )
+        TagAPIHandler(tag: self, module: module).getRecordCount { (count, response, error) in
+            completion( count,response,error )
         }
     }
     

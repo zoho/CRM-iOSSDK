@@ -11,7 +11,7 @@ import Foundation
 public class ZCRMDashBoardComponent {
     
     fileprivate var name = String()
-    fileprivate var category = ComponentCategory.none
+    fileprivate var category = ComponentCategory.chart
     fileprivate var reportId:Int64?
     fileprivate var componentMarker: [ComponentMarkers]?
     fileprivate var lastFetchedTimeLabel: String?
@@ -51,7 +51,6 @@ extension ZCRMDashBoardComponent {
         case anomalyDetector = "trends"
         case targetMeter = "target_meter"
         case funnel = "funnel"
-        case none = "default Value"
         
     }
     
@@ -173,7 +172,7 @@ extension ZCRMDashBoardComponent {
     
     public func setComponent(Category: ComponentCategory?)
     {
-        self.category = Category ?? ComponentCategory.none
+        self.category = Category ?? ComponentCategory.chart
     }
     
     public func setComponent(Name: String?)
@@ -226,7 +225,7 @@ extension ZCRMDashBoardComponent {
         colorPaletteStartingIndex = Index ?? Int()
     }
     
-    public func setSegment(Ranges: [SegmentRanges])
+    public func setSegment(Ranges: [SegmentRanges]?)
     {
         segmentRanges = Ranges
     }
@@ -606,6 +605,7 @@ extension ZCRMDashBoardComponent.VerticalGrouping: CustomDebugStringConvertible 
         
         Label: \(label)
         Value: \(value ?? "nil")
+        Key: \(key)
         Aggregate: \(aggregate)
         SubGrouping: \(String(describing: subGrouping))
         

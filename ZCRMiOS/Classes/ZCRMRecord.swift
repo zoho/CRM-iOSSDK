@@ -1,11 +1,11 @@
+////
+////  ZCRMRecord.swift
+////  ZCRMiOS
+////
+////  Created by Vijayakrishna on 16/11/16.
+////  Copyright © 2016 zohocrm. All rights reserved.
+////
 //
-//  ZCRMRecord.swift
-//  ZCRMiOS
-//
-//  Created by Vijayakrishna on 16/11/16.
-//  Copyright © 2016 zohocrm. All rights reserved.
-//
-
 public protocol ZCRMEntity
 {
     
@@ -397,16 +397,18 @@ public class ZCRMRecord : ZCRMEntity
     ///   - assignTo: assignee for the converted ZCRMRecord
     /// - Returns: dictionary containing deal, contact and account vs its ID of the converted ZCRMRecord
     /// - Throws: ZCRMSDKError if the ZCRMRecord is not convertible
-    public func convert(newPotential: ZCRMRecord?, assignTo: ZCRMUser?, completion : @escaping( [ String : Any ]?, Error? ) -> () )
+    public func convert(newPotential: ZCRMRecord?, assignTo: ZCRMUser?, completion :
+        @escaping( [ String : Any ]?, APIResponse?, Error? ) -> () )
     {
         if(self.moduleAPIName != "Leads")
         {
-            completion( nil, ZCRMError.ProcessingError("This module does not support convert operation"))
+            completion( nil,nil,ZCRMError.ProcessingError("This module does not support convert operation"))
         }
         else
         {
-            EntityAPIHandler(record: self).convertRecord(newPotential: newPotential, assignTo: assignTo) { ( convertedRecordDict, error ) in
-                completion( convertedRecordDict, error )
+            EntityAPIHandler(record: self).convertRecord(newPotential: newPotential, assignTo: assignTo) {
+                (convertedRecordDict, APIResponse, Error) in
+                completion(convertedRecordDict,APIResponse,Error)
             }
         }
     }
