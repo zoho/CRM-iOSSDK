@@ -92,6 +92,11 @@ internal class CommonAPIHandler : APIHandler
         self.requestParams[param] = value
     }
     
+    internal func addRequestParam(_ param: CommonRequestParam, value: String)
+    {
+        self.requestParams[param.rawValue] = value
+    }
+    
     internal func getRequestParams() -> [String : String]
     {
         return self.requestParams
@@ -119,14 +124,14 @@ internal class CommonAPIHandler : APIHandler
 
 extension CommonAPIHandler {
     
-    struct CommonRequestParam {
+    enum CommonRequestParam: String {
         
-        static let sortOrder = "sort_order"
-        static let sortBy = "sort_by"
-        static let perPage = "per_page"
-        static let page = "page"
-        static let approved = "approved"
-        static let converted = "converted"
+        case sortOrder = "sort_order"
+        case sortBy = "sort_by"
+        case perPage = "per_page"
+        case page
+        case approved
+        case converted 
         
     }
 }

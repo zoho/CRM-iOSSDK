@@ -145,8 +145,7 @@ extension DashBoardAPIHandler {
         //let validPerPage = perPage > 200 ? 200 : perPage
         //addRequestParam(param: .perPage, value: "\(validPerPage)")
         
-        
-        addRequestParam(param: CommonRequestParam.page, value: "\(page)")
+        addRequestParam(.page, value: "\(page)")
         
         setJSONRootKey(key: JSONRootKey.ANALYTICS)
         
