@@ -8,7 +8,7 @@
 
 internal class UserAPIHandler : CommonAPIHandler
 {
-    internal func getUsers(type : String?, modifiedSince : String?, page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
+    private func getUsers(type : String?, modifiedSince : String?, page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
         var allUsers : [ZCRMUser] = [ZCRMUser]()
@@ -16,7 +16,7 @@ internal class UserAPIHandler : CommonAPIHandler
 		setRequestMethod(requestMethod: .GET )
         if(type != nil)
         {
-			addRequestParam(param: "type" , value: type! )
+			addRequestParam(param: RequestParamKeys.type , value: type! )
         }
         if ( modifiedSince.notNilandEmpty)
         {
@@ -30,6 +30,7 @@ internal class UserAPIHandler : CommonAPIHandler
             if let error = err
             {
                 completion( nil, nil, error )
+                return
             }
             if let bulkResponse = response
             {
@@ -60,6 +61,7 @@ internal class UserAPIHandler : CommonAPIHandler
             if let error = err
             {
                 completion( nil, nil, error )
+                return
             }
             if let bulkResponse = response
             {
@@ -90,6 +92,7 @@ internal class UserAPIHandler : CommonAPIHandler
             if let error = err
             {
                 completion( nil, nil, error )
+                return
             }
             if let bulkResponse = response
             {
@@ -119,7 +122,7 @@ internal class UserAPIHandler : CommonAPIHandler
         else
         {
 			setUrlPath(urlPath: "/users" )
-			addRequestParam(param: "type" , value:  "CurrentUser")
+			addRequestParam(param: RequestParamKeys.type , value:  RequestParamKeys.currentUser)
         }
 		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
@@ -127,6 +130,7 @@ internal class UserAPIHandler : CommonAPIHandler
             if let error = err
             {
                 completion( nil, nil, error )
+                return
             }
             if let response = resp
             {
@@ -155,12 +159,13 @@ internal class UserAPIHandler : CommonAPIHandler
             if let error = err
             {
                 completion( nil, nil, error )
+                return
             }
             if let response = resp
             {
                 let responseJSONArray  = response.getResponseJSON().getArrayOfDictionaries( key : self.getJSONRootKey() )
                 let responseJSONData = responseJSONArray[ 0 ]
-                let responseDetails : [ String : Any ] = responseJSONData[ "details" ] as! [ String : Any ]
+                let responseDetails : [ String : Any ] = responseJSONData[ DETAILS ] as! [ String : Any ]
                 user.setId( id : Int64( responseDetails[ "id" ] as! String )! )
                 response.setData( data : user )
                 completion( user, response, nil )
@@ -195,25 +200,19 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    public func searchByCriteria( criteria : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
-    {
-        self.searchUsers( criteria : criteria, page : page, perPage : perPage) { ( response, users, error ) in
-            completion( response, users, error )
-        }
-    }
-    
-    private func searchUsers( criteria : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
+    internal func searchUsers( criteria : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
         setRequestMethod( requestMethod : .PUT )
         setUrlPath( urlPath : "/users" )
-        addRequestParam( param : "filters", value : criteria )
+        addRequestParam( param : RequestParamKeys.filters, value : criteria )
         addRequestParam( param : "page", value : String( page ) )
         addRequestParam( param : "per_page", value : String( perPage ) )
         APIRequest( handler : self ).getBulkAPIResponse { ( response, err ) in
             if let error = err
             {
                 completion( nil, nil, error )
+                return
             }
             if let bulkResponse = response
             {
@@ -245,6 +244,7 @@ internal class UserAPIHandler : CommonAPIHandler
             if let error = err
             {
                 completion( nil, nil, error )
+                return
             }
             if let response = resp
             {
@@ -268,6 +268,7 @@ internal class UserAPIHandler : CommonAPIHandler
             if let error = err
             {
                 completion( nil, nil, error )
+                return
             }
             if let response = resp
             {
@@ -284,7 +285,7 @@ internal class UserAPIHandler : CommonAPIHandler
     {
 		setUrl(url: PHOTOURL )
 		setRequestMethod(requestMethod: .GET )
-		addRequestParam(param: "photo_size" , value: size.rawValue )
+		addRequestParam(param: RequestParamKeys.photoSize , value: size.rawValue )
 		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         request.downloadFile { ( response, error ) in
@@ -308,384 +309,383 @@ internal class UserAPIHandler : CommonAPIHandler
     
     internal func getAllActiveUsers( page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.getUsers( type : "ActiveUsers", modifiedSince : nil, page : page, perPage : perPage) { ( users, response, error ) in
+        self.getUsers( type : RequestParamValues.activeUsers, modifiedSince : nil, page : page, perPage : perPage) { ( users, response, error ) in
             completion( users, response, error )
         }
     }
     
     internal func getAllDeactiveUsers( page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.getUsers( type : "DeactiveUsers", modifiedSince : nil, page : page, perPage : perPage) { ( users, response, error ) in
+        self.getUsers( type : RequestParamValues.deactiveUsers, modifiedSince : nil, page : page, perPage : perPage) { ( users, response, error ) in
             completion( users, response, error )
         }
     }
     
     internal func getAllUnConfirmedUsers( page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.getUsers( type : "NotConfirmedUsers", modifiedSince : nil, page : page, perPage : perPage) { ( users, response, error ) in
+        self.getUsers( type : RequestParamValues.notConfirmedUsers, modifiedSince : nil, page : page, perPage : perPage) { ( users, response, error ) in
             completion( users, response, error )
         }
     }
     
     internal func getAllConfirmedUsers( page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.getUsers( type : "ConfirmedUsers", modifiedSince : nil, page : page, perPage : perPage) { ( users, response, error ) in
+        self.getUsers( type : RequestParamValues.confirmedUsers, modifiedSince : nil, page : page, perPage : perPage) { ( users, response, error ) in
             completion( users, response, error )
         }
     }
 
     internal func getAllActiveConfirmedUsers( page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.getUsers( type: "ActiveConfirmedUsers", modifiedSince : nil, page : page, perPage : perPage) { ( users, response, error ) in
+        self.getUsers( type: RequestParamValues.activeConfirmedUsers, modifiedSince : nil, page : page, perPage : perPage) { ( users, response, error ) in
             completion( users, response, error )
         }
     }
     
     internal func getAllDeletedUsers( page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.getUsers( type: "DeletedUsers", modifiedSince : nil, page : page, perPage : perPage) { ( users, response, error ) in
+        self.getUsers( type: RequestParamValues.deletedUsers, modifiedSince : nil, page : page, perPage : perPage) { ( users, response, error ) in
             completion( users, response, error )
         }
     }
     
     internal func getAllAdminUsers( page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.getUsers( type: "AdminUsers", modifiedSince : nil, page : page, perPage : perPage) { ( users, response, error ) in
+        self.getUsers( type: RequestParamValues.adminUsers, modifiedSince : nil, page : page, perPage : perPage) { ( users, response, error ) in
             completion( users, response, error )
         }
     }
     
     internal func getAllActiveConfirmedAdmins( page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.getUsers( type: "ActiveConfirmedAdmins", modifiedSince : nil, page : page, perPage : perPage) { ( users, response, error ) in
+        self.getUsers( type: RequestParamValues.activeConfirmedAdmins, modifiedSince : nil, page : page, perPage : perPage) { ( users, response, error ) in
             completion( users, response, error )
         }
     }
 	
-	internal func getZCRMUser(userDict : [String : Any]) -> ZCRMUser
+	private func getZCRMUser(userDict : [String : Any]) -> ZCRMUser
 	{
-        let fullName : String = userDict.getString( key : "full_name" )
-        let userId : Int64? = userDict.getInt64( key : "id" )
+        let fullName : String = userDict.getString( key : ResponseParamKeys.fullName )
+        let userId : Int64? = userDict.getInt64( key : ResponseParamKeys.id )
         let user = ZCRMUser(userId : userId!, userFullName : fullName)
-        user.setFirstName(fName: userDict.optString(key: "first_name"))
-        user.setLastName(lName: userDict.getString(key: "last_name"))//
-        user.setEmailId(email: userDict.getString(key: "email"))//
-        user.setMobile(mobile: userDict.optString(key: "mobile"))
-        user.setLanguage(language: userDict.optString(key: "language"))
-        user.setStatus(status: userDict.optString(key: "status"))
-        user.setZuId(zuId: userDict.optInt64(key: "zuid"))
-        if ( userDict.hasValue( forKey : "profile" ) )
+        user.setFirstName(fName: userDict.optString(key: ResponseParamKeys.firstName))
+        user.setLastName(lName: userDict.getString(key: ResponseParamKeys.lastName))
+        user.setEmailId(email: userDict.getString(key: ResponseParamKeys.email))//
+        user.setMobile(mobile: userDict.optString(key: ResponseParamKeys.mobile))
+        user.setLanguage(language: userDict.optString(key: ResponseParamKeys.language))
+        user.setStatus(status: userDict.optString(key: ResponseParamKeys.status))
+        user.setZuId(zuId: userDict.optInt64(key: ResponseParamKeys.ZUID))
+        if ( userDict.hasValue( forKey : ResponseParamKeys.profile ) )
         {
-            let profileObj : [String : Any] = userDict.getDictionary(key: "profile")
-            let profile : ZCRMProfile = ZCRMProfile(profileId : profileObj.getInt64( key : "id" ), profileName : profileObj.getString( key : "name" ) )
+            let profileObj : [String : Any] = userDict.getDictionary(key: ResponseParamKeys.profile)
+            let profile : ZCRMProfile = ZCRMProfile(profileId : profileObj.getInt64( key : ResponseParamKeys.id ), profileName : profileObj.getString( key : ResponseParamKeys.name ) )
             user.setProfile(profile: profile)
         }
-        if ( userDict.hasValue( forKey : "role" ) )
+        if ( userDict.hasValue( forKey : ResponseParamKeys.role ) )
         {
-            let roleObj : [String : Any] = userDict.getDictionary(key: "role")
-            let role : ZCRMRole = ZCRMRole( roleId : roleObj.getInt64( key : "id" ), roleName : roleObj.getString( key : "name" ) )
+            let roleObj : [String : Any] = userDict.getDictionary(key: ResponseParamKeys.role)
+            let role : ZCRMRole = ZCRMRole( roleId : roleObj.getInt64( key : ResponseParamKeys.id ), roleName : roleObj.getString( key : ResponseParamKeys.name ) )
             user.setRole( role : role )
         }
-        user.setAlias( alias : userDict.optString( key : "alias" ) )
-        user.setCity( city : userDict.optString( key : "city" ) )
-        user.setIsConfirmed( confirm: userDict.optBoolean( key : "confirm" ) )
-        user.setCountryLocale( countryLocale : userDict.optString(key : "country_locale" ) )
-        user.setDateFormat( format : userDict.optString( key : "date_fromat" ) )
-        user.setDateOfBirth( dateOfBirth : userDict.optString( key : "dob" ) )
-        user.setEmailId( email : userDict.optString( key : "email" )! )
-        user.setCountry( country : userDict.optString( key : "country" ) )
-        user.setFax( fax : userDict.optString( key : "fax" ) )
-        user.setLocale( locale : userDict.optString( key : "locale" ) )
-        user.setNameFormat( format : userDict.optString( key : "name_format" ) )
-        user.setPhone( phone : userDict.optString( key : "phone" ) )
-        user.setWebsite( website : userDict.optString( key : "website" ) )
-        user.setStreet( street : userDict.optString( key : "street" ) )
-        user.setTimeZone( timeZone : userDict.optString( key : "time_zone" ) )
-        user.setState( state : userDict.optString( key : "state" ) )
-        if( userDict.hasValue( forKey : "Created_By"))
+        user.setAlias( alias : userDict.optString( key : ResponseParamKeys.alias ) )
+        user.setCity( city : userDict.optString( key : ResponseParamKeys.city ) )
+        user.setIsConfirmed( confirm: userDict.optBoolean( key : ResponseParamKeys.confirm ) )
+        user.setCountryLocale( countryLocale : userDict.optString(key : ResponseParamKeys.countryLocale ) )
+        user.setDateFormat( format : userDict.optString( key : ResponseParamKeys.dateFormat ) )
+        user.setDateOfBirth( dateOfBirth : userDict.optString( key : ResponseParamKeys.dob ) )
+        user.setCountry( country : userDict.optString( key : ResponseParamKeys.country ) )
+        user.setFax( fax : userDict.optString( key : ResponseParamKeys.fax ) )
+        user.setLocale( locale : userDict.optString( key : ResponseParamKeys.locale ) )
+        user.setNameFormat( format : userDict.optString( key : ResponseParamKeys.nameFormat ) )
+        user.setPhone( phone : userDict.optString( key : ResponseParamKeys.phone ) )
+        user.setWebsite( website : userDict.optString( key : ResponseParamKeys.website ) )
+        user.setStreet( street : userDict.optString( key : ResponseParamKeys.street ) )
+        user.setTimeZone( timeZone : userDict.optString( key : ResponseParamKeys.timeZone ) )
+        user.setState( state : userDict.optString( key : ResponseParamKeys.state) )
+        if( userDict.hasValue( forKey : ResponseParamKeys.CreatedBy))
         {
-            let createdByObj : [String:Any] = userDict.getDictionary(key: "Created_By")
-            let createdBy : ZCRMUser = ZCRMUser(userId: createdByObj.getInt64( key : "id" ), userFullName: createdByObj.getString( key : "name" ) )
+            let createdByObj : [String:Any] = userDict.getDictionary(key: ResponseParamKeys.CreatedBy)
+            let createdBy : ZCRMUser = ZCRMUser(userId: createdByObj.getInt64( key : ResponseParamKeys.id ), userFullName: createdByObj.getString( key : ResponseParamKeys.name ) )
             user.setCreatedBy( createdBy : createdBy )
-            user.setCreatedTime( createdTime : userDict.getString( key : "Created_Time") )
+            user.setCreatedTime( createdTime : userDict.getString( key : ResponseParamKeys.CreatedTime) )
         }
-        if( userDict.hasValue( forKey : "Modified_By" ) )
+        if( userDict.hasValue( forKey : ResponseParamKeys.ModifiedBy ) )
         {
-            let modifiedByObj : [ String : Any ] = userDict.getDictionary( key : "Modified_By")
-            let modifiedBy : ZCRMUser = ZCRMUser( userId : modifiedByObj.getInt64( key : "id"), userFullName : modifiedByObj.getString( key : "name" ) )
+            let modifiedByObj : [ String : Any ] = userDict.getDictionary( key : ResponseParamKeys.ModifiedBy)
+            let modifiedBy : ZCRMUser = ZCRMUser( userId : modifiedByObj.getInt64( key : ResponseParamKeys.id), userFullName : modifiedByObj.getString( key : ResponseParamKeys.name ) )
             user.setModifiedBy( modifiedBy : modifiedBy )
-            user.setModifiedTime( modifiedTime : userDict.getString( key : "Modified_Time" ) )
+            user.setModifiedTime( modifiedTime : userDict.getString( key : ResponseParamKeys.ModifiedTime ) )
         }
-        if ( userDict.hasValue( forKey : "Reporting_To" ) )
+        if ( userDict.hasValue( forKey : ResponseParamKeys.ReportingTo ) )
         {
-            let reportingObj : [ String : Any ] = userDict.getDictionary( key : "Reporting_To" )
-            let reportingTo : ZCRMUser = ZCRMUser( userId : reportingObj.getInt64( key : "id"), userFullName : reportingObj.getString( key : "name" ) )
+            let reportingObj : [ String : Any ] = userDict.getDictionary( key : ResponseParamKeys.ReportingTo )
+            let reportingTo : ZCRMUser = ZCRMUser( userId : reportingObj.getInt64( key : ResponseParamKeys.id), userFullName : reportingObj.getString( key : ResponseParamKeys.name ) )
             user.setReportingTo( reportingTo : reportingTo )
         }
 		return user
 	}
     
-    internal func getZCRMRole( roleDetails : [ String : Any ] ) -> ZCRMRole
+    private func getZCRMRole( roleDetails : [ String : Any ] ) -> ZCRMRole
     {
-        let roleName : String = roleDetails.getString( key : "name" )
-        let id : Int64 = roleDetails.getInt64( key : "id" )
+        let roleName : String = roleDetails.getString( key : ResponseParamKeys.name )
+        let id : Int64 = roleDetails.getInt64( key : ResponseParamKeys.id )
         let role = ZCRMRole( roleId : id, roleName : roleName )
-        role.setLabel( label : roleDetails.getString( key : "display_label" ) )
-        role.setAdminUser( isAdminUser : roleDetails.getBoolean( key : "admin_user" ) )
-        if ( roleDetails.hasValue(forKey: "reporting_to") )
+        role.setLabel( label : roleDetails.getString( key : ResponseParamKeys.displayLabel ) )
+        role.setAdminUser( isAdminUser : roleDetails.getBoolean( key : ResponseParamKeys.adminUser ) )
+        if ( roleDetails.hasValue(forKey: ResponseParamKeys.reportingTo) )
         {
-            let reportingToObj : [String : Any] = roleDetails.getDictionary( key : "reporting_to" )
-            let reportingRole : ZCRMRole = ZCRMRole( roleId : reportingToObj.getInt64( key : "id" ), roleName : reportingToObj.getString( key : "name" ) )
+            let reportingToObj : [String : Any] = roleDetails.getDictionary( key : ResponseParamKeys.reportingTo )
+            let reportingRole : ZCRMRole = ZCRMRole( roleId : reportingToObj.getInt64( key : ResponseParamKeys.id ), roleName : reportingToObj.getString( key : ResponseParamKeys.name ) )
             role.setReportingTo( reportingTo : reportingRole )
         }
         return role
     }
     
-    internal func getZCRMProfile( profileDetails : [ String : Any ] ) -> ZCRMProfile
+    private func getZCRMProfile( profileDetails : [ String : Any ] ) -> ZCRMProfile
     {
-        let name : String = profileDetails.getString( key : "name" )
-        let id : Int64 = profileDetails.getInt64( key : "id" )
+        let name : String = profileDetails.getString( key : ResponseParamKeys.name )
+        let id : Int64 = profileDetails.getInt64( key : ResponseParamKeys.id )
         let profile = ZCRMProfile( profileId : id, profileName :  name )
-        profile.setCategory( category : profileDetails.getBoolean( key : "category" ) )
-        if ( profileDetails.hasValue( forKey : "description" ) )
+        profile.setCategory( category : profileDetails.getBoolean( key : ResponseParamKeys.category ) )
+        if ( profileDetails.hasValue( forKey : ResponseParamKeys.description ) )
         {
-            profile.setDescription( description : profileDetails.getString( key : "description" ) )
+            profile.setDescription( description : profileDetails.getString( key : ResponseParamKeys.description ) )
         }
-        if ( profileDetails.hasValue( forKey : "modified_by" ) )
+        if ( profileDetails.hasValue( forKey : ResponseParamKeys.modifiedBy ) )
         {
-            let modifiedUserObj : [ String : Any ] = profileDetails.getDictionary( key : "modified_by" )
-            let modifiedUser = ZCRMUser( userId : modifiedUserObj.getInt64( key : "id" ), userFullName : modifiedUserObj.getString( key : "name" ) )
+            let modifiedUserObj : [ String : Any ] = profileDetails.getDictionary( key : ResponseParamKeys.modifiedBy )
+            let modifiedUser = ZCRMUser( userId : modifiedUserObj.getInt64( key : ResponseParamKeys.id ), userFullName : modifiedUserObj.getString( key : ResponseParamKeys.name ) )
             profile.setModifiedBy( modifiedBy : modifiedUser )
         }
-        if ( profileDetails.hasValue( forKey : "created_by" ) )
+        if ( profileDetails.hasValue( forKey : ResponseParamKeys.createdBy ) )
         {
-            let createdUserObj : [ String : Any ] = profileDetails.getDictionary( key : "created_by" )
-            let createdUser = ZCRMUser( userId : createdUserObj.getInt64( key : "id" ), userFullName : createdUserObj.getString( key : "name" ) )
+            let createdUserObj : [ String : Any ] = profileDetails.getDictionary( key : ResponseParamKeys.createdBy )
+            let createdUser = ZCRMUser( userId : createdUserObj.getInt64( key : ResponseParamKeys.id ), userFullName : createdUserObj.getString( key : ResponseParamKeys.name ) )
             profile.setCreatedBy( createdBy : createdUser )
         }
-        if ( profileDetails.hasValue( forKey : "modified_time" ) )
+        if ( profileDetails.hasValue( forKey : ResponseParamKeys.modifiedTime ) )
         {
-            let modifiedTime = profileDetails.getString( key : "modified_time" )
+            let modifiedTime = profileDetails.getString( key : ResponseParamKeys.modifiedTime )
             profile.setModifiedTime( modifiedTime : modifiedTime )
         }
-        if ( profileDetails.hasValue( forKey : "created_time" ) )
+        if ( profileDetails.hasValue( forKey : ResponseParamKeys.createdTime ) )
         {
-            let createdTime = profileDetails.getString( key : "created_time" )
+            let createdTime = profileDetails.getString( key : ResponseParamKeys.createdTime )
             profile.setCreatedTime( createdTime : createdTime )
         }
         return profile
     }
     
-    internal func getZCRMUserAsJSON( user : ZCRMUser ) -> [ String : Any ]
+    private func getZCRMUserAsJSON( user : ZCRMUser ) -> [ String : Any ]
     {
         var userJSON : [ String : Any ] = [ String : Any ]()
         if let id = user.getId()
         {
-             userJSON[ "id" ] = id
+             userJSON[ ResponseParamKeys.id ] = id
         }
         else
         {
-             userJSON[ "id" ] = nil
+             userJSON[ ResponseParamKeys.id ] = nil
         }
         if let firstName = user.getFirstName()
         {
-            userJSON[ "first_name" ] = firstName
+            userJSON[ ResponseParamKeys.firstName ] = firstName
         }
         else
         {
-            userJSON[ "first_name" ] = nil
+            userJSON[ ResponseParamKeys.firstName ] = nil
         }
         if let lastName = user.getLastName()
         {
-            userJSON[ "last_name" ] = lastName
+            userJSON[ ResponseParamKeys.lastName ] = lastName
         }
         else
         {
-            userJSON[ "last_name" ] = nil
+            userJSON[ ResponseParamKeys.lastName ] = nil
         }
         if let fullName = user.getFullName()
         {
-            userJSON[ "full_name" ] = fullName
+            userJSON[ ResponseParamKeys.fullName ] = fullName
         }
         else
         {
-            userJSON[ "full_name" ] = nil
+            userJSON[ ResponseParamKeys.fullName ] = nil
         }
         if let alias = user.getAlias()
         {
-            userJSON[ "alias" ] = alias
+            userJSON[ ResponseParamKeys.alias ] = alias
         }
         else
         {
-            userJSON[ "alias" ] = nil
+            userJSON[ ResponseParamKeys.alias ] = nil
         }
         if let dob = user.getDateOfBirth()
         {
-            userJSON[ "dob" ] = dob
+            userJSON[ ResponseParamKeys.dob ] = dob
         }
         else
         {
-            userJSON[ "dob" ] = nil
+            userJSON[ ResponseParamKeys.dob ] = nil
         }
         if let mobile = user.getMobile()
         {
-            userJSON[ "mobile" ] = mobile
+            userJSON[ ResponseParamKeys.mobile ] = mobile
         }
         else
         {
-            userJSON[ "mobile" ] = nil
+            userJSON[ ResponseParamKeys.mobile ] = nil
         }
         if let phone = user.getPhone()
         {
-            userJSON[ "phone" ] = phone
+            userJSON[ ResponseParamKeys.phone ] = phone
         }
         else
         {
-            userJSON[ "phone" ] = nil
+            userJSON[ ResponseParamKeys.phone ] = nil
         }
         if let fax = user.getFax()
         {
-            userJSON[ "fax" ] = fax
+            userJSON[ ResponseParamKeys.fax ] = fax
         }
         else
         {
-            userJSON[ "fax" ] = nil
+            userJSON[ ResponseParamKeys.fax ] = nil
         }
         if let email = user.getEmailId()
         {
-            userJSON[ "email" ] = email
+            userJSON[ ResponseParamKeys.email ] = email
         }
         else
         {
-            userJSON[ "email" ] = nil
+            userJSON[ ResponseParamKeys.email ] = nil
         }
         if let zip = user.getZip()
         {
-            userJSON[ "zip" ] = zip
+            userJSON[ ResponseParamKeys.zip ] = zip
         }
         else
         {
-            userJSON[ "zip" ] = nil
+            userJSON[ ResponseParamKeys.zip ] = nil
         }
         if let country = user.getCountry()
         {
-            userJSON[ "country" ] = country
+            userJSON[ ResponseParamKeys.country ] = country
         }
         else
         {
-            userJSON[ "country" ] = nil
+            userJSON[ ResponseParamKeys.country ] = nil
         }
         if let state = user.getState()
         {
-            userJSON[ "state" ] = state
+            userJSON[ ResponseParamKeys.state ] = state
         }
         else
         {
-            userJSON[ "state" ] = nil
+            userJSON[ ResponseParamKeys.state ] = nil
         }
         if let city = user.getCity()
         {
-            userJSON[ "city" ] = city
+            userJSON[ ResponseParamKeys.city ] = city
         }
         else
         {
-            userJSON[ "city" ] = nil
+            userJSON[ ResponseParamKeys.city ] = nil
         }
         if let street = user.getStreet()
         {
-            userJSON[ "street" ] = street
+            userJSON[ ResponseParamKeys.street ] = street
         }
         else
         {
-            userJSON[ "street" ] = nil
+            userJSON[ ResponseParamKeys.street ] = nil
         }
         if let locale = user.getLocale()
         {
-            userJSON[ "locale" ] = locale
+            userJSON[ ResponseParamKeys.locale ] = locale
         }
         else
         {
-            userJSON[ "locale" ] = nil
+            userJSON[ ResponseParamKeys.locale ] = nil
         }
         if let countryLocale = user.getCountryLocale()
         {
-            userJSON[ "country_locale" ] = countryLocale
+            userJSON[ ResponseParamKeys.countryLocale ] = countryLocale
         }
         else
         {
-            userJSON[ "country_locale" ] = nil
+            userJSON[ ResponseParamKeys.countryLocale ] = nil
         }
         if let nameFormat = user.getNameFormat()
         {
-            userJSON[ "name_format" ] = nameFormat
+            userJSON[ ResponseParamKeys.nameFormat ] = nameFormat
         }
         else
         {
-            userJSON[ "name_format" ] = nil
+            userJSON[ ResponseParamKeys.nameFormat ] = nil
         }
         if let dateFormat = user.getDateFormat()
         {
-            userJSON[ "date_format" ] = dateFormat
+            userJSON[ ResponseParamKeys.dateFormat ] = dateFormat
         }
         else
         {
-            userJSON[ "date_format" ] = nil
+            userJSON[ ResponseParamKeys.dateFormat ] = nil
         }
         if let timeFormat = user.getTimeFormat()
         {
-            userJSON[ "time_format" ] = timeFormat
+            userJSON[ ResponseParamKeys.timeFormat ] = timeFormat
         }
         else
         {
-            userJSON[ "time_format" ] = nil
+            userJSON[ ResponseParamKeys.timeFormat ] = nil
         }
         if let timeZone = user.getTimeZone()
         {
-            userJSON[ "time_zone" ] = timeZone
+            userJSON[ ResponseParamKeys.timeZone ] = timeZone
         }
         else
         {
-            userJSON[ "time_zone" ] = nil
+            userJSON[ ResponseParamKeys.timeZone ] = nil
         }
         if let website = user.getWebsite()
         {
-            userJSON[ "website" ] = website
+            userJSON[ ResponseParamKeys.website ] = website
         }
         else
         {
-            userJSON[ "website" ] = nil
+            userJSON[ ResponseParamKeys.website ] = nil
         }
         if let confirm = user.isConfirmedUser()
         {
-            userJSON[ "confirm" ] = confirm
+            userJSON[ ResponseParamKeys.confirm ] = confirm
         }
         else
         {
-            userJSON[ "confirm" ] = nil
+            userJSON[ ResponseParamKeys.confirm ] = nil
         }
         if let status = user.getStatus()
         {
-            userJSON[ "status" ] = status
+            userJSON[ ResponseParamKeys.status ] = status
         }
         else
         {
-            userJSON[ "status" ] = nil
+            userJSON[ ResponseParamKeys.status ] = nil
         }
         if let profile = user.getProfile()
         {
-            userJSON[ "profile" ] = String( profile.getId() )
-        }
-        else
-        {
-            print( "User must have role" )
-        }
-        if let role = user.getRole()
-        {
-            userJSON[ "role" ] = role.getId()
+            userJSON[ ResponseParamKeys.profile ] = String( profile.getId() )
         }
         else
         {
             print( "User must have profile" )
+        }
+        if let role = user.getRole()
+        {
+            userJSON[ ResponseParamKeys.role ] = role.getId()
+        }
+        else
+        {
+            print( "User must have role" )
         }
         
         if user.getData() != nil
@@ -718,5 +718,78 @@ internal class UserAPIHandler : CommonAPIHandler
         }
         
         return userJSON
+    }
+}
+
+extension UserAPIHandler
+{
+    internal struct RequestParamKeys
+    {
+        static let type = "type"
+        static let currentUser = "CurrentUser"
+        static let filters = "filters"
+        static let photoSize = "photo_size"
+    }
+    
+    internal struct RequestParamValues
+    {
+        static let activeUsers = "ActiveUsers"
+        static let deactiveUsers = "DeactiveUsers"
+        static let notConfirmedUsers = "NotConfirmedUsers"
+        static let confirmedUsers = "ConfirmedUsers"
+        static let activeConfirmedUsers = "ActiveConfirmedUsers"
+        static let deletedUsers = "DeletedUsers"
+        static let adminUsers = "AdminUsers"
+        static let activeConfirmedAdmins = "ActiveConfirmedAdmins"
+    }
+    
+    internal struct ResponseParamKeys
+    {
+        static let fullName = "full_name"
+        static let id = "id"
+        static let name = "name"
+        static let firstName = "first_name"
+        static let lastName = "last_name"
+        static let email = "email"
+        static let mobile = "mobile"
+        static let language = "language"
+        static let status = "status"
+        static let ZUID = "zuid"
+        static let profile = "profile"
+        static let role = "role"
+        static let alias = "alias"
+        static let city = "city"
+        static let confirm = "confirm"
+        static let countryLocale = "country_locale"
+        static let dateFormat = "date_fromat"
+        static let dob = "dob"
+        static let country = "country"
+        static let fax = "fax"
+        static let locale = "locale"
+        static let nameFormat = "name_format"
+        static let phone = "phone"
+        static let website = "website"
+        static let street = "street"
+        static let timeZone = "time_zone"
+        static let state = "state"
+        static let CreatedBy = "Created_By"
+        static let CreatedTime = "Created_Time"
+        static let ModifiedBy = "Modified_By"
+        static let ModifiedTime = "Modified_Time"
+        static let ReportingTo = "Reporting_To"
+        
+        static let displayLabel = "display_label"
+        static let adminUser = "admin_user"
+        static let reportingTo = "reporting_to"
+        
+        static let category = "category"
+        static let description = "description"
+        static let modifiedBy = "modified_by"
+        static let createdBy = "created_by"
+        static let modifiedTime = "modified_time"
+        static let createdTime = "created_time"
+        
+        static let zip = "zip"
+        static let timeFormat = "time_format"
     }
 }

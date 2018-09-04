@@ -49,6 +49,16 @@ public class ZCRMTag : ZCRMEntity
     public init()
     { }
     
+    internal func setModuleAPIName( moduleAPIName : String? )
+    {
+        self.moduleAPIName = moduleAPIName
+    }
+    
+    public func getModuleAPIName() -> String?
+    {
+        return self.moduleAPIName
+    }
+    
     internal func setId(tagId : Int64?)
     {
         self.id = tagId
