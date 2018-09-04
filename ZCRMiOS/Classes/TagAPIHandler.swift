@@ -417,14 +417,14 @@ internal class TagAPIHandler : CommonAPIHandler
     }
 }
 
-extension TagAPIHandler
+fileprivate extension TagAPIHandler
 {
-    internal struct RequestParamKeys
+    struct RequestParamKeys
     {
         static let conflictId = "conflict_id"
     }
     
-    internal struct ResponseParamKeys
+    struct ResponseParamKeys
     {
         static let id = "id"
         static let name = "name"

@@ -170,9 +170,9 @@ internal class MetaDataAPIHandler : CommonAPIHandler
     }
 }
 
-extension MetaDataAPIHandler
+fileprivate extension MetaDataAPIHandler
 {
-    internal struct ResponseParamKeys
+    struct ResponseParamKeys
     {
         static let apiName = "api_name"
         static let id = "id"

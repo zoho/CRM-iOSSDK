@@ -146,9 +146,9 @@ internal class OrganizationAPIHandler : CommonAPIHandler
     }
 }
 
-extension OrganizationAPIHandler
+fileprivate extension OrganizationAPIHandler
 {
-    internal struct ResponseParamKeys
+    struct ResponseParamKeys
     {
         static let id = "id"
         static let fax = "fax"

@@ -502,9 +502,9 @@ internal class ModuleAPIHandler : CommonAPIHandler
     }
 }
 
-extension ModuleAPIHandler
+fileprivate extension ModuleAPIHandler
 {
-    internal struct ResponseParamKeys
+    struct ResponseParamKeys
     {
         static let id = "id"
         static let name = "name"
@@ -575,7 +575,7 @@ extension ModuleAPIHandler
         static let forecastType = "forecast_type"
     }
     
-    internal enum SubLayoutViewType : String
+    enum SubLayoutViewType : String
     {
         case CREATE = "CREATE"
         case EDIT = "EDIT"

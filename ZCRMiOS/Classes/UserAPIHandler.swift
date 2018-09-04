@@ -721,9 +721,9 @@ internal class UserAPIHandler : CommonAPIHandler
     }
 }
 
-extension UserAPIHandler
+fileprivate extension UserAPIHandler
 {
-    internal struct RequestParamKeys
+    struct RequestParamKeys
     {
         static let type = "type"
         static let currentUser = "CurrentUser"
@@ -731,7 +731,7 @@ extension UserAPIHandler
         static let photoSize = "photo_size"
     }
     
-    internal struct RequestParamValues
+    struct RequestParamValues
     {
         static let activeUsers = "ActiveUsers"
         static let deactiveUsers = "DeactiveUsers"
@@ -743,7 +743,7 @@ extension UserAPIHandler
         static let activeConfirmedAdmins = "ActiveConfirmedAdmins"
     }
     
-    internal struct ResponseParamKeys
+    struct ResponseParamKeys
     {
         static let fullName = "full_name"
         static let id = "id"
