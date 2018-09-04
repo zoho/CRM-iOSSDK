@@ -67,7 +67,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         let recordsList:[[String:Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                         for recordDetails in recordsList
                         {
-                            let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.parentRecord.getModuleAPIName(), recordId: recordDetails.optInt64(key: ResponseParamKeys.id)!)
+                            let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.parentRecord.getModuleAPIName(), recordId: recordDetails.optInt64(key: ResponseJSONKeys.id)!)
                             EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordDetails)
                             records.append(record)
                         }
@@ -121,7 +121,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         let notesList:[[String:Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                         for noteDetails in notesList
                         {
-                            notes.append( self.getZCRMNote( noteDetails : noteDetails, note : ZCRMNote( noteId : noteDetails.getInt64( key : ResponseParamKeys.id ) ) ) )
+                            notes.append( self.getZCRMNote( noteDetails : noteDetails, note : ZCRMNote( noteId : noteDetails.getInt64( key : ResponseJSONKeys.id ) ) ) )
                         }
                         bulkResponse.setData(data: notes)
                     }
@@ -386,99 +386,99 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 	private func getZCRMAttachment(attachmentDetails : [String:Any?]) -> ZCRMAttachment
 	{
         var createdBy : ZCRMUser?
-		let attachment : ZCRMAttachment = ZCRMAttachment(parentRecord: self.parentRecord, attachmentId: attachmentDetails.getInt64(key: ResponseParamKeys.id))
-        if ( attachmentDetails.hasValue( forKey : ResponseParamKeys.fileName ) )
+		let attachment : ZCRMAttachment = ZCRMAttachment(parentRecord: self.parentRecord, attachmentId: attachmentDetails.getInt64(key: ResponseJSONKeys.id))
+        if ( attachmentDetails.hasValue( forKey : ResponseJSONKeys.fileName ) )
         {
-            let fileName : String = attachmentDetails.optString( key : ResponseParamKeys.fileName )!
+            let fileName : String = attachmentDetails.optString( key : ResponseJSONKeys.fileName )!
             attachment.setFileName( fileName : fileName )
             let fileType = fileName.pathExtension()
             attachment.setFileType(type: fileType)
         }
-        if(attachmentDetails.hasValue(forKey: ResponseParamKeys.size))
+        if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.size))
         {
-            attachment.setFileSize(size: Int64(attachmentDetails.optInt64(key: ResponseParamKeys.size)!))
+            attachment.setFileSize(size: Int64(attachmentDetails.optInt64(key: ResponseJSONKeys.size)!))
         }
-        if ( attachmentDetails.hasValue( forKey : ResponseParamKeys.createdBy ) )
+        if ( attachmentDetails.hasValue( forKey : ResponseJSONKeys.createdBy ) )
         {
-            let createdByDetails : [String:Any] = attachmentDetails.getDictionary(key: ResponseParamKeys.createdBy)
-            createdBy = ZCRMUser(userId: createdByDetails.getInt64(key: ResponseParamKeys.id), userFullName: createdByDetails.getString(key: ResponseParamKeys.name))
+            let createdByDetails : [String:Any] = attachmentDetails.getDictionary(key: ResponseJSONKeys.createdBy)
+            createdBy = ZCRMUser(userId: createdByDetails.getInt64(key: ResponseJSONKeys.id), userFullName: createdByDetails.getString(key: ResponseJSONKeys.name))
             attachment.setCreatedByUser(createdByUser: createdBy)
-            attachment.setCreatedTime(createdTime: attachmentDetails.getString(key: ResponseParamKeys.createdTime))
+            attachment.setCreatedTime(createdTime: attachmentDetails.getString(key: ResponseJSONKeys.createdTime))
         }
-        if(attachmentDetails.hasValue(forKey: ResponseParamKeys.modifiedBy))
+        if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.modifiedBy))
         {
-            let modifiedByDetails : [String:Any] = attachmentDetails.getDictionary(key: ResponseParamKeys.modifiedBy)
-            let modifiedBy : ZCRMUser = ZCRMUser(userId: modifiedByDetails.getInt64(key: ResponseParamKeys.id), userFullName: modifiedByDetails.getString(key: ResponseParamKeys.name))
+            let modifiedByDetails : [String:Any] = attachmentDetails.getDictionary(key: ResponseJSONKeys.modifiedBy)
+            let modifiedBy : ZCRMUser = ZCRMUser(userId: modifiedByDetails.getInt64(key: ResponseJSONKeys.id), userFullName: modifiedByDetails.getString(key: ResponseJSONKeys.name))
             attachment.setModifiedByUser(modifiedByUser: modifiedBy)
-            attachment.setModifiedTime(modifiedTime: attachmentDetails.getString(key: ResponseParamKeys.modifiedTime))
+            attachment.setModifiedTime(modifiedTime: attachmentDetails.getString(key: ResponseJSONKeys.modifiedTime))
         }
-		if(attachmentDetails.hasValue(forKey: ResponseParamKeys.owner))
+		if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.owner))
 		{
-			let ownerDetails : [String:Any] = attachmentDetails.getDictionary(key: ResponseParamKeys.owner)
-			let owner : ZCRMUser = ZCRMUser(userId: ownerDetails.getInt64(key: ResponseParamKeys.id), userFullName: ownerDetails.getString(key: ResponseParamKeys.name))
+			let ownerDetails : [String:Any] = attachmentDetails.getDictionary(key: ResponseJSONKeys.owner)
+			let owner : ZCRMUser = ZCRMUser(userId: ownerDetails.getInt64(key: ResponseJSONKeys.id), userFullName: ownerDetails.getString(key: ResponseJSONKeys.name))
 			attachment.setOwner(owner: owner)
 		}
         else if( createdBy != nil )
         {
             attachment.setOwner( owner : createdBy! )
         }
-        attachment.setIsEditable( isEditable : attachmentDetails.optBoolean( key : ResponseParamKeys.editable ) )
-        attachment.setType( type : attachmentDetails.optString( key : ResponseParamKeys.type ) )
-        attachment.setLinkURL( linkURL : attachmentDetails.optString( key : ResponseParamKeys.linkURL ) )
+        attachment.setIsEditable( isEditable : attachmentDetails.optBoolean( key : ResponseJSONKeys.editable ) )
+        attachment.setType( type : attachmentDetails.optString( key : ResponseJSONKeys.type ) )
+        attachment.setLinkURL( linkURL : attachmentDetails.optString( key : ResponseJSONKeys.linkURL ) )
 		return attachment
 	}
 	
     private func getZCRMNote(noteDetails : [String:Any?], note : ZCRMNote) -> ZCRMNote
 	{
         var createdBy : ZCRMUser?
-		note.setId( noteId : noteDetails.getInt64( key : ResponseParamKeys.id ) )
-        if ( noteDetails.hasValue( forKey : ResponseParamKeys.noteTitle ) )
+		note.setId( noteId : noteDetails.getInt64( key : ResponseJSONKeys.id ) )
+        if ( noteDetails.hasValue( forKey : ResponseJSONKeys.noteTitle ) )
         {
-            note.setTitle( title : noteDetails.getString( key : ResponseParamKeys.noteTitle ) )
+            note.setTitle( title : noteDetails.getString( key : ResponseJSONKeys.noteTitle ) )
         }
-        if ( noteDetails.hasValue( forKey : ResponseParamKeys.noteContent ) )
+        if ( noteDetails.hasValue( forKey : ResponseJSONKeys.noteContent ) )
         {
-            note.setContent( content : noteDetails.getString( key : ResponseParamKeys.noteContent ) )
+            note.setContent( content : noteDetails.getString( key : ResponseJSONKeys.noteContent ) )
         }
-        if ( noteDetails.hasValue( forKey : ResponseParamKeys.createdBy ) )
+        if ( noteDetails.hasValue( forKey : ResponseJSONKeys.createdBy ) )
         {
-            let createdByDetails : [String:Any] = noteDetails.getDictionary(key: ResponseParamKeys.createdBy)
-            createdBy = ZCRMUser(userId: createdByDetails.getInt64(key: ResponseParamKeys.id), userFullName: createdByDetails.getString(key: ResponseParamKeys.name))
+            let createdByDetails : [String:Any] = noteDetails.getDictionary(key: ResponseJSONKeys.createdBy)
+            createdBy = ZCRMUser(userId: createdByDetails.getInt64(key: ResponseJSONKeys.id), userFullName: createdByDetails.getString(key: ResponseJSONKeys.name))
             note.setCreatedByUser(createdByUser: createdBy)
-            note.setCreatedTime(createdTime: noteDetails.getString(key: ResponseParamKeys.createdTime))
+            note.setCreatedTime(createdTime: noteDetails.getString(key: ResponseJSONKeys.createdTime))
         }
-        if ( noteDetails.hasValue( forKey : ResponseParamKeys.modifiedBy ) )
+        if ( noteDetails.hasValue( forKey : ResponseJSONKeys.modifiedBy ) )
         {
-            let modifiedByDetails : [String:Any] = noteDetails.getDictionary( key : ResponseParamKeys.modifiedBy )
-            let modifiedBy : ZCRMUser = ZCRMUser(userId: modifiedByDetails.getInt64(key: ResponseParamKeys.id), userFullName: modifiedByDetails.getString(key: ResponseParamKeys.name))
+            let modifiedByDetails : [String:Any] = noteDetails.getDictionary( key : ResponseJSONKeys.modifiedBy )
+            let modifiedBy : ZCRMUser = ZCRMUser(userId: modifiedByDetails.getInt64(key: ResponseJSONKeys.id), userFullName: modifiedByDetails.getString(key: ResponseJSONKeys.name))
             note.setModifiedByUser(modifiedByUser: modifiedBy)
-            note.setModifiedTime(modifiedTime: noteDetails.getString(key: ResponseParamKeys.modifiedTime))
+            note.setModifiedTime(modifiedTime: noteDetails.getString(key: ResponseJSONKeys.modifiedTime))
         }
-        if( noteDetails.hasValue( forKey: ResponseParamKeys.owner ) )
+        if( noteDetails.hasValue( forKey: ResponseJSONKeys.owner ) )
         {
-            let ownerDetails : [String:Any] = noteDetails.getDictionary(key: ResponseParamKeys.owner)
-            let owner : ZCRMUser = ZCRMUser(userId: ownerDetails.getInt64(key: ResponseParamKeys.id), userFullName: ownerDetails.getString(key: ResponseParamKeys.name))
+            let ownerDetails : [String:Any] = noteDetails.getDictionary(key: ResponseJSONKeys.owner)
+            let owner : ZCRMUser = ZCRMUser(userId: ownerDetails.getInt64(key: ResponseJSONKeys.id), userFullName: ownerDetails.getString(key: ResponseJSONKeys.name))
             note.setOwner(owner: owner)
         }
         else if( createdBy != nil )
         {
             note.setOwner( owner : createdBy! )
         }
-        if(noteDetails.hasValue(forKey: ResponseParamKeys.attachments))
+        if(noteDetails.hasValue(forKey: ResponseJSONKeys.attachments))
         {
-            let attachmentsList : [[String:Any?]] = noteDetails.getArrayOfDictionaries(key: ResponseParamKeys.attachments)
+            let attachmentsList : [[String:Any?]] = noteDetails.getArrayOfDictionaries(key: ResponseJSONKeys.attachments)
             for attachmentDetails in attachmentsList
             {
                 note.addAttachment(attachment: self.getZCRMAttachment(attachmentDetails: attachmentDetails))
             }
         }
-        if(noteDetails.hasValue(forKey: ResponseParamKeys.parentId))
+        if(noteDetails.hasValue(forKey: ResponseJSONKeys.parentId))
         {
-            let parentRecordList : [ String : Any ] = noteDetails.getDictionary(key: ResponseParamKeys.parentId)
-            if( parentRecordList.optString(key: ResponseParamKeys.name) != nil)
+            let parentRecordList : [ String : Any ] = noteDetails.getDictionary(key: ResponseJSONKeys.parentId)
+            if( parentRecordList.optString(key: ResponseJSONKeys.name) != nil)
             {
-                note.setParentRecord(parentRecord: ZCRMRecord(moduleAPIName: noteDetails.getString(key: ResponseParamKeys.seModule), recordId: self.parentRecord.getId()))
-                note.getParentRecord().setValue(forField: ResponseParamKeys.name, value: parentRecordList.getString(key: ResponseParamKeys.name))
+                note.setParentRecord(parentRecord: ZCRMRecord(moduleAPIName: noteDetails.getString(key: ResponseJSONKeys.seModule), recordId: self.parentRecord.getId()))
+                note.getParentRecord().setValue(forField: ResponseJSONKeys.name, value: parentRecordList.getString(key: ResponseJSONKeys.name))
             }
             else
             {
@@ -491,8 +491,8 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 	private func getZCRMNoteAsJSON(note : ZCRMNote) -> [String:Any]
 	{
 		var noteJSON : [String:Any] = [String:Any]()
-		noteJSON[ResponseParamKeys.noteTitle] = note.getTitle()
-		noteJSON[ResponseParamKeys.noteContent] = note.getContent()
+		noteJSON[ResponseJSONKeys.noteTitle] = note.getTitle()
+		noteJSON[ResponseJSONKeys.noteContent] = note.getContent()
 		return noteJSON
 	}
     
@@ -566,7 +566,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 
 extension RelatedListAPIHandler
 {
-    internal struct ResponseParamKeys
+    internal struct ResponseJSONKeys
     {
         static let id = "id"
         static let name = "name"

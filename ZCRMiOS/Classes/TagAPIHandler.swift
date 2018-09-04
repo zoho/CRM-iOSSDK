@@ -101,7 +101,7 @@ internal class TagAPIHandler : CommonAPIHandler
                     return
                 }
                 let responseJSON = response.getResponseJSON()
-                let count = Int64( responseJSON.getString( key : ResponseParamKeys.count ) )
+                let count = Int64( responseJSON.getString( key : ResponseJSONKeys.count ) )
                 completion( count, nil )
             }
         }
@@ -184,7 +184,7 @@ internal class TagAPIHandler : CommonAPIHandler
             }
             var conflictTagJSON : [String:Any] = self.getZCRMTagAsJSON(tag: withTag) as Any as! [String:Any]
             var conflictIdJSON : [String:Any] = [String:Any]()
-            conflictIdJSON[RequestParamKeys.conflictId] = conflictTagJSON[ResponseParamKeys.id]
+            conflictIdJSON[RequestParamKeys.conflictId] = conflictTagJSON[ResponseJSONKeys.id]
             setJSONRootKey(key: JSONRootKey.TAGS)
             var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
             var dataArray : [[String:Any]] = [[String:Any]]()
@@ -235,7 +235,7 @@ internal class TagAPIHandler : CommonAPIHandler
             var dataArray : [[String:Any]] = [[String:Any]]()
             var updateTagJSON = self.getZCRMTagAsJSON(tag: updateTag) as Any as! [String:Any]
             var nameJSON : [String:Any] = [String:Any]()
-            nameJSON[ResponseParamKeys.name] = updateTagJSON[ResponseParamKeys.name]
+            nameJSON[ResponseJSONKeys.name] = updateTagJSON[ResponseJSONKeys.name]
             dataArray.append(nameJSON)
             reqBodyObj[getJSONRootKey()] = dataArray
             
@@ -345,27 +345,27 @@ internal class TagAPIHandler : CommonAPIHandler
     internal func getZCRMTag( tagDetails : [String : Any?] ) -> ZCRMTag
     {
         let tag : ZCRMTag = ZCRMTag()
-        if tagDetails.hasKey(forKey: ResponseParamKeys.id)
+        if tagDetails.hasKey(forKey: ResponseJSONKeys.id)
         {
-            tag.setId(tagId: tagDetails.getInt64(key: ResponseParamKeys.id))
+            tag.setId(tagId: tagDetails.getInt64(key: ResponseJSONKeys.id))
         }
-        if tagDetails.hasKey(forKey: ResponseParamKeys.name)
+        if tagDetails.hasKey(forKey: ResponseJSONKeys.name)
         {
-            tag.setName(tagName: tagDetails.getString(key: ResponseParamKeys.name))
+            tag.setName(tagName: tagDetails.getString(key: ResponseJSONKeys.name))
         }
-        if ( tagDetails.hasValue( forKey : ResponseParamKeys.createdBy ) )
+        if ( tagDetails.hasValue( forKey : ResponseJSONKeys.createdBy ) )
         {
-            let createdByDetails : [String:Any] = tagDetails.getDictionary(key: ResponseParamKeys.createdBy)
-            let createdBy : ZCRMUser = ZCRMUser(userId: createdByDetails.getInt64(key: ResponseParamKeys.id), userFullName: createdByDetails.getString(key: ResponseParamKeys.name))
+            let createdByDetails : [String:Any] = tagDetails.getDictionary(key: ResponseJSONKeys.createdBy)
+            let createdBy : ZCRMUser = ZCRMUser(userId: createdByDetails.getInt64(key: ResponseJSONKeys.id), userFullName: createdByDetails.getString(key: ResponseJSONKeys.name))
             tag.setCreatedBy(createdBy: createdBy)
-            tag.setCreatedTime(createdTime: tagDetails.getString(key: ResponseParamKeys.createdTime))
+            tag.setCreatedTime(createdTime: tagDetails.getString(key: ResponseJSONKeys.createdTime))
         }
-        if ( tagDetails.hasValue( forKey : ResponseParamKeys.modifiedBy ) )
+        if ( tagDetails.hasValue( forKey : ResponseJSONKeys.modifiedBy ) )
         {
-            let modifiedByDetails : [String:Any] = tagDetails.getDictionary(key: ResponseParamKeys.modifiedBy)
-            let modifiedBy : ZCRMUser = ZCRMUser(userId: modifiedByDetails.getInt64(key: ResponseParamKeys.id), userFullName: modifiedByDetails.getString(key: ResponseParamKeys.name))
+            let modifiedByDetails : [String:Any] = tagDetails.getDictionary(key: ResponseJSONKeys.modifiedBy)
+            let modifiedBy : ZCRMUser = ZCRMUser(userId: modifiedByDetails.getInt64(key: ResponseJSONKeys.id), userFullName: modifiedByDetails.getString(key: ResponseJSONKeys.name))
             tag.setModifiedBy(modifiedBy : modifiedBy)
-            tag.setModifiedTime(modifiedTime : tagDetails.getString(key: ResponseParamKeys.modifiedTime))
+            tag.setModifiedTime(modifiedTime : tagDetails.getString(key: ResponseJSONKeys.modifiedTime))
         }
         if let moduleAPIName = module?.getAPIName()
         {
@@ -379,27 +379,27 @@ internal class TagAPIHandler : CommonAPIHandler
         var tagJSON : [String:Any?] = [String:Any?]()
         if let id = tag.getId()
         {
-            tagJSON[ResponseParamKeys.id] = id
+            tagJSON[ResponseJSONKeys.id] = id
         }
         if let name = tag.getName()
         {
-            tagJSON[ResponseParamKeys.name] = name
+            tagJSON[ResponseJSONKeys.name] = name
         }
         if let createdBy = tag.getCreatedBy()
         {
             var createdByJSON : [String:Any] = [String:Any]()
-            createdByJSON[ResponseParamKeys.id] = createdBy.getId()
-            createdByJSON[ResponseParamKeys.name] = createdBy.getFullName()
-            tagJSON[ResponseParamKeys.createdBy] = createdByJSON
-            tagJSON[ResponseParamKeys.createdTime] = tag.getCreatedTime()
+            createdByJSON[ResponseJSONKeys.id] = createdBy.getId()
+            createdByJSON[ResponseJSONKeys.name] = createdBy.getFullName()
+            tagJSON[ResponseJSONKeys.createdBy] = createdByJSON
+            tagJSON[ResponseJSONKeys.createdTime] = tag.getCreatedTime()
         }
         if let modifiedBy = tag.getModifiedBy()
         {
             var modifiedByJSON : [String:Any] = [String:Any]()
-            modifiedByJSON[ResponseParamKeys.id] = modifiedBy.getId()
-            modifiedByJSON[ResponseParamKeys.name] = modifiedBy.getFullName()
-            tagJSON[ResponseParamKeys.modifiedBy] = modifiedByJSON
-            tagJSON[ResponseParamKeys.modifiedTime] = modifiedByJSON
+            modifiedByJSON[ResponseJSONKeys.id] = modifiedBy.getId()
+            modifiedByJSON[ResponseJSONKeys.name] = modifiedBy.getFullName()
+            tagJSON[ResponseJSONKeys.modifiedBy] = modifiedByJSON
+            tagJSON[ResponseJSONKeys.modifiedTime] = modifiedByJSON
         }
         return tagJSON
     }
@@ -412,7 +412,7 @@ fileprivate extension TagAPIHandler
         static let conflictId = "conflict_id"
     }
     
-    struct ResponseParamKeys
+    struct ResponseJSONKeys
     {
         static let id = "id"
         static let name = "name"

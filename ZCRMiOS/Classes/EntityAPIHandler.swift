@@ -271,14 +271,14 @@ internal class EntityAPIHandler : CommonAPIHandler
     {
         let priceDetail = ZCRMPriceBookPricing()
         
-        priceDetail.setId(id : priceDetailDict.getInt64( key : ResponseParamKeys.id ) )
+        priceDetail.setId(id : priceDetailDict.getInt64( key : ResponseJSONKeys.id ) )
         
-        if let discount = priceDetailDict.optDouble(key : ResponseParamKeys.discount){
+        if let discount = priceDetailDict.optDouble(key : ResponseJSONKeys.discount){
             priceDetail.setDiscount(discount:discount)
         }
         
-        if let fromRange = priceDetailDict.optDouble( key : ResponseParamKeys.fromRange ),
-           let toRange = priceDetailDict.optDouble(key : ResponseParamKeys.toRange ){
+        if let fromRange = priceDetailDict.optDouble( key : ResponseJSONKeys.fromRange ),
+           let toRange = priceDetailDict.optDouble(key : ResponseJSONKeys.toRange ){
             priceDetail.setRange(From: fromRange, To: toRange)
         }
         
@@ -292,11 +292,11 @@ internal class EntityAPIHandler : CommonAPIHandler
         let recordData : [ String : Any? ] = self.record.getData()
         if ( self.record.getOwner() != nil )
         {
-            recordJSON[ ResponseParamKeys.owner ] = self.record.getOwner()!.getId()
+            recordJSON[ ResponseJSONKeys.owner ] = self.record.getOwner()!.getId()
         }
         if ( self.record.getLayout() != nil )
         {
-            recordJSON[ ResponseParamKeys.layout ] = self.record.getLayout()?.getId()
+            recordJSON[ ResponseJSONKeys.layout ] = self.record.getLayout()?.getId()
         }
         for fieldApiName in recordData.keys
         {
@@ -321,12 +321,12 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
         if( self.record.getDataProcessingBasicDetails() != nil )
         {
-            recordJSON[ ResponseParamKeys.dataProcessingBasisDetails ] = self.getZCRMDataProcessingDetailsAsJSON(details: self.record.getDataProcessingBasicDetails()! )
+            recordJSON[ ResponseJSONKeys.dataProcessingBasisDetails ] = self.getZCRMDataProcessingDetailsAsJSON(details: self.record.getDataProcessingBasicDetails()! )
         }
-        recordJSON[ ResponseParamKeys.productDetails ] = self.getLineItemsAsJSONArray()
-        recordJSON[ ResponseParamKeys.tax ] = self.getTaxAsJSONArray()
-        recordJSON[ ResponseParamKeys.participants ] = self.getParticipantsAsJSONArray()
-        recordJSON[ ResponseParamKeys.pricingDetails ] = self.getPriceDetailsAsJSONArray()
+        recordJSON[ ResponseJSONKeys.productDetails ] = self.getLineItemsAsJSONArray()
+        recordJSON[ ResponseJSONKeys.tax ] = self.getTaxAsJSONArray()
+        recordJSON[ ResponseJSONKeys.participants ] = self.getParticipantsAsJSONArray()
+        recordJSON[ ResponseJSONKeys.pricingDetails ] = self.getPriceDetailsAsJSONArray()
         return recordJSON
     }
     
@@ -335,54 +335,54 @@ internal class EntityAPIHandler : CommonAPIHandler
         var detailsJSON : [ String : Any? ] = [ String : Any? ]()
         if let consnetThrough = details.getConsentThrough()
         {
-            detailsJSON[ ResponseParamKeys.consentThrough ] = consnetThrough
+            detailsJSON[ ResponseJSONKeys.consentThrough ] = consnetThrough
         }
         else
         {
-            detailsJSON[ ResponseParamKeys.consentThrough ] = nil
+            detailsJSON[ ResponseJSONKeys.consentThrough ] = nil
         }
         if let list = details.getConsentProcessThroughList()
         {
             if( list.contains( ConsentProcessThrough.EMAIL.rawValue ) )
             {
-                detailsJSON[ ResponseParamKeys.contactThroughEmail ] = true
+                detailsJSON[ ResponseJSONKeys.contactThroughEmail ] = true
             }
             if( list.contains( ConsentProcessThrough.SOCIAL.rawValue ) )
             {
-                detailsJSON[ ResponseParamKeys.contactThroughSocial ] = true
+                detailsJSON[ ResponseJSONKeys.contactThroughSocial ] = true
             }
             if( list.contains( ConsentProcessThrough.SURVEY.rawValue ) )
             {
-                detailsJSON[ ResponseParamKeys.contactThroughSurvey ] = true
+                detailsJSON[ ResponseJSONKeys.contactThroughSurvey ] = true
             }
             if( list.contains( ConsentProcessThrough.PHONE.rawValue ) )
             {
-                detailsJSON[ ResponseParamKeys.contactThroughPhone ] = true
+                detailsJSON[ ResponseJSONKeys.contactThroughPhone ] = true
             }
         }
         if let dataProcessing = details.getDataProcessingBasis()
         {
-            detailsJSON[ ResponseParamKeys.dataProcessingBasis ] = dataProcessing
+            detailsJSON[ ResponseJSONKeys.dataProcessingBasis ] = dataProcessing
         }
         else
         {
-            detailsJSON[ ResponseParamKeys.dataProcessingBasis ] = nil
+            detailsJSON[ ResponseJSONKeys.dataProcessingBasis ] = nil
         }
         if let date = details.getConsentDate()
         {
-            detailsJSON[ ResponseParamKeys.consentDate ] = date
+            detailsJSON[ ResponseJSONKeys.consentDate ] = date
         }
         else
         {
-            detailsJSON[ ResponseParamKeys.consentDate ] = nil
+            detailsJSON[ ResponseJSONKeys.consentDate ] = nil
         }
         if let remarks = details.getConsentRemarks()
         {
-            detailsJSON[ ResponseParamKeys.consentRemarks ] = remarks
+            detailsJSON[ ResponseJSONKeys.consentRemarks ] = remarks
         }
         else
         {
-            detailsJSON[ ResponseParamKeys.consentRemarks ] = nil
+            detailsJSON[ ResponseJSONKeys.consentRemarks ] = nil
         }
         return detailsJSON
     }
@@ -405,12 +405,12 @@ internal class EntityAPIHandler : CommonAPIHandler
     private func  getTaxAsJSON( tax : ZCRMTax ) -> [ String : Any? ]
     {
         var taxJSON : [ String : Any? ] = [ String : Any? ]()
-        taxJSON[ ResponseParamKeys.name ] = tax.getTaxName()
+        taxJSON[ ResponseJSONKeys.name ] = tax.getTaxName()
         if tax.getTaxPercentage() != nil {
-            taxJSON[ ResponseParamKeys.percentage ] = tax.getTaxPercentage()
+            taxJSON[ ResponseJSONKeys.percentage ] = tax.getTaxPercentage()
         }
         if tax.getTaxValue() != nil  {
-            taxJSON[ ResponseParamKeys.value ] = tax.getTaxValue()
+            taxJSON[ ResponseJSONKeys.value ] = tax.getTaxValue()
         }
         return taxJSON
     }
@@ -463,22 +463,22 @@ internal class EntityAPIHandler : CommonAPIHandler
     private func getZCRMEventParticipantAsJSON( participant : ZCRMEventParticipant ) -> [ String : Any? ]
     {
         var participantJSON : [ String : Any? ] = [ String : Any? ]()
-        participantJSON[ ResponseParamKeys.participant ] = participant.getId()
-        participantJSON[ ResponseParamKeys.type ] = participant.getType()
-        participantJSON[ ResponseParamKeys.name ] = participant.getName()
+        participantJSON[ ResponseJSONKeys.participant ] = participant.getId()
+        participantJSON[ ResponseJSONKeys.type ] = participant.getType()
+        participantJSON[ ResponseJSONKeys.name ] = participant.getName()
         participantJSON[ ConsentProcessThrough.EMAIL.rawValue ] = participant.getEmail()
-        participantJSON[ ResponseParamKeys.status ] = participant.getStatus()
-        participantJSON[ ResponseParamKeys.invited ] = participant.didInvite()
+        participantJSON[ ResponseJSONKeys.status ] = participant.getStatus()
+        participantJSON[ ResponseJSONKeys.invited ] = participant.didInvite()
         return participantJSON
     }
     
     private func getZCRMPriceDetailAsJSON( priceDetail : ZCRMPriceBookPricing ) -> [ String : Any? ]
     {
         var priceDetailJSON : [ String : Any? ] = [ String : Any? ]()
-        priceDetailJSON[ ResponseParamKeys.id ] = priceDetail.getId()
-        priceDetailJSON[ ResponseParamKeys.discount ] = priceDetail.getDiscount()
-        priceDetailJSON[ ResponseParamKeys.toRange ] = priceDetail.getToRange()
-        priceDetailJSON[ ResponseParamKeys.fromRange ] = priceDetail.getFromRange()
+        priceDetailJSON[ ResponseJSONKeys.id ] = priceDetail.getId()
+        priceDetailJSON[ ResponseJSONKeys.discount ] = priceDetail.getDiscount()
+        priceDetailJSON[ ResponseJSONKeys.toRange ] = priceDetail.getToRange()
+        priceDetailJSON[ ResponseJSONKeys.fromRange ] = priceDetail.getFromRange()
         return priceDetailJSON
     }
     
@@ -487,41 +487,41 @@ internal class EntityAPIHandler : CommonAPIHandler
         var lineItem : [String:Any?] = [String:Any?]()
         if(invLineItem.getId() != nil)
         {
-            lineItem[ResponseParamKeys.id] = String(invLineItem.getId()!)
+            lineItem[ResponseJSONKeys.id] = String(invLineItem.getId()!)
         }
         else
         {
-            lineItem[ResponseParamKeys.product] = String(invLineItem.getProduct().getId())
+            lineItem[ResponseJSONKeys.product] = String(invLineItem.getProduct().getId())
         }
         if(invLineItem.isDeleted())
         {
-            lineItem[ResponseParamKeys.delete] = true
+            lineItem[ResponseJSONKeys.delete] = true
         }
         else
         {
-            lineItem[ResponseParamKeys.productDescription] = invLineItem.getDescription()
-            lineItem[ResponseParamKeys.listPrice] = invLineItem.getListPrice()
-            lineItem[ResponseParamKeys.quantity] = invLineItem.getQuantity()
+            lineItem[ResponseJSONKeys.productDescription] = invLineItem.getDescription()
+            lineItem[ResponseJSONKeys.listPrice] = invLineItem.getListPrice()
+            lineItem[ResponseJSONKeys.quantity] = invLineItem.getQuantity()
             if(invLineItem.getDiscountPercentage() == 0.0)
             {
-                lineItem[ResponseParamKeys.Discount] = invLineItem.getDiscount()
+                lineItem[ResponseJSONKeys.Discount] = invLineItem.getDiscount()
             }
             else
             {
-                lineItem[ResponseParamKeys.Discount] = String(invLineItem.getDiscountPercentage()) + "%"
+                lineItem[ResponseJSONKeys.Discount] = String(invLineItem.getDiscountPercentage()) + "%"
             }
             var allTaxes : [[String:Any]] = [[String:Any]]()
             let lineTaxes : [ZCRMTax] = invLineItem.getLineTaxDetails()
             for lineTax in lineTaxes
             {
                 var tax : [String:Any] = [String:Any]()
-                tax[ResponseParamKeys.name] = lineTax.getTaxName()
-                tax[ResponseParamKeys.percentage] = lineTax.getTaxPercentage()
+                tax[ResponseJSONKeys.name] = lineTax.getTaxName()
+                tax[ResponseJSONKeys.percentage] = lineTax.getTaxPercentage()
                 allTaxes.append(tax)
             }
             if(!allTaxes.isEmpty)
             {
-                lineItem[ResponseParamKeys.lineTax] = allTaxes
+                lineItem[ResponseJSONKeys.lineTax] = allTaxes
             }
         }
         return lineItem
@@ -531,34 +531,34 @@ internal class EntityAPIHandler : CommonAPIHandler
     {
         for (fieldAPIName, value) in recordDetails
         {
-            if(ResponseParamKeys.id == fieldAPIName)
+            if(ResponseJSONKeys.id == fieldAPIName)
             {
                 self.record.setId(recordId: Int64(value as! String)!)
             }
-            else if(ResponseParamKeys.productDetails == fieldAPIName)
+            else if(ResponseJSONKeys.productDetails == fieldAPIName)
             {
                 self.setInventoryLineItems(lineItems: value as! [[String:Any]])
             }
-            else if( ResponseParamKeys.pricingDetails == fieldAPIName )
+            else if( ResponseJSONKeys.pricingDetails == fieldAPIName )
             {
                 self.setPriceDetails( priceDetails : value as! [ [ String : Any ] ] )
             }
-            else if( ResponseParamKeys.participants == fieldAPIName )
+            else if( ResponseJSONKeys.participants == fieldAPIName )
             {
                 self.setParticipants( participantsArray : value as! [ [ String : Any ] ] )
             }
-            else if( ResponseParamKeys.dollarLineTax == fieldAPIName )
+            else if( ResponseJSONKeys.dollarLineTax == fieldAPIName )
             {
                 let taxesDetails : [ [ String : Any ] ] = value as! [ [ String : Any ] ]
                 for taxJSON in taxesDetails
                 {
-                    let tax : ZCRMTax = ZCRMTax( taxName : taxJSON.getString( key : ResponseParamKeys.name ) )
-                    tax.setTaxValue( taxValue : taxJSON.optDouble( key : ResponseParamKeys.value ) )
-                    tax.setTaxPercentage( percentage : taxJSON.getDouble( key : ResponseParamKeys.percentage ) )
+                    let tax : ZCRMTax = ZCRMTax( taxName : taxJSON.getString( key : ResponseJSONKeys.name ) )
+                    tax.setTaxValue( taxValue : taxJSON.optDouble( key : ResponseJSONKeys.value ) )
+                    tax.setTaxPercentage( percentage : taxJSON.getDouble( key : ResponseJSONKeys.percentage ) )
                     self.record.addTax( tax : tax )
                 }
             }
-            else if( ResponseParamKeys.tax == fieldAPIName && value is [ String ] )
+            else if( ResponseJSONKeys.tax == fieldAPIName && value is [ String ] )
             {
                 let taxNames : [ String ] = value as! [ String ]
                 for taxName in taxNames
@@ -566,39 +566,39 @@ internal class EntityAPIHandler : CommonAPIHandler
                     self.record.addTax( tax : ZCRMTax( taxName : taxName ) )
                 }
             }
-            else if(ResponseParamKeys.createdBy == fieldAPIName)
+            else if(ResponseJSONKeys.createdBy == fieldAPIName)
             {
                 let createdBy : [String:Any] = value as! [String : Any]
-                let createdByUser : ZCRMUser = ZCRMUser(userId: createdBy.getInt64(key: ResponseParamKeys.id), userFullName: createdBy.getString(key: ResponseParamKeys.name))
+                let createdByUser : ZCRMUser = ZCRMUser(userId: createdBy.getInt64(key: ResponseJSONKeys.id), userFullName: createdBy.getString(key: ResponseJSONKeys.name))
                 self.record.setCreatedBy(createdBy: createdByUser)
             }
-            else if(ResponseParamKeys.modifiedBy == fieldAPIName)
+            else if(ResponseJSONKeys.modifiedBy == fieldAPIName)
             {
                 let modifiedBy : [String:Any] = value as! [String : Any]
-                let modifiedByUser : ZCRMUser = ZCRMUser(userId: modifiedBy.getInt64(key: ResponseParamKeys.id), userFullName: modifiedBy.getString(key: ResponseParamKeys.name))
+                let modifiedByUser : ZCRMUser = ZCRMUser(userId: modifiedBy.getInt64(key: ResponseJSONKeys.id), userFullName: modifiedBy.getString(key: ResponseJSONKeys.name))
                 self.record.setModifiedBy(modifiedBy: modifiedByUser)
             }
-            else if(ResponseParamKeys.createdTime == fieldAPIName)
+            else if(ResponseJSONKeys.createdTime == fieldAPIName)
             {
                 self.record.setCreatedTime(createdTime: value as! String)
             }
-            else if(ResponseParamKeys.modifiedTime == fieldAPIName)
+            else if(ResponseJSONKeys.modifiedTime == fieldAPIName)
             {
                 self.record.setModifiedTime(modifiedTime: value as! String)
             }
-            else if(ResponseParamKeys.owner == fieldAPIName)
+            else if(ResponseJSONKeys.owner == fieldAPIName)
             {
                 let ownerObj : [String:Any] = value as! [String : Any]
-                let owner : ZCRMUser = ZCRMUser(userId: ownerObj.getInt64(key: ResponseParamKeys.id), userFullName: ownerObj.getString(key: ResponseParamKeys.name))
+                let owner : ZCRMUser = ZCRMUser(userId: ownerObj.getInt64(key: ResponseJSONKeys.id), userFullName: ownerObj.getString(key: ResponseJSONKeys.name))
                 self.record.setOwner(owner: owner)
             }
-            else if(ResponseParamKeys.layout == fieldAPIName)
+            else if(ResponseJSONKeys.layout == fieldAPIName)
             {
                 if(recordDetails.hasValue(forKey: fieldAPIName))
                 {
                     let layoutObj : [String:Any] = value  as! [String : Any]
-                    let layout : ZCRMLayout = ZCRMLayout(layoutId: layoutObj.getInt64(key: ResponseParamKeys.id))
-                    layout.setName(name: layoutObj.getString(key: ResponseParamKeys.name))
+                    let layout : ZCRMLayout = ZCRMLayout(layoutId: layoutObj.getInt64(key: ResponseJSONKeys.id))
+                    layout.setName(name: layoutObj.getString(key: ResponseJSONKeys.name))
                     self.record.setLayout(layout: layout)
                 }
                 else
@@ -606,23 +606,23 @@ internal class EntityAPIHandler : CommonAPIHandler
                     self.record.setLayout(layout: nil)
                 }
             }
-            else if(ResponseParamKeys.handler == fieldAPIName && recordDetails.hasValue(forKey: fieldAPIName))
+            else if(ResponseJSONKeys.handler == fieldAPIName && recordDetails.hasValue(forKey: fieldAPIName))
             {
                 let handlerObj : [String: Any] = value as! [String : Any]
-                let handler : ZCRMUser = ZCRMUser(userId: handlerObj.getInt64(key: ResponseParamKeys.id), userFullName: handlerObj.getString(key: ResponseParamKeys.name))
+                let handler : ZCRMUser = ZCRMUser(userId: handlerObj.getInt64(key: ResponseJSONKeys.id), userFullName: handlerObj.getString(key: ResponseJSONKeys.name))
                 self.record.setValue(forField: fieldAPIName, value: handler)
             }
             else if(fieldAPIName.hasPrefix("$"))
             {
                 var propertyName : String = fieldAPIName
                 propertyName.remove(at: propertyName.startIndex)
-                if propertyName.contains(ResponseParamKeys.followers)
+                if propertyName.contains(ResponseJSONKeys.followers)
                 {
                     var users : [ ZCRMUser ] = [ ZCRMUser ]()
                     let userDetails : [ [ String : Any ] ] = value as! [ [ String : Any ] ]
                     for userDetail in userDetails
                     {
-                        let user : ZCRMUser = ZCRMUser( userId : userDetail.getInt64( key : ResponseParamKeys.id ), userFullName : userDetail.getString( key : ResponseParamKeys.name) )
+                        let user : ZCRMUser = ZCRMUser( userId : userDetail.getInt64( key : ResponseJSONKeys.id ), userFullName : userDetail.getString( key : ResponseJSONKeys.name) )
                         users.append( user )
                     }
                     self.record.setValue( ofProperty : propertyName, value : users )
@@ -632,21 +632,21 @@ internal class EntityAPIHandler : CommonAPIHandler
                     self.record.setValue(ofProperty: propertyName, value: value)
                 }
             }
-            else if( ResponseParamKeys.remindAt == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) )
+            else if( ResponseJSONKeys.remindAt == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) )
             {
                 let alarmDetails = recordDetails.getDictionary( key : fieldAPIName )
-                self.record.setValue( forField : ResponseParamKeys.ALARM, value : alarmDetails.getString( key : ResponseParamKeys.ALARM ) )
+                self.record.setValue( forField : ResponseJSONKeys.ALARM, value : alarmDetails.getString( key : ResponseJSONKeys.ALARM ) )
             }
-            else if( ResponseParamKeys.recurringActivity == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) )
+            else if( ResponseJSONKeys.recurringActivity == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) )
             {
                 let recurringActivity = recordDetails.getDictionary( key : fieldAPIName )
-                self.record.setValue( forField : ResponseParamKeys.RRULE, value : recurringActivity.getString( key : ResponseParamKeys.RRULE ) )
+                self.record.setValue( forField : ResponseJSONKeys.RRULE, value : recurringActivity.getString( key : ResponseJSONKeys.RRULE ) )
             }
             else if( value is [ String : Any ] )
             {
                 let lookupDetails : [ String : Any ] = value as! [ String : Any ]
-                let lookupRecord : ZCRMRecord = ZCRMRecord( moduleAPIName : fieldAPIName, recordId : lookupDetails.getInt64( key : ResponseParamKeys.id ) )
-                lookupRecord.setLookupLabel( label : lookupDetails.optString( key : ResponseParamKeys.name ) )
+                let lookupRecord : ZCRMRecord = ZCRMRecord( moduleAPIName : fieldAPIName, recordId : lookupDetails.getInt64( key : ResponseJSONKeys.id ) )
+                lookupRecord.setLookupLabel( label : lookupDetails.optString( key : ResponseJSONKeys.name ) )
                 self.record.setValue( forField : fieldAPIName, value : lookupRecord )
             }
 			else if( value is [[ String : Any ]] )
@@ -673,27 +673,27 @@ internal class EntityAPIHandler : CommonAPIHandler
     private func getZCRMSubformRecord(apiName:String,subformDetails:[String:Any]) -> ZCRMSubformRecord
     {
         
-        let zcrmSubform : ZCRMSubformRecord = ZCRMSubformRecord(apiName : apiName, id: subformDetails.getInt64(key: ResponseParamKeys.id ))
+        let zcrmSubform : ZCRMSubformRecord = ZCRMSubformRecord(apiName : apiName, id: subformDetails.getInt64(key: ResponseJSONKeys.id ))
         
-        if subformDetails.hasValue(forKey: ResponseParamKeys.modifiedTime){
+        if subformDetails.hasValue(forKey: ResponseJSONKeys.modifiedTime){
             
-            let modifiedTime = subformDetails.optString(key: ResponseParamKeys.modifiedTime)!
+            let modifiedTime = subformDetails.optString(key: ResponseJSONKeys.modifiedTime)!
             zcrmSubform.setModifiedTime(modifiedTime: modifiedTime)
             
         }
         
-        if subformDetails.hasValue(forKey: ResponseParamKeys.createdTime){
+        if subformDetails.hasValue(forKey: ResponseJSONKeys.createdTime){
             
-            let createdTime = subformDetails.optString(key: ResponseParamKeys.createdTime)!
+            let createdTime = subformDetails.optString(key: ResponseJSONKeys.createdTime)!
             zcrmSubform.setCreatedTime(createdTime: createdTime)
         }
         
         
-        if subformDetails.hasValue( forKey : ResponseParamKeys.owner )
+        if subformDetails.hasValue( forKey : ResponseJSONKeys.owner )
         {
-            let ownerDict = subformDetails.getDictionary( key : ResponseParamKeys.owner )
-            let owner : ZCRMUser = ZCRMUser(userId: ownerDict.getInt64(key: ResponseParamKeys.id),
-                                            userFullName: ownerDict.getString(key: ResponseParamKeys.name))
+            let ownerDict = subformDetails.getDictionary( key : ResponseJSONKeys.owner )
+            let owner : ZCRMUser = ZCRMUser(userId: ownerDict.getInt64(key: ResponseJSONKeys.id),
+                                            userFullName: ownerDict.getString(key: ResponseJSONKeys.name))
             
             zcrmSubform.setOwner(owner: owner)
         }
@@ -705,40 +705,40 @@ internal class EntityAPIHandler : CommonAPIHandler
     {
         let dataProcessingDetails : ZCRMDataProcessBasicDetails = ZCRMDataProcessBasicDetails()
         
-        if( details.hasValue( forKey : ResponseParamKeys.contactThroughEmail ) && details.getBoolean( key : ResponseParamKeys.contactThroughEmail ) == true )
+        if( details.hasValue( forKey : ResponseJSONKeys.contactThroughEmail ) && details.getBoolean( key : ResponseJSONKeys.contactThroughEmail ) == true )
         {
             dataProcessingDetails.addConsentProcessThrough(consentProcessThrough: ConsentProcessThrough.EMAIL )
         }
-        if( details.hasValue( forKey : ResponseParamKeys.contactThroughSocial ) && details.getBoolean( key : ResponseParamKeys.contactThroughSocial ) == true )
+        if( details.hasValue( forKey : ResponseJSONKeys.contactThroughSocial ) && details.getBoolean( key : ResponseJSONKeys.contactThroughSocial ) == true )
         {
             dataProcessingDetails.addConsentProcessThrough(consentProcessThrough: ConsentProcessThrough.SOCIAL )
         }
-        if( details.hasValue( forKey : ResponseParamKeys.contactThroughSurvey ) && details.getBoolean( key : ResponseParamKeys.contactThroughSurvey ) == true )
+        if( details.hasValue( forKey : ResponseJSONKeys.contactThroughSurvey ) && details.getBoolean( key : ResponseJSONKeys.contactThroughSurvey ) == true )
         {
             dataProcessingDetails.addConsentProcessThrough(consentProcessThrough: ConsentProcessThrough.SURVEY )
         }
-        if( details.hasValue( forKey : ResponseParamKeys.contactThroughPhone ) && details.getBoolean( key : ResponseParamKeys.contactThroughPhone ) == true )
+        if( details.hasValue( forKey : ResponseJSONKeys.contactThroughPhone ) && details.getBoolean( key : ResponseJSONKeys.contactThroughPhone ) == true )
         {
             dataProcessingDetails.addConsentProcessThrough(consentProcessThrough: ConsentProcessThrough.PHONE )
         }
-        dataProcessingDetails.setModifiedTime( modifiedTime : details.getString(key: ResponseParamKeys.modifiedTime ) )
-        dataProcessingDetails.setCreatedTime( createdTime : details.getString( key : ResponseParamKeys.createdTime ) )
-        dataProcessingDetails.setConsentThrough( consentThrough : details.optString( key : ResponseParamKeys.consentThrough ) )
-        dataProcessingDetails.setDataProcessingBasis( dataProcessingBasis : ResponseParamKeys.dataProcessingBasis )
-        dataProcessingDetails.setLawfulReason( lawfulReason : details.optString( key : ResponseParamKeys.lawfulReason ) )
-        dataProcessingDetails.setMailSentTime( mailSentTime : details.optString( key : ResponseParamKeys.mailSentTime ) )
-        dataProcessingDetails.setConsentDate( date : details.optString( key : ResponseParamKeys.consentDate ) )
-        dataProcessingDetails.setId( id : details.getInt64( key : ResponseParamKeys.id ) )
-        dataProcessingDetails.setConsentRemarks( remarks : details.optString( key : ResponseParamKeys.consentRemarks ) )
-        dataProcessingDetails.setConsentEndsOn( endsOn : details.optString( key : ResponseParamKeys.consentEndsOn ) )
-        let ownerDetails : [ String : Any ] = details.getDictionary( key : ResponseParamKeys.owner )
-        let owner : ZCRMUser = ZCRMUser( userId : ownerDetails.getInt64( key : ResponseParamKeys.id ), userFullName : ownerDetails.getString( key : ResponseParamKeys.name ) )
+        dataProcessingDetails.setModifiedTime( modifiedTime : details.getString(key: ResponseJSONKeys.modifiedTime ) )
+        dataProcessingDetails.setCreatedTime( createdTime : details.getString( key : ResponseJSONKeys.createdTime ) )
+        dataProcessingDetails.setConsentThrough( consentThrough : details.optString( key : ResponseJSONKeys.consentThrough ) )
+        dataProcessingDetails.setDataProcessingBasis( dataProcessingBasis : ResponseJSONKeys.dataProcessingBasis )
+        dataProcessingDetails.setLawfulReason( lawfulReason : details.optString( key : ResponseJSONKeys.lawfulReason ) )
+        dataProcessingDetails.setMailSentTime( mailSentTime : details.optString( key : ResponseJSONKeys.mailSentTime ) )
+        dataProcessingDetails.setConsentDate( date : details.optString( key : ResponseJSONKeys.consentDate ) )
+        dataProcessingDetails.setId( id : details.getInt64( key : ResponseJSONKeys.id ) )
+        dataProcessingDetails.setConsentRemarks( remarks : details.optString( key : ResponseJSONKeys.consentRemarks ) )
+        dataProcessingDetails.setConsentEndsOn( endsOn : details.optString( key : ResponseJSONKeys.consentEndsOn ) )
+        let ownerDetails : [ String : Any ] = details.getDictionary( key : ResponseJSONKeys.owner )
+        let owner : ZCRMUser = ZCRMUser( userId : ownerDetails.getInt64( key : ResponseJSONKeys.id ), userFullName : ownerDetails.getString( key : ResponseJSONKeys.name ) )
         dataProcessingDetails.setOwner( owner : owner )
-        let createdByDetails : [ String : Any ] = details.getDictionary( key : ResponseParamKeys.createdBy )
-        let createdBy : ZCRMUser = ZCRMUser( userId : createdByDetails.getInt64( key : ResponseParamKeys.id ), userFullName : createdByDetails.getString( key : ResponseParamKeys.name ) )
+        let createdByDetails : [ String : Any ] = details.getDictionary( key : ResponseJSONKeys.createdBy )
+        let createdBy : ZCRMUser = ZCRMUser( userId : createdByDetails.getInt64( key : ResponseJSONKeys.id ), userFullName : createdByDetails.getString( key : ResponseJSONKeys.name ) )
         dataProcessingDetails.setCreatedBy( createdBy : createdBy )
-        let modifiedByDetails : [ String : Any ] = details.getDictionary( key : ResponseParamKeys.modifiedBy )
-        let modifiedBy : ZCRMUser = ZCRMUser( userId : modifiedByDetails.getInt64( key : ResponseParamKeys.id ), userFullName : modifiedByDetails.getString( key : ResponseParamKeys.name ) )
+        let modifiedByDetails : [ String : Any ] = details.getDictionary( key : ResponseJSONKeys.modifiedBy )
+        let modifiedBy : ZCRMUser = ZCRMUser( userId : modifiedByDetails.getInt64( key : ResponseJSONKeys.id ), userFullName : modifiedByDetails.getString( key : ResponseJSONKeys.name ) )
         dataProcessingDetails.setModifiedBy( modifiedBy : modifiedBy )
         return dataProcessingDetails
     }
@@ -761,31 +761,31 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getZCRMInventoryLineItem(lineItemDetails : [String:Any]) -> ZCRMInventoryLineItem
     {
-        let productDetails : [String:Any] = lineItemDetails.getDictionary(key: ResponseParamKeys.product)
-        let product : ZCRMRecord = ZCRMRecord(moduleAPIName: ResponseParamKeys.products, recordId: productDetails.getInt64(key: ResponseParamKeys.id))
-        product.setLookupLabel(label: productDetails.getString(key: ResponseParamKeys.name))
-        let lineItem : ZCRMInventoryLineItem = ZCRMInventoryLineItem(lineItemId: lineItemDetails.getInt64(key: ResponseParamKeys.id), product: product)
-        lineItem.setDescription(description: lineItemDetails.optString(key: ResponseParamKeys.productDescription))
-        lineItem.setQuantity(quantity: lineItemDetails.optDouble(key: ResponseParamKeys.quantity)!)
-        lineItem.setListPrice(listPrice: lineItemDetails.optDouble(key: ResponseParamKeys.listPrice)!)
-        lineItem.setTotal(total: lineItemDetails.optDouble(key: ResponseParamKeys.total)!)
-        lineItem.setDiscount(discount: lineItemDetails.optDouble(key: ResponseParamKeys.Discount)!)
-        lineItem.setTotalAfterDiscount(totAftDisc: lineItemDetails.optDouble(key: ResponseParamKeys.totalAfterDiscount)!)
-        lineItem.setTaxValue(tax: lineItemDetails.optDouble(key: ResponseParamKeys.tax)!)
-        let allLineTaxes : [[String:Any]] = lineItemDetails.optArrayOfDictionaries(key: ResponseParamKeys.lineTax)!
+        let productDetails : [String:Any] = lineItemDetails.getDictionary(key: ResponseJSONKeys.product)
+        let product : ZCRMRecord = ZCRMRecord(moduleAPIName: ResponseJSONKeys.products, recordId: productDetails.getInt64(key: ResponseJSONKeys.id))
+        product.setLookupLabel(label: productDetails.getString(key: ResponseJSONKeys.name))
+        let lineItem : ZCRMInventoryLineItem = ZCRMInventoryLineItem(lineItemId: lineItemDetails.getInt64(key: ResponseJSONKeys.id), product: product)
+        lineItem.setDescription(description: lineItemDetails.optString(key: ResponseJSONKeys.productDescription))
+        lineItem.setQuantity(quantity: lineItemDetails.optDouble(key: ResponseJSONKeys.quantity)!)
+        lineItem.setListPrice(listPrice: lineItemDetails.optDouble(key: ResponseJSONKeys.listPrice)!)
+        lineItem.setTotal(total: lineItemDetails.optDouble(key: ResponseJSONKeys.total)!)
+        lineItem.setDiscount(discount: lineItemDetails.optDouble(key: ResponseJSONKeys.Discount)!)
+        lineItem.setTotalAfterDiscount(totAftDisc: lineItemDetails.optDouble(key: ResponseJSONKeys.totalAfterDiscount)!)
+        lineItem.setTaxValue(tax: lineItemDetails.optDouble(key: ResponseJSONKeys.tax)!)
+        let allLineTaxes : [[String:Any]] = lineItemDetails.optArrayOfDictionaries(key: ResponseJSONKeys.lineTax)!
         for lineTaxDetails in allLineTaxes
         {
             lineItem.addLineTax(tax: self.getZCRMTax(taxDetails: lineTaxDetails))
         }
-        lineItem.setNetTotal(netTotal: lineItemDetails.optDouble(key: ResponseParamKeys.netTotal)!)
+        lineItem.setNetTotal(netTotal: lineItemDetails.optDouble(key: ResponseJSONKeys.netTotal)!)
         return lineItem
     }
     
     private func getZCRMTax( taxDetails : [ String : Any ] ) -> ZCRMTax
     {
-        let lineTax : ZCRMTax = ZCRMTax( taxName : taxDetails.getString( key: ResponseParamKeys.name ) )
-        lineTax.setTaxPercentage( percentage : taxDetails.getDouble( key : ResponseParamKeys.percentage ) )
-        lineTax.setTaxValue( taxValue : taxDetails.optDouble( key : ResponseParamKeys.value )! )
+        let lineTax : ZCRMTax = ZCRMTax( taxName : taxDetails.getString( key: ResponseJSONKeys.name ) )
+        lineTax.setTaxPercentage( percentage : taxDetails.getDouble( key : ResponseJSONKeys.percentage ) )
+        lineTax.setTaxValue( taxValue : taxDetails.optDouble( key : ResponseJSONKeys.value )! )
         return lineTax
     }
     
@@ -800,13 +800,13 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getZCRMParticipant( participantDetails : [ String : Any ] ) -> ZCRMEventParticipant
     {
-        let id : Int64 = participantDetails.getInt64( key : ResponseParamKeys.participant )
-        let type : String = participantDetails.getString( key : ResponseParamKeys.type )
+        let id : Int64 = participantDetails.getInt64( key : ResponseJSONKeys.participant )
+        let type : String = participantDetails.getString( key : ResponseJSONKeys.type )
         let participant : ZCRMEventParticipant = ZCRMEventParticipant(type : type, id : id )
-        participant.setName( name : participantDetails.getString( key : ResponseParamKeys.name ) )
+        participant.setName( name : participantDetails.getString( key : ResponseJSONKeys.name ) )
         participant.setEmail( email : participantDetails.getString( key : ConsentProcessThrough.EMAIL.rawValue ) )
-        participant.setStatus(status : participantDetails.getString( key : ResponseParamKeys.status ) )
-        participant.setInvited( invited : participantDetails.getBoolean( key : ResponseParamKeys.invited ) )
+        participant.setStatus(status : participantDetails.getString( key : ResponseJSONKeys.status ) )
+        participant.setInvited( invited : participantDetails.getBoolean( key : ResponseJSONKeys.invited ) )
         return participant
     }
     
@@ -910,7 +910,7 @@ fileprivate extension EntityAPIHandler
         static let tagNames = "tag_names"
         static let overWrite = "over_write"
     }
-    struct  ResponseParamKeys
+    struct  ResponseJSONKeys
     {
         static let id = "id"
         static let name = "name"
