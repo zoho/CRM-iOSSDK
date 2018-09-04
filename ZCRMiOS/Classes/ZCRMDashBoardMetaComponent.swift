@@ -25,7 +25,7 @@ public class ZCRMDashBoardMetaComponent {
     
     struct Properties {
         
-        struct APIResponseKeys {
+        struct ResponseJSONKeys {
             
             static let componentID = "id"
             static let componentName = "name"
@@ -131,9 +131,9 @@ extension ZCRMDashBoardMetaComponent.LayoutProperties {
 
 extension ZCRMDashBoardMetaComponent {
     
-    func setComponent(ID:String?)
+    func setComponent(ID:Int64?)
     {
-        componentID = Int64(ID ?? "default") ?? Int64()
+        componentID = ID ?? Int64()
     }
     
     func setComponent(Name:String?)

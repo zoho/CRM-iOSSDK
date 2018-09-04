@@ -459,7 +459,7 @@ extension ZCRMDashBoardComponent {
     
     internal struct Properties {
         
-        struct APIResponseKeys {
+        struct ResponseJSONKeys {
             
             static let componentProps = "component_props" //
             

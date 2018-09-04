@@ -80,7 +80,7 @@ extension ZCRMDashBoardComponentColorThemes {
     
     struct Properties {
         
-        struct APIResponseKeys {
+        struct ResponseJSONKeys {
             
             static let name = "name"
             static let colorThemes = "color_themes" // DashBoardComponentColorThemes

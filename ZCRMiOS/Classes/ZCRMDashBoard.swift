@@ -32,7 +32,7 @@ public class ZCRMDashBoard{
             static let COLORTHEMES = "color_themes"
         }
         
-        struct APIResponseKeys {
+        struct ResponseJSONKeys {
             static let dashBoardID = "id"
             static let dashBoardName = "name"
             static let isSystemGenerated = "system_generated"

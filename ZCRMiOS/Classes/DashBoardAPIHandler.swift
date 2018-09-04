@@ -14,10 +14,10 @@ class DashBoardAPIHandler: CommonAPIHandler {
     internal typealias refreshResponse = (Result.Response<APIResponse>) -> Void
     internal typealias ArrayOfColorThemes = (Result.DataResponse<[ZCRMDashBoardComponentColorThemes],APIResponse>) -> Void
     // API Names
-    fileprivate typealias dashBoardAPINames = ZCRMDashBoard.Properties.APIResponseKeys
-    fileprivate typealias metaComponentAPINames = ZCRMDashBoardMetaComponent.Properties.APIResponseKeys
-    fileprivate typealias componentAPINames = ZCRMDashBoardComponent.Properties.APIResponseKeys
-    fileprivate typealias colorPaletteAPINames = ZCRMDashBoardComponentColorThemes.Properties.APIResponseKeys
+    fileprivate typealias dashBoardAPINames = ZCRMDashBoard.Properties.ResponseJSONKeys
+    fileprivate typealias metaComponentAPINames = ZCRMDashBoardMetaComponent.Properties.ResponseJSONKeys
+    fileprivate typealias componentAPINames = ZCRMDashBoardComponent.Properties.ResponseJSONKeys
+    fileprivate typealias colorPaletteAPINames = ZCRMDashBoardComponentColorThemes.Properties.ResponseJSONKeys
     // Model Objects
     fileprivate typealias CompCategory = ZCRMDashBoardComponent.ComponentCategory
     fileprivate typealias CompObjective  = ZCRMDashBoardComponent.Objective
@@ -246,7 +246,7 @@ extension DashBoardAPIHandler {
                 let APIResponse = try resultType.resolve()
                 let colorThemesResponseJSON = APIResponse.getResponseJSON() //[String:Any]
                 let colorThemesJSON = colorThemesResponseJSON.getArrayOfDictionaries(key: colorPaletteAPINames.colorThemes)
-                let ArrayOfcolorThemes = self.getArrayOfColorThemesObjFrom(colorThemesJSON)
+                let ArrayOfcolorThemes = self.getArrayOfZCRMDashBoardComponentColorThemes(colorThemesJSON)
                 OnCompletion(.success(ArrayOfcolorThemes,APIResponse))
             } catch {
                 OnCompletion(.failure(error as! ZCRMError))
@@ -266,7 +266,6 @@ fileprivate extension DashBoardAPIHandler {
     //MARK: *** DASHBOARD PARSERS ***
     
     func getZCRMDashBoardObjectFrom(_ dashBoardJSON: [String:Any] ) -> ZCRMDashBoard? {
-        
         
         guard let Id = dashBoardJSON.optInt64(key: dashBoardAPINames.dashBoardID),
             let Name = dashBoardJSON.optString(key: dashBoardAPINames.dashBoardName) else {
@@ -302,7 +301,7 @@ fileprivate extension DashBoardAPIHandler {
     
     func getArrayOfZCRMDashBoardMetaComponent(From dashBoardJSON:[String:Any]) -> [ZCRMDashBoardMetaComponent]? {
         
-        let metaComponentAPIName = ZCRMDashBoard.Properties.APINames.metaComponents
+        let metaComponentAPIName = ZCRMDashBoard.Properties.ResponseJSONKeys.metaComponents
         guard let arrayOfMetaComponentJSON = dashBoardJSON.optArrayOfDictionaries(key: metaComponentAPIName) else {
             if dashBoardJSON.hasKey(forKey: metaComponentAPIName) {
                 print("Failed to get arrayOfMetaComponentJSON from dashBoardJSON !")
@@ -324,7 +323,7 @@ fileprivate extension DashBoardAPIHandler {
     func getDashBoardMetaComponentFrom(_ metaComponentJSON:[String:Any]) -> ZCRMDashBoardMetaComponent {
         
         let metaComponentObj = ZCRMDashBoardMetaComponent()
-        let ID = metaComponentJSON.optString(key: metaComponentAPINames.componentID)
+        let ID = metaComponentJSON.optInt64(key: metaComponentAPINames.componentID)
         metaComponentObj.setComponent(ID: ID)
         
         let Name = metaComponentJSON.optString(key: metaComponentAPINames.componentName)
@@ -427,6 +426,7 @@ fileprivate extension DashBoardAPIHandler {
     
     
     func getLastFetchedTimeUsing(_ lastFetchedTimeJSON:[String:Any]) -> (Label:String,Value:String)? {
+        
         guard let lastFetchedTimeLabel = lastFetchedTimeJSON.optString(key: componentAPINames.label),
             let lastFetchedTimeValue = lastFetchedTimeJSON.optString(key: componentAPINames.value) else {
                 
@@ -971,7 +971,6 @@ fileprivate extension DashBoardAPIHandler {
     
     func getGroupingConfigValuesFrom(_ groupingColumnJSON:[String:Any])-> GroupingConfig? {
         
-        
         guard let groupingConfigJSON = groupingColumnJSON.optDictionary(key: componentAPINames.groupingConfig) else {
             print("Failed to get groupingConfigJSON from groupingColumnJSON  ")
             return nil
@@ -1060,7 +1059,6 @@ fileprivate extension DashBoardAPIHandler {
     //MARK:- VERTICAL GROUPING
     
     func getArrayOfVerticalGrouping(Using componentChunksJSON: [String:Any], _ ArrayOfVerticalGroupingJSONParam: [[String:Any]]? = nil ) -> [VerticalGrouping] {
-        
         
         var ArrayOfVerticalGroupingJSON = [[String:Any]]()
         
@@ -1172,9 +1170,7 @@ fileprivate extension DashBoardAPIHandler {
         
     } // func ends
     
-    
-    
-    
+
     func convertLabelToNoneIfHyphen(_ value: String?) -> String? {
         // Replaces Hyphens in label with 'none'
         guard let label = value else { return nil }
@@ -1274,7 +1270,6 @@ fileprivate extension DashBoardAPIHandler {
         return ArrayOfAggregatesObj
     }
     
-    
     // If Double , typecast to Double and return it as String
     // Else typecast to String and return
     
@@ -1325,8 +1320,7 @@ fileprivate extension DashBoardAPIHandler {
 
 fileprivate extension DashBoardAPIHandler {
     
-    
-    func getArrayOfColorThemesObjFrom(_ ArrayOfColorThemesJSON:[[String:Any]]) -> [ZCRMDashBoardComponentColorThemes]{
+    func getArrayOfZCRMDashBoardComponentColorThemes(_ ArrayOfColorThemesJSON:[[String:Any]]) -> [ZCRMDashBoardComponentColorThemes]{
         
         var ArraycolorThemesObj = [ZCRMDashBoardComponentColorThemes]()
         var colorPalette: [colorPaletteKeys:[String]]?
@@ -1358,7 +1352,6 @@ fileprivate extension DashBoardAPIHandler {
         return ArraycolorThemesObj
         
     } // func ends
-    
     
     
     func getArrayOfColorPaletteFrom(_ colorPaletteJSON: [String:Any]?) -> [colorPaletteKeys:[String]]? {
