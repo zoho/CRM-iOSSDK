@@ -638,4 +638,10 @@ struct Result {
 } // struct ends ..
 
 
-//MARK:-
+func typeCastToZCRMError(_ error:Error) -> ZCRMError
+{
+    guard let typecastedError = error as? ZCRMError else {
+        return ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: error.description)
+    }
+    return typecastedError
+}
