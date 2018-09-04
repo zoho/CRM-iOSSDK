@@ -433,13 +433,13 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     {
         for ( fieldAPIName, value ) in record
         {
-            if( ResponseParamKeys.deletedBy == fieldAPIName )
+            if( ResponseParamKeys.createdBy == fieldAPIName )
             {
                 let createdBy : [ String : Any ] = value as! [ String : Any ]
                 let createdByUser : ZCRMUser = ZCRMUser( userId : createdBy.getInt64( key : ResponseParamKeys.id ), userFullName : createdBy.getString( key : ResponseParamKeys.name) )
                 self.trashRecord.setCreatedBy( createdBy : createdByUser )
             }
-            else if( ResponseParamKeys.createdBy == fieldAPIName )
+            else if( ResponseParamKeys.deletedBy == fieldAPIName )
             {
                 let deletedBy : [ String : Any ] = value as! [ String : Any ]
                 let deletedByUser : ZCRMUser = ZCRMUser( userId : deletedBy.getInt64( key : ResponseParamKeys.id ), userFullName : deletedBy.getString( key : ResponseParamKeys.name ) )
