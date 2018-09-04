@@ -8,12 +8,18 @@ import Foundation
 
 public class ZCRMDashBoard{
     
-    fileprivate var dashBoardID = Int64()
-    fileprivate var dashBoardName = String()
+    fileprivate var dashBoardID: Int64
+    fileprivate var dashBoardName: String
     fileprivate var isSystemGenerated = Bool()
     fileprivate var isSalesTrends = Bool()
     fileprivate var accessType = String()
     fileprivate var dashBoardMetaComponent:[ZCRMDashBoardMetaComponent]?
+    
+    init(ID: Int64,Name: String) {
+        dashBoardID = ID
+        dashBoardName = Name
+    }
+    
     
     struct Properties {
         
@@ -26,7 +32,7 @@ public class ZCRMDashBoard{
             static let COLORTHEMES = "color_themes"
         }
         
-        struct APINames {
+        struct APIResponseKeys {
             static let dashBoardID = "id"
             static let dashBoardName = "name"
             static let isSystemGenerated = "system_generated"
@@ -67,8 +73,8 @@ extension ZCRMDashBoard: CustomDebugStringConvertible{
 
 extension ZCRMDashBoard { // Settters
     
-    public func setDashBoard(ID:String?){
-        self.dashBoardID =  Int64(ID ?? "default") ?? Int64()
+    public func setDashBoard(ID:Int64?){
+        self.dashBoardID =  ID ?? Int64()
     }
     
     public func setDashBoard(Name:String?){

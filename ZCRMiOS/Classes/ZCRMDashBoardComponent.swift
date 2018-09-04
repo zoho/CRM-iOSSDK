@@ -28,6 +28,12 @@ public class ZCRMDashBoardComponent {
     fileprivate var colorPaletteStartingIndex: Int?
     fileprivate var segmentRanges: [SegmentRanges]?
     
+    
+    init(name:String,category:ComponentCategory) {
+        self.name = name
+        self.category = category
+    }
+    
 }
 
 //MARK:- Enums
@@ -453,7 +459,7 @@ extension ZCRMDashBoardComponent {
     
     internal struct Properties {
         
-        struct APINames {
+        struct APIResponseKeys {
             
             static let componentProps = "component_props" //
             

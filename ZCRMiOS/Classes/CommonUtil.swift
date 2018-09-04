@@ -589,16 +589,16 @@ struct Result {
     //MARK: Data -> Any ZCRMInstance
     //MARK: Response -> (FileAPIResponse,APIResponse,BulkAPIResponse)->>> (Any Class inhering from CommonAPIResponse)
     //MARK: Error -> ZCRMError ->>> (Conforms to Error Type)
-    enum DataResponse<Value: Any,Response: CommonAPIResponse>{
+    enum DataResponse<Data: Any,Response: CommonAPIResponse>{
         
-        case success(Value,Response)
+        case success(Data,Response)
         case failure(ZCRMError)
         
-        func resolve() throws -> (value:Value,response:Response){
+        func resolve() throws -> (data:Data,response:Response){
             
             switch self {
-            case .success(let value,let response):
-                return (value,response)
+            case .success(let data,let response):
+                return (data,response)
                 
             case .failure(let error):
                 throw error
@@ -638,8 +638,7 @@ struct Result {
 } // struct ends ..
 
 
-func typeCastToZCRMError(_ error:Error) -> ZCRMError
-{
+func typeCastToZCRMError(_ error:Error) -> ZCRMError {
     guard let typecastedError = error as? ZCRMError else {
         return ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: error.description)
     }

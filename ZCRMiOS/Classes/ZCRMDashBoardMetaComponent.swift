@@ -25,7 +25,7 @@ public class ZCRMDashBoardMetaComponent {
     
     struct Properties {
         
-        struct APINames {
+        struct APIResponseKeys {
             
             static let componentID = "id"
             static let componentName = "name"
