@@ -11,53 +11,54 @@ import Foundation
 let PhotoSupportedModules = ["Leads", "Contacts"]
 
 
-internal enum ZCRMSDKError : Error {
-    case InternalError(String)
-    case ResponseNil(String)
+public enum ZCRMError : Error
+{
+    case UnAuthenticatedError( code : ErrorCode, message : String )
+    case InValidError( code : ErrorCode, message : String )
+    case MaxRecordCountExceeded( code : ErrorCode, message : String )
+    case FileSizeExceeded( code : ErrorCode, message : String )
+    case ProcessingError( code : ErrorCode, message : String )
+    case SDKError( code : ErrorCode, message : String )
     
-    func getMessage() -> String {
-        
-        switch self {
-        case .InternalError(let errorString):
-            return errorString
-        case .ResponseNil(let errorString):
-            return errorString
+    var details : ( code : ErrorCode, description : String )
+    {
+        switch self
+        {
+        case .UnAuthenticatedError( let code, let desc ):
+            return ( code, desc )
+        case .InValidError( let code, let desc ):
+            return ( code, desc )
+        case .MaxRecordCountExceeded( let code, let desc ):
+            return ( code, desc )
+        case .FileSizeExceeded( let code, let desc ):
+            return ( code, desc )
+        case .ProcessingError( let code, let desc ):
+            return ( code, desc )
+        case .SDKError( let code, let desc ):
+            return ( code, desc )
+
         }
     }
+}
+
+public enum ErrorCode: String,Error{
+    
+case INVALID_ID_MSG  = "The given id seems to be invalid."
+case INVALID_DATA  = "INVALID_DATA"
+case API_MAX_RECORDS_MSG  = "Cannot process more than 100 records at a time."
+case INTERNAL_ERROR  = "INTERNAL_ERROR"
+case RESPONSE_NIL  = "Response is nil"
+case MANDATORY_NOT_FOUND  = "MANDATORY_NOT_FOUND"
+case RESPONSE_ROOT_KEY_NIL  = "RESPONSE_ROOT_KEY_NIL"
+case FILE_SIZE_EXCEEDED  = "FILE_SIZE_EXCEEDED"
+case MAX_COUNT_EXCEEDED  = "MAX_COUNT_EXCEEDED"
+case FIELD_NOT_FOUND  = "FIELD_NOT_FOUND"
+case OAUTHTOKEN_NIL = "The oauth token is nil"
+case OAUTH_FETCH_ERROR = "There was an error in fetching oauth Token"
+case UNABLE_TO_CONSTRUCT_URL = "There was a problem constructing the URL"
     
 }
 
-public enum ZCRMError : Error {
-    
-    case SDKError(String)
-    case UnAuthenticatedError(String)
-    case InValidError(String)
-    case MaxRecordCountExceeded(String)
-    case FileSizeExceeded(String)
-    case ProcessingError(String)
-    
-    func getMessage() -> String{
-        
-        switch self {
-        
-        case .SDKError(let errorString):
-            return errorString
-        case .UnAuthenticatedError(let errorString):
-            return errorString
-        case .InValidError(let errorString):
-            return errorString
-        case .MaxRecordCountExceeded(let errorString):
-            return errorString
-        case .FileSizeExceeded(let errorString):
-            return errorString
-        case .ProcessingError(let errorString):
-            return errorString
-            
-        }
-        
-    }
-    
-}
 
 public enum SortOrder : String
 {
@@ -484,11 +485,11 @@ public func fileDetailCheck( filePath : String ) throws
 {
     if ( FileManager.default.fileExists( atPath : filePath )  == false )
     {
-        throw ZCRMError.InValidError( "File not found at given path : \( filePath )" )
+        throw ZCRMError.InValidError(code: .INTERNAL_ERROR, message: "File not found at given path : \( filePath )")
     }
     if ( getFileSize( filePath : filePath ) > 2097152 )
     {
-        throw ZCRMError.FileSizeExceeded( "Cannot upload. File size should not exceed to 20MB" )
+        throw ZCRMError.FileSizeExceeded(code: .INTERNAL_ERROR, message: "Cannot upload. File size should not exceed to 20MB")
     }
 }
 
