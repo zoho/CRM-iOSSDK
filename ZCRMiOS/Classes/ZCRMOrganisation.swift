@@ -402,14 +402,14 @@ public class ZCRMOrganisation : ZCRMEntity
     
     public func searchUsers( withCriteria : String, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        UserAPIHandler().searchUsers( criteria : criteria, page : 1, perPage : 200) { ( response, users, error ) in
+        UserAPIHandler().searchUsers( criteria : withCriteria, page : 1, perPage : 200) { ( response, users, error ) in
             completion( response, users, error )
         }
     }
     
     public func searchUsers( withCriteria : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        UserAPIHandler().searchUsers( criteria : criteria, page : page, perPage : perPage) { ( response, users, error ) in
+        UserAPIHandler().searchUsers( criteria : withCriteria, page : page, perPage : perPage) { ( response, users, error ) in
             completion( response, users, error )
         }
     }
