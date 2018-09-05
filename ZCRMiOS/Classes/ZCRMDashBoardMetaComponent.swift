@@ -39,9 +39,7 @@ public class ZCRMDashBoardMetaComponent {
             static let layout = "layout"
             
         }
-        
     }
-    
 }
 
 extension ZCRMDashBoardMetaComponent: CustomDebugStringConvertible{
@@ -68,7 +66,6 @@ extension ZCRMDashBoardMetaComponent: CustomDebugStringConvertible{
         
         """
     }
-    
 }
 
 
@@ -187,7 +184,6 @@ extension ZCRMDashBoardMetaComponent {
     {
         return properties
     }
-    
 }
 
 

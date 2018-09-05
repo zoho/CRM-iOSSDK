@@ -10,17 +10,15 @@ import Foundation
 
 public class ZCRMDashBoardComponent {
     
-    fileprivate var name = String()
-    fileprivate var category = ComponentCategory.chart
+    fileprivate var name: String
+    fileprivate var category: ComponentCategory
     fileprivate var reportId:Int64?
     fileprivate var componentMarker: [ComponentMarkers]?
     fileprivate var lastFetchedTimeLabel: String?
     fileprivate var lastFetchedTimeValue: String?
     fileprivate var componentChunks = [ComponentChunks]()
     
-    
     //MARK: Component Visualisation Props
-    
     fileprivate var maximumRows: Int?
     fileprivate var objective: Objective?
     fileprivate var componentType = String()
@@ -28,62 +26,49 @@ public class ZCRMDashBoardComponent {
     fileprivate var colorPaletteStartingIndex: Int?
     fileprivate var segmentRanges: [SegmentRanges]?
     
-    
     init(name:String,category:ComponentCategory) {
         self.name = name
         self.category = category
     }
-    
 }
 
 //MARK:- Enums
 
-extension ZCRMDashBoardComponent {
-    
+extension ZCRMDashBoardComponent
+{
     public typealias colorPalette = ZCRMDashBoardComponentColorThemes.ColorPalette
     
     public enum Objective: String {
-        
         case increase = "increase"
         case decrease = "decrease"
-        
     }
     
     public enum ComponentCategory: String {
-        
         case chart = "chart"
         case kpi = "kpi"
         case comparator = "comparator"
         case anomalyDetector = "trends"
         case targetMeter = "target_meter"
         case funnel = "funnel"
-        
     }
-    
 }
 
 
-extension ZCRMDashBoardComponent: CustomDebugStringConvertible{
+extension ZCRMDashBoardComponent: CustomDebugStringConvertible
+{
     
     public var debugDescription: String{
-        
         return """
-        
         <--- DASHBOARD COMPONENT DEBUG DESCRIPTION --->
-        
         DASHBOARD COMPONENT PROPERTIES ---------------X
-        
         Name: \(name)
         Category: \(category.rawValue)
         Type: \(componentType)
-        
         ReportID: \(String(describing: reportId))
         Objective: \(objective?.rawValue ?? "nil")
         Maximum Rows: \(String(describing: maximumRows))
         Component Markers: \(String(describing: componentMarker))
-        
         VISUALIZATION PROPERTIES --------------------X
-        
         ColorPaletteName: \(colorPaletteName?.rawValue ?? "nil")
         ColorPalette Starting Index: \(String(describing: colorPaletteStartingIndex))
         
@@ -91,20 +76,14 @@ extension ZCRMDashBoardComponent: CustomDebugStringConvertible{
         
         LastFetchedTime Label: \(String(describing: lastFetchedTimeLabel))
         LastFetchedTime Value: \(String(describing: lastFetchedTimeValue))
-        
         <-------------------------------------------->
-        
         """
     }
-    
 }
 
-
-
 //MARK:- Getters
-
-extension ZCRMDashBoardComponent {
-    
+extension ZCRMDashBoardComponent
+{
     public func getComponentCategory() -> ComponentCategory
     {
         return category
@@ -169,13 +148,11 @@ extension ZCRMDashBoardComponent {
     {
         return componentChunks
     }
-    
 }
 
 //MARK:- Setters
-
-extension ZCRMDashBoardComponent {
-    
+extension ZCRMDashBoardComponent
+{
     public func setComponent(Category: ComponentCategory?)
     {
         self.category = Category ?? ComponentCategory.chart
@@ -246,22 +223,18 @@ extension ZCRMDashBoardComponent {
 
 //MARK:- JSON Model Structures
 
-extension ZCRMDashBoardComponent {
-    
+extension ZCRMDashBoardComponent
+{
     
     public struct ComponentChunks {
-        
         var groupingColumnInfo = [GroupingColumnInfo]()
         var aggregateColumnInfo = [AggregateColumnInfo]()
         var verticalGrouping = [VerticalGrouping]()
         var name:String?
         var objective:Objective?
-        
     }
-    
-    
+
     public struct GroupingColumnInfo {
-        
         var label = String()
         var type = String()
         var name = String()
@@ -279,14 +252,10 @@ extension ZCRMDashBoardComponent {
             self.name = name
             self.allowedValues = allowedValues
             self.customGroups = customGroups
-            
         }
-        
     }
     
-    
     public struct AggregateColumnInfo {
-        
         var label = String()
         var type = String()
         var name = String()
@@ -306,12 +275,9 @@ extension ZCRMDashBoardComponent {
             self.aggregation = aggregation
             
         }
-        
     }
     
-    
     public struct VerticalGrouping {
-        
         var label = String()
         var value: String?
         var key = String()
@@ -331,49 +297,36 @@ extension ZCRMDashBoardComponent {
             self.subGrouping = subGrouping
             
         }
-        
     }
-    
     
     internal struct Aggregate {
-        
         var label = String()
         var value = String()
-        
         init(label:String,value:String) {
             self.label = label
             self.value = value
         }
-        
     }
     
-    
     internal struct AllowedValues {
-        
         var label = String()
         var value = String()
-        
         init(label:String,value:String) {
             self.label = label
             self.value = value
         }
-        
     }
     
     public struct ComponentMarkers {
-        
         var xValue:String? // Can contain userID -> Int64 or PickList values -> String
         var yValue = Int() // User's Target
-        
         init(x:String?,y:Int) {
             xValue = x
             yValue = y
         }
-        
     }
     
     public struct SegmentRanges {
-        
         // Start and End Positions are in Percentage
         var color = String()  // Color Hex Code
         var startPosition = Int() // %
@@ -386,7 +339,6 @@ extension ZCRMDashBoardComponent {
         }
         
     }
-    
     
 } // extension ends ...
 
@@ -479,11 +431,9 @@ extension ZCRMDashBoardComponent {
             
             static let lastFetchedTime = "last_fetched_time"
             
-            
             static let colorPalette = "color_palette"
             static let colorPaletteName = "name"
             static let colorPaletteStartingIndex = "starting_index"
-            
             
             static let componentChunks = "component_chunks"
             static let dataMap = "data_map"
@@ -491,13 +441,11 @@ extension ZCRMDashBoardComponent {
             static let aggregates = "aggregates"
             static let rows = "rows"
             
-            
             static let aggregateColumn = "aggregate_column_info"
             static let aggregations = "aggregations"
             static let type = "type"
             static let name = "name"
             static let decimalPlaces = "decimal_places"
-            
             
             static let groupingColumn = "grouping_column_info"
             static let groupingConfig = "grouping_config"

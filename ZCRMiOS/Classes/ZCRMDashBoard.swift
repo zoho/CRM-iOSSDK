@@ -40,14 +40,11 @@ public class ZCRMDashBoard{
             static let accessType = "access_type"
             static let metaComponents = "components"
         }
-        
     }
-    
 }
 
 
 extension ZCRMDashBoard: CustomDebugStringConvertible{
-    
     public var debugDescription: String{
         
         return """
@@ -67,7 +64,6 @@ extension ZCRMDashBoard: CustomDebugStringConvertible{
         
         """
     }
-    
 }
 
 

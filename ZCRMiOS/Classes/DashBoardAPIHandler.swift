@@ -121,23 +121,21 @@ extension DashBoardAPIHandler {
                     .getArrayOfDictionaries(key:JSONRootKey.ANALYTICS)
                 
                 var arrayOfDashBoardObj = [ZCRMDashBoard]()
-                for dashBoardJSON in arrayOfDashBoardJSON {
-                    
+                for dashBoardJSON in arrayOfDashBoardJSON
+                {
                     if let dashBoardObj = self.getZCRMDashBoardObjectFrom(dashBoardJSON){
                         arrayOfDashBoardObj.append(dashBoardObj)
                     }
                 }
                 OnCompletion(.success(arrayOfDashBoardObj,bulkAPIResponse))
-                
             } catch {
                 OnCompletion(.failure(error as! ZCRMError))
             }
         } // completion ends
     } // func ends
     
-    
-    func getDashBoardWith(ID dbID:Int64,then OnCompletion: @escaping dashBoard) {
-        
+    func getDashBoardWith(ID dbID:Int64,then OnCompletion: @escaping dashBoard)
+    {
         let URLPath = "/\(URLPathName.ANALYTICS)/\(dbID)"
         setUrlPath(urlPath: URLPath)
         setRequestMethod(requestMethod: .GET)
@@ -159,14 +157,13 @@ extension DashBoardAPIHandler {
             } catch {
                 OnCompletion(.failure(typeCastToZCRMError(error)))
             }
-            
         } // completion
     } // func ends
     
     
     func getComponentWith(ID cmpID: Int64,FromDashBoardID dbID: Int64,then
-        OnCompletion: @escaping dashBoardComponent) {
-        
+        OnCompletion: @escaping dashBoardComponent)
+    {
         let URLPath =
         "/\(URLPathName.ANALYTICS)/\(dbID)/\(URLPathName.COMPONENTS)/\(cmpID)"
         setUrlPath(urlPath: URLPath)
@@ -186,11 +183,11 @@ extension DashBoardAPIHandler {
                     return
                 }
                 OnCompletion(.success(dashBoardComponentObj,APIResponse))
-                
-            } catch {
+            }
+            catch
+            {
                 OnCompletion(.failure(error as! ZCRMError))
             }
-            
         } // completion
         
     }  // func ends
@@ -620,10 +617,10 @@ fileprivate extension DashBoardAPIHandler {
             print("Failed to get colorPaletteJSON from visualizationPropsJSON ")
             return nil
         }
-        
+        // colorpaltte Name
         let colorPaletteName = colorPaletteJSON.optString(key: componentAPINames.colorPaletteName)
         let colorPaletteNameEnum = colorPalette(rawValue: colorPaletteName ?? "default")
-        
+        // starting index
         let colorPaletteStartingIndex = colorPaletteJSON.optInt(key: componentAPINames.colorPaletteStartingIndex)
         
         guard let name = colorPaletteNameEnum , let index = colorPaletteStartingIndex else {
@@ -642,7 +639,6 @@ fileprivate extension DashBoardAPIHandler {
     
     
     //MARK:- COMPONENT CHUNKS
-    
     func setComponentChunksValues(To componentObj:ZCRMDashBoardComponent,
                                   Using chunks: [[String:Any]]?) {
         
@@ -665,18 +661,15 @@ fileprivate extension DashBoardAPIHandler {
             componentChunkValues[.verticalGrouping] = verticalGrouping
             
             componentChunkValues[.name] = componentChunksJSON.optString(key: componentAPINames.name)
-            
             componentChunkValues[.properties] = setComponentChunkPropertiesUsing(componentChunksJSON)
             
-            if let componentChunksObj = constructComponentChunksObjFrom(componentChunkValues) {
-                
+            if let componentChunksObj = constructComponentChunksObjFrom(componentChunkValues)
+            {
                 componentObj.addComponent(Chunks: componentChunksObj)
                 componentChunkValues.removeAll()
-                
             }
             
         } // outer loop ends
-        
     } // func ends
     
     
@@ -751,10 +744,9 @@ fileprivate extension DashBoardAPIHandler {
         }
         
         // Parsing out Component Chunk Component Properties
-        if let componentChunkPropsDict = dict[.properties] as? [ComponentChunkPropKeys:Any] {
-            
+        if let componentChunkPropsDict = dict[.properties] as? [ComponentChunkPropKeys:Any]
+        {
             if let objectiveString = componentChunkPropsDict[.objective] as? String {
-                
                 let objective =  CompObjective(rawValue: objectiveString)
                 componentChunksObj.set(Objective: objective)
             }
@@ -762,8 +754,8 @@ fileprivate extension DashBoardAPIHandler {
         return componentChunksObj
     }
     
-    //MARK:- AGGREGATE COLUMN INFO
     
+    //MARK:- AGGREGATE COLUMN INFO
     func getArrayOfAggregateColumnInfo(Using componentChunksJSON: [String:Any] ) -> [AggregateColumn]? {
         
         let Key = componentAPINames.aggregateColumn
@@ -807,7 +799,6 @@ fileprivate extension DashBoardAPIHandler {
                     print("UNKNOWN KEY \(key) ENCOUNTERED IN COMPONENT AGGREGATE COLUMN PARSING".lowercased())
                     
                 } // switch case ends
-                
             } // inner loop ends
             
             if let aggregateColObj = constructAggregateColumnObjFrom(aggregateColValues)
@@ -815,14 +806,9 @@ fileprivate extension DashBoardAPIHandler {
                 ArrayOfAggregateColumnObj.append(aggregateColObj)
                 aggregateColValues.removeAll()
             }
-            
         } // outer loop ends
-        
         return ArrayOfAggregateColumnObj
-        
     } // func ends
-    
-    
     
     
     func constructAggregateColumnObjFrom(_ dict:[AggregateColumnKeys:Any] ) -> AggregateColumn? {
@@ -854,16 +840,13 @@ fileprivate extension DashBoardAPIHandler {
                                    name: name,
                                    decimalPlaces: decimalPlaces,
                                    aggregation: aggregation)
-            
         }
-        
         print(debugMsg.lowercased())
-        
         return nil
     }
     
-    //MARK:- GROUPING COLUMN INFO
     
+    //MARK:- GROUPING COLUMN INFO
     func getArrayOfGroupingColumnInfo(Using componentChunksJSON: [String:Any]) -> [GroupingColumn]? {
         
         let Key = componentAPINames.groupingColumn
@@ -901,22 +884,18 @@ fileprivate extension DashBoardAPIHandler {
                 default:
                     print("UNKNOWN KEY \(key) ENCOUNTERED IN GROUPING COLUMN PARSING".lowercased())
                 }
-                
             } // inner loop
             
             if let groupingColumnObj = constructGroupingColumnObjFrom(groupingColumnValues) {
                 ArrayOfGroupingColumnObj.append(groupingColumnObj)
                 groupingColumnValues.removeAll()
             }
-            
         } // outer loop
-        
         return ArrayOfGroupingColumnObj
-        
     } // func ends
     
     
-    
+    //
     func constructGroupingColumnObjFrom(_ dict:[GroupingColumnKeys:Any]) -> GroupingColumn? {
         
         // They might or might not exist in JSON
@@ -934,8 +913,6 @@ fileprivate extension DashBoardAPIHandler {
             print("Custom Groups Parsing in Grouping Column FAILED !! \(String(describing: dict[.customGroups]))")
         }
         
-       
-        
         if  let label = dict.optString(key: .label),
             let type = dict.optString(key: .type),
             let name = dict.optString(key: .name) {
@@ -945,11 +922,9 @@ fileprivate extension DashBoardAPIHandler {
                                   name: name,
                                   allowedValues: allowedValues,
                                   customGroups: customGroups)
-            
         }
         
         //optional binding fails....
-        
         let debugMsg = """
         
         UNABLE TO CONSTRUCT GROUPING COLUMN OBJECT FROM VALUES
@@ -963,10 +938,7 @@ fileprivate extension DashBoardAPIHandler {
         """
         print(debugMsg.lowercased())
         return nil
-        
     }
-    
-    
     
     
     func getGroupingConfigValuesFrom(_ groupingColumnJSON:[String:Any])-> GroupingConfig? {
@@ -997,16 +969,11 @@ fileprivate extension DashBoardAPIHandler {
                 print("UNKNOWN KEY \(key) ENCOUNTERED IN GROUPING COL CONFIG PARSING")
                 
             } // switch ends
-            
         } // inner loop
-        
         return (ArrayOfAllowedValues,ArrayOfCustomGroups)
-        
     } // func ends
     
-    
-    
-    
+
     func getArrayOfAllowedValuesObjFrom(_ ArrayOfAllowedValuesJSON: [[String:Any]]?) -> [AllowedValues]? {
         
         var ArrayOfAllowedValuesObj = [AllowedValues]()
@@ -1028,14 +995,9 @@ fileprivate extension DashBoardAPIHandler {
             if let allowedValues = constructAllowedValuesObjFrom(label: AVlabel, value: AVvalue) {
                 ArrayOfAllowedValuesObj.append(allowedValues)
             }
-            
         } // outer loop
-        
         return ArrayOfAllowedValuesObj
-        
     } // func ends
-    
-    
     
     
     func constructAllowedValuesObjFrom(label:String?,value:String?) -> AllowedValues? {
@@ -1052,12 +1014,10 @@ fileprivate extension DashBoardAPIHandler {
         """
         print(debugMsg.lowercased())
         return nil
-        
     }
     
     
     //MARK:- VERTICAL GROUPING
-    
     func getArrayOfVerticalGrouping(Using componentChunksJSON: [String:Any], _ ArrayOfVerticalGroupingJSONParam: [[String:Any]]? = nil ) -> [VerticalGrouping] {
         
         var ArrayOfVerticalGroupingJSON = [[String:Any]]()
@@ -1114,10 +1074,10 @@ fileprivate extension DashBoardAPIHandler {
                 ArrayOfVerticalGroupingObj.append(verticalGroupingObj)
                 verticalGroupingValues.removeAll()
             }
-            
         } // outer loop
         return ArrayOfVerticalGroupingObj
     } // func ends
+    
     
     
     func constructVerticalGroupingObjFrom(_ dict: [VerticalGroupingKeys:Any], _ componentChunksJSON: [String:Any]) -> VerticalGrouping? {
@@ -1152,7 +1112,6 @@ fileprivate extension DashBoardAPIHandler {
             guard let ArrayOfSubGroupingJSON = dict[.subGrouping] as? [[String:Any]] else {
                 print(" VERTICAL GROUPING OBJECT CONSTRUCTION FAILED.\n UNABLE TO TYPECAST VERTICAL SUBGROUPING TO [[STRING:ANY]]".lowercased())
                 return nil
-                
             }
             
             ArrayOfSubgroupingObjs = getArrayOfVerticalGrouping(Using: componentChunksJSON, ArrayOfSubGroupingJSON)
@@ -1165,8 +1124,6 @@ fileprivate extension DashBoardAPIHandler {
                                 key: key,
                                 aggregate: aggregates,
                                 subGrouping: subGrouping)
-        
-        
         
     } // func ends
     
@@ -1207,11 +1164,8 @@ fileprivate extension DashBoardAPIHandler {
         for (dataMapkey,value) in dataMapJSON {
             
             if dataMapkey == Key {
-                
                 return getAggregatesObjFrom(mapKeyJSON: value)
-                
             }
-            
         } // end of loop
         
         reason = "AGGREAGATES NOT FOUND FOR GIVEN VERTICAL KEY \(Key)"
@@ -1234,14 +1188,13 @@ fileprivate extension DashBoardAPIHandler {
             print(debugMsg.lowercased())
             return nil
         }
-        
         // AG -> Aggreagtes
         var AGlabel:String?
         var AGvalue:String?
         var ArrayOfAggregatesObj = [Aggregate]()
         
         let ArrayOfAggreagatesJSON = mapKeyJSON.getArrayOfDictionaries(key: componentAPINames.aggregates)
-        
+    
         for aggreagatesJSON in ArrayOfAggreagatesJSON {
             
             for (key,value) in aggreagatesJSON {
@@ -1265,7 +1218,6 @@ fileprivate extension DashBoardAPIHandler {
             if let aggregatesObj = constructAggregatesObjFrom(AGlabel, AGvalue) {
                 ArrayOfAggregatesObj.append(aggregatesObj)
             }
-            
         } // outer loop
         return ArrayOfAggregatesObj
     }
@@ -1395,14 +1347,12 @@ fileprivate extension DashBoardAPIHandler {
             
             print("UNABLE TO CONSTRUCT COLOR PALETTE OBJECT".lowercased())
             return nil
-            
         }
         
         let colorPaletteObj = ZCRMDashBoardComponentColorThemes()
         colorPaletteObj.setColor(Palette: colorPalette)
         colorPaletteObj.set(Name: name)
         return colorPaletteObj
-        
     }
     
 } // extension ends

@@ -10,24 +10,18 @@ import Foundation
 
 public class ZCRMDashBoardComponentColorThemes {
     
-    
     var name = String()
     var colorPalette = [ColorPalette:[String]]()
     
-    
     public enum ColorPalette: String {
-        
         case standard
         case general
         case vibrant
         case basic
-        
     }
-    
 }
 
 // Getters
-
 extension ZCRMDashBoardComponentColorThemes {
     
     public func getName() -> String
@@ -61,7 +55,6 @@ extension ZCRMDashBoardComponentColorThemes {
 }
 
 // Setters
-
 extension ZCRMDashBoardComponentColorThemes {
     
     public func set(Name: String)
@@ -86,8 +79,6 @@ extension ZCRMDashBoardComponentColorThemes {
             static let colorThemes = "color_themes" // DashBoardComponentColorThemes
             static let colorPalettes = "color_palettes"
         }
-        
     }
-    
 }
 
