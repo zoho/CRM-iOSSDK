@@ -42,11 +42,9 @@ public enum ZCRMError : Error
 }
 
 
-public enum ErrorCode: String,Error{
-    
-case INVALID_ID_MSG  = "The given id seems to be invalid."
+public enum ErrorCode: String,Error
+{
 case INVALID_DATA  = "INVALID_DATA"
-case API_MAX_RECORDS_MSG  = "Cannot process more than 100 records at a time."
 case INTERNAL_ERROR  = "INTERNAL_ERROR"
 case RESPONSE_NIL  = "Response is nil"
 case MANDATORY_NOT_FOUND  = "MANDATORY_NOT_FOUND"
@@ -57,7 +55,13 @@ case FIELD_NOT_FOUND  = "FIELD_NOT_FOUND"
 case OAUTHTOKEN_NIL = "The oauth token is nil"
 case OAUTH_FETCH_ERROR = "There was an error in fetching oauth Token"
 case UNABLE_TO_CONSTRUCT_URL = "There was a problem constructing the URL"
+}
+
+
+struct ErrorMessage {
     
+    static var INVALID_ID_MSG  = "The given id seems to be invalid."
+    static var API_MAX_RECORDS_MSG = "Cannot process more than 100 records at a time."
 }
 
 
@@ -532,10 +536,8 @@ let SALESORDERS : String = "SalesOrders"
 let INVOICES : String = "Invoices"
 let PURCHASEORDERS : String = "PurchaseOrders"
 
-let INVALID_ID_MSG : String = "The given id seems to be invalid."
-let INVALID_DATA : String = "INVALID_DATA"
-let API_MAX_RECORDS_MSG : String = "Cannot process more than 100 records at a time."
 
+let INVALID_DATA : String = "INVALID_DATA"
 let ACTION : String = "action"
 let DUPLICATE_FIELD : String = "duplicate_field"
 

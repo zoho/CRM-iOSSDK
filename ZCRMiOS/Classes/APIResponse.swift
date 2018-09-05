@@ -57,7 +57,7 @@ public class  APIResponse : CommonAPIResponse
     {
         if(httpStatusCode == HTTPStatusCode.NO_CONTENT)
         {
-            throw ZCRMError.InValidError(INVALID_ID_MSG)
+            throw ZCRMError.InValidError(ErrorMessage.INVALID_ID_MSG)
         }
         else
         {
