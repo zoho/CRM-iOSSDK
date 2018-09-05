@@ -57,14 +57,14 @@ extension ZCRMDashBoardComponentColorThemes {
 // Setters
 extension ZCRMDashBoardComponentColorThemes {
     
-    public func set(Name: String)
+    public func set(name: String)
     {
-        name = Name
+        self.name = name
     }
     
-    public func setColor(Palette: [ColorPalette:[String]] )
+    public func setColor(palette: [ColorPalette:[String]] )
     {
-        colorPalette = Palette
+        colorPalette = palette
     }
     
 }

@@ -153,39 +153,39 @@ extension ZCRMDashBoardComponent
 //MARK:- Setters
 extension ZCRMDashBoardComponent
 {
-    public func setComponent(Category: ComponentCategory?)
+    public func setComponent(category: ComponentCategory?)
     {
-        self.category = Category ?? ComponentCategory.chart
+        self.category = category ?? ComponentCategory.chart
     }
     
-    public func setComponent(Name: String?)
+    public func setComponent(name: String?)
     {
-        self.name = Name ?? String()
+        self.name = name ?? String()
     }
     
-    public func setComponent(Markers: [ComponentMarkers]?)
+    public func setComponent(markers: [ComponentMarkers]?)
     {
-        componentMarker = Markers
+        componentMarker = markers
     }
     
-    public func setLastFetchedTime(Label: String?)
+    public func setLastFetchedTime(label: String?)
     {
-        lastFetchedTimeLabel = Label ?? String()
+        lastFetchedTimeLabel = label ?? String()
     }
     
-    public func setLastFetchedTime(Value: String?)
+    public func setLastFetchedTime(value: String?)
     {
-        lastFetchedTimeValue = Value ?? String()
+        lastFetchedTimeValue = value ?? String()
     }
     
-    public func setReport(ID: Int64?)
+    public func setReport(id: Int64?)
     {
-        reportId = ID
+        reportId = id
     }
     
-    public func setMaximum(Rows: Int?)
+    public func setMaximum(rows: Int?)
     {
-        maximumRows = Rows ?? Int()
+        maximumRows = rows ?? Int()
     }
     
     public func setObjective(_ objective: Objective?)
@@ -193,29 +193,29 @@ extension ZCRMDashBoardComponent
         self.objective = objective
     }
     
-    public func setComponent(Type: String?)
+    public func setComponent(type: String?)
     {
-        componentType = Type ?? String()
+        componentType = type ?? String()
     }
     
-    public func setColorPalette(Name: colorPalette?)
+    public func setColorPalette(name: colorPalette?)
     {
-        colorPaletteName = Name
+        colorPaletteName = name
     }
     
-    public func setColorPaletteStarting(Index: Int?)
+    public func setColorPaletteStarting(index: Int?)
     {
-        colorPaletteStartingIndex = Index ?? Int()
+        colorPaletteStartingIndex = index ?? Int()
     }
     
-    public func setSegment(Ranges: [SegmentRanges]?)
+    public func setSegment(ranges: [SegmentRanges]?)
     {
-        segmentRanges = Ranges
+        segmentRanges = ranges
     }
     
-    public func addComponent(Chunks: ComponentChunks)
+    public func addComponent(chunks: ComponentChunks)
     {
-        componentChunks.append(Chunks)
+        componentChunks.append(chunks)
     }
     
 }

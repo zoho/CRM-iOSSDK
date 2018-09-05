@@ -69,12 +69,12 @@ extension ZCRMDashBoard: CustomDebugStringConvertible{
 
 extension ZCRMDashBoard { // Settters
     
-    public func setDashBoard(ID:Int64?){
-        self.dashBoardID =  ID ?? Int64()
+    public func setDashBoard(id:Int64?){
+        self.dashBoardID =  id ?? Int64()
     }
     
-    public func setDashBoard(Name:String?){
-        dashBoardName = Name ?? String()
+    public func setDashBoard(name:String?){
+        dashBoardName = name ?? String()
     }
     
     public func setIfDashBoardIsSystemGenerated(_ value:Bool?){

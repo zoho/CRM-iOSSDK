@@ -25,82 +25,83 @@ public class ZCRMAnalytics {
 //MARK:- Public Getters
 extension ZCRMAnalytics {
     
-    public func getAllDashBoards(then Oncompletion:@escaping ArrayOfDashBoards)
+    public func getAllDashBoards(then onCompletion:@escaping ArrayOfDashBoards)
         
     {
         // 200 is the maxNumber of records that can be retreived in an API Call
-        DashBoardAPIHandler().getAllDashBoards(FromPage: 1, WithPerPageOf: 200) {
+        DashBoardAPIHandler().getAllDashBoards(fromPage: 1, withPerPageOf: 200) {
             (resultType) in
-            Oncompletion(resultType)
+            onCompletion(resultType)
         }
         
     }
     
     
-    public func getAllDashboards(FromPage page:Int?,PerPage perPage:Int?,then Oncompletion: @escaping ArrayOfDashBoards)
+    public func getAllDashboards(fromPage page:Int?,perPage:Int?,then onCompletion: @escaping ArrayOfDashBoards)
         
     {
         let unwrappedPage = page ?? 1
         let unwrappedPerPage = perPage ?? 200
         
-        DashBoardAPIHandler().getAllDashBoards(FromPage: unwrappedPage, WithPerPageOf: unwrappedPerPage) {
+        DashBoardAPIHandler().getAllDashBoards(fromPage: unwrappedPage,withPerPageOf: unwrappedPerPage) {
+            
             (resultType) in
-            Oncompletion(resultType)
+            onCompletion(resultType)
         }
         
     }
     
     
-    public func getDashBoardWith(ID:Int64,then OnCompletion:
+    public func getDashBoardWith(id:Int64,then onCompletion:
         @escaping dashBoard)
         
     {
-        DashBoardAPIHandler().getDashBoardWith(ID: ID) {
+        DashBoardAPIHandler().getDashBoardWith(id: id) {
             (resultType) in
-            OnCompletion(resultType)
+            onCompletion(resultType)
         }
         
     }
     
     
-    public func getComponentWith(ID cmpID: Int64, FromDashBoardID dbID: Int64,OnCompletion:
+    public func getComponentWith(id cmpID: Int64, fromDashBoardID dbId: Int64,onCompletion:
         @escaping dashBoardComponent)
         
     {
         
-        DashBoardAPIHandler().getComponentWith(ID: cmpID, FromDashBoardID: dbID) {
+        DashBoardAPIHandler().getComponentWith(id: cmpID, fromDashBoardID: dbId) {
             (resultType) in
             
-            OnCompletion(resultType)
+            onCompletion(resultType)
         }
         
     }
     
     
     
-    public func refreshComponentWith(ID cmpID: Int64,InDashBoardID dbID: Int64,OnCompletion:
+    public func refreshComponentWith(id cmpID: Int64,inDashBoardID dbId: Int64,onCompletion:
         @escaping refreshResponse)
         
     {
         
-        DashBoardAPIHandler().refreshComponentWith(ID: cmpID, InDashBoardID: dbID) {
+        DashBoardAPIHandler().refreshComponentWith(id: cmpID, inDashBoardID: dbId) {
             (resultType) in
             
-            OnCompletion(resultType)
+            onCompletion(resultType)
         }
         
     }
     
     
     
-    public func refreshDashBoardWith(ID dbID: Int64,OnCompletion:
+    public func refreshDashBoardWith(id dbId: Int64,onCompletion:
         @escaping refreshResponse)
         
     {
         
-        DashBoardAPIHandler().refreshDashBoardWith(ID: dbID) { (resultType) in
+        DashBoardAPIHandler().refreshDashBoardWith(id: dbId) { (resultType) in
             
-            OnCompletion(resultType)
+            onCompletion(resultType)
             
         }
         
@@ -108,14 +109,14 @@ extension ZCRMAnalytics {
     
     
     
-    public func getDashBoardComponentColorThemes( OnCompletion:
+    public func getDashBoardComponentColorThemes( onCompletion:
         @escaping ArrayOfColorThemes )
         
     {
         
         DashBoardAPIHandler().getDashBoardComponentColorThemes { (resultType) in
             
-            OnCompletion(resultType)
+            onCompletion(resultType)
         }
         
     }

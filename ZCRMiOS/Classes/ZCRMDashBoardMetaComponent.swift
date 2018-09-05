@@ -73,24 +73,24 @@ extension ZCRMDashBoardMetaComponent: CustomDebugStringConvertible{
 
 extension ZCRMDashBoardMetaComponent.LayoutProperties {
     
-    mutating func setComponentX(Position:Int?)
+    mutating func setComponentX(position:Int?)
     {
-        componentXPosition = Position
+        componentXPosition = position
     }
     
-    mutating func setComponentY(Position:Int?)
+    mutating func setComponentY(position:Int?)
     {
-        componentYPosition = Position
+        componentYPosition = position
     }
     
-    mutating func setComponent(Width:Int?)
+    mutating func setComponent(width:Int?)
     {
-        componentWidth = Width
+        componentWidth = width
     }
     
-    mutating func setComponent(Height:Int?)
+    mutating func setComponent(height:Int?)
     {
-        componentHeight = Height
+        componentHeight = height
     }
     
 }
