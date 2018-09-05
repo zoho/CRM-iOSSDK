@@ -584,14 +584,14 @@ struct JSONRootKey {
 //MARK:  1) Handle Result Types either by calling Resolve()
 //MARK:  2) on them or use the traditional switch case pattern to handle success and failure seperately
 
-struct Result {
+public struct Result {
     
     //MARK: DATA RESPONSE RESULT TYPE (Data,Response,Error)
     //MARK: This either gives (DATA,RESPONSE) as TUPLE OR (ERROR) but NOT BOTH AT THE SAME TIME
     //MARK: Data -> Any ZCRMInstance
     //MARK: Response -> (FileAPIResponse,APIResponse,BulkAPIResponse)->>> (Any Class inhering from CommonAPIResponse)
     //MARK: Error -> ZCRMError ->>> (Conforms to Error Type)
-    enum DataResponse<Data: Any,Response: CommonAPIResponse>{
+    public enum DataResponse<Data: Any,Response: CommonAPIResponse>{
         
         case success(Data,Response)
         case failure(ZCRMError)
@@ -616,7 +616,7 @@ struct Result {
     //MARK: This either gives (RESPONSE) OR (ERROR) but NOT BOTH AT THE SAME TIME
     //MARK: Response -> (FileAPIResponse,APIResponse,BulkAPIResponse)->>> (Any Class inhering from CommonAPIResponse)
     //MARK: Error -> ZCRMError ->>> (Conforms to Error Type)
-    enum Response<Response: CommonAPIResponse> {
+    public enum Response<Response: CommonAPIResponse> {
         
         case success(Response)
         case failure(ZCRMError)

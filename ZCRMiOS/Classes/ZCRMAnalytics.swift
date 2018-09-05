@@ -7,16 +7,23 @@
 
 import Foundation
 
-class ZCRMAnalytics {
+public class ZCRMAnalytics {
     
-    internal typealias dashBoard = DashBoardAPIHandler.dashBoard
-    internal typealias ArrayOfDashBoards = DashBoardAPIHandler.ArrayOfDashBoards
-    internal typealias dashBoardComponent = DashBoardAPIHandler.dashBoardComponent
+    public typealias dashBoard =
+        (Result.DataResponse<ZCRMDashBoard,APIResponse>) -> Void
     
-    internal typealias refreshResponse = DashBoardAPIHandler.refreshResponse
-    internal typealias ArrayOfColorThemes = DashBoardAPIHandler.ArrayOfColorThemes
+    public typealias ArrayOfDashBoards = (Result.DataResponse<[ZCRMDashBoard],BulkAPIResponse>) -> Void
     
+    public typealias dashBoardComponent = (Result.DataResponse<ZCRMDashBoardComponent,APIResponse>) -> Void
     
+    public typealias refreshResponse = (Result.Response<APIResponse>) -> Void
+    
+    public typealias ArrayOfColorThemes = (Result.DataResponse<[ZCRMDashBoardComponentColorThemes],APIResponse>) -> Void
+    
+}
+
+//MARK:- Public Getters
+extension ZCRMAnalytics {
     
     public func getAllDashBoards(then Oncompletion:@escaping ArrayOfDashBoards)
         
@@ -28,7 +35,6 @@ class ZCRMAnalytics {
         }
         
     }
-    
     
     
     public func getAllDashboards(FromPage page:Int?,PerPage perPage:Int?,then Oncompletion: @escaping ArrayOfDashBoards)
@@ -45,7 +51,6 @@ class ZCRMAnalytics {
     }
     
     
-    
     public func getDashBoardWith(ID:Int64,then OnCompletion:
         @escaping dashBoard)
         
@@ -56,7 +61,6 @@ class ZCRMAnalytics {
         }
         
     }
-    
     
     
     public func getComponentWith(ID cmpID: Int64, FromDashBoardID dbID: Int64,OnCompletion:
@@ -71,7 +75,6 @@ class ZCRMAnalytics {
         }
         
     }
-    
     
     
     
@@ -90,7 +93,6 @@ class ZCRMAnalytics {
     
     
     
-    
     public func refreshDashBoardWith(ID dbID: Int64,OnCompletion:
         @escaping refreshResponse)
         
@@ -103,7 +105,6 @@ class ZCRMAnalytics {
         }
         
     }
-    
     
     
     

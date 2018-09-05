@@ -10,7 +10,7 @@ import Foundation
 
 public class ZCRMRestClient
 {
-    private lazy var ZCRMAnalyticsObj = ZCRMAna
+    private lazy var ZCRMAnalyticsObj = ZCRMAnalytics()
     
     public init() {}
     

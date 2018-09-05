@@ -8,16 +8,18 @@ import Foundation
 class DashBoardAPIHandler: CommonAPIHandler {
     
     // Handler Return Type
-    internal typealias dashBoard = (Result.DataResponse<ZCRMDashBoard,APIResponse>) -> Void
-    internal typealias ArrayOfDashBoards = (Result.DataResponse<[ZCRMDashBoard],BulkAPIResponse>) -> Void
-    internal typealias dashBoardComponent = (Result.DataResponse<ZCRMDashBoardComponent,APIResponse>) -> Void
-    internal typealias refreshResponse = (Result.Response<APIResponse>) -> Void
-    internal typealias ArrayOfColorThemes = (Result.DataResponse<[ZCRMDashBoardComponentColorThemes],APIResponse>) -> Void
+    public typealias dashBoard = ZCRMAnalytics.dashBoard
+    public typealias ArrayOfDashBoards = ZCRMAnalytics.ArrayOfDashBoards
+    public typealias dashBoardComponent = ZCRMAnalytics.dashBoardComponent
+    public typealias refreshResponse = ZCRMAnalytics.refreshResponse
+    public typealias ArrayOfColorThemes = ZCRMAnalytics.ArrayOfColorThemes
+    
     // API Names
     fileprivate typealias dashBoardAPINames = ZCRMDashBoard.Properties.ResponseJSONKeys
     fileprivate typealias metaComponentAPINames = ZCRMDashBoardMetaComponent.Properties.ResponseJSONKeys
     fileprivate typealias componentAPINames = ZCRMDashBoardComponent.Properties.ResponseJSONKeys
     fileprivate typealias colorPaletteAPINames = ZCRMDashBoardComponentColorThemes.Properties.ResponseJSONKeys
+    
     // Model Objects
     fileprivate typealias CompCategory = ZCRMDashBoardComponent.ComponentCategory
     fileprivate typealias CompObjective  = ZCRMDashBoardComponent.Objective
@@ -29,12 +31,14 @@ class DashBoardAPIHandler: CommonAPIHandler {
     fileprivate typealias AllowedValues = ZCRMDashBoardComponent.AllowedValues
     fileprivate typealias ComponentChunks = ZCRMDashBoardComponent.ComponentChunks
     fileprivate typealias Aggregate = ZCRMDashBoardComponent.Aggregate
+    
     // used for dict keys
     fileprivate typealias colorPaletteKeys = ZCRMDashBoardComponentColorThemes.ColorPalette
     // used for parsing out ColorPaletteName
     fileprivate typealias colorPalette = ZCRMDashBoardComponentColorThemes.ColorPalette
     //Path Name
     fileprivate typealias URLPathName = ZCRMDashBoard.Properties.URLPathName
+    
     //Meta - Component Parser Return Type
     fileprivate typealias MetaComponentLayoutPropsTuple =
         (width:Int?,height:Int?,xPosition:Int?,yPosition:Int?)
