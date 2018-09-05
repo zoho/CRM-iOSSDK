@@ -18,7 +18,10 @@ public class ZCRMAttachment : ZCRMEntity
 	private var modifiedBy : ZCRMUser?
 	private var modifiedTime : String?
 	
-	private var parentRecord: ZCRMRecord
+	private var parentRecord : ZCRMRecord
+    private var isEditable : Bool?
+    private var type : String?
+    private var linkURL : String?
 	
     /// Initialise the instance of a attachment for the given record with given note attachment Id
     ///
@@ -174,6 +177,36 @@ public class ZCRMAttachment : ZCRMEntity
 	{
 		return self.modifiedTime
 	}
+    
+    internal func setIsEditable( isEditable : Bool? )
+    {
+        self.isEditable = isEditable
+    }
+    
+    public func getIsEditable() -> Bool?
+    {
+        return self.isEditable
+    }
+    
+    internal func setType( type : String? )
+    {
+        self.type = type
+    }
+    
+    public func getType() -> String?
+    {
+        return self.type
+    }
+    
+    internal func setLinkURL( linkURL : String? )
+    {
+        self.linkURL = linkURL
+    }
+    
+    public func getLinkURL() -> String?
+    {
+        return self.linkURL
+    }
 	
     /// To download Attachment, it returns file as data, then it can be converted to a file.
     ///

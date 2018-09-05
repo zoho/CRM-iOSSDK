@@ -778,5 +778,19 @@ public class ZCRMRecord : ZCRMEntity
             completion( response, error )
         }
     }
+    
+    public func follow( completion : @escaping( APIResponse?, Error? ) -> () )
+    {
+        EntityAPIHandler(record: self).follow() { (response, error) in
+            completion( response, error )
+        }
+    }
+    
+    public func unfollow( completion : @escaping( APIResponse?, Error? ) -> () )
+    {
+        EntityAPIHandler(record: self).unfollow() { (response, error) in
+            completion( response, error )
+        }
+    }
 }
 
