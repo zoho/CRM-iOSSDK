@@ -350,7 +350,7 @@ public class ZCRMUser : ZCRMEntity
         return self.confirm
     }
     
-    internal func setReportingTo( reportingTo : ZCRMUser? )
+    public func setReportingTo( reportingTo : ZCRMUser? )
     {
         self.reportingTo = reportingTo
     }
@@ -400,7 +400,7 @@ public class ZCRMUser : ZCRMEntity
         return self.modifiedTime
     }
     
-    internal func setFieldValue( fieldAPIName : String, value : Any )
+    public func setFieldValue( fieldAPIName : String, value : Any )
     {
         if self.fieldNameVsValue == nil
         {

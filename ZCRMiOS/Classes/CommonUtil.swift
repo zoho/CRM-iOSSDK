@@ -45,6 +45,7 @@ public enum ZCRMError : Error
     case MaxRecordCountExceeded( code : String, message : String )
     case FileSizeExceeded( code : String, message : String )
     case ProcessingError( code : String, message : String )
+    case SDKError( code : String, message : String )
     
     var details : ( code : String, description : String )
     {
@@ -60,25 +61,10 @@ public enum ZCRMError : Error
                 return ( code, desc )
             case .ProcessingError( let code, let desc ):
                 return ( code, desc )
+            case .SDKError( let code, let desc ):
+                return ( code, desc )
         }
     }
-    
-//    func getMessage() -> String
-//    {
-//        switch self
-//        {
-//        case .UnAuthenticatedError(let errorString):
-//            return errorString
-//        case .InValidError(let errorString):
-//            return errorString
-//        case .MaxRecordCountExceeded(let errorString):
-//            return errorString
-//        case .FileSizeExceeded(let errorString):
-//            return errorString
-//        case .ProcessingError(let errorString):
-//            return errorString
-//        }
-//    }
 }
 
 public enum SortOrder : String
