@@ -400,14 +400,14 @@ public class ZCRMOrganisation : ZCRMEntity
         }
     }
     
-    public func searchUserByCriteria( criteria : String, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
+    public func searchUsers( withCriteria : String, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
     {
         UserAPIHandler().searchUsers( criteria : criteria, page : 1, perPage : 200) { ( response, users, error ) in
             completion( response, users, error )
         }
     }
     
-    public func searchUserByCriteria( criteria : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
+    public func searchUser( withCriteria : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
     {
         UserAPIHandler().searchUsers( criteria : criteria, page : page, perPage : perPage) { ( response, users, error ) in
             completion( response, users, error )
