@@ -123,7 +123,7 @@ public class ZCRMTag : ZCRMEntity
     {
         if self.moduleAPIName == nil
         {
-            completion( nil, ZCRMError.ProcessingError( "Tag Module API Name must not be nil." ) )
+            completion( nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND , message: "Tag Module API Name must not be nil." ) )
         }
         else
         {
@@ -144,7 +144,7 @@ public class ZCRMTag : ZCRMEntity
     {
         if self.moduleAPIName == nil
         {
-            completion( nil, nil, ZCRMError.ProcessingError( "Tag Module API Name must not be nil." ) )
+            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND , message: "Tag Module API Name must not be nil." ) )
         }
         else
         {

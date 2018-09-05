@@ -1153,7 +1153,7 @@ public class ZCRMModule : ZCRMEntity
         }
         else
         {
-            completion( nil, nil, ZCRMError.InValidError("Module is invalid") )
+            completion( nil, nil, ZCRMError.InValidError(code : INVALID_DATA, message : "Module is invalid") )
         }
     }
 }

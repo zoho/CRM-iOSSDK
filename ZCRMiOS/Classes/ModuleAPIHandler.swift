@@ -473,7 +473,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
             }
             guard let bulkResponse = response else
             {
-                completion( nil, nil, ZCRMSDKError.ResponseNil("Response is nil") )
+                completion( nil, nil, ZCRMSDKError.ResponseNil( code : RESPONSE_NIL, message : "Response is nil" ) )
                 return
             }
             let responseJSON = bulkResponse.getResponseJSON()
