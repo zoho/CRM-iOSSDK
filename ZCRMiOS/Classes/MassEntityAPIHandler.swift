@@ -43,6 +43,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             if let error = err
             {
                 completion( nil, nil, error )
+                return
             }
             if let bulkResponse = response
             {
@@ -53,8 +54,8 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     if(CODE_SUCCESS == entityResponse.getStatus())
                     {
                         let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                        let recordJSON : [String:Any] = entResponseJSON.getDictionary(key: "details")
-                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordJSON.getInt64(key: "id"))
+                        let recordJSON : [String:Any] = entResponseJSON.getDictionary(key: DETAILS)
+                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordJSON.getInt64(key: ResponseJSONKeys.id))
                         EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordJSON)
                         updatedRecords.append(record)
                         entityResponse.setData(data: record)
@@ -70,7 +71,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
     }
 	
-    internal func getRecords(cvId : Int64? ,fields : [String]? ,  sortByField : String? , sortOrder : SortOrder? , converted : Bool? , approved : Bool? , page : Int , per_page : Int , modifiedSince : String?, includePrivateFields : Bool, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    internal func getRecords(cvId : Int64? ,fields : [String]? ,  sortByField : String? , sortOrder : SortOrder? , converted : Bool? , approved : Bool? , page : Int , per_page : Int , modifiedSince : String?, includePrivateFields : Bool, kanbanView : String?, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
 	{
         setJSONRootKey( key : JSONRootKey.DATA )
 		var records : [ZCRMRecord] = [ZCRMRecord]()
@@ -89,7 +90,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 			}
 			if(!fieldsStr.isEmpty)
 			{
-				addRequestParam(param: "fields" , value: String(fieldsStr.dropLast()) )
+				addRequestParam(param: RequestParamKeys.fields , value: String(fieldsStr.dropLast()) )
 			}
 			
 		}
@@ -121,6 +122,10 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         {
             addRequestParam( param : "include", value : PRIVATE_FIELDS )
         }
+        if( kanbanView.notNilandEmpty )
+        {
+            addRequestParam( param : RequestParamKeys.kanbanView, value : kanbanView! )
+        }
 		addRequestParam(param: "page" , value: String(page) )
 		addRequestParam(param: "per_page" , value: String(per_page) )
 		let request : APIRequest = APIRequest(handler: self )
@@ -130,6 +135,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             if let error = err
             {
                 completion( nil, nil, error )
+                return
             }
             if let bulkResponse = response
             {
@@ -139,7 +145,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     let recordsDetailsList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     for recordDetails in recordsDetailsList
                     {
-                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordDetails.getInt64(key: "id"))
+                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordDetails.getInt64(key: ResponseJSONKeys.id))
                         EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordDetails)
                         records.append(record)
                     }
@@ -153,33 +159,33 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     
     internal func searchByText( searchText : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.searchRecords( searchKey : "word", searchValue : searchText, page : page, per_page : perPage ) { ( records, response, error ) in
+        self.searchRecords( searchKey : RequestParamValues.word, searchValue : searchText, page : page, per_page : perPage ) { ( records, response, error ) in
             completion( records, response, error )
         }
     }
     
     internal func searchByCriteria( searchCriteria : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.searchRecords( searchKey : "criteria", searchValue : searchCriteria, page : page, per_page : perPage ) { ( records, response, error ) in
+        self.searchRecords( searchKey : RequestParamValues.criteria, searchValue : searchCriteria, page : page, per_page : perPage ) { ( records, response, error ) in
             completion( records, response, error )
         }
     }
     
     internal func searchByEmail( searchValue : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.searchRecords( searchKey : "email", searchValue : searchValue, page : page, per_page : perPage) { ( records, response, error ) in
+        self.searchRecords( searchKey : RequestParamValues.email, searchValue : searchValue, page : page, per_page : perPage) { ( records, response, error ) in
             completion( records, response, error )
         }
     }
     
     internal func searchByPhone( searchValue : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.searchRecords( searchKey : "phone", searchValue : searchValue, page : page, per_page : perPage) { ( records, response, error ) in
+        self.searchRecords( searchKey : RequestParamValues.phone, searchValue : searchValue, page : page, per_page : perPage) { ( records, response, error ) in
             completion( records, response, error )
         }
     }
 	
-    internal func searchRecords( searchKey : String, searchValue : String, page : Int, per_page : Int, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    private func searchRecords( searchKey : String, searchValue : String, page : Int, per_page : Int, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
 	{
         setJSONRootKey( key : JSONRootKey.DATA )
 		var records : [ZCRMRecord] = [ZCRMRecord]()
@@ -195,6 +201,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             if let error = err
             {
                 completion( nil, nil, error )
+                return
             }
             if let bulkResponse = response
             {
@@ -204,7 +211,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     let recordsList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     for recordDetails in recordsList
                     {
-                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordDetails.getInt64(key: "id"))
+                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordDetails.getInt64(key: ResponseJSONKeys.id))
                         EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordDetails)
                         records.append(record)
                     }
@@ -227,7 +234,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 		for id in ids
 		{
 			var dataJSON : [String:Any] = [String:Any]()
-			dataJSON["id"] = String(id)
+			dataJSON[ResponseJSONKeys.id] = String(id)
 			dataJSON[fieldAPIName] = value
 			dataArray.append(dataJSON)
 		}
@@ -244,6 +251,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             if let error = err
             {
                 completion( nil, nil, error )
+                return
             }
             if let bulkResponse = response
             {
@@ -254,8 +262,8 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     if(CODE_SUCCESS == entityResponse.getStatus())
                     {
                         let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                        let recordJSON : [String:Any] = entResponseJSON.getDictionary(key: "details")
-                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordJSON.getInt64( key : "id" ) )
+                        let recordJSON : [String:Any] = entResponseJSON.getDictionary(key: DETAILS)
+                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordJSON.getInt64( key : ResponseJSONKeys.id ) )
                         EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordJSON)
                         updatedRecords.append(record)
                         entityResponse.setData(data: record)
@@ -297,6 +305,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             if let error = err
             {
                 completion( nil, nil, error )
+                return
             }
             if let bulkResponse = response
             {
@@ -307,8 +316,8 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     if(CODE_SUCCESS == entityResponse.getStatus())
                     {
                         let entResponseJSON : [ String : Any ] = entityResponse.getResponseJSON()
-                        let recordJSON : [ String : Any ] = entResponseJSON.getDictionary( key : "details")
-                        let record : ZCRMRecord = ZCRMRecord( moduleAPIName : self.module.getAPIName(), recordId : recordJSON.getInt64( key : "id" ) )
+                        let recordJSON : [ String : Any ] = entResponseJSON.getDictionary( key : DETAILS)
+                        let record : ZCRMRecord = ZCRMRecord( moduleAPIName : self.module.getAPIName(), recordId : recordJSON.getInt64( key : ResponseJSONKeys.id ) )
                         EntityAPIHandler( record : record ).setRecordProperties( recordDetails : recordJSON )
                         upsertRecords.append( record )
                         entityResponse.setData( data : record )
@@ -344,6 +353,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             if let error = err
             {
                 completion( nil, error )
+                return
             }
             if let bulkResponse = response
             {
@@ -351,8 +361,8 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 for entityResponse in responses
                 {
                     let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                    let recordJSON : [String:Any] = entResponseJSON.getDictionary(key: "details")
-                    let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordJSON.getInt64( key : "id" ) )
+                    let recordJSON : [String:Any] = entResponseJSON.getDictionary(key: DETAILS)
+                    let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordJSON.getInt64( key : ResponseJSONKeys.id ) )
                     entityResponse.setData(data: record)
                 }
                 completion( bulkResponse, nil )
@@ -362,21 +372,21 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     
     internal func getDeletedRecords( modifiedSince : String?, page : Int, perPage : Int, completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.getDeletedRecords( type : "all", modifiedSince : modifiedSince, page : page, perPage : perPage ) { ( deletedRecords, response, error ) in
+        self.getDeletedRecords( type : RequestParamValues.all, modifiedSince : modifiedSince, page : page, perPage : perPage ) { ( deletedRecords, response, error ) in
             completion( deletedRecords, response, error )
         }
     }
     
     internal func getRecycleBinRecords( completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.getDeletedRecords(type: "recycle", modifiedSince: nil, page: 1, perPage: 100) { ( deletedRecords, response, error ) in
+        self.getDeletedRecords(type: RequestParamValues.recycle, modifiedSince: nil, page: 1, perPage: 100) { ( deletedRecords, response, error ) in
             completion( deletedRecords, response, error )
         }
     }
     
     internal func getPermanentlyDeletedRecords( completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
-        self.getDeletedRecords(type: "permanent", modifiedSince: nil, page: 1, perPage: 100) { ( deletedRecords, response, error ) in
+        self.getDeletedRecords(type: RequestParamValues.permanent, modifiedSince: nil, page: 1, perPage: 100) { ( deletedRecords, response, error ) in
             completion( deletedRecords, response, error )
         }
     }
@@ -385,7 +395,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     {
 		setUrlPath(urlPath : "/\( self.module.getAPIName() )/deleted")
 		setRequestMethod(requestMethod : .GET )
-		addRequestParam(param: "type" , value: type )
+		addRequestParam(param: RequestParamKeys.type , value: type )
         if ( modifiedSince.notNilandEmpty)
         {
             addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
@@ -398,6 +408,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             if let error = err
             {
                 completion( nil, nil, error )
+                return
             }
             if let bulkResponse = response
             {
@@ -406,7 +417,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 for entityResponse in responses
                 {
                     let trashRecordDetails : [ String : Any ] = entityResponse.getResponseJSON()
-                    self.trashRecord = ZCRMTrashRecord(type : trashRecordDetails.getString( key : "type" ), entityId : trashRecordDetails.getInt64( key : "id" ) )
+                    self.trashRecord = ZCRMTrashRecord(type : trashRecordDetails.getString( key : RequestParamKeys.type ), entityId : trashRecordDetails.getInt64( key : ResponseJSONKeys.id) )
                     self.setTrashRecordProperties( record : trashRecordDetails )
                     trashRecords.append( self.trashRecord )
                 }
@@ -418,27 +429,27 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 	
 	// MARK: - Utility Functions
 	
-    internal func setTrashRecordProperties( record : [ String : Any ] )
+    private func setTrashRecordProperties( record : [ String : Any ] )
     {
         for ( fieldAPIName, value ) in record
         {
-            if( "created_By" == fieldAPIName )
+            if( ResponseJSONKeys.createdBy == fieldAPIName )
             {
                 let createdBy : [ String : Any ] = value as! [ String : Any ]
-                let createdByUser : ZCRMUser = ZCRMUser( userId : createdBy.getInt64( key : "id" ), userFullName : createdBy.getString( key : "name") )
+                let createdByUser : ZCRMUser = ZCRMUser( userId : createdBy.getInt64( key : ResponseJSONKeys.id ), userFullName : createdBy.getString( key : ResponseJSONKeys.name) )
                 self.trashRecord.setCreatedBy( createdBy : createdByUser )
             }
-            else if( "deleted_by" == fieldAPIName )
+            else if( ResponseJSONKeys.deletedBy == fieldAPIName )
             {
                 let deletedBy : [ String : Any ] = value as! [ String : Any ]
-                let deletedByUser : ZCRMUser = ZCRMUser( userId : deletedBy.getInt64( key : "id" ), userFullName : deletedBy.getString( key : "name" ) )
+                let deletedByUser : ZCRMUser = ZCRMUser( userId : deletedBy.getInt64( key : ResponseJSONKeys.id ), userFullName : deletedBy.getString( key : ResponseJSONKeys.name ) )
                 self.trashRecord.setDeletedBy( deletedBy : deletedByUser )
             }
-            else if( "display_name" == fieldAPIName )
+            else if( ResponseJSONKeys.displayName == fieldAPIName )
             {
                 self.trashRecord.setDisplayName( name : record.getString( key : fieldAPIName ) )
             }
-            else if( "deleted_time" == fieldAPIName )
+            else if( ResponseJSONKeys.deletedTime == fieldAPIName )
             {
                 self.trashRecord.setDisplayName( name : record.getString( key : fieldAPIName ) )
             }
@@ -479,11 +490,11 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         
         setUrlPath(urlPath: "/\(module.getAPIName())/actions/add_tags")
         setRequestMethod(requestMethod: .POST)
-        addRequestParam(param: "ids", value: idString)
-        addRequestParam(param: "tag_names", value: tagNamesString)
+        addRequestParam(param: RequestParamKeys.ids, value: idString)
+        addRequestParam(param: RequestParamKeys.tagNames, value: tagNamesString)
         if overWrite != nil
         {
-            addRequestParam(param: "over_write", value: String(overWrite!))
+            addRequestParam(param: RequestParamKeys.overWrite, value: String(overWrite!))
         }
         setRequestBody(requestBody: reqBodyObj)
         
@@ -494,6 +505,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             if let error = err
             {
                 completion( nil, nil, error )
+                return
             }
             if let bulkResponse = response
             {
@@ -505,8 +517,8 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
 
                         let recordDetails : [String : Any] = entResponseJSON.getDictionary(key: DETAILS)
-                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordDetails.getInt64(key: "id"))
-                        let tagNames : [String] = recordDetails.getArray(key: "tags") as! [String]
+                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordDetails.getInt64(key: ResponseJSONKeys.id))
+                        let tagNames : [String] = recordDetails.getArray(key: ResponseJSONKeys.tags) as! [String]
                         for name in tagNames
                         {
                             let tag : ZCRMTag = ZCRMTag(tagName: name)
@@ -558,8 +570,8 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         
         setUrlPath(urlPath: "/\(module.getAPIName())/actions/remove_tags")
         setRequestMethod(requestMethod: .POST)
-        addRequestParam(param: "ids", value: idString)
-        addRequestParam(param: "tag_names", value: tagNamesString)
+        addRequestParam(param: RequestParamKeys.ids, value: idString)
+        addRequestParam(param: RequestParamKeys.tagNames, value: tagNamesString)
         setRequestBody(requestBody: reqBodyObj)
         
         let request : APIRequest = APIRequest(handler: self)
@@ -568,5 +580,42 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         request.getBulkAPIResponse { ( response, err ) in
             completion( response, err )
         }
+    }
+}
+
+fileprivate extension MassEntityAPIHandler
+{
+    struct RequestParamKeys
+    {
+        static let fields = "fields"
+        static let kanbanView = "kanban_view"
+        static let ids = "ids"
+        static let type = "type"
+        static let tagNames = "tag_names"
+        static let overWrite =  "over_write"
+    }
+    
+    
+    struct RequestParamValues
+    {
+        static let word = "word"
+        static let criteria = "criteria"
+        static let email = "email"
+        static let phone = "phone"
+        static let all = "all"
+        static let recycle = "recycle"
+        static let permanent = "permanent"
+    }
+
+    
+    struct ResponseJSONKeys
+    {
+        static let id = "id"
+        static let name = "name"
+        static let createdBy = "created_By"
+        static let deletedBy = "deleted_by"
+        static let displayName = "display_name"
+        static let deletedTime = "deleted_time"
+        static let tags = "tags"
     }
 }
