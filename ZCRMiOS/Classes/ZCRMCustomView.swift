@@ -19,6 +19,9 @@ public class ZCRMCustomView : ZCRMEntity
 	private var sortByCol : String?
 	private var sortOrder : SortOrder?
 	private var category : String?
+    
+    private var isOffline : Bool?
+    private var isSystemDefined : Bool?
 	
     /// Initialise the instance of a custom view with the given custom view Id.
     ///
@@ -197,6 +200,26 @@ public class ZCRMCustomView : ZCRMEntity
 		return self.sortOrder
 	}
     
+    internal func setIsOffline( isOffline : Bool? )
+    {
+        self.isOffline = isOffline
+    }
+    
+    public func getIsOffline() -> Bool?
+    {
+        return self.isOffline
+    }
+    
+    internal func setIsSystemDefined( isSystemDefined : Bool? )
+    {
+        self.isSystemDefined = isSystemDefined
+    }
+    
+    public func getIsSystemDefined() -> Bool?
+    {
+        return self.isSystemDefined
+    }
+    
     /// Returns List of all records of the CustomView(BulkAPIResponse).
     ///
     /// - Returns: List of all records of the CustomView
@@ -277,6 +300,20 @@ public class ZCRMCustomView : ZCRMEntity
     public func getRecordsWithPrivateFields( sortByField : String, sortOrder : SortOrder, startIndex : Int, endIndex : Int, modifiedSince : String, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
     {
         ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( cvId : self.id, sortByField : sortByField, sortOrder : sortOrder, page: startIndex, per_page: endIndex, modifiedSince : modifiedSince ){ ( records, response, error ) in
+            completion( records, response, error )
+        }
+    }
+    
+    public func getRecords( kanbanView : String, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    {
+        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords(cvId: self.id, kanbanView: kanbanView) { ( records, response, error ) in
+            completion( records, response, error )
+        }
+    }
+    
+    public func getRecords ( sortByField : String, sortOrder : SortOrder, kanbanView : String, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    {
+        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( cvId : self.id, sortByField : sortByField, sortOrder : sortOrder, kanbanView : kanbanView ) { ( records, response, error ) in
             completion( records, response, error )
         }
     }
