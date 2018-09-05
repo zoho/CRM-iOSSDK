@@ -129,7 +129,7 @@ extension DashBoardAPIHandler {
                 }
                 OnCompletion(.success(arrayOfDashBoardObj,bulkAPIResponse))
             } catch {
-                OnCompletion(.failure(error as! ZCRMError))
+                OnCompletion(.failure(typeCastToZCRMError(error)))
             }
         } // completion ends
     } // func ends
@@ -186,7 +186,7 @@ extension DashBoardAPIHandler {
             }
             catch
             {
-                OnCompletion(.failure(error as! ZCRMError))
+                OnCompletion(.failure(typeCastToZCRMError(error)))
             }
         } // completion
         
@@ -207,7 +207,7 @@ extension DashBoardAPIHandler {
                 OnCompletion(.success(APIResponse))
                 
             } catch {
-                OnCompletion(.failure(error as! ZCRMError))
+                OnCompletion(.failure(typeCastToZCRMError(error)))
             }
         } // completion
     } // func ends
@@ -225,7 +225,7 @@ extension DashBoardAPIHandler {
                 let APIResponse = try resultType.resolve()
                 OnCompletion(.success(APIResponse))
             } catch {
-                OnCompletion(.failure(error as! ZCRMError))
+                OnCompletion(.failure(typeCastToZCRMError(error)))
             }
         } // completion
     } // func ends
@@ -246,7 +246,7 @@ extension DashBoardAPIHandler {
                 let ArrayOfcolorThemes = self.getArrayOfZCRMDashBoardComponentColorThemes(colorThemesJSON)
                 OnCompletion(.success(ArrayOfcolorThemes,APIResponse))
             } catch {
-                OnCompletion(.failure(error as! ZCRMError))
+                OnCompletion(.failure(typeCastToZCRMError(error)))
             }
         } // Completion
     } // func ends
