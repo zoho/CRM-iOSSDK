@@ -150,5 +150,13 @@ public class ZVCRMLoginHandler
                 }
         })
     }
-    
+	
+	internal func isUserSignedIn() -> Bool {
+		
+		var userSignedIn = true
+		if self.getOauth2Token().isEmpty {
+			userSignedIn = false
+		}
+		return userSignedIn
+	}
 }
