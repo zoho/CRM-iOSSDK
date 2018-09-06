@@ -814,10 +814,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     {
 
         setJSONRootKey(key: JSONRootKey.DATA)
-        var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
-        let dataArray : [[String:Any]] = [[String:Any]]()
         let recordIdString = String(record.getId())
-        reqBodyObj[getJSONRootKey()] = dataArray
         
         setUrlPath(urlPath: "/\(self.record.getModuleAPIName())/\(recordIdString)/actions/add_tags")
         setRequestMethod(requestMethod: .POST)
@@ -838,7 +835,6 @@ internal class EntityAPIHandler : CommonAPIHandler
         {
             addRequestParam(param: RequestParamKeys.overWrite, value: String(overWrite!))
         }
-        setRequestBody(requestBody: reqBodyObj)
         
         let request : APIRequest = APIRequest(handler: self)
         print("Request : \(request.toString())")
@@ -869,10 +865,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     internal func removeTags( tags : [ZCRMTag], completion : @escaping( APIResponse?, Error? ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.DATA)
-        var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
-        let dataArray : [[String:Any]] = [[String:Any]]()
         let recordIdString = String(record.getId())
-        reqBodyObj[getJSONRootKey()] = dataArray
         
         setUrlPath(urlPath: "/\(self.record.getModuleAPIName())/\(recordIdString)/actions/remove_tags")
         setRequestMethod(requestMethod: .POST)
@@ -889,7 +882,6 @@ internal class EntityAPIHandler : CommonAPIHandler
             }
         }
         addRequestParam(param: RequestParamKeys.tagNames, value: tagNamesString)
-        setRequestBody(requestBody: reqBodyObj)
         
         let request : APIRequest = APIRequest(handler: self)
         print("Request : \(request.toString())")

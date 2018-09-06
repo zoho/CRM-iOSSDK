@@ -461,10 +461,6 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 
         setJSONRootKey(key: JSONRootKey.DATA)
         var addedRecords : [ZCRMRecord] = [ZCRMRecord]()
-
-        var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
-        let dataArray : [[String:Any]] = [[String:Any]]()
-        reqBodyObj[getJSONRootKey()] = dataArray
         var idString : String = String()
         for index in 0..<recordIds.count
         {
@@ -487,7 +483,6 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             }
         }
         
-        
         setUrlPath(urlPath: "/\(module.getAPIName())/actions/add_tags")
         setRequestMethod(requestMethod: .POST)
         addRequestParam(param: RequestParamKeys.ids, value: idString)
@@ -496,7 +491,6 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         {
             addRequestParam(param: RequestParamKeys.overWrite, value: String(overWrite!))
         }
-        setRequestBody(requestBody: reqBodyObj)
         
         let request : APIRequest = APIRequest(handler: self)
         print( "Request : \(request.toString())" )
@@ -542,9 +536,6 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     internal func removeTags( recordIds : [Int64], tags : [ZCRMTag], completion : @escaping( BulkAPIResponse?, Error? ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.DATA)
-        var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
-        let dataArray : [[String:Any]] = [[String:Any]]()
-        reqBodyObj[getJSONRootKey()] = dataArray
         var idString : String = String()
         for index in 0..<recordIds.count
         {
@@ -566,13 +557,11 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 }
             }
         }
-
         
         setUrlPath(urlPath: "/\(module.getAPIName())/actions/remove_tags")
         setRequestMethod(requestMethod: .POST)
         addRequestParam(param: RequestParamKeys.ids, value: idString)
         addRequestParam(param: RequestParamKeys.tagNames, value: tagNamesString)
-        setRequestBody(requestBody: reqBodyObj)
         
         let request : APIRequest = APIRequest(handler: self)
         print( "Request : \(request.toString())" )

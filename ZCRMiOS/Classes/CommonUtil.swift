@@ -578,5 +578,6 @@ struct JSONRootKey {
     static let ROLES : String = "roles"
     static let ANALYTICS : String = "Analytics"
     static let STAGES : String = "stages"
+    static let TAXES : String = "taxes"
 }
 
