@@ -456,14 +456,28 @@ public class ZCRMUser : ZCRMEntity
     
     public func downloadProfilePhoto( completion : @escaping( FileAPIResponse?, Error? ) -> () )
     {
-        UserAPIHandler().downloadPhoto( size : PhotoSize.ORIGINAL ) { ( response, error ) in
+        UserAPIHandler(user: self).downloadPhoto( size : PhotoSize.ORIGINAL ) { ( response, error ) in
             completion( response, error )
         }
     }
     
     public func downloadProfilePhoto( size : PhotoSize, completion : @escaping( FileAPIResponse?, Error? ) -> () )
     {
-        UserAPIHandler().downloadPhoto( size : size ) { ( response, error ) in
+        UserAPIHandler(user: self).downloadPhoto( size : size ) { ( response, error ) in
+            completion( response, error )
+        }
+    }
+    
+    public func uploadProfilePhoto( filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
+    {
+        UserAPIHandler(user: self).uploadPhoto(photoViewPermission: XPhotoViewPermission.zero, filePath: filePath) { ( response, error ) in
+            completion( response, error )
+        }
+    }
+    
+    public func uploadProfilePhoto( photoViewPermission : XPhotoViewPermission, filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
+    {
+        UserAPIHandler(user: self).uploadPhoto(photoViewPermission: photoViewPermission, filePath: filePath) { ( response, error ) in
             completion( response, error )
         }
     }

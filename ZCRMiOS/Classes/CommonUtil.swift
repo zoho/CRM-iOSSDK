@@ -76,6 +76,15 @@ public enum PhotoSize : String
     case MEDIUM = "medium"
 }
 
+public enum XPhotoViewPermission  : Int
+{
+    case zero = 0
+    case one = 1
+    case two = 2
+    case three = 3
+    case four = 4
+}
+
 public enum ConsentProcessThrough : String
 {
     case EMAIL = "Email"
@@ -517,7 +526,6 @@ var APIBASEURL : String = String()
 var ACCOUNTSURL : String = String()
 var APIVERSION : String = String()
 var COUNTRYDOMAIN : String = "com"
-let PHOTOURL : URL = URL( string : "https://profile.zoho.com/api/v1/user/self/photo" )!
 
 let BOUNDARY = String( format : "unique-consistent-string-%@", UUID.init().uuidString )
 let LEADS : String = "Leads"

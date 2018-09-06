@@ -8,6 +8,17 @@
 
 internal class UserAPIHandler : CommonAPIHandler
 {
+    
+    var user : ZCRMUser?
+    
+    internal init( user : ZCRMUser )
+    {
+        self.user = user
+    }
+    
+    internal override init()
+    { }
+    
     private func getUsers(type : String?, modifiedSince : String?, page : Int, perPage : Int, completion : @escaping( [ ZCRMUser ]?, BulkAPIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
@@ -260,9 +271,9 @@ internal class UserAPIHandler : CommonAPIHandler
     internal func getRole( roleId : Int64, completion : @escaping( ZCRMRole?, APIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.ROLES )
-		setUrlPath(urlPath: "/settings/roles/\(roleId)" )
-		setRequestMethod(requestMethod: .GET )
-		let request : APIRequest = APIRequest(handler: self)
+        setUrlPath(urlPath: "/settings/roles/\(roleId)" )
+        setRequestMethod(requestMethod: .GET )
+        let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         request.getAPIResponse { ( resp, err ) in
             if let error = err
@@ -281,21 +292,50 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func downloadPhoto( size : PhotoSize, completion : @escaping( FileAPIResponse?, Error? ) -> () )
+    internal func downloadPhoto( size : PhotoSize?, completion : @escaping( FileAPIResponse?, Error? ) -> () )
     {
-		setUrl(url: PHOTOURL )
-		setRequestMethod(requestMethod: .GET )
-		addRequestParam(param: RequestParamKeys.photoSize , value: size.rawValue )
-		let request : APIRequest = APIRequest(handler: self)
-        print( "Request : \( request.toString() )" )
-        request.downloadFile { ( response, error ) in
-            completion( response, error )
+        if let user = self.user
+        {
+            if let emailId = user.getEmailId()
+            {
+                let PHOTOURL : URL = URL( string : "https://profile.zoho.com/api/v1/user/\(emailId)/photo" )!
+                setUrl(url: PHOTOURL )
+                setRequestMethod(requestMethod: .GET )
+                if let photoSize = size
+                {
+                    addRequestParam(param: RequestParamKeys.photoSize , value: photoSize.rawValue )
+                }
+                let request : APIRequest = APIRequest(handler: self)
+                print( "Request : \( request.toString() )" )
+                request.downloadFile { ( response, error ) in
+                    completion( response, error )
+                }
+            }
+        }
+    }
+    
+    internal func uploadPhoto( photoViewPermission : XPhotoViewPermission, filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
+    {
+        if let user = self.user
+        {
+            if let emailId = user.getEmailId()
+            {
+                let PHOTOURL : URL = URL( string : "https://profile.zoho.com/api/v1/user/\(emailId)/photo" )!
+                setUrl(url : PHOTOURL)
+                setRequestMethod(requestMethod: .PUT)
+                addRequestHeader(header: "X-PHOTO-VIEW-PERMISSION", value: String(photoViewPermission.rawValue))
+                let request : APIRequest = APIRequest(handler: self)
+                print( "Request : \(request.toString())" )
+                request.uploadFile(filePath: filePath) { (response, error) in
+                    completion( response, error )
+                }
+            }
         }
     }
     
     internal func getCurrentUser( completion : @escaping( ZCRMUser?, APIResponse?, Error? ) -> () )
     {
-        self.getUser( userId : nil) { ( user, response, error ) in
+        self.getUser( userId : nil ) { ( user, response, error ) in
             completion( user, response, error )
         }
     }
