@@ -14,6 +14,7 @@ public class ZohoCRMSDK {
 	private var isVerticalCRM: Bool = false
 	private var zcrmLoginHandler: ZCRMLoginHandler = ZCRMLoginHandler.init()
 	private var zvcrmLoginHandler: ZVCRMLoginHandler = ZVCRMLoginHandler.init()
+	
 	private init() {
 		
 		if let file = Bundle.main.path(forResource : "AppConfiguration", ofType: "plist" ) {
@@ -48,7 +49,6 @@ public class ZohoCRMSDK {
 			UserDefaults.standard.set(true, forKey: "first")
 		}
 	}
-	
 	
 	public func handleUrl( url : URL, sourceApplication : String?, annotation : Any ) {
 		
@@ -90,6 +90,17 @@ public class ZohoCRMSDK {
 				}
 			}
 		}
+	}
+	
+	public func isUserSignedIn() -> Bool {
+		
+		var isUserSignedIn:Bool = false
+		if self.isVerticalCRM {
+			isUserSignedIn = self.zvcrmLoginHandler.isUserSignedIn()
+		} else {
+			isUserSignedIn = self.zcrmLoginHandler.isUserSignedIn()
+		}
+		return isUserSignedIn
 	}
 
 	public func logout(completion: @escaping (Bool) -> ()) {
