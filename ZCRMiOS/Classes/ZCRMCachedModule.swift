@@ -48,7 +48,7 @@ public class ZCRMCachedModule : ZCRMModule{
                         }
                         catch
                         {
-                            completion( nil, nil, ZCRMError.ProcessingError( error.localizedDescription ) )
+                            completion( nil, nil, ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : error.localizedDescription ) )
                         }
                     }
                 }
@@ -56,7 +56,7 @@ public class ZCRMCachedModule : ZCRMModule{
         }
         catch
         {
-            completion( nil, nil, ZCRMError.ProcessingError( error.localizedDescription ) )
+            completion( nil, nil, ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : error.localizedDescription ) )
         }
     }
     
@@ -97,7 +97,7 @@ public class ZCRMCachedModule : ZCRMModule{
                         }
                         catch
                         {
-                            completion( nil, nil, ZCRMError.ProcessingError( error.localizedDescription ) )
+                            completion( nil, nil, ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : error.localizedDescription ) )
                         }
                     }
                 }
@@ -105,7 +105,7 @@ public class ZCRMCachedModule : ZCRMModule{
         }
         catch
         {
-            completion( nil, nil, ZCRMError.ProcessingError( error.localizedDescription ) )
+            completion( nil, nil, ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : error.localizedDescription ) )
         }
     }
     
@@ -140,7 +140,7 @@ public class ZCRMCachedModule : ZCRMModule{
                         }
                         catch
                         {
-                            completion( nil, nil, ZCRMError.ProcessingError( error.localizedDescription ) )
+                            completion( nil, nil, ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : error.localizedDescription ) )
                         }
                     }
                 }
@@ -148,7 +148,7 @@ public class ZCRMCachedModule : ZCRMModule{
         }
         catch
         {
-            completion( nil, nil, ZCRMError.ProcessingError( error.localizedDescription ) )
+            completion( nil, nil, ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : error.localizedDescription ) )
         }
     }
     
@@ -183,7 +183,7 @@ public class ZCRMCachedModule : ZCRMModule{
                         }
                         catch
                         {
-                            completion( nil, nil, ZCRMError.ProcessingError( error.localizedDescription ) )
+                            completion( nil, nil, ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : error.localizedDescription ) )
                         }
                     }
                 }
@@ -191,7 +191,7 @@ public class ZCRMCachedModule : ZCRMModule{
         }
         catch
         {
-            completion( nil, nil, ZCRMError.ProcessingError( error.localizedDescription ) )
+            completion( nil, nil, ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : error.localizedDescription ) )
         }
     }
     

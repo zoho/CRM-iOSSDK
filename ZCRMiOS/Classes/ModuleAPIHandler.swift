@@ -173,7 +173,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
     internal func getRelatedList( id : Int64, completion: @escaping( ZCRMModuleRelation?, APIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.RELATED_LISTS )
-        setUrlPath( urlPath : "settings/related_lists/\(id)" )
+        setUrlPath( urlPath : "/settings/related_lists/\(id)" )
         setRequestMethod( requestMethod : .GET )
         addRequestParam( param : "module", value : self.module.getAPIName() )
         let request : APIRequest = APIRequest(handler: self)
@@ -198,7 +198,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
     internal func getAllRelatedLists( completion: @escaping( [ ZCRMModuleRelation ]?, BulkAPIResponse?, Error? ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.RELATED_LISTS )
-        setUrlPath( urlPath : "settings/related_lists" )
+        setUrlPath( urlPath : "/settings/related_lists" )
         setRequestMethod( requestMethod : .GET )
         addRequestParam( param : "module", value : self.module.getAPIName() )
         let request : APIRequest = APIRequest(handler: self)
@@ -473,7 +473,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
             }
             guard let bulkResponse = response else
             {
-                completion( nil, nil, ZCRMSDKError.ResponseNil("Response is nil") )
+                completion( nil, nil, ZCRMSDKError.ResponseNil( code : RESPONSE_NIL, message : "Response is nil" ) )
                 return
             }
             let responseJSON = bulkResponse.getResponseJSON()

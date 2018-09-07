@@ -29,20 +29,20 @@ public class ZCRMLoginHandler
             {
                 if( dict.keys.contains( key ) == false )
                 {
-                    throw ZCRMSDKError.InternalError( "\( key ) not present in the App configuration plist!" )
+                    throw ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : "\( key ) not present in the App configuration plist!" )
                 }
             }
             for key in dict.keys
             {
                 if( dict[ key ] == nil )
                 {
-                    throw ZCRMSDKError.InternalError( "\( key ) is nil. It should have value" )
+                    throw ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : "\( key ) is nil. It should have value" )
                 }
             }
         }
         else
         {
-            throw ZCRMSDKError.InternalError( "App configuration property list is empty!" )
+            throw ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : "App configuration property list is empty!" )
         }
     }
     
@@ -110,7 +110,7 @@ public class ZCRMLoginHandler
             
         default :
             print( "Country domain is invalid. \( domain )" )
-            throw ZCRMSDKError.InternalError( "Country domain is invalid." )
+            throw ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message :  "Country domain is invalid." )
         }
         print( "API Base URL : \(APIBASEURL)")
     }
@@ -118,6 +118,11 @@ public class ZCRMLoginHandler
     public func clearIAMLoginFirstLaunch()
     {
         ZohoAuth.clearDetailsForFirstLaunch()
+    }
+    
+    public func getBaseURL() -> String
+    {
+        return APIBASEURL
     }
     
     public func iamLoginHandleURL( url : URL, sourceApplication : String?, annotation : Any )

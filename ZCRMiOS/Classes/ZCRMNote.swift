@@ -75,7 +75,7 @@ public class ZCRMNote : ZCRMEntity
     
     /// Returns note's ZCRMRecord
     ///
-    /// - Returns: <#return value description#>
+    /// - Returns: the parent record of the note
     public func getParentRecord() -> ZCRMRecord
     {
         return self.parentRecord!

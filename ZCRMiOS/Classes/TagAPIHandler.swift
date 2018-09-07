@@ -72,7 +72,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( "Module MUST NOT be nil" ) )
+            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Module MUST NOT be nil" ) )
         }
     }
     
@@ -82,7 +82,7 @@ internal class TagAPIHandler : CommonAPIHandler
         {
             if tag.getId() == nil
             {
-                completion( nil, ZCRMError.ProcessingError( "Tag ID MUST NOT be nil" ) )
+                completion( nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Tag ID MUST NOT be nil" ) )
                 return
             }
             let tagIdString : String = String(tag.getId()!)
@@ -107,7 +107,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( nil, ZCRMError.ProcessingError( "Module and Tag MUST NOT be nil" ) )
+            completion( nil, ZCRMError.ProcessingError( code: MANDATORY_NOT_FOUND, message: "Module and Tag MUST NOT be nil" ) )
         }
     }
     
@@ -169,7 +169,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( "Module MUST NOT be nil" ) )
+            completion( nil, nil, ZCRMError.ProcessingError( code: MANDATORY_NOT_FOUND, message: "Module MUST NOT be nil" ) )
         }
     }
     
@@ -179,7 +179,7 @@ internal class TagAPIHandler : CommonAPIHandler
         {
             if tag.getId() == nil
             {
-                completion( nil, nil, ZCRMError.ProcessingError( "Tag ID MUST NOT be nil" ) )
+                completion( nil, nil, ZCRMError.ProcessingError( code: MANDATORY_NOT_FOUND, message: "Tag ID MUST NOT be nil" ) )
                 return
             }
             var conflictTagJSON : [String:Any] = self.getZCRMTagAsJSON(tag: withTag) as Any as! [String:Any]
@@ -216,7 +216,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( "Tag MUST NOT be nil" ) )
+            completion( nil, nil, ZCRMError.ProcessingError( code: MANDATORY_NOT_FOUND, message: "Tag MUST NOT be nil" ) )
         }
     }
     
@@ -226,7 +226,7 @@ internal class TagAPIHandler : CommonAPIHandler
         {
             if tag.getId() == nil
             {
-                completion( nil, nil, ZCRMError.ProcessingError( "Tag ID MUST NOT be nil" ) )
+                completion( nil, nil, ZCRMError.ProcessingError( code: MANDATORY_NOT_FOUND, message: "Tag ID MUST NOT be nil" ) )
                 return
             }
             setJSONRootKey(key: JSONRootKey.TAGS)
@@ -266,7 +266,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( "Module and Tag MUST NOT be nil" ) )
+            completion( nil, nil, ZCRMError.ProcessingError( code: MANDATORY_NOT_FOUND, message: "Module and Tag MUST NOT be nil" ) )
         }
     }
     
@@ -325,7 +325,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( "Module MUST NOT be nil" ) )
+            completion( nil, nil, ZCRMError.ProcessingError( code: MANDATORY_NOT_FOUND, message: "Module MUST NOT be nil" ) )
         }
     }
     
@@ -335,6 +335,7 @@ internal class TagAPIHandler : CommonAPIHandler
         let idString = String(tagId)
         setUrlPath(urlPath: "/settings/tags/\(idString)" )
         setRequestMethod(requestMethod: .DELETE )
+        setJSONRootKey( key : JSONRootKey.TAGS )
         let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         request.getAPIResponse { ( response, error ) in

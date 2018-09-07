@@ -350,7 +350,7 @@ public class ZCRMUser : ZCRMEntity
         return self.confirm
     }
     
-    internal func setReportingTo( reportingTo : ZCRMUser? )
+    public func setReportingTo( reportingTo : ZCRMUser? )
     {
         self.reportingTo = reportingTo
     }
@@ -400,7 +400,7 @@ public class ZCRMUser : ZCRMEntity
         return self.modifiedTime
     }
     
-    internal func setFieldValue( fieldAPIName : String, value : Any )
+    public func setFieldValue( fieldAPIName : String, value : Any )
     {
         if self.fieldNameVsValue == nil
         {
@@ -424,7 +424,7 @@ public class ZCRMUser : ZCRMEntity
         }
         else
         {
-            throw ZCRMError.ProcessingError( "The given field is not present in this user - \( fieldAPIName )" )
+            throw ZCRMError.ProcessingError( code : FIELD_NOT_FOUND, message : "The given field is not present in this user - \( fieldAPIName )" )
         }
     }
     

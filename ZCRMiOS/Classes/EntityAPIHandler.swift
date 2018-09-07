@@ -182,25 +182,22 @@ internal class EntityAPIHandler : CommonAPIHandler
     internal func uploadPhoto(filePath : String,completion: @escaping(APIResponse?,Error?)->Void){
         
         do {
-
             try fileDetailCheck(filePath:filePath)
             guard UIImage(contentsOfFile: filePath) != nil else {
                 completion(nil,
-                ZCRMError.ProcessingError("INVALID_FILE_TYPE -> PLEASE UPLOAD AN IMAGE FILE"))
+                ZCRMError.ProcessingError( code : "INVALID_FILE_TYPE", message : "The file you have chosen is not supported. Please choose a PNG, JPG, BMP, or GIF file type." ) )
                 return
             }
-            
             setUrlPath(urlPath :"/\(self.record.getModuleAPIName())/\(String(self.record.getId()))/photo")
             setRequestMethod(requestMethod : .POST )
             let request : APIRequest = APIRequest(handler : self )
-            
             print( "Request : \( request.toString() )" )
-            
             request.uploadFile( filePath : filePath) { ( response, error ) in
                 completion( response, error )
             }
-            
-        } catch {
+        }
+        catch
+        {
             completion(nil,error)
         }
     }
