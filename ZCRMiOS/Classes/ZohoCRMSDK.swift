@@ -24,11 +24,11 @@ public class ZohoCRMSDK {
 			let appType = appConfiguration["Type"] as? String
 			crmAppConfigs.setAppType(type: appType!)
 			do {
-				if appType == "ZVCRM" {
+				if appType == "ZCRM" {
+					self.zcrmLoginHandler = try ZCRMLoginHandler(appConfigUtil: crmAppConfigs)
+				} else {
 					self.zvcrmLoginHandler = try ZVCRMLoginHandler(appConfigUtil: crmAppConfigs)
 					self.isVerticalCRM = true
-				} else if appType == "ZCRM" {
-					self.zcrmLoginHandler = try ZCRMLoginHandler(appConfigUtil: crmAppConfigs)
 				}
 				self.clearFirstLaunch()
 			} catch {
