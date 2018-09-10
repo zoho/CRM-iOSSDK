@@ -8,7 +8,7 @@
 import Foundation
 
 
-public class ZCRMDashBoardComponentColorThemes {
+public class ZCRMDashboardComponentColorThemes {
     
     var name = String()
     var colorPalette = [ColorPalette:[String]]()
@@ -22,9 +22,9 @@ public class ZCRMDashBoardComponentColorThemes {
 }
 
 // Getters
-extension ZCRMDashBoardComponentColorThemes {
+extension ZCRMDashboardComponentColorThemes {
     
-    public func getName() -> String
+    public func getColorThemeName() -> String
     {
         return name
     }
@@ -34,9 +34,9 @@ extension ZCRMDashBoardComponentColorThemes {
         return colorPalette
     }
     
-    public func getValuesForColorPalette(Name: ColorPalette) -> [String]?
+    public func getValuesForColorPaletteName(name: ColorPalette) -> [String]?
     {
-        switch Name {
+        switch name {
         case .standard:
             return colorPalette[.standard]
             
@@ -55,21 +55,21 @@ extension ZCRMDashBoardComponentColorThemes {
 }
 
 // Setters
-extension ZCRMDashBoardComponentColorThemes {
+extension ZCRMDashboardComponentColorThemes {
     
-    public func set(name: String)
+    func setColorThemeName(name: String)
     {
         self.name = name
     }
     
-    public func setColor(palette: [ColorPalette:[String]] )
+    func setColorPalette(palette: [ColorPalette:[String]] )
     {
         colorPalette = palette
     }
     
 }
 
-extension ZCRMDashBoardComponentColorThemes {
+extension ZCRMDashboardComponentColorThemes {
     
     struct Properties {
         

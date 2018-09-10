@@ -27,17 +27,19 @@ public class CommonAPIResponse
     }
     
     init()
-    {
-    }
+    {}
     
     internal func setResponseJSON(responseData : Data?) throws
     {
         if(httpStatusCode != HTTPStatusCode.NO_CONTENT)
         {
-            let jsonStr : Any? = try? JSONSerialization.jsonObject(with: responseData!, options: [])
+            let jsonStr : Any? = try JSONSerialization.jsonObject(with: responseData!, options: [])
             if let tempJSON = jsonStr as? [String : Any]
             {
                 responseJSON = tempJSON
+                
+            } else {
+                throw ZCRMError.SDKError(code: .RESPONSE_NIL, message: ErrorMessage.INVALID_CREDENTIALS)
             }
         }
     }

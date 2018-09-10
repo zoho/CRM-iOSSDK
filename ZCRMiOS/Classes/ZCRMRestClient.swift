@@ -10,10 +10,8 @@ import Foundation
 
 public class ZCRMRestClient
 {
-    private lazy var ZCRMAnalyticsObj = ZCRMAnalytics()
     
     public init() {}
-    
     
     
     public func getOrganisationDetails( completion : @escaping( ZCRMOrganisation?, APIResponse?, Error? ) -> () )
@@ -51,9 +49,10 @@ public class ZCRMRestClient
         }
     }
     
+    //Returns a singleton instance of ZCRMAnalytics
     public func getZCRMAnalyticsInstance() -> ZCRMAnalytics
     {
-        return ZCRMAnalyticsObj
+        return ZCRMAnalytics.shared
     }
     
     

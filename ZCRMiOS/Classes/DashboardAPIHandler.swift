@@ -1,43 +1,50 @@
 //
-//  DashBoardAPIHandler.swift
+//  DashboardAPIHandler.swift
 //
 //  Created by Kalyani shiva on 12/07/18.
 //
 import Foundation
 
-class DashBoardAPIHandler: CommonAPIHandler {
+class DashboardAPIHandler: CommonAPIHandler {
     
-    // Handler Return Type
-    public typealias dashBoard = ZCRMAnalytics.dashBoard
-    public typealias ArrayOfDashBoards = ZCRMAnalytics.ArrayOfDashBoards
-    public typealias dashBoardComponent = ZCRMAnalytics.dashBoardComponent
+    // used by dashboard and component Refresh
+    fileprivate let refreshSuccess = "success"
+    
+    // Return Types used by dashBoard and dashboardComponent Refresh Methods
+    public typealias dashboardResult = Result.DataResponse<ZCRMDashboard,APIResponse>
+    public typealias componentResult = Result.DataResponse<ZCRMDashboardComponent,APIResponse>
+    
+    // Result Type Completion Handlers
+    public typealias dashboard = ZCRMAnalytics.dashboard
+    public typealias ArrayOfDashboards = ZCRMAnalytics.ArrayOfDashboards
+    public typealias dashBoardComponent = ZCRMAnalytics.dashboardComponent
     public typealias refreshResponse = ZCRMAnalytics.refreshResponse
     public typealias ArrayOfColorThemes = ZCRMAnalytics.ArrayOfColorThemes
     
     // API Names
-    fileprivate typealias dashBoardAPINames = ZCRMDashBoard.Properties.ResponseJSONKeys
-    fileprivate typealias metaComponentAPINames = ZCRMDashBoardMetaComponent.Properties.ResponseJSONKeys
-    fileprivate typealias componentAPINames = ZCRMDashBoardComponent.Properties.ResponseJSONKeys
-    fileprivate typealias colorPaletteAPINames = ZCRMDashBoardComponentColorThemes.Properties.ResponseJSONKeys
+    fileprivate typealias dashBoardAPINames = ZCRMDashboard.Properties.ResponseJSONKeys
+    fileprivate typealias metaComponentAPINames = ZCRMDashboardComponentMeta.Properties.ResponseJSONKeys
+    fileprivate typealias componentAPINames = ZCRMDashboardComponent.Properties.ResponseJSONKeys
+    fileprivate typealias colorPaletteAPINames = ZCRMDashboardComponentColorThemes.Properties.ResponseJSONKeys
     
     // Model Objects
-    fileprivate typealias CompCategory = ZCRMDashBoardComponent.ComponentCategory
-    fileprivate typealias CompObjective  = ZCRMDashBoardComponent.Objective
-    fileprivate typealias CompSegmentRanges = ZCRMDashBoardComponent.SegmentRanges
-    fileprivate typealias ComponentMarkers = ZCRMDashBoardComponent.ComponentMarkers
-    fileprivate typealias AggregateColumn = ZCRMDashBoardComponent.AggregateColumnInfo
-    fileprivate typealias GroupingColumn = ZCRMDashBoardComponent.GroupingColumnInfo
-    fileprivate typealias VerticalGrouping = ZCRMDashBoardComponent.VerticalGrouping
-    fileprivate typealias AllowedValues = ZCRMDashBoardComponent.AllowedValues
-    fileprivate typealias ComponentChunks = ZCRMDashBoardComponent.ComponentChunks
-    fileprivate typealias Aggregate = ZCRMDashBoardComponent.Aggregate
+    fileprivate typealias CompCategory = ZCRMDashboardComponent.ComponentCategory
+    fileprivate typealias CompObjective  = ZCRMDashboardComponent.Objective
+    fileprivate typealias CompSegmentRanges = ZCRMDashboardComponent.SegmentRanges
+    fileprivate typealias ComponentMarkers = ZCRMDashboardComponent.ComponentMarkers
+    fileprivate typealias AggregateColumn = ZCRMDashboardComponent.AggregateColumnInfo
+    fileprivate typealias GroupingColumn = ZCRMDashboardComponent.GroupingColumnInfo
+    fileprivate typealias VerticalGrouping = ZCRMDashboardComponent.VerticalGrouping
+    fileprivate typealias AllowedValues = ZCRMDashboardComponent.AllowedValues
+    fileprivate typealias ComponentChunks = ZCRMDashboardComponent.ComponentChunks
+    fileprivate typealias Aggregate = ZCRMDashboardComponent.Aggregate
     
     // used for dict keys
-    fileprivate typealias colorPaletteKeys = ZCRMDashBoardComponentColorThemes.ColorPalette
+    fileprivate typealias colorPaletteKeys = ZCRMDashboardComponentColorThemes.ColorPalette
     // used for parsing out ColorPaletteName
-    fileprivate typealias colorPalette = ZCRMDashBoardComponentColorThemes.ColorPalette
+    fileprivate typealias colorPalette = ZCRMDashboardComponentColorThemes.ColorPalette
     //Path Name
-    fileprivate typealias URLPathName = ZCRMDashBoard.Properties.URLPathName
+    fileprivate typealias URLPathName = ZCRMDashboard.Properties.URLPathName
     
     //Meta - Component Parser Return Type
     fileprivate typealias MetaComponentLayoutPropsTuple =
@@ -53,7 +60,7 @@ class DashBoardAPIHandler: CommonAPIHandler {
 
 //MARK:- DICTIONARY KEYS FOR PARSER FUNCTIONS
 
-fileprivate extension DashBoardAPIHandler {
+fileprivate extension DashboardAPIHandler {
     
     enum AggregateColumnKeys: String {
         case label
@@ -100,10 +107,10 @@ fileprivate extension DashBoardAPIHandler {
 
 //MARK:- HANDLER FUNCTIONS
 
-extension DashBoardAPIHandler {
+extension DashboardAPIHandler {
     
-    func getAllDashBoards(fromPage page:Int,withPerPageOf perPage:Int,then
-        onCompletion: @escaping ArrayOfDashBoards)  {
+    func getAllDashboards(fromPage page:Int,withPerPageOf perPage:Int,then
+        onCompletion: @escaping ArrayOfDashboards)  {
         
         let URLPath = "/\(URLPathName.ANALYTICS)"
         setUrlPath(urlPath: URLPath)
@@ -121,24 +128,25 @@ extension DashBoardAPIHandler {
             do {
                 let bulkAPIResponse = try resultType.resolve()
                 let dashBoardResponse =  bulkAPIResponse.getResponseJSON() // [String:[[String:Any]]
-                let arrayOfDashBoardJSON = dashBoardResponse  // [[String:Any]]
+                let arrayOfDashboardJSON = dashBoardResponse  // [[String:Any]]
                     .getArrayOfDictionaries(key:JSONRootKey.ANALYTICS)
                 
-                var arrayOfDashBoardObj = [ZCRMDashBoard]()
-                for dashBoardJSON in arrayOfDashBoardJSON
+                var arrayOfDashboardObj = [ZCRMDashboard]()
+                for dashBoardJSON in arrayOfDashboardJSON
                 {
-                    if let dashBoardObj = self.getZCRMDashBoardObjectFrom(dashBoardJSON){
-                        arrayOfDashBoardObj.append(dashBoardObj)
+                    if let dashBoardObj = self.getZCRMDashboardObjectFrom(dashBoardJSON){
+                        arrayOfDashboardObj.append(dashBoardObj)
                     }
                 }
-                onCompletion(.success(arrayOfDashBoardObj,bulkAPIResponse))
+                onCompletion(.success(arrayOfDashboardObj,bulkAPIResponse))
             } catch {
                 onCompletion(.failure(typeCastToZCRMError(error)))
             }
         } // completion ends
     } // func ends
     
-    func getDashBoardWith(id dbID:Int64,then onCompletion: @escaping dashBoard)
+    
+    func getDashboardWithId(id dbID:Int64,then onCompletion: @escaping dashboard)
     {
         let URLPath = "/\(URLPathName.ANALYTICS)/\(dbID)"
         setUrlPath(urlPath: URLPath)
@@ -152,9 +160,9 @@ extension DashBoardAPIHandler {
                 let dashBoardJSON = dashBoardResponse
                     .getArrayOfDictionaries(key: JSONRootKey.ANALYTICS)[0]
                 
-                guard let dashBoardObj = self.getZCRMDashBoardObjectFrom(dashBoardJSON) else {
+                guard let dashBoardObj = self.getZCRMDashboardObjectFrom(dashBoardJSON) else {
                     onCompletion(.failure(ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR,
-                                                             message: "Failed to get DashBoard")))
+                                                             message: "Failed to get Dashboard")))
                     return
                 }
                 onCompletion(.success(dashBoardObj,APIResponse))
@@ -165,7 +173,7 @@ extension DashBoardAPIHandler {
     } // func ends
     
     
-    func getComponentWith(id cmpID: Int64,fromDashBoardID dbID: Int64,then
+    func getComponentWith(id cmpID: Int64,fromDashboardID dbID: Int64,then
         onCompletion: @escaping dashBoardComponent)
     {
         let URLPath =
@@ -181,10 +189,13 @@ extension DashBoardAPIHandler {
                 let APIResponse = try resultType.resolve()
                 let dashBoardComponentJSON = APIResponse.getResponseJSON() // [String:Any]
                 
-                guard let dashBoardComponentObj = self.getDashBoardComponentFrom(dashBoardComponentJSON) else {
-                    onCompletion(.failure(ZCRMError.ProcessingError(code: ErrorCode.INTERNAL_ERROR, message: "Unable to get Component")))
-                    
-                    return
+                guard let dashBoardComponentObj = self.getDashboardComponentFrom(dashBoardComponentJSON,
+                                                                                 Using:cmpID,
+                                                                                 And: dbID)
+                    else {
+                        onCompletion(.failure(ZCRMError.ProcessingError(code: ErrorCode.INTERNAL_ERROR,
+                                                                        message: "Unable to get Component")))
+                        return
                 }
                 onCompletion(.success(dashBoardComponentObj,APIResponse))
             }
@@ -197,45 +208,134 @@ extension DashBoardAPIHandler {
     }  // func ends
     
     
-    func refreshComponentWith(id cmpID: Int64,inDashBoardID dbID: Int64 , onCompletion: @escaping refreshResponse) {
+    func refreshComponentForObject(oldCompObj: ZCRMDashboardComponent,
+                                   onCompletion: @escaping refreshResponse){
+        
+        let cmpID = oldCompObj.getComponentId()
+        let dbID = oldCompObj.getDashboardId()
         
         let URLPath =
         "/\(URLPathName.ANALYTICS)/\(dbID)/\(URLPathName.COMPONENTS)/\(cmpID)/\(URLPathName.REFRESH)"
         setUrlPath(urlPath: URLPath)
+        
         setRequestMethod(requestMethod: .POST)
         setJSONRootKey(key: JSONRootKey.DATA)
-        let request = APIRequest(handler: self)
-        request.getAPIResponse { (resultType) in
-            do{
-                let APIResponse = try resultType.resolve()
-                onCompletion(.success(APIResponse))
-                
-            } catch {
-                onCompletion(.failure(typeCastToZCRMError(error)))
-            }
-        } // completion
-    } // func ends
-    
-    
-    func refreshDashBoardWith(id dbID: Int64, onCompletion: @escaping refreshResponse) {
         
+        let request = APIRequest(handler: self)
+        
+        // API CALL 1: REFRESH COMPONENT
+        request.getAPIResponse { (resultType) in
+            
+            let refreshResultTuple = self.resolveComponentRefreshResult(resultType)
+            
+            //If refresh Component Fails...
+            guard refreshResultTuple.refreshError == nil else {
+                onCompletion(resultType)
+                return
+            }
+            
+            guard let refreshResponse = refreshResultTuple.refreshResponse else {
+                //Should never occur ...
+                // At this point Both Refresh Error and Refresh Response are NIL
+                let unknownErrMsg = "Refresh failed due to unknown reason !"
+                let unknownError = ZCRMError.InValidError(code: .INTERNAL_ERROR, message: unknownErrMsg)
+                onCompletion(.failure(unknownError))
+                return
+            }
+            
+            // API CALL 2: GET COMPONENT WITH ID
+            self.getComponentWith(id: cmpID, fromDashboardID: dbID) { (cmpResult) in
+                
+                let (newCompObj,cmpError) = self.resolveComponentGetResult(cmpResult)
+                
+                //Comp Get Failed ...
+                if let cmpError = cmpError {
+                    onCompletion(.failure(cmpError))
+                }
+                
+                guard self.didSetComponentProperties(of: newCompObj, to: oldCompObj)
+                    else {
+                        // transferring new db props to old one failed !
+                        let errorMsg = "Refresh Failed ! Unable to set Comp Properties"
+                        let propertySetError =
+                            ZCRMError.ProcessingError(code: .INTERNAL_ERROR, message: errorMsg)
+                        onCompletion(.failure(propertySetError))
+                        return
+                }
+                
+                // Component Refresh and Get succeeded ...
+                onCompletion(.success(refreshResponse))
+                
+            } // New Component Get Completion ends
+            
+        } // Component Refresh completion ends
+        
+    } // RefreshComponentForObject  ends
+    
+    
+    func refreshDashboardForObject(_ oldDashBoardObj:ZCRMDashboard,
+                                   onCompletion: @escaping refreshResponse) {
+        
+        let dbID = oldDashBoardObj.getId()
         let URLPath = "/\(URLPathName.ANALYTICS)/\(dbID)/\(URLPathName.REFRESH)"
         setUrlPath(urlPath: URLPath)
         setRequestMethod(requestMethod: .POST)
         setJSONRootKey(key: JSONRootKey.DATA)
         let request = APIRequest(handler: self)
-        request.getAPIResponse { (resultType) in
-            do{
-                let APIResponse = try resultType.resolve()
-                onCompletion(.success(APIResponse))
-            } catch {
-                onCompletion(.failure(typeCastToZCRMError(error)))
+        
+        // API CALL 1 : REFRESH DASHBOARD WITH ID
+        request.getAPIResponse { (refreshResult) in
+            
+            let refreshResultTuple = self.resolveDashBoardRefreshResult(refreshResult)
+            
+            //If refresh dashBoard fails .. pass the result
+            guard refreshResultTuple.refreshError == nil else {
+                onCompletion(refreshResult)
+                return
             }
-        } // completion
+            
+            guard let refreshResponse = refreshResultTuple.refreshResponse else {
+                //Should never occur ...
+                // At this point Both Refresh Error and Refresh Response are NIL
+                let unknownErrMsg = "Refresh failed due to unknown reason !"
+                let unknownError = ZCRMError.InValidError(code: .INTERNAL_ERROR, message: unknownErrMsg)
+                onCompletion(.failure(unknownError))
+                return
+            }
+            
+            // API CALL 2 : GET DASHBOARD WITH ID
+            self.getDashboardWithId(id: dbID){ (dbResult) in
+                
+                let (newDashBoard,dbError) = self.resolveDashboardGetResult(dbResult)
+                
+                // if getDashBoard fails...
+                if let dbError = dbError {
+                    onCompletion(.failure(dbError))
+                    return
+                }
+                
+                guard self.didSetDashBoardProperties(of: newDashBoard, to: oldDashBoardObj) else {
+                    // transferring new db props to old one failed !
+                    let errorMsg = "Refresh Failed ! Unable to set dashBoard Properties"
+                    let propertySetError =
+                        ZCRMError.ProcessingError(code: .INTERNAL_ERROR, message: errorMsg)
+                    
+                    onCompletion(.failure(propertySetError))
+                    return
+                }
+                
+                // Refresh and getDashBoard succeeds ...
+                onCompletion(.success(refreshResponse))
+                return
+                
+            } // getDashBoard completion
+            
+        } // API Response completion
+        
     } // func ends
     
     
-    func getDashBoardComponentColorThemes(onCompletion: @escaping ArrayOfColorThemes) {
+    func getDashboardComponentColorThemes(onCompletion: @escaping ArrayOfColorThemes) {
         
         let URLPath = "/\(URLPathName.ANALYTICS)/\(URLPathName.COLORTHEMES)"
         setUrlPath(urlPath: URLPath)
@@ -247,47 +347,210 @@ extension DashBoardAPIHandler {
                 let APIResponse = try resultType.resolve()
                 let colorThemesResponseJSON = APIResponse.getResponseJSON() //[String:Any]
                 let colorThemesJSON = colorThemesResponseJSON.getArrayOfDictionaries(key: colorPaletteAPINames.colorThemes)
-                let ArrayOfcolorThemes = self.getArrayOfZCRMDashBoardComponentColorThemes(colorThemesJSON)
+                let ArrayOfcolorThemes = self.getArrayOfZCRMDashboardComponentColorThemes(colorThemesJSON)
                 onCompletion(.success(ArrayOfcolorThemes,APIResponse))
             } catch {
                 onCompletion(.failure(typeCastToZCRMError(error)))
             }
+            
         } // Completion
+        
+    } // func ends
+    
+} // extension ends
+
+
+//MARK:- Refresh Handler Helper functions
+fileprivate extension DashboardAPIHandler {
+    
+    //MARK:- Dashboard Refresh Helper Functions
+    
+    func resolveDashBoardRefreshResult(_ refreshResult: Result.Response<APIResponse>) -> (refreshResponse: APIResponse?,refreshError: ZCRMError?) {
+        
+        do {
+            let APIResponseObj = try refreshResult.resolve()
+            
+            // API call 1 -> Refreshes DashBoard Failed
+            guard APIResponseObj.getStatus() == self.refreshSuccess else {
+                let errorObj = ZCRMError.SDKError(code: .INTERNAL_ERROR, message: "Refresh Failed!")
+                return (nil, errorObj)
+            }
+            
+            return (APIResponseObj,nil)
+            
+        } catch let refreshError {
+            // API call 1 -> Refreshes DashBoard Failed
+            return (nil,typeCastToZCRMError(refreshError))
+        }
+        
     } // func ends
     
     
-} // extension ends
+    
+    func resolveDashboardGetResult(_ resultType: dashboardResult) ->
+        (ZCRMDashboard?,ZCRMError?) {
+            
+            do {
+                let result = try resultType.resolve()
+                let dashBoardObj = result.data
+                return (dashBoardObj,nil)
+            } catch let error {
+                print("Refresh Failed ! Reason: \(error)")
+                return (nil,typeCastToZCRMError(error))
+            }
+            
+    } // func ends
+    
+    
+    
+    func didSetDashBoardProperties(of refreshedDashboard:ZCRMDashboard?,
+                                   to oldDashBoard: ZCRMDashboard) -> Bool {
+        
+        guard let refreshedDashboard = refreshedDashboard else {
+            return false
+        }
+        
+        let id = refreshedDashboard.getId()
+        let name = refreshedDashboard.getName()
+        let accessType = refreshedDashboard.getAccessType()
+        let isSalesTrend = refreshedDashboard.getIfSalesTrend()
+        let isSystemGenerated = refreshedDashboard.getIfSystemGenerated()
+        
+        guard let arrayOfDashboardMetaComponent =
+            refreshedDashboard.getArrayOfDashBoardComponentMeta() else {
+                print("Dashboard Refresh Failed! New dashboard Meta Components are nil ")
+                return false
+        }
+        
+        print("NEW DASH DAWW \(refreshedDashboard)")
+        
+        oldDashBoard.setId(id: id)
+        oldDashBoard.setName(name: name)
+        oldDashBoard.setAccessTypeAs(accessType)
+        oldDashBoard.setIfSalesTrend(isSalesTrend)
+        oldDashBoard.setIfSystemGenerated(isSystemGenerated)
+        oldDashBoard.setArrayOfDashBoardComponentMeta(arrayOfDashboardMetaComponent)
+        return true
+        
+    }
+    
+    //MARK:- Component Refresh Helper functions
+    
+    func resolveComponentRefreshResult(_ refreshResult: Result.Response<APIResponse>) ->
+        (refreshResponse: APIResponse?,refreshError: ZCRMError?) {
+            
+            do {
+                let APIResponseObj = try refreshResult.resolve()
+                // API call 1 -> Refresh Component Failed
+                guard APIResponseObj.getStatus() == self.refreshSuccess else {
+                    let errorObj = ZCRMError.SDKError(code: .INTERNAL_ERROR, message: "Refresh Failed!")
+                    return (nil, errorObj)
+                }
+                
+                return (APIResponseObj,nil)
+                
+            } catch let refreshError {
+                // API call 1 -> Refreshes Component Failed
+                return (nil,typeCastToZCRMError(refreshError))
+            }
+            
+    } // func ends
+    
+    
+    func resolveComponentGetResult(_ resultType: componentResult) ->
+        (ZCRMDashboardComponent?, ZCRMError?) {
+            
+            do {
+                let result = try resultType.resolve()
+                let compObj = result.data
+                return (compObj,nil)
+            } catch let error {
+                print("Refresh Failed ! Reason: \(error)")
+                return (nil,typeCastToZCRMError(error))
+            }
+            
+    } // func ends
+    
+    
+    func didSetComponentProperties(of refreshedComp: ZCRMDashboardComponent?,
+                                   to oldComp: ZCRMDashboardComponent) -> Bool {
+        
+        guard let refreshedComp = refreshedComp else {
+            return false
+        }
+        
+        let name = refreshedComp.getName()
+        let cmpId = refreshedComp.getComponentId()
+        let dbId = refreshedComp.getDashboardId()
+        let category = refreshedComp.getCategory()
+        let type = refreshedComp.getType()
+        let objective = refreshedComp.getObjective()
+        let reportID = refreshedComp.getReportID()
+        let segmentRanges = refreshedComp.getSegmentRanges()
+        let colorPaletteName = refreshedComp.getColorPaletteName()
+        let colorPaletteIndex = refreshedComp.getColorPaletteStartingIndex()
+        let componentMarkers = refreshedComp.getComponentMarkers()
+        let maxRows = refreshedComp.getMaximumRows()
+        let compChunks = refreshedComp.getComponentChunks()
+        let lastFetchedLabel = refreshedComp.getLastFetchedTimeLabel()
+        let lastFetchedValue = refreshedComp.getLastFetchedTimeValue()
+        
+        oldComp.setName(name: name)
+        oldComp.setComponentId(id: cmpId)
+        oldComp.setDashboardId(id: dbId)
+        oldComp.setCategory(category: category)
+        oldComp.setType(type: type)
+        oldComp.setObjective(objective: objective)
+        oldComp.setReportId(reportId: reportID)
+        oldComp.setSegmentRanges(ranges: segmentRanges)
+        oldComp.setColorPaletteName(name: colorPaletteName)
+        oldComp.setColorPaletteStartingIndex(index: colorPaletteIndex)
+        oldComp.setComponentMarkers(markers: componentMarkers)
+        oldComp.setMaximumRows(rows: maxRows)
+        oldComp.setLastFetchedTimeLabel(label: lastFetchedLabel)
+        oldComp.setLastFetchedTimeValue(value: lastFetchedValue)
+        
+        compChunks.forEach { (chunk) in
+            oldComp.addComponentChunks(chunks: chunk)
+        }
+        
+        return true
+        
+    } // func ends
+    
+    
+} // end of extension
 
 
 //MARK:- HANDLER PARSING FUNCTIONS
 //MARK:-
 
-fileprivate extension DashBoardAPIHandler {
+fileprivate extension DashboardAPIHandler {
     
     //MARK: *** DASHBOARD PARSERS ***
     
-    func getZCRMDashBoardObjectFrom(_ dashBoardJSON: [String:Any] ) -> ZCRMDashBoard? {
+    func getZCRMDashboardObjectFrom(_ dashBoardJSON: [String:Any] ) -> ZCRMDashboard? {
         
-        guard let Id = dashBoardJSON.optInt64(key: dashBoardAPINames.dashBoardID),
-            let Name = dashBoardJSON.optString(key: dashBoardAPINames.dashBoardName) else {
+        guard let id = dashBoardJSON.optInt64(key: dashBoardAPINames.dashboardID),
+            let name = dashBoardJSON.optString(key: dashBoardAPINames.dashboardName) else {
                 return nil
         }
         
-        let dashBoardObj = ZCRMDashBoard(ID: Id, Name: Name)
+        let dashBoardObj = ZCRMDashboard(id: id, name: name)
         
-        dashBoardObj.setDashBoard(id: Id)
-        dashBoardObj.setDashBoard(name: Name)
+        dashBoardObj.setId(id: id)
+        dashBoardObj.setName(name: name)
         
         if let isSalesTrend = dashBoardJSON.optBoolean(key: dashBoardAPINames.isSalesTrends) {
-            dashBoardObj.setIfDashBoardIsSalesTrend(isSalesTrend)
+            dashBoardObj.setIfSalesTrend(isSalesTrend)
         }
         
         if let accessType = dashBoardJSON.optString(key: dashBoardAPINames.accessType){
-            dashBoardObj.setDashBoardAccessType(accessType)
+            dashBoardObj.setAccessTypeAs(accessType)
         }
         
-        if let arrayOfMetaComponent = getArrayOfZCRMDashBoardMetaComponent(From: dashBoardJSON){
-            dashBoardObj.setArrayOfDashBoardMetaComponent(arrayOfMetaComponent)
+        if let arrayOfMetaComponent = getArrayOfZCRMDashboardComponentMeta(From: dashBoardJSON){
+            dashBoardObj.setArrayOfDashBoardComponentMeta(arrayOfMetaComponent)
         }
         
         return dashBoardObj
@@ -296,13 +559,14 @@ fileprivate extension DashBoardAPIHandler {
 } // end of extension
 
 
-fileprivate extension DashBoardAPIHandler {
+fileprivate extension DashboardAPIHandler {
     
     //MARK:- *** DASHBOARD META-COMPONENT PARSERS  ***
     
-    func getArrayOfZCRMDashBoardMetaComponent(From dashBoardJSON:[String:Any]) -> [ZCRMDashBoardMetaComponent]? {
+    func getArrayOfZCRMDashboardComponentMeta(From dashBoardJSON:[String:Any]) -> [ZCRMDashboardComponentMeta]? {
         
-        let metaComponentAPIName = ZCRMDashBoard.Properties.ResponseJSONKeys.metaComponents
+        let metaComponentAPIName = ZCRMDashboard.Properties.ResponseJSONKeys.metaComponents
+        
         guard let arrayOfMetaComponentJSON = dashBoardJSON.optArrayOfDictionaries(key: metaComponentAPIName) else {
             if dashBoardJSON.hasKey(forKey: metaComponentAPIName) {
                 print("Failed to get arrayOfMetaComponentJSON from dashBoardJSON !")
@@ -310,9 +574,9 @@ fileprivate extension DashBoardAPIHandler {
             return nil
         }
         
-        var metaComponentObjArray = [ZCRMDashBoardMetaComponent]()
+        var metaComponentObjArray = [ZCRMDashboardComponentMeta]()
         for dashBoardMetaComponentJSON in arrayOfMetaComponentJSON {
-            let metaComponentObj = getDashBoardMetaComponentFrom(dashBoardMetaComponentJSON)
+            let metaComponentObj = getDashboardMetaComponentFrom(dashBoardMetaComponentJSON)
             metaComponentObjArray.append(metaComponentObj)
         }
         return metaComponentObjArray
@@ -321,36 +585,36 @@ fileprivate extension DashBoardAPIHandler {
     
     
     
-    func getDashBoardMetaComponentFrom(_ metaComponentJSON:[String:Any]) -> ZCRMDashBoardMetaComponent {
+    func getDashboardMetaComponentFrom(_ metaComponentJSON:[String:Any]) -> ZCRMDashboardComponentMeta {
         
-        let metaComponentObj = ZCRMDashBoardMetaComponent()
-        let ID = metaComponentJSON.optInt64(key: metaComponentAPINames.componentID)
-        metaComponentObj.setComponent(ID: ID)
+        let metaComponentObj = ZCRMDashboardComponentMeta()
+        let id = metaComponentJSON.optInt64(key: metaComponentAPINames.componentID)
+        metaComponentObj.setid(id: id)
         
         let Name = metaComponentJSON.optString(key: metaComponentAPINames.componentName)
+        metaComponentObj.setName(name: Name)
         
-        metaComponentObj.setComponent(Name: Name)
         if let isFavourite = metaComponentJSON.optBoolean(key: metaComponentAPINames.favouriteComponent){
-            metaComponentObj.setIfComponentIsFavourite(isFavourite)
+            metaComponentObj.setIfFavourite(isFavourite)
         }
         
         let isSystemGenerated = metaComponentJSON.optBoolean(key: metaComponentAPINames.systemGenerated)
-        metaComponentObj.setIfComponentIsSystemGenerated(isSystemGenerated)
+        metaComponentObj.setIfSystemGenerated(isSystemGenerated)
         
         let JSONlayoutValues =
-            getDashBoardMetaComponentLayoutPropsFrom(metaComponentJSON)
+            getDashboardMetaComponentLayoutPropsFrom(metaComponentJSON)
         var metaComponentLayoutObj = metaComponentObj.getLayoutProperties()
-        metaComponentLayoutObj.setComponentX(position: JSONlayoutValues?.xPosition)
-        metaComponentLayoutObj.setComponentY(position: JSONlayoutValues?.yPosition)
-        metaComponentLayoutObj.setComponent(width: JSONlayoutValues?.width)
-        metaComponentLayoutObj.setComponent(height: JSONlayoutValues?.height)
+        metaComponentLayoutObj.setComponentXPosition(position: JSONlayoutValues?.xPosition)
+        metaComponentLayoutObj.setComponentYPosition(position: JSONlayoutValues?.yPosition)
+        metaComponentLayoutObj.setComponentWidth(width: JSONlayoutValues?.width)
+        metaComponentLayoutObj.setComponentHeight(height: JSONlayoutValues?.height)
         metaComponentObj.setLayoutProperties(metaComponentLayoutObj)
         return metaComponentObj
     }
     
     
     
-    func getDashBoardMetaComponentLayoutPropsFrom(_ metaComponentJSON:[String:Any]) -> MetaComponentLayoutPropsTuple?
+    func getDashboardMetaComponentLayoutPropsFrom(_ metaComponentJSON:[String:Any]) -> MetaComponentLayoutPropsTuple?
     {
         var width:Int?
         var height:Int?
@@ -380,10 +644,12 @@ fileprivate extension DashBoardAPIHandler {
 
 
 
-fileprivate extension DashBoardAPIHandler {
+fileprivate extension DashboardAPIHandler {
     
     //MARK:- *** DASHBOARD COMPONENT PARSERS ***
-    func getDashBoardComponentFrom(_ componentJSON: [String:Any]) -> ZCRMDashBoardComponent? {
+    func getDashboardComponentFrom(_ componentJSON: [String:Any],
+                                   Using cmpId: Int64,
+                                   And dbId: Int64) -> ZCRMDashboardComponent? {
         
         
         let componentName = componentJSON.optString(key: componentAPINames.componentName)
@@ -395,18 +661,16 @@ fileprivate extension DashBoardAPIHandler {
             return nil
         }
         
-        let componentObj = ZCRMDashBoardComponent(name: name, category: category)
+        let componentObj = ZCRMDashboardComponent(cmpId: cmpId, name: name, dbId: dbId)
         
-        componentObj.setComponent(name: componentName)
-        componentObj.setComponent(category: componentCategoryEnum)
-        
+        componentObj.setCategory(category: category)
         
         let reportID = componentJSON.optInt64(key: componentAPINames.reportID)
-        componentObj.setReport(id: reportID)
+        componentObj.setReportId(reportId: reportID)
         
         
         if let arrayOfComponentMarkersObj = getComponentMarkersFrom(componentJSON) {
-            componentObj.setComponent(markers: arrayOfComponentMarkersObj)
+            componentObj.setComponentMarkers(markers: arrayOfComponentMarkersObj)
         }
         
         let ArrayOfComponentChunksJSON = componentJSON.optArrayOfDictionaries(key: componentAPINames.componentChunks)
@@ -415,8 +679,8 @@ fileprivate extension DashBoardAPIHandler {
         if let lastFetchedTimeJSON = componentJSON.optDictionary(key: componentAPINames.lastFetchedTime) {
             
             if let lastFetchedTime = getLastFetchedTimeUsing(lastFetchedTimeJSON) {
-                componentObj.setLastFetchedTime(label: lastFetchedTime.Label)
-                componentObj.setLastFetchedTime(value: lastFetchedTime.Value)
+                componentObj.setLastFetchedTimeLabel(label: lastFetchedTime.Label)
+                componentObj.setLastFetchedTimeValue(value: lastFetchedTime.Value)
             }
         }
         
@@ -485,7 +749,7 @@ fileprivate extension DashBoardAPIHandler {
     
     
     
-    func setComponentPropertiesFor(_ componentObject:ZCRMDashBoardComponent,
+    func setComponentPropertiesFor(_ componentObject:ZCRMDashboardComponent,
                                    Using componentJSON: [String:Any]) {
         
         let Key = componentAPINames.componentProps
@@ -502,10 +766,10 @@ fileprivate extension DashBoardAPIHandler {
         
         if let objectiveString = componentPropsJSON.optString(key: componentAPINames.objective) {
             let objectiveEnum = CompObjective(rawValue: objectiveString)
-            componentObject.setObjective(objectiveEnum)
+            componentObject.setObjective(objective: objectiveEnum)
         }
         if let maximumRows = componentPropsJSON.optInt(key: componentAPINames.maximumRows) {
-            componentObject.setMaximum(rows: maximumRows)
+            componentObject.setMaximumRows(rows: maximumRows)
         }
         setVisualizationPropertiesFor(componentObject: componentObject,
                                       Using: componentPropsJSON)
@@ -514,7 +778,7 @@ fileprivate extension DashBoardAPIHandler {
     
     //MARK:- COMPONENT VISUALIZATION PROPERTIES
     
-    func setVisualizationPropertiesFor(componentObject:ZCRMDashBoardComponent,
+    func setVisualizationPropertiesFor(componentObject:ZCRMDashboardComponent,
                                        Using componentPropsJSON: [String:Any]) {
         
         let Key = componentAPINames.visualizationProps
@@ -530,14 +794,14 @@ fileprivate extension DashBoardAPIHandler {
         }
         
         let componentType = visualizationPropsJSON.optString(key: componentAPINames.componentType)
-        componentObject.setComponent(type: componentType)
+        componentObject.setType(type: componentType)
         
         let ArrayOfSegmentRangeObj = getArrayOfSegmentRangesFrom(visualizationPropsJSON)
-        componentObject.setSegment(ranges: ArrayOfSegmentRangeObj)
+        componentObject.setSegmentRanges(ranges: ArrayOfSegmentRangeObj)
         
         if let colorPaletteTuple = getColorPaletteFrom(visualizationPropsJSON){
-            componentObject.setColorPalette(name: colorPaletteTuple.name)
-            componentObject.setColorPaletteStarting(index: colorPaletteTuple.index)
+            componentObject.setColorPaletteName(name: colorPaletteTuple.name)
+            componentObject.setColorPaletteStartingIndex(index: colorPaletteTuple.index)
         }
         
     } // func ends
@@ -643,7 +907,7 @@ fileprivate extension DashBoardAPIHandler {
     
     
     //MARK:- COMPONENT CHUNKS
-    func setComponentChunksValues(To componentObj:ZCRMDashBoardComponent,
+    func setComponentChunksValues(To componentObj:ZCRMDashboardComponent,
                                   Using chunks: [[String:Any]]?) {
         
         guard let ArrayOfComponentChunksJSON = chunks else {
@@ -669,7 +933,7 @@ fileprivate extension DashBoardAPIHandler {
             
             if let componentChunksObj = constructComponentChunksObjFrom(componentChunkValues)
             {
-                componentObj.addComponent(chunks: componentChunksObj)
+                componentObj.addComponentChunks(chunks: componentChunksObj)
                 componentChunkValues.removeAll()
             }
             
@@ -744,7 +1008,7 @@ fileprivate extension DashBoardAPIHandler {
             componentChunksObj.addGroupingColumnInfo(groupingObj)
         }
         if let componentName = dict[.name] as? String {
-            componentChunksObj.set(Name: componentName)
+            componentChunksObj.setName(name: componentName)
         }
         
         // Parsing out Component Chunk Component Properties
@@ -752,7 +1016,7 @@ fileprivate extension DashBoardAPIHandler {
         {
             if let objectiveString = componentChunkPropsDict[.objective] as? String {
                 let objective =  CompObjective(rawValue: objectiveString)
-                componentChunksObj.set(Objective: objective)
+                componentChunksObj.setObjective(objective: objective)
             }
         }
         return componentChunksObj
@@ -977,7 +1241,7 @@ fileprivate extension DashBoardAPIHandler {
         return (ArrayOfAllowedValues,ArrayOfCustomGroups)
     } // func ends
     
-
+    
     func getArrayOfAllowedValuesObjFrom(_ ArrayOfAllowedValuesJSON: [[String:Any]]?) -> [AllowedValues]? {
         
         var ArrayOfAllowedValuesObj = [AllowedValues]()
@@ -1102,8 +1366,8 @@ fileprivate extension DashBoardAPIHandler {
         let sanitizedDictLabel = convertLabelToNoneIfHyphen(DictLabel) // '-' replaced by 'none'
         
         guard let label = sanitizedDictLabel,
-              let key = dict[.key] as? String,
-              let aggregates = dict[.aggregate] as? [Aggregate] else {
+            let key = dict[.key] as? String,
+            let aggregates = dict[.aggregate] as? [Aggregate] else {
                 
                 print(debugMsg.lowercased())
                 return nil
@@ -1131,7 +1395,7 @@ fileprivate extension DashBoardAPIHandler {
         
     } // func ends
     
-
+    
     func convertLabelToNoneIfHyphen(_ value: String?) -> String? {
         // Replaces Hyphens in label with 'none'
         guard let label = value else { return nil }
@@ -1198,7 +1462,7 @@ fileprivate extension DashBoardAPIHandler {
         var ArrayOfAggregatesObj = [Aggregate]()
         
         let ArrayOfAggreagatesJSON = mapKeyJSON.getArrayOfDictionaries(key: componentAPINames.aggregates)
-    
+        
         for aggreagatesJSON in ArrayOfAggreagatesJSON {
             
             for (key,value) in aggreagatesJSON {
@@ -1274,11 +1538,11 @@ fileprivate extension DashBoardAPIHandler {
 
 //MARK:- DASHBOARD COMPONENT COLOR THEMES PARSER
 
-fileprivate extension DashBoardAPIHandler {
+fileprivate extension DashboardAPIHandler {
     
-    func getArrayOfZCRMDashBoardComponentColorThemes(_ ArrayOfColorThemesJSON:[[String:Any]]) -> [ZCRMDashBoardComponentColorThemes]{
+    func getArrayOfZCRMDashboardComponentColorThemes(_ ArrayOfColorThemesJSON:[[String:Any]]) -> [ZCRMDashboardComponentColorThemes]{
         
-        var ArraycolorThemesObj = [ZCRMDashBoardComponentColorThemes]()
+        var ArraycolorThemesObj = [ZCRMDashboardComponentColorThemes]()
         var colorPalette: [colorPaletteKeys:[String]]?
         var colorThemesValues = [ColorThemeKeys:Any]() // extendable in the future
         
@@ -1345,7 +1609,7 @@ fileprivate extension DashBoardAPIHandler {
     
     
     
-    func constructColorPaletteObjFrom(_ dict:[ColorThemeKeys:Any],_ colorPalette: [colorPaletteKeys:[String]]?) -> ZCRMDashBoardComponentColorThemes? {
+    func constructColorPaletteObjFrom(_ dict:[ColorThemeKeys:Any],_ colorPalette: [colorPaletteKeys:[String]]?) -> ZCRMDashboardComponentColorThemes? {
         
         guard let name = dict.optString(key: .name) ,let colorPalette = colorPalette else {
             
@@ -1353,9 +1617,9 @@ fileprivate extension DashBoardAPIHandler {
             return nil
         }
         
-        let colorPaletteObj = ZCRMDashBoardComponentColorThemes()
-        colorPaletteObj.setColor(palette: colorPalette)
-        colorPaletteObj.set(name: name)
+        let colorPaletteObj = ZCRMDashboardComponentColorThemes()
+        colorPaletteObj.setColorPalette(palette: colorPalette)
+        colorPaletteObj.setColorThemeName(name: name)
         return colorPaletteObj
     }
     

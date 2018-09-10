@@ -199,11 +199,10 @@ internal class APIRequest
     }
    
     
-    internal func getAPIResponse( completion : @escaping (Result.Response<APIResponse>) -> Void )
-    {
+    internal func getAPIResponse( completion : @escaping (Result.Response<APIResponse>) -> Void ){
     
         self.initialiseRequest { ( err ) in
-            
+
             if let error = err
             {
                 completion(.failure(error))
@@ -223,13 +222,10 @@ internal class APIRequest
                             
                             completion(.success(response))
                         }
-                        catch is ZCRMError
+                            
+                        catch let errorObj
                         {
-                            completion(.failure(error!))
-                        }
-                        catch
-                        {
-                            completion(.failure(ZCRMError.ProcessingError(code: .RESPONSE_NIL, message: ErrorCode.RESPONSE_NIL.rawValue)))
+                            completion(.failure(typeCastToZCRMError(errorObj)))
                         }
                     }
                     else
@@ -265,19 +261,15 @@ internal class APIRequest
                             
                             completion(.success(response))
                         }
-                        catch is ZCRMError
-                        {
-                            completion(.failure(error!))
-                        }
-                        catch
-                        {
                             
-                            completion(.failure(ZCRMError.ProcessingError(code: .INTERNAL_ERROR, message: error.description)))
+                        catch let errorObj
+                        {
+                            completion(.failure(typeCastToZCRMError(errorObj)))
                         }
+                      
                     }
                     else
                     {
-                        
                         completion(.failure(ZCRMError.SDKError(code: .RESPONSE_NIL, message: ErrorCode.RESPONSE_NIL.rawValue)))
                     }
                 }

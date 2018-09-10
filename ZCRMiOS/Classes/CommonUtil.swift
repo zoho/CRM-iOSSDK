@@ -55,13 +55,15 @@ case FIELD_NOT_FOUND  = "FIELD_NOT_FOUND"
 case OAUTHTOKEN_NIL = "The oauth token is nil"
 case OAUTH_FETCH_ERROR = "There was an error in fetching oauth Token"
 case UNABLE_TO_CONSTRUCT_URL = "There was a problem constructing the URL"
+case INVALID_ID
+case API_MAX_RECORDS
 }
 
 
-struct ErrorMessage {
-    
+public struct ErrorMessage {
     static var INVALID_ID_MSG  = "The given id seems to be invalid."
     static var API_MAX_RECORDS_MSG = "Cannot process more than 100 records at a time."
+    static var INVALID_CREDENTIALS = "Please check your credentials!" // setResponseJSON (CommonAPIResponse)
 }
 
 
@@ -643,6 +645,7 @@ public struct Result {
 
 
 func typeCastToZCRMError(_ error:Error) -> ZCRMError {
+    
     guard let typecastedError = error as? ZCRMError else {
         return ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: error.description)
     }

@@ -1,5 +1,5 @@
 //
-//  ZCRMDashBoardMetaComponent.swift
+//  ZCRMDashBoardComponentMeta.swift
 //  Pods
 //
 //  Created by Kalyani shiva on 30/07/18.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class ZCRMDashBoardMetaComponent {
+public class ZCRMDashboardComponentMeta {
     
     fileprivate var componentID = Int64()
     fileprivate var componentName = String()
@@ -42,7 +42,7 @@ public class ZCRMDashBoardMetaComponent {
     }
 }
 
-extension ZCRMDashBoardMetaComponent: CustomDebugStringConvertible{
+extension ZCRMDashboardComponentMeta: CustomDebugStringConvertible{
     public var debugDescription: String {
         return """
         
@@ -71,24 +71,24 @@ extension ZCRMDashBoardMetaComponent: CustomDebugStringConvertible{
 
 //MARK:- Meta Component Layout Properties Setters
 
-extension ZCRMDashBoardMetaComponent.LayoutProperties {
+extension ZCRMDashboardComponentMeta.LayoutProperties {
     
-    mutating func setComponentX(position:Int?)
+    mutating func setComponentXPosition(position:Int?)
     {
         componentXPosition = position
     }
     
-    mutating func setComponentY(position:Int?)
+    mutating func setComponentYPosition(position:Int?)
     {
         componentYPosition = position
     }
     
-    mutating func setComponent(width:Int?)
+    mutating func setComponentWidth(width:Int?)
     {
         componentWidth = width
     }
     
-    mutating func setComponent(height:Int?)
+    mutating func setComponentHeight(height:Int?)
     {
         componentHeight = height
     }
@@ -98,24 +98,24 @@ extension ZCRMDashBoardMetaComponent.LayoutProperties {
 
 //MARK:- Meta Component Layout Properties Getters
 
-extension ZCRMDashBoardMetaComponent.LayoutProperties {
+extension ZCRMDashboardComponentMeta.LayoutProperties {
     
-    mutating func getComponentXPosition() -> Int?
+    public mutating func getComponentXPosition() -> Int?
     {
         return componentXPosition
     }
     
-    mutating func getComponentYPosition() -> Int?
+    public mutating func getComponentYPosition() -> Int?
     {
         return componentYPosition
     }
     
-    mutating func getComponentWidth() -> Int?
+    public mutating func getComponentWidth() -> Int?
     {
         return componentWidth
     }
     
-    mutating func getComponentHeight() -> Int?
+    public mutating func getComponentHeight() -> Int?
     {
         return componentHeight
     }
@@ -126,24 +126,24 @@ extension ZCRMDashBoardMetaComponent.LayoutProperties {
 
 //MARK:- Meta Component Setters
 
-extension ZCRMDashBoardMetaComponent {
+extension ZCRMDashboardComponentMeta {
     
-    func setComponent(ID:Int64?)
+    func setid(id:Int64?)
     {
-        componentID = ID ?? Int64()
+        componentID = id ?? Int64()
     }
     
-    func setComponent(Name:String?)
+    func setName(name:String?)
     {
-        componentName = Name ?? String()
+        componentName = name ?? String()
     }
     
-    func setIfComponentIsSystemGenerated(_ value:Bool?)
+    func setIfSystemGenerated(_ value:Bool?)
     {
         isSystemGenerated = value ?? Bool()
     }
     
-    func setIfComponentIsFavourite(_ value:Bool?)
+    func setIfFavourite(_ value:Bool?)
     {
         isFavouriteComponent = value ?? Bool()
     }
@@ -158,29 +158,29 @@ extension ZCRMDashBoardMetaComponent {
 
 //MARK:- Metacomponent Getters
 
-extension ZCRMDashBoardMetaComponent {
+extension ZCRMDashboardComponentMeta {
     
-    func getComponentID() -> Int64
+    public func getComponentID() -> Int64
     {
         return componentID
     }
     
-    func getComponentName() -> String
+    public func getComponentName() -> String
     {
         return componentName
     }
     
-    func getIfComponentIsSystemGenerated() -> Bool
+    public func getIfComponentIsSystemGenerated() -> Bool
     {
         return isSystemGenerated
     }
     
-    func getIfComponentIsFavourite() -> Bool
+    public func getIfComponentIsFavourite() -> Bool
     {
         return isFavouriteComponent
     }
     
-    func getLayoutProperties() -> LayoutProperties
+    public func getLayoutProperties() -> LayoutProperties
     {
         return properties
     }

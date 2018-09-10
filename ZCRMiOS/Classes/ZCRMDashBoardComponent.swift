@@ -1,5 +1,5 @@
 //
-//  ZCRMDashBoardComponent.swift
+//  ZCRMDashboardComponent.swift
 //  Pods
 //
 //  Created by Kalyani shiva on 22/08/18.
@@ -8,12 +8,14 @@
 
 import Foundation
 
-public class ZCRMDashBoardComponent {
+public class ZCRMDashboardComponent {
     
+    fileprivate var componentId: Int64
+    fileprivate var dashboardId: Int64
     fileprivate var name: String
-    fileprivate var category: ComponentCategory
+    fileprivate var category = ComponentCategory.chart
     fileprivate var reportId:Int64?
-    fileprivate var componentMarker: [ComponentMarkers]?
+    fileprivate var componentMarkers: [ComponentMarkers]?
     fileprivate var lastFetchedTimeLabel: String?
     fileprivate var lastFetchedTimeValue: String?
     fileprivate var componentChunks = [ComponentChunks]()
@@ -21,22 +23,23 @@ public class ZCRMDashBoardComponent {
     //MARK: Component Visualisation Props
     fileprivate var maximumRows: Int?
     fileprivate var objective: Objective?
-    fileprivate var componentType = String()
+    fileprivate var type = String() // Component Type
     fileprivate var colorPaletteName: colorPalette?
     fileprivate var colorPaletteStartingIndex: Int?
     fileprivate var segmentRanges: [SegmentRanges]?
     
-    init(name:String,category:ComponentCategory) {
+    init(cmpId: Int64,name: String,dbId: Int64) {
         self.name = name
-        self.category = category
+        self.componentId = cmpId
+        self.dashboardId = dbId
     }
 }
 
 //MARK:- Enums
 
-extension ZCRMDashBoardComponent
+extension ZCRMDashboardComponent
 {
-    public typealias colorPalette = ZCRMDashBoardComponentColorThemes.ColorPalette
+    public typealias colorPalette = ZCRMDashboardComponentColorThemes.ColorPalette
     
     public enum Objective: String {
         case increase = "increase"
@@ -54,24 +57,27 @@ extension ZCRMDashBoardComponent
 }
 
 
-extension ZCRMDashBoardComponent: CustomDebugStringConvertible
+extension ZCRMDashboardComponent: CustomDebugStringConvertible
 {
     
     public var debugDescription: String{
         return """
         <--- DASHBOARD COMPONENT DEBUG DESCRIPTION --->
         DASHBOARD COMPONENT PROPERTIES ---------------X
+        
         Name: \(name)
         Category: \(category.rawValue)
-        Type: \(componentType)
+        Type: \(type)
+        
         ReportID: \(String(describing: reportId))
         Objective: \(objective?.rawValue ?? "nil")
         Maximum Rows: \(String(describing: maximumRows))
-        Component Markers: \(String(describing: componentMarker))
+        Component Markers: \(String(describing: componentMarkers))
+        
         VISUALIZATION PROPERTIES --------------------X
+        
         ColorPaletteName: \(colorPaletteName?.rawValue ?? "nil")
         ColorPalette Starting Index: \(String(describing: colorPaletteStartingIndex))
-        
         Segment Ranges: \(String(describing: segmentRanges))
         
         LastFetchedTime Label: \(String(describing: lastFetchedTimeLabel))
@@ -81,15 +87,33 @@ extension ZCRMDashBoardComponent: CustomDebugStringConvertible
     }
 }
 
+
+// Dashboard Component Refresh ...
+extension ZCRMDashboardComponent {
+    
+    public typealias refreshResponse = ZCRMAnalytics.refreshResponse
+    
+    public func refreshComponent(onCompletion: @escaping refreshResponse){
+        
+        DashboardAPIHandler().refreshComponentForObject(oldCompObj: self) {
+            (refreshResult) in
+            onCompletion(refreshResult)
+        }
+        
+    } // func ends
+    
+}
+
+
 //MARK:- Getters
-extension ZCRMDashBoardComponent
-{
-    public func getComponentCategory() -> ComponentCategory
+extension ZCRMDashboardComponent {
+    
+    public func getCategory() -> ComponentCategory
     {
         return category
     }
     
-    public func getComponentName() -> String
+    public func getName() -> String
     {
         return name
     }
@@ -119,9 +143,9 @@ extension ZCRMDashBoardComponent
         return objective
     }
     
-    public func getComponentType() -> String
+    public func getType() -> String
     {
-        return componentType
+        return type
     }
     
     public func getColorPaletteName() -> colorPalette?
@@ -141,81 +165,101 @@ extension ZCRMDashBoardComponent
     
     public func getComponentMarkers() -> [ComponentMarkers]?
     {
-        return componentMarker
+        return componentMarkers
     }
     
     public func getComponentChunks() -> [ComponentChunks]
     {
         return componentChunks
     }
+    
+    public func getComponentId() -> Int64
+    {
+        return componentId
+    }
+    
+    public func getDashboardId() -> Int64
+    {
+        return dashboardId
+    }
 }
 
 //MARK:- Setters
-extension ZCRMDashBoardComponent
-{
-    public func setComponent(category: ComponentCategory?)
+extension ZCRMDashboardComponent {
+    
+    func setCategory(category: ComponentCategory?)
     {
         self.category = category ?? ComponentCategory.chart
     }
     
-    public func setComponent(name: String?)
+    func setName(name: String?)
     {
         self.name = name ?? String()
     }
     
-    public func setComponent(markers: [ComponentMarkers]?)
+    func setComponentMarkers(markers: [ComponentMarkers]?)
     {
-        componentMarker = markers
+        componentMarkers = markers
     }
     
-    public func setLastFetchedTime(label: String?)
+    func setLastFetchedTimeLabel(label: String?)
     {
-        lastFetchedTimeLabel = label ?? String()
+        lastFetchedTimeLabel = label
     }
     
-    public func setLastFetchedTime(value: String?)
+    func setLastFetchedTimeValue(value: String?)
     {
-        lastFetchedTimeValue = value ?? String()
+        lastFetchedTimeValue = value
     }
     
-    public func setReport(id: Int64?)
+    func setReportId(reportId: Int64?)
     {
-        reportId = id
+        self.reportId = reportId
     }
     
-    public func setMaximum(rows: Int?)
+    func setMaximumRows(rows: Int?)
     {
-        maximumRows = rows ?? Int()
+        maximumRows = rows
     }
     
-    public func setObjective(_ objective: Objective?)
+    func setObjective(objective: Objective?)
     {
         self.objective = objective
     }
     
-    public func setComponent(type: String?)
+    func setType(type: String?)
     {
-        componentType = type ?? String()
+        self.type = type ?? String()
     }
     
-    public func setColorPalette(name: colorPalette?)
+    func setColorPaletteName(name: colorPalette?)
     {
         colorPaletteName = name
     }
     
-    public func setColorPaletteStarting(index: Int?)
+    func setColorPaletteStartingIndex(index: Int?)
     {
-        colorPaletteStartingIndex = index ?? Int()
+        colorPaletteStartingIndex = index
     }
     
-    public func setSegment(ranges: [SegmentRanges]?)
+    func setSegmentRanges(ranges: [SegmentRanges]?)
     {
         segmentRanges = ranges
     }
     
-    public func addComponent(chunks: ComponentChunks)
+    func addComponentChunks(chunks: ComponentChunks)
     {
         componentChunks.append(chunks)
+    }
+    
+    func setComponentId(id: Int64)
+    {
+        self.componentId = id
+    }
+    
+    func setDashboardId(id: Int64)
+    {
+        self.dashboardId = id
     }
     
 }
@@ -223,7 +267,7 @@ extension ZCRMDashBoardComponent
 
 //MARK:- JSON Model Structures
 
-extension ZCRMDashBoardComponent
+extension ZCRMDashboardComponent
 {
     
     public struct ComponentChunks {
@@ -233,12 +277,12 @@ extension ZCRMDashBoardComponent
         var name:String?
         var objective:Objective?
     }
-
+    
     public struct GroupingColumnInfo {
         var label = String()
         var type = String()
         var name = String()
-        var allowedValues: [ AllowedValues]?
+        var allowedValues: [AllowedValues]?
         var customGroups: [String]?
         
         init(label: String,
@@ -343,49 +387,50 @@ extension ZCRMDashBoardComponent
 } // extension ends ...
 
 
-extension ZCRMDashBoardComponent.ComponentChunks {
+//MARK:- Component Chunk Setters
+extension ZCRMDashboardComponent.ComponentChunks {
     
-    public mutating func addGroupingColumnInfo(_ Info: ZCRMDashBoardComponent.GroupingColumnInfo)
+    mutating func addGroupingColumnInfo(_ info: ZCRMDashboardComponent.GroupingColumnInfo)
     {
-        groupingColumnInfo.append(Info)
+        groupingColumnInfo.append(info)
     }
     
-    public mutating func addAggregateColumnInfo(_ Info: ZCRMDashBoardComponent.AggregateColumnInfo)
+    mutating func addAggregateColumnInfo(_ info: ZCRMDashboardComponent.AggregateColumnInfo)
     {
-        aggregateColumnInfo.append(Info)
+        aggregateColumnInfo.append(info)
     }
     
-    public mutating func addVerticalGrouping(_ Grouping: ZCRMDashBoardComponent.VerticalGrouping)
+    mutating func addVerticalGrouping(_ grouping: ZCRMDashboardComponent.VerticalGrouping)
     {
-        verticalGrouping.append(Grouping)
+        verticalGrouping.append(grouping)
     }
     
-    public mutating func set(Name:String?)
+    mutating func setName(name:String?)
     {
-        name = Name
+        self.name = name
     }
     
-    public mutating func set(Objective:ZCRMDashBoardComponent.Objective?)
+    mutating func setObjective(objective:ZCRMDashboardComponent.Objective?)
     {
-        objective = Objective
+        self.objective = objective
     }
     
 }
 
-
-extension ZCRMDashBoardComponent.ComponentChunks {
+//MARK:- Component Chunk Getters
+extension ZCRMDashboardComponent.ComponentChunks {
     
-    public func getGroupingColumnInfo() -> [ZCRMDashBoardComponent.GroupingColumnInfo]
+    public func getGroupingColumnInfo() -> [ZCRMDashboardComponent.GroupingColumnInfo]
     {
         return groupingColumnInfo
     }
     
-    public func getAggregateColumnInfo() -> [ZCRMDashBoardComponent.AggregateColumnInfo]
+    public func getAggregateColumnInfo() -> [ZCRMDashboardComponent.AggregateColumnInfo]
     {
         return aggregateColumnInfo
     }
     
-    public func getVerticalGrouping() -> [ZCRMDashBoardComponent.VerticalGrouping]
+    public func getVerticalGrouping() -> [ZCRMDashboardComponent.VerticalGrouping]
     {
         return verticalGrouping
     }
@@ -395,7 +440,7 @@ extension ZCRMDashBoardComponent.ComponentChunks {
         return name
     }
     
-    public mutating func getObjective() -> ZCRMDashBoardComponent.Objective?
+    public mutating func getObjective() -> ZCRMDashboardComponent.Objective?
     {
         return objective
     }
@@ -407,7 +452,7 @@ extension ZCRMDashBoardComponent.ComponentChunks {
 
 //MARK:- Properties & APINames
 
-extension ZCRMDashBoardComponent {
+extension ZCRMDashboardComponent {
     
     internal struct Properties {
         
@@ -478,7 +523,7 @@ extension ZCRMDashBoardComponent {
 }
 
 
-extension ZCRMDashBoardComponent.SegmentRanges: CustomDebugStringConvertible {
+extension ZCRMDashboardComponent.SegmentRanges: CustomDebugStringConvertible {
     
     public var debugDescription: String {
         
@@ -497,7 +542,7 @@ extension ZCRMDashBoardComponent.SegmentRanges: CustomDebugStringConvertible {
 }
 
 
-extension ZCRMDashBoardComponent.AllowedValues: CustomDebugStringConvertible {
+extension ZCRMDashboardComponent.AllowedValues: CustomDebugStringConvertible {
     
     var debugDescription: String {
         
@@ -514,7 +559,7 @@ extension ZCRMDashBoardComponent.AllowedValues: CustomDebugStringConvertible {
 }
 
 
-extension ZCRMDashBoardComponent.ComponentMarkers: CustomDebugStringConvertible {
+extension ZCRMDashboardComponent.ComponentMarkers: CustomDebugStringConvertible {
     
     public var debugDescription: String {
         
@@ -531,7 +576,7 @@ extension ZCRMDashBoardComponent.ComponentMarkers: CustomDebugStringConvertible 
 }
 
 
-extension ZCRMDashBoardComponent.Aggregate: CustomDebugStringConvertible {
+extension ZCRMDashboardComponent.Aggregate: CustomDebugStringConvertible {
     
     var debugDescription: String {
         
@@ -549,7 +594,7 @@ extension ZCRMDashBoardComponent.Aggregate: CustomDebugStringConvertible {
 }
 
 
-extension ZCRMDashBoardComponent.VerticalGrouping: CustomDebugStringConvertible {
+extension ZCRMDashboardComponent.VerticalGrouping: CustomDebugStringConvertible {
     
     public var debugDescription: String {
         
@@ -570,7 +615,7 @@ extension ZCRMDashBoardComponent.VerticalGrouping: CustomDebugStringConvertible 
 }
 
 
-extension ZCRMDashBoardComponent.GroupingColumnInfo: CustomDebugStringConvertible {
+extension ZCRMDashboardComponent.GroupingColumnInfo: CustomDebugStringConvertible {
     
     
     public var debugDescription: String {
@@ -591,7 +636,7 @@ extension ZCRMDashBoardComponent.GroupingColumnInfo: CustomDebugStringConvertibl
 }
 
 
-extension ZCRMDashBoardComponent.AggregateColumnInfo: CustomDebugStringConvertible {
+extension ZCRMDashboardComponent.AggregateColumnInfo: CustomDebugStringConvertible {
     
     
     public var debugDescription: String {
@@ -614,7 +659,7 @@ extension ZCRMDashBoardComponent.AggregateColumnInfo: CustomDebugStringConvertib
 }
 
 
-extension ZCRMDashBoardComponent.ComponentChunks: CustomDebugStringConvertible {
+extension ZCRMDashboardComponent.ComponentChunks: CustomDebugStringConvertible {
     
     public var debugDescription: String {
         return """

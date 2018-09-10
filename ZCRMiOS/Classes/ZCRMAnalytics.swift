@@ -9,27 +9,23 @@ import Foundation
 
 public class ZCRMAnalytics {
     
-    public typealias dashBoard =
-        (Result.DataResponse<ZCRMDashBoard,APIResponse>) -> Void
-    
-    public typealias ArrayOfDashBoards = (Result.DataResponse<[ZCRMDashBoard],BulkAPIResponse>) -> Void
-    
-    public typealias dashBoardComponent = (Result.DataResponse<ZCRMDashBoardComponent,APIResponse>) -> Void
-    
-    public typealias refreshResponse = (Result.Response<APIResponse>) -> Void
-    
-    public typealias ArrayOfColorThemes = (Result.DataResponse<[ZCRMDashBoardComponentColorThemes],APIResponse>) -> Void
+    // SINGLETON OBJECT : There's no need for more than one instance of ZCRMAnalytics to exist
+    // It's not actually a class and is just used for grouping methods under a name
+    // No stored Properties and methods to manipulate properties
+    private init(){}
+    public static var shared = ZCRMAnalytics()
     
 }
+
 
 //MARK:- Public Getters
 extension ZCRMAnalytics {
     
-    public func getAllDashBoards(then onCompletion:@escaping ArrayOfDashBoards)
+    public func getAllDashboards(then onCompletion:@escaping ArrayOfDashboards)
         
     {
         // 200 is the maxNumber of records that can be retreived in an API Call
-        DashBoardAPIHandler().getAllDashBoards(fromPage: 1, withPerPageOf: 200) {
+        DashboardAPIHandler().getAllDashboards(fromPage: 1, withPerPageOf: 200) {
             (resultType) in
             onCompletion(resultType)
         }
@@ -37,13 +33,12 @@ extension ZCRMAnalytics {
     }
     
     
-    public func getAllDashboards(fromPage page:Int?,perPage:Int?,then onCompletion: @escaping ArrayOfDashBoards)
+    public func getAllDashboards(fromPage page:Int, perPage:Int, then onCompletion:
+        @escaping ArrayOfDashboards)
         
     {
-        let unwrappedPage = page ?? 1
-        let unwrappedPerPage = perPage ?? 200
         
-        DashBoardAPIHandler().getAllDashBoards(fromPage: unwrappedPage,withPerPageOf: unwrappedPerPage) {
+        DashboardAPIHandler().getAllDashboards(fromPage: page,withPerPageOf: perPage) {
             
             (resultType) in
             onCompletion(resultType)
@@ -52,11 +47,11 @@ extension ZCRMAnalytics {
     }
     
     
-    public func getDashBoardWith(id:Int64,then onCompletion:
-        @escaping dashBoard)
+    public func getDashboardWithId(id: Int64,then onCompletion:
+        @escaping dashboard)
         
     {
-        DashBoardAPIHandler().getDashBoardWith(id: id) {
+        DashboardAPIHandler().getDashboardWithId(id: id) {
             (resultType) in
             onCompletion(resultType)
         }
@@ -64,57 +59,12 @@ extension ZCRMAnalytics {
     }
     
     
-    public func getComponentWith(id cmpID: Int64, fromDashBoardID dbId: Int64,onCompletion:
-        @escaping dashBoardComponent)
-        
-    {
-        
-        DashBoardAPIHandler().getComponentWith(id: cmpID, fromDashBoardID: dbId) {
-            (resultType) in
-            
-            onCompletion(resultType)
-        }
-        
-    }
-    
-    
-    
-    public func refreshComponentWith(id cmpID: Int64,inDashBoardID dbId: Int64,onCompletion:
-        @escaping refreshResponse)
-        
-    {
-        
-        DashBoardAPIHandler().refreshComponentWith(id: cmpID, inDashBoardID: dbId) {
-            (resultType) in
-            
-            onCompletion(resultType)
-        }
-        
-    }
-    
-    
-    
-    public func refreshDashBoardWith(id dbId: Int64,onCompletion:
-        @escaping refreshResponse)
-        
-    {
-        
-        DashBoardAPIHandler().refreshDashBoardWith(id: dbId) { (resultType) in
-            
-            onCompletion(resultType)
-            
-        }
-        
-    }
-    
-    
-    
-    public func getDashBoardComponentColorThemes( onCompletion:
+    public func getDashboardComponentColorThemes( onCompletion:
         @escaping ArrayOfColorThemes )
         
     {
         
-        DashBoardAPIHandler().getDashBoardComponentColorThemes { (resultType) in
+        DashboardAPIHandler().getDashboardComponentColorThemes { (resultType) in
             
             onCompletion(resultType)
         }
@@ -123,3 +73,23 @@ extension ZCRMAnalytics {
     
     
 } // end of class
+
+
+//MARK:- (TypeAliases) Used by Model and Handler Classes
+extension ZCRMAnalytics {
+    
+    public typealias dashboard =
+        (Result.DataResponse<ZCRMDashboard,APIResponse>) -> Void
+    
+    public typealias ArrayOfDashboards =
+        (Result.DataResponse<[ZCRMDashboard],BulkAPIResponse>) -> Void
+    
+    public typealias ArrayOfColorThemes = (Result.DataResponse<[ZCRMDashboardComponentColorThemes],APIResponse>) -> Void
+    
+    public typealias refreshResponse =
+        (Result.Response<APIResponse>) -> Void
+    
+    public typealias dashboardComponent =
+        (Result.DataResponse<ZCRMDashboardComponent,APIResponse>) -> Void
+    
+}
