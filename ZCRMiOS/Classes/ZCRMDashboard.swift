@@ -15,7 +15,7 @@ public class ZCRMDashboard{
     fileprivate var accessType = String()
     fileprivate var dashboardComponentMeta:[ZCRMDashboardComponentMeta]?
     
-    init(id: Int64, name: String) {
+    public init(id: Int64, name: String) {
         self.id = id
         self.name = name
     }
