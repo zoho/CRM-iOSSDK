@@ -29,20 +29,20 @@ public class ZCRMLoginHandler
             {
                 if( dict.keys.contains( key ) == false )
                 {
-                    throw ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : "\( key ) not present in the App configuration plist!" )
+                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "\( key ) not present in the App configuration plist!" )
                 }
             }
             for key in dict.keys
             {
                 if( dict[ key ] == nil )
                 {
-                    throw ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : "\( key ) is nil. It should have value" )
+                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "\( key ) is nil. It should have value" )
                 }
             }
         }
         else
         {
-            throw ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : "App configuration property list is empty!" )
+            throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "App configuration property list is empty!" )
         }
     }
     
@@ -110,7 +110,7 @@ public class ZCRMLoginHandler
             
         default :
             print( "Country domain is invalid. \( domain )" )
-            throw ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message :  "Country domain is invalid." )
+            throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message :  "Country domain is invalid." )
         }
         print( "API Base URL : \(APIBASEURL)")
     }
@@ -180,17 +180,20 @@ public class ZCRMLoginHandler
                 {
                     self.clearIAMLoginFirstLaunch()
                     print( "removed AllScopesWithSuccess!" )
-                    if( self.appConfigurationUtil.isLoginCustomized() == false )
-                    {
-                        self.handleLogin( completion : { _ in
-                            
-                        })
-                    }
                     URLCache.shared.removeAllCachedResponses()
                     if let cookies = HTTPCookieStorage.shared.cookies {
                         for cookie in cookies {
                             HTTPCookieStorage.shared.deleteCookie( cookie )
                         }
+                    }
+                    if( self.appConfigurationUtil.isLoginCustomized() == false )
+                    {
+                        self.handleLogin( completion : { success in
+                            if success == true
+                            {
+                                print( "login screen loaded successfully on Logout call!")
+                            }
+                        })
                     }
                     completion( true )
                     print( "logout ZCRM!" )

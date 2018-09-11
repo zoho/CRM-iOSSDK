@@ -424,7 +424,7 @@ public class ZCRMUser : ZCRMEntity
         }
         else
         {
-            throw ZCRMError.ProcessingError( code : FIELD_NOT_FOUND, message : "The given field is not present in this user - \( fieldAPIName )" )
+            throw ZCRMError.ProcessingError( code : ErrorCode.FIELD_NOT_FOUND, message : "The given field is not present in this user - \( fieldAPIName )" )
         }
     }
     
@@ -433,66 +433,66 @@ public class ZCRMUser : ZCRMEntity
         return self.fieldNameVsValue
     }
     
-    public func create( completion : @escaping( ZCRMUser?, APIResponse?, Error? ) -> () )
+    public func create( completion : @escaping( Result.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
-        UserAPIHandler().addUser( user : self ) { ( user, response, error ) in
-            completion( user, response, error )
+        UserAPIHandler().addUser( user : self ) { ( result ) in
+            completion( result )
         }
     }
     
-    public func update( completion : @escaping( APIResponse?, Error? ) -> () )
+    public func update( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        UserAPIHandler().updateUser( user : self ) { ( response, error ) in
-            completion( response, error )
+        UserAPIHandler().updateUser( user : self ) { ( result ) in
+            completion( result )
         }
     }
     
-    public func delete( completion : @escaping( APIResponse?, Error? ) -> () )
+    public func delete( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        UserAPIHandler().deleteUser( userId : self.getId()! ) { ( response, error ) in
-            completion( response, error )
+        UserAPIHandler().deleteUser( userId : self.getId()! ) { ( result ) in
+            completion( result )
         }
     }
     
-    public func downloadProfilePhoto( completion : @escaping( FileAPIResponse?, Error? ) -> () )
+    public func downloadProfilePhoto( completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
     {
-        UserAPIHandler(user: self).downloadPhoto( size : PhotoSize.ORIGINAL ) { ( response, error ) in
-            completion( response, error )
+        UserAPIHandler().downloadPhoto( size : PhotoSize.ORIGINAL ) { ( result ) in
+            completion( result )
         }
     }
     
-    public func downloadProfilePhoto( size : PhotoSize, completion : @escaping( FileAPIResponse?, Error? ) -> () )
+    public func downloadProfilePhoto( size : PhotoSize, completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
     {
-        UserAPIHandler(user: self).downloadPhoto( size : size ) { ( response, error ) in
-            completion( response, error )
+        UserAPIHandler().downloadPhoto( size : size ) { ( result ) in
+            completion( result )
         }
     }
     
-    public func uploadProfilePhotoWithPath( filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
+    public func uploadProfilePhotoWithPath( filePath : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        UserAPIHandler(user: self).uploadPhotoWithPath(photoViewPermission: XPhotoViewPermission.zero, filePath: filePath) { ( response, error ) in
-            completion( response, error )
+        UserAPIHandler(user: self).uploadPhotoWithPath(photoViewPermission: XPhotoViewPermission.zero, filePath: filePath) { ( result ) in
+            completion( result )
         }
     }
     
-    public func uploadProfilePhotoWithData( fileName : String, data : Data, completion : @escaping( APIResponse?, Error? ) -> () )
+    public func uploadProfilePhotoWithData( fileName : String, data : Data, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        UserAPIHandler(user: self).uploadPhotoWithData( photoViewPermission: XPhotoViewPermission.zero, fileName: fileName, data : data ) { ( response, error ) in
-            completion( response, error )
+        UserAPIHandler(user: self).uploadPhotoWithData( photoViewPermission: XPhotoViewPermission.zero, fileName: fileName, data : data ) { ( result ) in
+            completion( result )
         }
     }
     
-    public func uploadProfilePhotoWithPath( photoViewPermission : XPhotoViewPermission, filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
+    public func uploadProfilePhotoWithPath( photoViewPermission : XPhotoViewPermission, filePath : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        UserAPIHandler(user: self).uploadPhotoWithPath(photoViewPermission: photoViewPermission, filePath: filePath) { ( response, error ) in
-            completion( response, error )
+        UserAPIHandler(user: self).uploadPhotoWithPath(photoViewPermission: photoViewPermission, filePath: filePath) { ( result ) in
+            completion( result )
         }
     }
     
-    public func uploadProfilePhotoWithData( photoViewPermission : XPhotoViewPermission, fileName : String, data : Data, completion : @escaping( APIResponse?, Error? ) -> () )
+    public func uploadProfilePhotoWithData( photoViewPermission : XPhotoViewPermission, fileName : String, data : Data, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        UserAPIHandler(user: self).uploadPhotoWithData( photoViewPermission: photoViewPermission, fileName: fileName, data : data ) { ( response, error ) in
-            completion( response, error )
+        UserAPIHandler(user: self).uploadPhotoWithData( photoViewPermission: photoViewPermission, fileName: fileName, data : data ) { ( result ) in
+            completion( result )
         }
     }
 }

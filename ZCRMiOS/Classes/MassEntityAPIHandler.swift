@@ -17,14 +17,12 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 	}
 	
 	// MARK: - Handler Functions
-    
-    internal func createRecords( records : [ ZCRMRecord ], completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    internal func createRecords( records : [ ZCRMRecord ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         if(records.count > 100)
         {
-//            completion( nil, nil, ZCRMError.MaxRecordCountExceeded( code : MAX_COUNT_EXCEEDED, message : "Cannot process more than 100 records at a time." ) )
-            completion( nil, nil, ZCRMError.MaxRecordCountExceeded(code: .MAX_COUNT_EXCEEDED, message: ErrorMessage.API_MAX_RECORDS_MSG))
+            completion( .failure( ZCRMError.MaxRecordCountExceeded( code : ErrorCode.MAX_COUNT_EXCEEDED, message : "Cannot process more than 100 records at a time." ) ) )
         }
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         var dataArray : [[String:Any]] = [[String:Any]]()
@@ -40,14 +38,9 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
         
-        request.getBulkAPIResponse { ( response, err ) in
-            if let error = err
-            {
-                completion( nil, nil, error )
-                return
-            }
-            if let bulkResponse = response
-            {
+        request.getBulkAPIResponse { ( resultType ) in
+            do{
+                let bulkResponse = try resultType.resolve()
                 let responses : [EntityResponse] = bulkResponse.getEntityResponses()
                 var updatedRecords : [ZCRMRecord] = [ZCRMRecord]()
                 for entityResponse in responses
@@ -67,12 +60,15 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     }
                 }
                 bulkResponse.setData( data : updatedRecords )
-                completion( updatedRecords, bulkResponse, nil )
+                completion( .success( updatedRecords, bulkResponse ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
     }
-	
-    internal func getRecords(cvId : Int64? ,fields : [String]? ,  sortByField : String? , sortOrder : SortOrder? , converted : Bool? , approved : Bool? , page : Int , per_page : Int , modifiedSince : String?, includePrivateFields : Bool, kanbanView : String?, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
+
+    internal func getRecords(cvId : Int64? ,fields : [String]? ,  sortByField : String? , sortOrder : SortOrder? , converted : Bool? , approved : Bool? , page : Int , per_page : Int , modifiedSince : String?, includePrivateFields : Bool, kanbanView : String?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
 	{
         setJSONRootKey( key : JSONRootKey.DATA )
 		var records : [ZCRMRecord] = [ZCRMRecord]()
@@ -80,7 +76,6 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 		setRequestMethod( requestMethod : .GET )
 		if ( fields != nil && !fields!.isEmpty)
 		{
-			
 			var fieldsStr : String = ""
 			for field in fields!
 			{
@@ -132,14 +127,9 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
 		
-        request.getBulkAPIResponse { ( response, err ) in
-            if let error = err
-            {
-                completion( nil, nil, error )
-                return
-            }
-            if let bulkResponse = response
-            {
+        request.getBulkAPIResponse { ( resultType ) in
+            do{
+                let bulkResponse = try resultType.resolve()
                 let responseJSON = bulkResponse.getResponseJSON()
                 if responseJSON.isEmpty == false
                 {
@@ -152,41 +142,43 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     }
                     bulkResponse.setData(data: records)
                 }
-                completion( records, bulkResponse, nil )
+                completion( .success( records, bulkResponse ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
-		
 	}
-    
-    internal func searchByText( searchText : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
+
+    internal func searchByText( searchText : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        self.searchRecords( searchKey : RequestParamValues.word, searchValue : searchText, page : page, per_page : perPage ) { ( records, response, error ) in
-            completion( records, response, error )
+        self.searchRecords( searchKey : RequestParamValues.word, searchValue : searchText, page : page, per_page : perPage) { ( resultType ) in
+            completion( resultType )
         }
     }
     
-    internal func searchByCriteria( searchCriteria : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    internal func searchByCriteria( searchCriteria : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        self.searchRecords( searchKey : RequestParamValues.criteria, searchValue : searchCriteria, page : page, per_page : perPage ) { ( records, response, error ) in
-            completion( records, response, error )
+        self.searchRecords( searchKey : RequestParamValues.criteria, searchValue : searchCriteria, page : page, per_page : perPage ) { ( resultType ) in
+            completion( resultType )
+        }
+    }
+
+    internal func searchByEmail( searchValue : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    {
+        self.searchRecords( searchKey : RequestParamValues.email, searchValue : searchValue, page : page, per_page : perPage) { ( resultType ) in
+            completion( resultType )
         }
     }
     
-    internal func searchByEmail( searchValue : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    internal func searchByPhone( searchValue : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        self.searchRecords( searchKey : RequestParamValues.email, searchValue : searchValue, page : page, per_page : perPage) { ( records, response, error ) in
-            completion( records, response, error )
-        }
-    }
-    
-    internal func searchByPhone( searchValue : String, page : Int, perPage : Int, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
-    {
-        self.searchRecords( searchKey : RequestParamValues.phone, searchValue : searchValue, page : page, per_page : perPage) { ( records, response, error ) in
-            completion( records, response, error )
+        self.searchRecords( searchKey : RequestParamValues.phone, searchValue : searchValue, page : page, per_page : perPage) { ( resultType ) in
+            completion( resultType )
         }
     }
 	
-    private func searchRecords( searchKey : String, searchValue : String, page : Int, per_page : Int, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    private func searchRecords( searchKey : String, searchValue : String, page : Int, per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
 	{
         setJSONRootKey( key : JSONRootKey.DATA )
 		var records : [ZCRMRecord] = [ZCRMRecord]()
@@ -196,16 +188,11 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 		addRequestParam(param: "page" , value: String(page) )
 		addRequestParam(param: "per_page" , value: String(per_page) )
 		let request : APIRequest = APIRequest(handler: self )
-		
-        print( "Request : \( request.toString() )" )
-        request.getBulkAPIResponse { ( response, err ) in
-            if let error = err
-            {
-                completion( nil, nil, error )
-                return
-            }
-            if let bulkResponse = response
-            {
+		print( "Request : \( request.toString() )" )
+        
+        request.getBulkAPIResponse { ( resultType ) in
+            do{
+                let bulkResponse = try resultType.resolve()
                 let responseJSON = bulkResponse.getResponseJSON()
                 if responseJSON.isEmpty == false
                 {
@@ -218,17 +205,20 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     }
                 }
                 bulkResponse.setData( data : records )
-                completion( records, bulkResponse, nil )
+                completion( .success( records, bulkResponse ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
 	}
-	
-    internal func updateRecords( ids : [ Int64 ], fieldAPIName : String, value : Any?, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
+
+    internal func updateRecords( ids : [ Int64 ], fieldAPIName : String, value : Any?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
 	{
         setJSONRootKey( key : JSONRootKey.DATA )
         if(ids.count > 100)
         {
-            completion( nil, nil, ZCRMError.MaxRecordCountExceeded(code: .MAX_COUNT_EXCEEDED, message: ErrorMessage.API_MAX_RECORDS_MSG))
+            completion( .failure( ZCRMError.MaxRecordCountExceeded( code : ErrorCode.MAX_COUNT_EXCEEDED, message : "Cannot process more than 100 records at a time." ) ) )
         }
 		var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
 		var dataArray : [[String:Any]] = [[String:Any]]()
@@ -240,22 +230,15 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 			dataArray.append(dataJSON)
 		}
 		reqBodyObj[getJSONRootKey()] = dataArray
-
-		setUrlPath(urlPath : "/\(self.module.getAPIName())")
+        setUrlPath(urlPath : "/\(self.module.getAPIName())")
 		setRequestMethod(requestMethod : .PUT )
 		setRequestBody(requestBody : reqBodyObj )
 		let request : APIRequest = APIRequest(handler: self )
+		print( "Request : \( request.toString() )" )
 		
-        print( "Request : \( request.toString() )" )
-		
-        request.getBulkAPIResponse { ( response, err ) in
-            if let error = err
-            {
-                completion( nil, nil, error )
-                return
-            }
-            if let bulkResponse = response
-            {
+        request.getBulkAPIResponse { ( resultType ) in
+            do{
+                let bulkResponse = try resultType.resolve()
                 let responses : [EntityResponse] = bulkResponse.getEntityResponses()
                 var updatedRecords : [ZCRMRecord] = [ZCRMRecord]()
                 for entityResponse in responses
@@ -275,17 +258,20 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     }
                 }
                 bulkResponse.setData( data : updatedRecords )
-                completion( updatedRecords, bulkResponse, nil )
+                completion( .success( updatedRecords, bulkResponse ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
 	}
-    
-    internal func upsertRecords( records : [ ZCRMRecord ], completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
+
+    internal func upsertRecords( records : [ ZCRMRecord ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         if ( records.count > 100 )
         {
-            completion( nil, nil, ZCRMError.MaxRecordCountExceeded(code: .MAX_COUNT_EXCEEDED, message: ErrorMessage.API_MAX_RECORDS_MSG))
+            completion( .failure( ZCRMError.MaxRecordCountExceeded( code : ErrorCode.MAX_COUNT_EXCEEDED, message : "Cannot process more than 100 records at a time." ) ) )
         }
         var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
         var dataArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
@@ -302,14 +288,9 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
 		
-        request.getBulkAPIResponse { ( response, err ) in
-            if let error = err
-            {
-                completion( nil, nil, error )
-                return
-            }
-            if let bulkResponse = response
-            {
+        request.getBulkAPIResponse { ( resultType ) in
+            do{
+                let bulkResponse = try resultType.resolve()
                 let responses : [ EntityResponse ] = bulkResponse.getEntityResponses()
                 var upsertRecords : [ ZCRMRecord ] = [ ZCRMRecord ]()
                 for entityResponse in responses
@@ -329,16 +310,19 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     }
                 }
                 bulkResponse.setData( data : upsertRecords )
-                completion( upsertRecords, bulkResponse, nil )
+                completion( .success( upsertRecords, bulkResponse ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
     }
-    
-    internal func deleteRecords( ids : [ Int64 ], completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+
+    internal func deleteRecords( ids : [ Int64 ], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
     {
         if(ids.count > 100)
         {
-            completion( nil, ZCRMError.MaxRecordCountExceeded(code: .MAX_COUNT_EXCEEDED, message: ErrorMessage.API_MAX_RECORDS_MSG))
+            completion( .failure( ZCRMError.MaxRecordCountExceeded( code : ErrorCode.MAX_COUNT_EXCEEDED, message : "Cannot process more than 100 records at a time." ) ) )
         }
         var idsStr : String = "\(ids)"
         idsStr = idsStr.replacingOccurrences(of: " ", with: "")
@@ -350,14 +334,9 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
         
-        request.getBulkAPIResponse { ( response, err ) in
-            if let error = err
-            {
-                completion( nil, error )
-                return
-            }
-            if let bulkResponse = response
-            {
+        request.getBulkAPIResponse { ( resultType ) in
+            do{
+                let bulkResponse = try resultType.resolve()
                 let responses : [EntityResponse] = bulkResponse.getEntityResponses()
                 for entityResponse in responses
                 {
@@ -366,33 +345,36 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordJSON.getInt64( key : ResponseJSONKeys.id ) )
                     entityResponse.setData(data: record)
                 }
-                completion( bulkResponse, nil )
+                completion( .success( bulkResponse ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
     }
     
-    internal func getDeletedRecords( modifiedSince : String?, page : Int, perPage : Int, completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    internal func getDeletedRecords( modifiedSince : String?, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
     {
-        self.getDeletedRecords( type : RequestParamValues.all, modifiedSince : modifiedSince, page : page, perPage : perPage ) { ( deletedRecords, response, error ) in
-            completion( deletedRecords, response, error )
+        self.getDeletedRecords( type : RequestParamValues.all, modifiedSince : modifiedSince, page : page, perPage : perPage ) { ( resultType ) in
+            completion( resultType )
         }
     }
     
-    internal func getRecycleBinRecords( completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    internal func getRecycleBinRecords( completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
     {
-        self.getDeletedRecords(type: RequestParamValues.recycle, modifiedSince: nil, page: 1, perPage: 100) { ( deletedRecords, response, error ) in
-            completion( deletedRecords, response, error )
+        self.getDeletedRecords(type: RequestParamValues.recycle, modifiedSince: nil, page: 1, perPage: 100) { ( resultType ) in
+            completion( resultType )
         }
     }
     
-    internal func getPermanentlyDeletedRecords( completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
+    internal func getPermanentlyDeletedRecords( completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
     {
-        self.getDeletedRecords(type: RequestParamValues.permanent, modifiedSince: nil, page: 1, perPage: 100) { ( deletedRecords, response, error ) in
-            completion( deletedRecords, response, error )
+        self.getDeletedRecords(type: RequestParamValues.permanent, modifiedSince: nil, page: 1, perPage: 100) { ( resultType ) in
+            completion( resultType )
         }
     }
-    
-    private func getDeletedRecords( type : String, modifiedSince : String?, page : Int, perPage : Int, completion : @escaping( [ ZCRMTrashRecord ]?, BulkAPIResponse?, Error? ) -> () )
+
+    private func getDeletedRecords( type : String, modifiedSince : String?, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
     {
 		setUrlPath(urlPath : "/\( self.module.getAPIName() )/deleted")
 		setRequestMethod(requestMethod : .GET )
@@ -405,14 +387,10 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         addRequestParam( param : "per_page", value : String( perPage ) )
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
-        request.getBulkAPIResponse { ( response, err ) in
-            if let error = err
-            {
-                completion( nil, nil, error )
-                return
-            }
-            if let bulkResponse = response
-            {
+        
+        request.getBulkAPIResponse { ( resultType ) in
+            do{
+                let bulkResponse = try resultType.resolve()
                 let responses : [ EntityResponse ] = bulkResponse.getEntityResponses()
                 var trashRecords : [ ZCRMTrashRecord ] = [ ZCRMTrashRecord ]()
                 for entityResponse in responses
@@ -423,44 +401,17 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     trashRecords.append( self.trashRecord )
                 }
                 bulkResponse.setData( data : trashRecords )
-                completion( trashRecords, bulkResponse, nil )
+                completion( .success( trashRecords, bulkResponse ) )
             }
-        }
-    }
-	
-	// MARK: - Utility Functions
-	
-    private func setTrashRecordProperties( record : [ String : Any ] )
-    {
-        for ( fieldAPIName, value ) in record
-        {
-            if( ResponseJSONKeys.createdBy == fieldAPIName )
-            {
-                let createdBy : [ String : Any ] = value as! [ String : Any ]
-                let createdByUser : ZCRMUser = ZCRMUser( userId : createdBy.getInt64( key : ResponseJSONKeys.id ), userFullName : createdBy.getString( key : ResponseJSONKeys.name) )
-                self.trashRecord.setCreatedBy( createdBy : createdByUser )
-            }
-            else if( ResponseJSONKeys.deletedBy == fieldAPIName )
-            {
-                let deletedBy : [ String : Any ] = value as! [ String : Any ]
-                let deletedByUser : ZCRMUser = ZCRMUser( userId : deletedBy.getInt64( key : ResponseJSONKeys.id ), userFullName : deletedBy.getString( key : ResponseJSONKeys.name ) )
-                self.trashRecord.setDeletedBy( deletedBy : deletedByUser )
-            }
-            else if( ResponseJSONKeys.displayName == fieldAPIName )
-            {
-                self.trashRecord.setDisplayName( name : record.getString( key : fieldAPIName ) )
-            }
-            else if( ResponseJSONKeys.deletedTime == fieldAPIName )
-            {
-                self.trashRecord.setDisplayName( name : record.getString( key : fieldAPIName ) )
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
     }
     
     // TODO : Add response object as List of Records when overwrite false case is fixed
-    internal func addTags( recordIds : [Int64], tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func addTags( recordIds : [Int64], tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
     {
-
         setJSONRootKey(key: JSONRootKey.DATA)
         var addedRecords : [ZCRMRecord] = [ZCRMRecord]()
         var idString : String = String()
@@ -493,25 +444,20 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         {
             addRequestParam(param: RequestParamKeys.overWrite, value: String(overWrite!))
         }
-        
+
         let request : APIRequest = APIRequest(handler: self)
         print( "Request : \(request.toString())" )
         
-        request.getBulkAPIResponse { ( response, err ) in
-            if let error = err
-            {
-                completion( nil, error )
-                return
-            }
-            if let bulkResponse = response
-            {
+        request.getBulkAPIResponse { ( resultType ) in
+            do{
+                let bulkResponse = try resultType.resolve()
                 let responses : [EntityResponse] = bulkResponse.getEntityResponses()
                 for entityResponse in responses
                 {
                     if(CODE_SUCCESS == entityResponse.getStatus())
                     {
                         let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-
+                        
                         let recordDetails : [String : Any] = entResponseJSON.getDictionary(key: DETAILS)
                         let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordDetails.getInt64(key: ResponseJSONKeys.id))
                         let tagNames : [String] = recordDetails.getArray(key: ResponseJSONKeys.tags) as! [String]
@@ -522,7 +468,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         }
                         entityResponse.setData(data: record)
                         addedRecords.append(record)
-
+                        
                     }
                     else
                     {
@@ -530,12 +476,15 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     }
                 }
                 bulkResponse.setData(data: addedRecords)
-                completion( bulkResponse, nil )
+                completion( .success( bulkResponse ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
     }
-    
-    internal func removeTags( recordIds : [Int64], tags : [ZCRMTag], completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+
+    internal func removeTags( recordIds : [Int64], tags : [ZCRMTag], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.DATA)
         var idString : String = String()
@@ -559,7 +508,6 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 }
             }
         }
-        
         setUrlPath(urlPath: "/\(module.getAPIName())/actions/remove_tags")
         setRequestMethod(requestMethod: .POST)
         addRequestParam(param: RequestParamKeys.ids, value: idString)
@@ -568,8 +516,42 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         let request : APIRequest = APIRequest(handler: self)
         print( "Request : \(request.toString())" )
         
-        request.getBulkAPIResponse { ( response, err ) in
-            completion( response, err )
+        request.getBulkAPIResponse { ( resultType ) in
+            do{
+                let bulkResponse = try resultType.resolve()
+                completion( .success( bulkResponse ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+	
+	// MARK: - Utility Functions
+	private func setTrashRecordProperties( record : [ String : Any ] )
+    {
+        for ( fieldAPIName, value ) in record
+        {
+            if( ResponseJSONKeys.createdBy == fieldAPIName )
+            {
+                let createdBy : [ String : Any ] = value as! [ String : Any ]
+                let createdByUser : ZCRMUser = ZCRMUser( userId : createdBy.getInt64( key : ResponseJSONKeys.id ), userFullName : createdBy.getString( key : ResponseJSONKeys.name) )
+                self.trashRecord.setCreatedBy( createdBy : createdByUser )
+            }
+            else if( ResponseJSONKeys.deletedBy == fieldAPIName )
+            {
+                let deletedBy : [ String : Any ] = value as! [ String : Any ]
+                let deletedByUser : ZCRMUser = ZCRMUser( userId : deletedBy.getInt64( key : ResponseJSONKeys.id ), userFullName : deletedBy.getString( key : ResponseJSONKeys.name ) )
+                self.trashRecord.setDeletedBy( deletedBy : deletedByUser )
+            }
+            else if( ResponseJSONKeys.displayName == fieldAPIName )
+            {
+                self.trashRecord.setDisplayName( name : record.getString( key : fieldAPIName ) )
+            }
+            else if( ResponseJSONKeys.deletedTime == fieldAPIName )
+            {
+                self.trashRecord.setDisplayName( name : record.getString( key : fieldAPIName ) )
+            }
         }
     }
 }
@@ -586,7 +568,6 @@ fileprivate extension MassEntityAPIHandler
         static let overWrite =  "over_write"
     }
     
-    
     struct RequestParamValues
     {
         static let word = "word"
@@ -598,7 +579,6 @@ fileprivate extension MassEntityAPIHandler
         static let permanent = "permanent"
     }
 
-    
     struct ResponseJSONKeys
     {
         static let id = "id"

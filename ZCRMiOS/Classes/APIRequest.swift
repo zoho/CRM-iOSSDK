@@ -38,8 +38,8 @@ internal enum RequestMethod : String
     case DELETE = "DELETE"
 }
 
-internal class APIRequest 
-{
+ internal class APIRequest
+ {
     private var baseUrl : String = "\( APIBASEURL )/crm/\( APIVERSION )"
     private var urlPath : String = ""
     private var requestMethod : RequestMethod
@@ -48,29 +48,29 @@ internal class APIRequest
     private var requestBody : Any?
     private var request : URLRequest?
     private var url : URL?
-	private var isOAuth : Bool = true
+    private var isOAuth : Bool = true
     private var jsonRootKey = String()
-	
-	init( handler : APIHandler)
-	{
-		if let urlPath = handler.getUrlPath()
-		{
-			self.urlPath = urlPath
-		}
-		else if let url = handler.getUrl()
-		{
-			self.url = url
-		}
-		self.requestMethod = handler.getRequestMethod()
-		self.params = handler.getRequestParams()
-		self.headers = handler.getRequestHeaders()
-		self.requestBody = handler.getRequestBody()
-		self.isOAuth = handler.getRequestType()
+    
+    init( handler : APIHandler)
+    {
+        if let urlPath = handler.getUrlPath()
+        {
+            self.urlPath = urlPath
+        }
+        else if let url = handler.getUrl()
+        {
+            self.url = url
+        }
+        self.requestMethod = handler.getRequestMethod()
+        self.params = handler.getRequestParams()
+        self.headers = handler.getRequestHeaders()
+        self.requestBody = handler.getRequestBody()
+        self.isOAuth = handler.getRequestType()
         self.jsonRootKey = handler.getJSONRootKey()
-	}
+    }
     
     
-    private func authenticateRequest( completion : @escaping( Error? ) -> () )
+    private func authenticateRequest( completion : @escaping( ZCRMError? ) -> () )
     {
         if let bundleID = Bundle.main.bundleIdentifier
         {
@@ -85,17 +85,19 @@ internal class APIRequest
             ZCRMLoginHandler().getOauth2Token { ( token, error ) in
                 if let err = error
                 {
-                    completion( err )
+                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTH_FETCH_ERROR, message: err.description))
+                    return
                 }
                 if let oAuthtoken = token, token.notNilandEmpty
                 {
                     self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( oAuthtoken )" )
                     completion( nil )
+                    return
                 }
                 else
                 {
                     print( "oAuthtoken is nil." )
-                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTHTOKEN_NIL, message: ErrorCode.OAUTHTOKEN_NIL.rawValue))
+                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTHTOKEN_NIL, message: ErrorMessage.OAUTHTOKEN_NIL_MSG))
                 }
             }
         }
@@ -108,32 +110,34 @@ internal class APIRequest
                 }
                 if let err = error
                 {
-                    completion( err )
+                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTH_FETCH_ERROR, message: err.description))
+                    return
                 }
                 if let oAuthtoken = token, token.notNilandEmpty
                 {
                     self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( oAuthtoken )")
                     completion( nil )
+                    return
                 }
                 else
                 {
                     print( "oAuthtoken is empty." )
-                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTHTOKEN_NIL, message: ErrorCode.OAUTHTOKEN_NIL.rawValue))
+                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTHTOKEN_NIL, message: ErrorMessage.OAUTHTOKEN_NIL_MSG))
                 }
             }
         }
     }
     
-	
+    
     private func addHeader(headerName : String, headerVal : String)
     {
         self.headers[headerName] = headerVal
     }
-	
-    private func initialiseRequest( completion : @escaping( Error? ) -> () )
+    
+    private func initialiseRequest( completion : @escaping( ZCRMError? ) -> () )
     {
-		if isOAuth == true
-		{
+        if isOAuth == true
+        {
             self.authenticateRequest { ( error ) in
                 if let err = error
                 {
@@ -154,7 +158,7 @@ internal class APIRequest
                     if ( self.url?.absoluteString == nil )
                     {
                         let urlString = self.baseUrl+self.urlPath
-    
+                        
                         let set = CharacterSet(charactersIn: " ").inverted
                         if let encodedURLString = urlString.addingPercentEncoding(withAllowedCharacters: set)
                         {
@@ -165,12 +169,13 @@ internal class APIRequest
                             }
                             else
                             {
-                                completion(ZCRMError.SDKError(code: .INTERNAL_ERROR, message: "Unable to construct URL"))
+                                completion(ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: "Unable to construct URL"))
+                                return
                             }
                         }
                         else
                         {
-                            completion(ZCRMError.SDKError(code: .INTERNAL_ERROR, message: "Adding percent encoding error occured"))
+                            completion(ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: "Adding percent encoding error occured"))
                         }
                     }
                     else
@@ -197,107 +202,111 @@ internal class APIRequest
         }
     }
     
-    internal func getAPIResponse( completion : @escaping( APIResponse?, Error? ) -> () )
-    {
     
+    internal func getAPIResponse( completion : @escaping (Result.Response<APIResponse>) -> Void )
+    {
         self.initialiseRequest { ( err ) in
             
             if let error = err
             {
-                completion( nil, error )
+                completion(.failure(error))
+                return
             }
             else
             {
                 self.makeRequest { ( urlResp, responseData, error ) in
                     if let err = error
                     {
-                        completion( nil, err )
+                        completion(.failure(err))
+                        return
                     }
                     else if let urlResponse = urlResp
                     {
                         do
                         {
                             let response = try APIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
-                            completion( response, nil )
+                            completion(.success(response))
                         }
                         catch
                         {
-                            completion( nil, error )
+                            completion(.failure( typeCastToZCRMError( error ) ) )
                         }
                     }
                     else
                     {
-                        completion( nil, ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorCode.RESPONSE_NIL.rawValue))
+                        completion(.failure(ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG)))
                     }
                 }
             }
         }
     }
     
-    internal func getBulkAPIResponse( completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func getBulkAPIResponse( completion : @escaping(Result.Response<BulkAPIResponse>) -> () )
     {
         self.initialiseRequest { ( err ) in
             if let initialiseReqError = err
             {
-                completion( nil, initialiseReqError )
+                completion(.failure(initialiseReqError))
             }
             else
             {
                 self.makeRequest { ( urlResp, responseData, error ) in
                     if let reqError = error
                     {
-                        completion( nil, reqError )
+                        completion(.failure(reqError))
+                        return
                     }
                     else if let urlResponse = urlResp
                     {
                         do
                         {
                             let response = try BulkAPIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
-                            completion( response, nil )
+                            completion(.success(response))
                         }
                         catch
                         {
-                            completion( nil, error )
+                            completion(.failure( typeCastToZCRMError( error ) ) )
                         }
                     }
                     else
                     {
-                        completion( nil, ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorCode.RESPONSE_NIL.rawValue))
+                        completion(.failure(ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG)))
                     }
                 }
             }
         }
     }
-    
-    internal func uploadLink( completion : @escaping( APIResponse?, Error? ) -> () )
+
+    internal func uploadLink( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         let boundary = BOUNDARY
         self.createMultipartRequest( bodyData : Data(), boundary : boundary )
         self.makeRequest { ( urlResp, responseData, error ) in
             if let err = error
             {
-                completion( nil, err )
+                completion( .failure( typeCastToZCRMError( err ) ) )
+                return
             }
             else if let urlResponse = urlResp
             {
                 do
                 {
                     let response = try APIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
-                    completion( response, nil )
+                    completion( .success( response ) )
                 }
                 catch
                 {
-                    completion( nil, error )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             else
             {
-                completion( nil, ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorCode.RESPONSE_NIL.rawValue))
+                completion( .failure( ZCRMError.SDKError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG ) ) )
             }
         }
     }
-    
-    internal func uploadFile( filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
+
+    internal func uploadFile( filePath : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         let fileURL = URL( fileURLWithPath : filePath )
         let boundary = BOUNDARY
@@ -306,28 +315,28 @@ internal class APIRequest
         self.makeRequest { ( urlResponse, responseData, error ) in
             if let err = error
             {
-                completion( nil, err )
+                completion( .failure( typeCastToZCRMError( err ) ) )
+                return
             }
             else if let urlResp = urlResponse
             {
                 do
                 {
                     let response = try APIResponse( response : urlResp, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
-                    completion( response, nil )
+                    completion( .success( response ) )
                 }
-                catch
-                {
-                    completion( nil, error )
+                catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             else
             {
-                completion( nil, ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorCode.RESPONSE_NIL.rawValue))
+                completion( .failure( ZCRMError.SDKError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG ) ) )
             }
         }
     }
     
-    internal func uploadFileWithData( fileName : String, data : Data, completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func uploadFileWithData( fileName : String, data : Data, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         let boundary = BOUNDARY
         let httpBodyData = getFilePart( fileURL : nil, data : data, fileName : fileName, boundary : boundary )
@@ -335,55 +344,55 @@ internal class APIRequest
         self.makeRequest { ( urlResponse, responseData, error) in
             if let err = error
             {
-                completion( nil, err )
+                completion( .failure( typeCastToZCRMError( err ) ) )
+                return
             }
             else if let urlResp = urlResponse
             {
                 do
                 {
                     let response = try APIResponse( response : urlResp, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
-                    completion( response, nil )
+                    completion( .success( response ) )
                 }
                 catch
                 {
-                    completion( nil, error )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             else
             {
-                completion( nil, ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorCode.RESPONSE_NIL.rawValue))
+                completion( .failure( ZCRMError.SDKError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG ) ) )
+                
             }
         }
     }
     
-    private func makeRequest( completion : @escaping ( HTTPURLResponse?, Data?, Error? ) -> () )
+    private func makeRequest( completion : @escaping ( HTTPURLResponse?, Data?, ZCRMError? ) -> () )
     {
-        var error : Error? = nil
         if let request = self.request
         {
             URLSession.shared.dataTask( with : request, completionHandler:{
                 ( data, response, err ) in
                 
-                guard err == nil else
+                if let error = err
                 {
-                    error = err
-                    completion( nil, nil, ZCRMError.SDKError(code: .INTERNAL_ERROR, message: (error?.description)!) )
+                    completion( nil, nil, ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: (error.description)) )
                     return
                 }
                 if let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse
                 {
-                    completion( httpResponse, data, err )
+                    completion( httpResponse, data, nil )
                 }
                 else
                 {
-                    completion( nil, nil, ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorCode.RESPONSE_NIL.rawValue))
+                    completion(nil, nil, ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG))
                     return
                 }
             }).resume()
         }
         else
         {
-            completion( nil, nil, ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorCode.RESPONSE_NIL.rawValue))
+            completion(nil, nil, ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: "Request is nil"))
         }
     }
     
@@ -434,13 +443,13 @@ internal class APIRequest
         }
         return "application/octet-stream"
     }
-    
-    internal func downloadFile( completion : @escaping( FileAPIResponse?, Error? ) -> () )
+
+    internal func downloadFile( completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
     {
         self.initialiseRequest { ( err ) in
             if let error = err
             {
-                completion( nil, error )
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
             else
             {
@@ -449,7 +458,7 @@ internal class APIRequest
                     guard err == nil else
                     {
                         error = err
-                        completion( nil, ZCRMError.SDKError(code: .INTERNAL_ERROR, message: (error?.description)!) )
+                        completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.INTERNAL_ERROR, message : ( error?.description )! ) ) )
                         return
                     }
                     if let fileResponse = response as? HTTPURLResponse, let localUrl = tempLocalUrl
@@ -457,16 +466,16 @@ internal class APIRequest
                         do
                         {
                             let response = try FileAPIResponse( response : fileResponse, tempLocalUrl : localUrl )
-                            completion( response, nil )
+                            completion( .success( response ) )
                         }
                         catch
                         {
-                            completion( nil, error )
+                            completion( .failure( typeCastToZCRMError( error ) ) )
                         }
                     }
                     else
                     {
-                        completion( nil, ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorCode.RESPONSE_NIL.rawValue))
+                        completion( .failure( ZCRMError.SDKError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG ) ) )
                     }
                 }).resume()
             }
@@ -495,4 +504,3 @@ internal class APIRequest
         }
     }
 }
-

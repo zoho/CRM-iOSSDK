@@ -9,7 +9,7 @@ import Foundation
 
 internal class TaxAPIHandler : CommonAPIHandler
 {
-    internal func getAllTaxes( completion : @escaping( [ ZCRMOrgTax ]?, BulkAPIResponse?, Error? ) -> () )
+    internal func getAllTaxes( completion : @escaping( Result.DataResponse< [ ZCRMOrgTax ], BulkAPIResponse > ) -> () )
     {
         var taxes : [ ZCRMOrgTax ] = [ ZCRMOrgTax ]()
         
@@ -20,30 +20,29 @@ internal class TaxAPIHandler : CommonAPIHandler
         let request : APIRequest = APIRequest( handler: self )
         print( "Request : \( request.toString() )" )
         
-        request.getBulkAPIResponse(completion: { ( response, err ) in
-            if let error = err
+        request.getBulkAPIResponse(completion: { ( resultType ) in
+            do
             {
-                completion( nil, nil, error )
-                return
-            }
-            if let bulkResponse = response
-            {
+                let bulkResponse = try resultType.resolve()
                 let responseJSON = bulkResponse.getResponseJSON()
-                if( responseJSON.isEmpty == false )
+                if responseJSON.isEmpty == false
                 {
-                    let taxesList :[[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                    let taxesList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     for taxDetails in taxesList
                     {
-                        taxes.append(self.getZCRMOrgTax(taxDetails: taxDetails))
+                       taxes.append(self.getZCRMOrgTax(taxDetails: taxDetails))
                     }
                     bulkResponse.setData(data: taxes)
                 }
-                completion( taxes, bulkResponse, nil)
+                completion( .success( taxes, bulkResponse ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         } )
     }
     
-    internal func getTax( taxId : Int64, completion : @escaping( ZCRMOrgTax?, APIResponse?, Error? ) -> () )
+    internal func getTax( taxId : Int64, completion : @escaping( Result.DataResponse< ZCRMOrgTax, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.TAXES )
         setUrlPath(urlPath: "/org/taxes/\(taxId)")
@@ -52,24 +51,24 @@ internal class TaxAPIHandler : CommonAPIHandler
         let request = APIRequest(handler: self)
         print( "Request : \(request.toString())" )
         
-        request.getAPIResponse { ( resp, err ) in
-            if let error = err
+        request.getAPIResponse { ( resultType ) in
+            do
             {
-                completion( nil, nil, error )
-                return
-            }
-            if let response = resp
-            {
-                let responseJSON = response.getResponseJSON()
-                let taxesList:[[String : Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                let response = try resultType.resolve()
+                let responseJSON : [String:Any] = response.getResponseJSON()
+                let taxesList : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                 let tax = self.getZCRMOrgTax(taxDetails: taxesList[0])
                 response.setData(data: tax )
-                completion( tax, response, nil )
+                completion( .success( tax, response ))
+            }
+            catch
+            {
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
     }
     
-    internal func createTaxes( taxes : [ ZCRMOrgTax ], completion : @escaping( [ ZCRMOrgTax ]?, BulkAPIResponse?, Error? ) -> () )
+    internal func createTaxes( taxes : [ ZCRMOrgTax ], completion : @escaping( Result.DataResponse< [ ZCRMOrgTax ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.TAXES )
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
@@ -90,22 +89,17 @@ internal class TaxAPIHandler : CommonAPIHandler
         let request : APIRequest = APIRequest( handler: self )
         print( "Request : \( request.toString() )" )
         
-        request.getBulkAPIResponse { (response, err) in
-            if let error = err
-            {
-                completion( nil, nil, error )
-                return
-            }
-            if let bulkResponse = response
-            {
+        request.getBulkAPIResponse { ( resultType ) in
+            do{
+                let bulkResponse = try resultType.resolve()
                 let responses : [EntityResponse] = bulkResponse.getEntityResponses()
-                var createdTaxes: [ZCRMOrgTax] = [ZCRMOrgTax]()
+                var createdTaxes : [ZCRMOrgTax] = [ZCRMOrgTax]()
                 for entityResponse in responses
                 {
                     if(CODE_SUCCESS == entityResponse.getStatus())
                     {
                         let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                        let taxJSON :[String:Any] = entResponseJSON.getDictionary(key: DETAILS)
+                        let taxJSON : [String:Any] = entResponseJSON.getDictionary(key: DETAILS)
                         let tax : ZCRMOrgTax = self.getZCRMOrgTax(taxDetails: taxJSON)
                         createdTaxes.append(tax)
                         entityResponse.setData(data: tax)
@@ -115,13 +109,16 @@ internal class TaxAPIHandler : CommonAPIHandler
                         entityResponse.setData(data: nil)
                     }
                 }
-                bulkResponse.setData(data: createdTaxes)
-                completion( createdTaxes, bulkResponse, nil )
+                bulkResponse.setData( data : createdTaxes )
+                completion( .success( createdTaxes, bulkResponse ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
     }
     
-    internal func updateTaxes( taxes : [ ZCRMOrgTax ], completion : @escaping( [ ZCRMOrgTax ]?, BulkAPIResponse?, Error? ) -> () )
+    internal func updateTaxes( taxes : [ ZCRMOrgTax ], completion : @escaping( Result.DataResponse< [ ZCRMOrgTax ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.TAXES)
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
@@ -141,14 +138,9 @@ internal class TaxAPIHandler : CommonAPIHandler
         
         let request : APIRequest = APIRequest(handler: self)
         print( "Request : \(request.toString())" )
-        request.getBulkAPIResponse { ( response, err ) in
-            if let error = err
-            {
-                completion( nil, nil, error )
-                return
-            }
-            if let bulkResponse = response
-            {
+        request.getBulkAPIResponse { ( resultType ) in
+            do{
+                let bulkResponse = try resultType.resolve()
                 let responses : [EntityResponse] = bulkResponse.getEntityResponses()
                 var updatedTaxes : [ZCRMOrgTax] = [ZCRMOrgTax]()
                 for entityResponse in responses
@@ -166,13 +158,16 @@ internal class TaxAPIHandler : CommonAPIHandler
                         entityResponse.setData(data: nil)
                     }
                 }
-                bulkResponse.setData(data: updatedTaxes)
-                completion( updatedTaxes, bulkResponse, nil )
+                bulkResponse.setData( data : updatedTaxes )
+                completion( .success( updatedTaxes, bulkResponse ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
     }
     
-    internal func deleteTax( taxId : Int64, completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func deleteTax( taxId : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.TAXES)
         let idString = String(taxId)
@@ -180,12 +175,18 @@ internal class TaxAPIHandler : CommonAPIHandler
         setRequestMethod(requestMethod: .DELETE )
         let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
-        request.getAPIResponse { ( response, error ) in
-            completion( response, error )
+        request.getAPIResponse { ( resultType ) in
+            do{
+                let response = try resultType.resolve()
+                completion( .success( response ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
         }
     }
     
-    internal func deleteTaxes( ids : [ Int64 ], completion : @escaping( BulkAPIResponse?, Error? ) -> () )
+    internal func deleteTaxes( ids : [ Int64 ], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.TAXES)
         var idsString : String = String()
@@ -204,8 +205,22 @@ internal class TaxAPIHandler : CommonAPIHandler
         let request : APIRequest = APIRequest( handler: self )
         print( "Request : \( request.toString() )" )
         
-        request.getBulkAPIResponse { (response, error) in
-            completion( response, error )
+        request.getBulkAPIResponse { ( resultType ) in
+            do{
+                let bulkResponse = try resultType.resolve()
+                let responses : [EntityResponse] = bulkResponse.getEntityResponses()
+                for entityResponse in responses
+                {
+                    let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
+                    let taxJSON : [String:Any] = entResponseJSON.getDictionary(key: DETAILS)
+                    let tax : ZCRMOrgTax = self.getZCRMOrgTax(taxDetails: taxJSON)
+                    entityResponse.setData(data: tax)
+                }
+                completion( .success( bulkResponse ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
         }
     }
     
