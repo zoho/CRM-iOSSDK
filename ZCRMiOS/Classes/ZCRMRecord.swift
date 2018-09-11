@@ -357,7 +357,7 @@ public class ZCRMRecord : ZCRMEntity
     ///
     /// - Returns: dictionary containing deal, contact and account vs its ID of the converted ZCRMRecord
     /// - Throws: ZCRMSDKError if the ZCRMRecord is not convertible
-    public func convert( completion : @escaping( [ String : Any ]?, Error? ) -> () )
+    public func convert( completion : @escaping( [ String : Any ]?, APIResponse?, Error? ) -> () )
     {
         if(self.moduleAPIName != "Leads")
         {
@@ -365,8 +365,8 @@ public class ZCRMRecord : ZCRMEntity
         }
         else
         {
-            self.convert(newPotential: nil, assignTo: nil) { ( convertedRecordDict, error ) in
-                completion( convertedRecordDict, error )
+            self.convert(newPotential: nil, assignTo: nil) { ( convertedRecordDict, APIResponse, error ) in
+                completion( convertedRecordDict, APIResponse, error )
             }
         }
     }
@@ -386,8 +386,8 @@ public class ZCRMRecord : ZCRMEntity
         else
         {
             self.convert( newPotential: newPotential, assignTo: nil){
-                ( convertedRecordDict,APIResponse,error ) in
-                completion( convertedRecordDict,APIResponse,error )
+                ( convertedRecordDict, APIResponse, error ) in
+                completion( convertedRecordDict, APIResponse, error )
             }
         }
     }
