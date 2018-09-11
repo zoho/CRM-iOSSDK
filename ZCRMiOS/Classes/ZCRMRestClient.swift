@@ -12,38 +12,38 @@ public class ZCRMRestClient
 {
     public init() {}
     
-    public func getOrganisationDetails( completion : @escaping( ZCRMOrganisation?, APIResponse?, Error? ) -> () )
+    public func getOrganisationDetails( completion : @escaping( Result.DataResponse< ZCRMOrganisation, APIResponse > ) -> () )
     {
-        OrganizationAPIHandler().getOrganizationDetails() { ( org, response, error ) in
-            completion( org, response, error )
+        OrganizationAPIHandler().getOrganizationDetails() { ( result ) in
+            completion( result )
         }
     }
     
-    public func getModule( moduleAPIName : String, completion : @escaping( ZCRMModule?, APIResponse?, Error? ) -> () )
+    public func getModule( moduleAPIName : String, completion : @escaping( Result.DataResponse< ZCRMModule, APIResponse > ) -> () )
     {
-        MetaDataAPIHandler().getModule( apiName : moduleAPIName ) { ( module, response, error ) in
-            completion( module, response, error )
+        MetaDataAPIHandler().getModule( apiName : moduleAPIName ) { ( result ) in
+            completion( result )
         }
     }
     
-    public func getAllModules( completion : @escaping( [ ZCRMModule ]?, BulkAPIResponse?, Error? ) -> () )
+    public func getAllModules( completion : @escaping( Result.DataResponse< [ ZCRMModule ], BulkAPIResponse > ) -> () )
     {
-        MetaDataAPIHandler().getAllModules( modifiedSince : nil ) { ( modules, response, error ) in
-            completion( modules, response, error )
+        MetaDataAPIHandler().getAllModules( modifiedSince : nil ) { ( result ) in
+            completion( result )
         }
     }
     
-    public func getAllModules( modifiedSince : String, completion : @escaping( [ ZCRMModule ]?, BulkAPIResponse?, Error? ) -> () )
+    public func getAllModules( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMModule ], BulkAPIResponse > ) -> () )
     {
-        MetaDataAPIHandler().getAllModules( modifiedSince : modifiedSince ) { ( modules, response, error ) in
-            completion( modules, response, error )
+        MetaDataAPIHandler().getAllModules( modifiedSince : modifiedSince ) { ( result ) in
+            completion( result )
         }
     }
     
-    public func getCurrentUser( completion : @escaping( ZCRMUser?, APIResponse?, Error? ) -> () )
+    public func getCurrentUser( completion : @escaping( Result.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
-        UserAPIHandler().getCurrentUser() { ( user, response, error ) in
-            completion( user, response, error )
+        UserAPIHandler().getCurrentUser() { ( result ) in
+            completion( result )
         }
     }
 }

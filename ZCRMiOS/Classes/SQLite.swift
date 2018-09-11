@@ -24,8 +24,7 @@ public class SQLite
         if sqlite3_open( dbURL.absoluteString, &database) != SQLITE_OK
         {
             print( "\( dbURL.absoluteString ) - Unable to open database" )
-//            throw ZCRMError.ProcessingError( "\( dbURL.absoluteString ) - Unable to open database" )
-            throw ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : "\( dbURL.absoluteString ) - Unable to open database" )
+            throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "\( dbURL.absoluteString ) - Unable to open database" )
         }
     
         try enableForeignKey()
@@ -47,8 +46,7 @@ public class SQLite
             {
                 let errmsg = String(cString: sqlite3_errmsg(database)!)
                 print(">> Error occured, Details : \( errmsg )" )
-//                throw ZCRMError.ProcessingError(errmsg)
-                throw ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : errmsg )
+                throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : errmsg )
             }
         }
         sqlite3_finalize(prepareStatement)
@@ -69,8 +67,7 @@ public class SQLite
         {
             let errmsg = String(cString: sqlite3_errmsg(database)!)
             print(">> Error occured, Details : \( errmsg )" )
-//            throw ZCRMError.ProcessingError( errmsg )
-            throw ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : errmsg )
+            throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : errmsg )
         }
         return prepareStatement!
     }
@@ -137,8 +134,7 @@ public class SQLite
             {
                 let errmsg = String(cString: sqlite3_errmsg(database)!)
                 print(">> Error occured, Details : \( errmsg )" )
-//                throw ZCRMError.ProcessingError(errmsg)
-                throw ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : errmsg )
+                throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : errmsg )
             }
         }
         sqlite3_finalize(prepareStatement)

@@ -28,8 +28,8 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     {
         self.init(parentRecord: parentRecord, relatedList: nil, junctionRecord: junctionRecord)
     }
-    
-    internal func getRecords(page : Int, per_page : Int, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String?, completion : @escaping( [ ZCRMRecord ]?, BulkAPIResponse?, Error? ) -> () )
+
+    internal func getRecords(page : Int, per_page : Int, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
 	{
 		var records : [ZCRMRecord] = [ZCRMRecord]()
         if let relatedList = self.relatedList
@@ -53,14 +53,9 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
             
-            request.getBulkAPIResponse { ( response, err ) in
-                if let error = err
-                {
-                    completion( nil, nil, error )
-                    return
-                }
-                if let bulkResponse = response
-                {
+            request.getBulkAPIResponse { ( resultType ) in
+                do{
+                    let bulkResponse = try resultType.resolve()
                     let responseJSON = bulkResponse.getResponseJSON()
                     if responseJSON.isEmpty == false
                     {
@@ -72,18 +67,25 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                             records.append(record)
                         }
                         bulkResponse.setData(data: records)
+                        completion( .success( records, bulkResponse ) )
                     }
-                    completion( records, bulkResponse, nil )
+                    else
+                    {
+                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_NIL_MSG ) ) )
+                    }
+                }
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) ) )
         }
 	}
-	
-    internal func getNotes( page : Int, per_page : Int, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String?, completion : @escaping( [ ZCRMNote ]?, BulkAPIResponse?, Error? ) -> () )
+
+    internal func getNotes( page : Int, per_page : Int, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String?, completion : @escaping( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
 	{
         if let relatedList = self.relatedList
         {
@@ -107,14 +109,9 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
             
-            request.getBulkAPIResponse { ( response, err ) in
-                if let error = err
-                {
-                    completion( nil, nil, error )
-                    return
-                }
-                if let bulkResponse = response
-                {
+            request.getBulkAPIResponse { ( resultType ) in
+                do{
+                    let bulkResponse = try resultType.resolve()
                     let responseJSON = bulkResponse.getResponseJSON()
                     if responseJSON.isEmpty == false
                     {
@@ -124,18 +121,25 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                             notes.append( self.getZCRMNote( noteDetails : noteDetails, note : ZCRMNote( noteId : noteDetails.getInt64( key : ResponseJSONKeys.id ) ) ) )
                         }
                         bulkResponse.setData(data: notes)
+                        completion( .success( notes, bulkResponse ) )
                     }
-                    completion( notes, bulkResponse, nil )
+                    else
+                    {
+                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_NIL_MSG ) ) )
+                    }
+                }
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) ) )
         }
 	}
-	
-    internal func getAllAttachmentsDetails( page : Int, per_page : Int, modifiedSince : String?, completion : @escaping( [ ZCRMAttachment ]?, BulkAPIResponse?, Error? ) -> () )
+
+    internal func getAllAttachmentsDetails( page : Int, per_page : Int, modifiedSince : String?, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
 	{
         if let relatedList = self.relatedList
         {
@@ -151,14 +155,9 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
             
-            request.getBulkAPIResponse { ( response, err ) in
-                if let error = err
-                {
-                    completion( nil, nil, error )
-                    return
-                }
-                if let bulkResponse = response
-                {
+            request.getBulkAPIResponse { ( resultType ) in
+                do{
+                    let bulkResponse = try resultType.resolve()
                     let responseJSON = bulkResponse.getResponseJSON()
                     if responseJSON.isEmpty == false
                     {
@@ -168,18 +167,25 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                             attachments.append(self.getZCRMAttachment(attachmentDetails: attachmentDetails))
                         }
                         bulkResponse.setData(data: attachments)
+                        completion( .success( attachments, bulkResponse ) )
                     }
-                    completion( attachments, bulkResponse, nil )
+                    else
+                    {
+                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_NIL_MSG ) ) )
+                    }
+                }
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) ) )
         }
 	}
-	
-    internal func uploadAttachment( filePath : String, completion : @escaping( ZCRMAttachment?, APIResponse?, Error? ) -> () )
+
+    internal func uploadAttachment( filePath : String, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
@@ -187,31 +193,30 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             setRequestMethod(requestMethod: .POST )
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
-            request.uploadFile( filePath : filePath, completion : { ( resp, err ) in
-                if let error = err
-                {
-                    completion( nil, nil, error )
-                    return
-                }
-                if let response = resp
-                {
+            
+            request.uploadFile( filePath : filePath, completion: { ( resultType ) in
+                do{
+                    let response = try resultType.resolve()
                     let responseJSON = response.getResponseJSON()
                     let respDataArr : [[String:Any?]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     let respData : [String:Any?] = respDataArr[0]
                     let recordDetails : [String:Any] = respData.getDictionary( key : DETAILS )
                     let attachment = self.getZCRMAttachment(attachmentDetails: recordDetails)
                     response.setData(data: attachment)
-                    completion( attachment, response, nil )
+                    completion( .success( attachment, response ) )
+                }
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             })
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) ) )
         }
     }
-    
-    internal func uploadLinkAsAttachment( attachmentURL : String, completion : @escaping( ZCRMAttachment?, APIResponse?, Error? ) -> () )
+
+    internal func uploadLinkAsAttachment( attachmentURL : String, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
@@ -220,29 +225,28 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             setRequestMethod(requestMethod: .POST )
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
-            request.uploadLink { ( resp, err ) in
-                if let error = err
-                {
-                    completion( nil, nil, error )
-                    return
-                }
-                if let response = resp
-                {
+            
+            request.uploadLink { ( resultType ) in
+                do{
+                    let response = try resultType.resolve()
                     let responseJSONArray : [ [ String : Any ] ]  = response.getResponseJSON().getArrayOfDictionaries( key : self.getJSONRootKey() )
                     let details = responseJSONArray[ 0 ].getDictionary( key : DETAILS )
                     let attachment = self.getZCRMAttachment(attachmentDetails: details)
                     response.setData( data : attachment )
-                    completion( attachment, response, nil )
+                    completion( .success( attachment, response ) )
+                }
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) ) )
         }
     }
-    
-    internal func downloadAttachment( attachmentId : Int64, completion : @escaping( FileAPIResponse?, Error? ) -> () )
+
+    internal func downloadAttachment( attachmentId : Int64, completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
 	{
         if let relatedList = self.relatedList
         {
@@ -250,17 +254,24 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             setRequestMethod(requestMethod: .GET )
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
-            request.downloadFile { ( response, error ) in
-                completion( response, error )
+            
+            request.downloadFile { ( resultType ) in
+                do{
+                    let response = try resultType.resolve()
+                    completion( .success( response ) )
+                }
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
             }
         }
         else
         {
-            completion( nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) ) )
         }
 	}
-    
-    internal func deleteAttachment( attachmentId : Int64, completion : @escaping( APIResponse?, Error? ) -> () )
+
+    internal func deleteAttachment( attachmentId : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
@@ -268,17 +279,24 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             setRequestMethod(requestMethod: .DELETE )
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
-            request.getAPIResponse { ( response, error ) in
-                completion( response, error )
+            
+            request.getAPIResponse { ( resultType ) in
+                do{
+                    let response = try resultType.resolve()
+                    completion( .success( response ) )
+                }
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
             }
         }
         else
         {
-            completion( nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) ) )
         }
     }
-	
-    internal func addNote( note : ZCRMNote, completion : @escaping( ZCRMNote?, APIResponse?, Error? ) -> () )
+
+    internal func addNote( note : ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
 	{
         if let relatedList = self.relatedList
         {
@@ -293,37 +311,35 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
             
-            request.getAPIResponse { ( resp, err ) in
-                if let error = err
-                {
-                    completion( nil, nil, error )
-                    return
-                }
-                if let response = resp
-                {
+            request.getAPIResponse { ( resultType ) in
+                do{
+                    let response = try resultType.resolve()
                     let responseJSON = response.getResponseJSON()
                     let respDataArr : [[String:Any?]] = responseJSON.optArrayOfDictionaries(key: self.getJSONRootKey())!
                     let respData : [String:Any?] = respDataArr[0]
                     let recordDetails : [String:Any] = respData.getDictionary( key : DETAILS )
                     let note = self.getZCRMNote(noteDetails: recordDetails, note: note)
                     response.setData(data: note )
-                    completion( note, response, nil )
+                    completion( .success( note, response ) )
+                }
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) ) )
         }
 	}
-	
-    internal func updateNote( note : ZCRMNote, completion : @escaping( ZCRMNote?, APIResponse?, Error? ) -> () )
+
+    internal func updateNote( note : ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
 	{
         if let relatedList = self.relatedList
         {
             if note.getId() == nil
             {
-                completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Note ID MUST NOT be nil" ) )
+                completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Note ID MUST NOT be nil" ) ) )
             }
             else
             {
@@ -339,32 +355,30 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                 let request : APIRequest = APIRequest(handler: self)
                 print( "Request : \( request.toString() )" )
                 
-                request.getAPIResponse { ( resp, err ) in
-                    if let error = err
-                    {
-                        completion( nil, nil, error )
-                        return
-                    }
-                    if let response = resp
-                    {
+                request.getAPIResponse { ( resultType ) in
+                    do{
+                        let response = try resultType.resolve()
                         let responseJSON = response.getResponseJSON()
                         let respDataArr : [[String:Any?]] = responseJSON.optArrayOfDictionaries(key: self.getJSONRootKey())!
                         let respData : [String:Any?] = respDataArr[0]
                         let recordDetails : [String:Any] = respData.getDictionary(key: DETAILS)
                         let updatedNote = self.getZCRMNote(noteDetails: recordDetails, note: note)
                         response.setData(data: updatedNote )
-                        completion( updatedNote, response, nil )
+                        completion( .success( updatedNote, response ) )
+                    }
+                    catch{
+                        completion( .failure( typeCastToZCRMError( error ) ) )
                     }
                 }
             }
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) ) )
         }
 	}
-	
-    internal func deleteNote( noteId : Int64, completion : @escaping( APIResponse?, Error? ) -> () )
+
+    internal func deleteNote( noteId : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
 	{
         if let relatedList = self.relatedList
         {
@@ -373,13 +387,19 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             setRequestMethod(requestMethod: .DELETE )
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
-            request.getAPIResponse { ( response, error ) in
-                completion( response, error )
+            request.getAPIResponse { ( resultType ) in
+                do{
+                    let response = try resultType.resolve()
+                    completion( .success( response ) )
+                }
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
             }
         }
         else
         {
-            completion( nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) ) )
         }
 	}
 	
@@ -495,8 +515,8 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 		noteJSON[ResponseJSONKeys.noteContent] = note.getContent()
 		return noteJSON
 	}
-    
-    internal func addRelation( completion : @escaping( APIResponse?, Error? ) -> () )
+
+    internal func addRelation( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
 		if let junctionRecord = self.junctionRecord
         {
@@ -518,13 +538,19 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
             
-            request.getAPIResponse { ( response, error ) in
-                completion( response, error )
+            request.getAPIResponse { ( resultType ) in
+                do{
+                    let response = try resultType.resolve()
+                    completion( .success( response ) )
+                }
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
             }
         }
         else
         {
-            completion( nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Juction Record MUST NOT be nil" ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Juction Record MUST NOT be nil" ) ) )
         }
     }
     
@@ -538,8 +564,8 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         return relatedDetailsJSON
     }
-    
-    internal func deleteRelation( completion : @escaping( APIResponse?, Error? ) -> () )
+
+    internal func deleteRelation( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         if let junctionRecord = self.junctionRecord
         {
@@ -547,13 +573,20 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             setRequestMethod(requestMethod: .DELETE )
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
-            request.getAPIResponse { ( response, error ) in
-                completion( response, error )
+            
+            request.getAPIResponse { ( resultType ) in
+                do{
+                    let response = try resultType.resolve()
+                    completion( .success( response ) )
+                }
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
             }
         }
         else
         {
-            completion( nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Juction Record MUST NOT be nil" ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Juction Record MUST NOT be nil" ) ) )
         }
     }
     
