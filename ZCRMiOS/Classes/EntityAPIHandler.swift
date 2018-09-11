@@ -494,13 +494,22 @@ internal class EntityAPIHandler : CommonAPIHandler
 	
 	internal func getZCRMSubformRecord( apiName : String , subformDetails : [ String : Any ] ) -> ZCRMSubformRecord
 	{
-		let zcrmSubform : ZCRMSubformRecord = ZCRMSubformRecord(apiName : apiName, id: subformDetails.getInt64(key: "id" ))
-		zcrmSubform.setModifiedTime(modifiedTime: subformDetails.getString(key: "Modified_Time" ) )
-		zcrmSubform.setCreatedTime(createdTime: subformDetails.getString(key: "Created_Time" ) )
-		let ownerDetails : [ String : Any ] = subformDetails.getDictionary(key: "Owner")
-		let owner : ZCRMUser = ZCRMUser(userId: ownerDetails.getInt64(key: "id"), userFullName: ownerDetails.getString(key: "name"))
-		zcrmSubform.setOwner(owner: owner)
-		return zcrmSubform
+        let zcrmSubform : ZCRMSubformRecord = ZCRMSubformRecord(apiName : apiName, id: subformDetails.getInt64(key: "id" ))
+        if subformDetails.hasValue(forKey: "Modified_Time")
+        {
+            zcrmSubform.setModifiedTime(modifiedTime: subformDetails.getString(key: "Modified_Time"))
+        }
+        if subformDetails.hasValue(forKey: "Created_Time")
+        {
+            zcrmSubform.setCreatedTime(createdTime: subformDetails.getString(key: "Created_Time"))
+        }
+        if subformDetails.hasValue(forKey: "Owner")
+        {
+            let ownerDetails : [ String : Any ] = subformDetails.getDictionary(key: "Owner")
+            let owner : ZCRMUser = ZCRMUser(userId: ownerDetails.getInt64(key: "id"), userFullName: ownerDetails.getString(key: "name"))
+            zcrmSubform.setOwner(owner: owner)
+        }
+        return zcrmSubform
 	}
 	
     private func setTaxDetails( taxDetails : [ [ String : Any ] ] )
