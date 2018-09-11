@@ -6,16 +6,19 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
-internal class MetaDataAPIHandler
+internal class MetaDataAPIHandler : CommonAPIHandler
 {
     internal func getAllModules( modifiedSince : String? ) throws -> BulkAPIResponse
 	{
 		var allModules : [ZCRMModule] = [ZCRMModule]()
-		let request : APIRequest = APIRequest(urlPath: "/settings/modules", reqMethod: RequestMethod.GET)
-        if ( modifiedSince != nil )
+		setUrlPath(urlPath: "/settings/modules" )
+		setRequestMethod(requestMethod: .GET )
+        if ( modifiedSince.notNilandEmpty)
         {
-            request.addHeader( headerName : "If-Modified-Since", headerVal : modifiedSince! )
+			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
         }
+		let request : APIRequest = APIRequest(handler : self ) 
+        print( "Request : \( request.toString() )" )
         let response = try request.getBulkAPIResponse()
 		let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
@@ -32,7 +35,10 @@ internal class MetaDataAPIHandler
 	
 	internal func getModule(apiName : String) throws -> APIResponse
 	{
-		let request : APIRequest = APIRequest(urlPath: "/settings/modules/\(apiName)", reqMethod: RequestMethod.GET)
+		setUrlPath(urlPath: "/settings/modules/\(apiName)" )
+		setRequestMethod(requestMethod: .GET )
+		let request : APIRequest = APIRequest(handler: self)
+        print( "Request : \( request.toString() )" )
         let response = try request.getAPIResponse()
 		let responseJSON = response.getResponseJSON()
 		let modulesList:[[String : Any]] = responseJSON.getArrayOfDictionaries(key: "modules")

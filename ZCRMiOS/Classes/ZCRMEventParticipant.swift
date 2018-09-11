@@ -97,16 +97,9 @@ public class ZCRMEventParticipant
     /// Returns true if the ZCRMEventParticipant invited
     ///
     /// - Returns: true if the ZCRMEventParticipant invited
-    public func didInvite() -> Bool
+    public func didInvite() -> Bool?
     {
-        if let invited = self.isInvited
-        {
-            return invited
-        }
-        else
-        {
-            return false
-        }
+        return self.isInvited
     }
     
     /// Set true if the ZCRMEventParticipant invited

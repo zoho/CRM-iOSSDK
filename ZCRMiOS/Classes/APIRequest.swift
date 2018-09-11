@@ -1,4 +1,4 @@
-//
+ //
 //  APIRequest.swift
 //  ZCRMiOS
 //
@@ -38,30 +38,35 @@ internal enum RequestMethod : String
     case DELETE = "DELETE"
 }
 
-internal class APIRequest
+internal class APIRequest 
 {
     private var baseUrl : String = "\( APIBASEURL )/crm/\( APIVERSION )"
-    private var urlPath : String
+    private var urlPath : String = ""
     private var requestMethod : RequestMethod
     private var headers : [String : String] = [String : String]()
     private var params : [String : String] = [String : String]()
     private var requestBody : [ String : Any ]?
     private var request : URLRequest?
     private var url : URL?
-    
-    init(urlPath : String, reqMethod : RequestMethod)
-    {
-        self.urlPath = urlPath
-        self.requestMethod = reqMethod
-    }
-    
-    init( url : URL, reqMethod : RequestMethod )
-    {
-        self.url = url
-        self.requestMethod = reqMethod
-        self.urlPath = ""
-    }
-    
+	private var isOAuth : Bool = true
+	
+	init( handler : APIHandler)
+	{
+		if let urlPath = handler.getUrlPath()
+		{
+			self.urlPath = urlPath
+		}
+		else if let url = handler.getUrl()
+		{
+			self.url = url
+		}
+		self.requestMethod = handler.getRequestMethod()
+		self.params = handler.getRequestParams()
+		self.headers = handler.getRequestHeaders()
+		self.requestBody = handler.getRequestBody()
+		self.isOAuth = handler.getRequestType()
+	}
+	
     private func authenticateRequest()
     {
         if( APPTYPE == "ZCRM" )
@@ -74,7 +79,7 @@ internal class APIRequest
         }
     }
     
-    internal func addHeader(headerName : String, headerVal : String)
+    private func addHeader(headerName : String, headerVal : String)
     {
         self.headers[headerName] = headerVal
     }
@@ -91,7 +96,10 @@ internal class APIRequest
     
     private func initialiseRequest()
     {
-        self.authenticateRequest()
+		if isOAuth == true
+		{
+			self.authenticateRequest()
+		}
         if(!self.params.isEmpty)
         {
             self.urlPath += "?"
@@ -99,7 +107,7 @@ internal class APIRequest
             {
                 self.urlPath += key + "=" + value + "&"
             }
-            self.urlPath = self.urlPath.substring(to: self.urlPath.index(before: self.urlPath.endIndex))
+			self.urlPath = String(self.urlPath.dropLast())
         }
         if ( self.url?.absoluteString == nil )
         {
@@ -116,7 +124,7 @@ internal class APIRequest
         {
             request?.setValue(value, forHTTPHeaderField: key)
         }
-        if(self.requestBody != nil)
+		if(self.requestBody != nil && (self.requestBody as! [ String : Any? ] ).isEmpty == false )
         {
             let reqBody = try? JSONSerialization.data(withJSONObject: self.requestBody!, options: [])
             self.request?.httpBody = reqBody
@@ -164,11 +172,6 @@ internal class APIRequest
         var responseData : Data?
         var error : Error? = nil
         URLSession.shared.dataTask(with: self.request!, completionHandler: { data, response, err in
-            guard err == nil else
-            {
-                error = err
-                return
-            }
             responseData = data
             urlResponse = response as! HTTPURLResponse
             sema.signal()
@@ -195,7 +198,7 @@ internal class APIRequest
                 return
             }
             responseData = data
-            urlResponse = response as! HTTPURLResponse
+			urlResponse = response as! HTTPURLResponse
             sema.signal()
         }).resume()
         sema.wait()

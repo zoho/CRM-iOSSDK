@@ -169,7 +169,7 @@ public class FormDBHelper{
         if (layout.getCreatedBy() != nil)
         {
             contentValues.updateValue(layout.getCreatedBy()!.getFullName(), forKey: ZCRMTableDetails.Layout.CREATED_BY_NAME)
-            contentValues.updateValue(String(layout.getCreatedBy()!.getId()), forKey: ZCRMTableDetails.Layout.CREATED_BY_ID)
+            contentValues.updateValue(String(layout.getCreatedBy()!.getId()!), forKey: ZCRMTableDetails.Layout.CREATED_BY_ID)
             
             contentValues.updateValue(layout.getCreatedTime()!, forKey: ZCRMTableDetails.Layout.CREATED_TIME)
         }
@@ -177,7 +177,7 @@ public class FormDBHelper{
         if (layout.getModifiedBy() != nil)
         {
             contentValues.updateValue(layout.getModifiedBy()!.getFullName(), forKey: ZCRMTableDetails.Layout.MODIFIED_BY_NAME)
-            contentValues.updateValue(String(layout.getModifiedBy()!.getId()), forKey: ZCRMTableDetails.Layout.MODIFIED_BY_ID)
+            contentValues.updateValue(String(layout.getModifiedBy()!.getId()!), forKey: ZCRMTableDetails.Layout.MODIFIED_BY_ID)
         
             contentValues.updateValue(layout.getModifiedTime()!, forKey: ZCRMTableDetails.Layout.MODIFIED_TIME)
         }

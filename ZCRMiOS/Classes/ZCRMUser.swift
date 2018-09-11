@@ -8,7 +8,7 @@
 
 public class ZCRMUser : ZCRMEntity
 {
-    private var id : Int64
+    private var id : Int64?
     private var zuId : Int64?
     
     private var fullName : String?
@@ -26,12 +26,14 @@ public class ZCRMUser : ZCRMEntity
     private var street : String?
     private var city : String?
     private var state : String?
+    private var zip : Int64?
     private var country : String?
     private var locale : String?
     private var countryLocale : String?
     
     private var nameFormat : String?
     private var dateFormat : String?
+    private var timeFormat : String?
     
     private var timeZone : String?
     private var website : String?
@@ -39,6 +41,14 @@ public class ZCRMUser : ZCRMEntity
     private var status : String?
     private var role : ZCRMRole?
     private var profile : ZCRMProfile?
+    
+    private var createdBy : ZCRMUser?
+    private var createdTime : String?
+    private var modifiedBy : ZCRMUser?
+    private var modifiedTime : String?
+    private var reportingTo : ZCRMUser?
+    
+    private var fieldNameVsValue : [ String : Any ]?
     
     public init( userId : Int64 )
     {
@@ -50,15 +60,34 @@ public class ZCRMUser : ZCRMEntity
         self.fullName = userFullName
     }
     
+    public init(){}
     
-    public func getId() -> Int64
+    public init( lastName : String, email : String, role : ZCRMRole, profile : ZCRMProfile )
+    {
+        self.role = role
+        self.emailId = email
+        self.lastName = lastName
+        self.profile = profile
+    }
+    
+    internal func setId( id : Int64 )
+    {
+        self.id = id
+    }
+    
+    public func getId() -> Int64?
     {
         return self.id
     }
     
-    public func getFullName() -> String
+    internal func setFullName( name : String )
     {
-        return self.fullName!
+        self.fullName = name
+    }
+    
+    public func getFullName() -> String?
+    {
+        return self.fullName
     }
     
     internal func setZuId(zuId : Int64?)
@@ -81,7 +110,7 @@ public class ZCRMUser : ZCRMEntity
         return self.firstName
     }
     
-    internal func setLastName(lName : String?)
+    internal func setLastName(lName : String)
     {
         self.lastName = lName
     }
@@ -111,7 +140,7 @@ public class ZCRMUser : ZCRMEntity
         return self.mobile
     }
     
-    internal func setEmailId(email : String?)
+    internal func setEmailId(email : String)
     {
         self.emailId = email
     }
@@ -131,7 +160,7 @@ public class ZCRMUser : ZCRMEntity
         return self.status
     }
     
-    internal func setRole(role : ZCRMRole?)
+    internal func setRole(role : ZCRMRole)
     {
         self.role = role
     }
@@ -141,7 +170,7 @@ public class ZCRMUser : ZCRMEntity
         return self.role
     }
     
-    internal func setProfile(profile : ZCRMProfile?)
+    internal func setProfile(profile : ZCRMProfile)
     {
         self.profile = profile
     }
@@ -169,6 +198,16 @@ public class ZCRMUser : ZCRMEntity
     public func getStreet() -> String?
     {
         return self.street
+    }
+    
+    internal func setZip( zip : Int64? )
+    {
+        self.zip = zip
+    }
+    
+    public func getZip() -> Int64?
+    {
+        return self.zip
     }
     
     internal func setCity( city : String? )
@@ -271,6 +310,16 @@ public class ZCRMUser : ZCRMEntity
         return self.dateFormat
     }
     
+    internal func setTimeFormat( format : String? )
+    {
+        self.timeFormat = format
+    }
+    
+    public func getTimeFormat() -> String?
+    {
+        return self.timeFormat
+    }
+    
     internal func setDateOfBirth( dateOfBirth : String? )
     {
         self.dateOfBirth = dateOfBirth
@@ -299,6 +348,104 @@ public class ZCRMUser : ZCRMEntity
     public func isConfirmedUser() -> Bool?
     {
         return self.confirm
+    }
+    
+    internal func setReportingTo( reportingTo : ZCRMUser? )
+    {
+        self.reportingTo = reportingTo
+    }
+    
+    public func getReportingTo() -> ZCRMUser?
+    {
+        return self.reportingTo
+    }
+    
+    internal func setCreatedBy( createdBy : ZCRMUser )
+    {
+        self.createdBy = createdBy
+    }
+    
+    public func getCreatedBy() -> ZCRMUser?
+    {
+        return self.createdBy
+    }
+    
+    internal func setCreatedTime( createdTime : String )
+    {
+        self.createdTime = createdTime
+    }
+    
+    public func getCreatedTime() -> String?
+    {
+        return self.createdTime
+    }
+    
+    internal func setModifiedBy( modifiedBy : ZCRMUser )
+    {
+        self.modifiedBy = modifiedBy
+    }
+    
+    public func getModifiedBy() -> ZCRMUser?
+    {
+        return self.modifiedBy
+    }
+    
+    internal func setModifiedTime( modifiedTime : String )
+    {
+        self.modifiedTime = modifiedTime
+    }
+    
+    public func getModifiedTime() -> String?
+    {
+        return self.modifiedTime
+    }
+    
+    internal func setFieldValue( fieldAPIName : String, value : Any )
+    {
+        if self.fieldNameVsValue == nil
+        {
+            self.fieldNameVsValue = [ String : Any ]()
+        }
+        self.fieldNameVsValue![ fieldAPIName ] = value
+    }
+    
+    public func getFieldValue( fieldAPIName : String ) throws -> Any?
+    {
+        if (self.fieldNameVsValue?.hasKey( forKey : fieldAPIName ))!
+        {
+            if( self.fieldNameVsValue?.hasValue( forKey : fieldAPIName ) )!
+            {
+                return self.fieldNameVsValue?.optValue( key : fieldAPIName )
+            }
+            else
+            {
+                return nil
+            }
+        }
+        else
+        {
+            throw ZCRMSDKError.ProcessingError( "The given field is not present in this user - \( fieldAPIName )" )
+        }
+    }
+    
+    public func getData() -> [ String : Any ]?
+    {
+        return self.fieldNameVsValue
+    }
+    
+    public func create() throws -> APIResponse
+    {
+        return try UserAPIHandler().addUser( user : self )
+    }
+    
+    public func update() throws -> APIResponse
+    {
+        return try UserAPIHandler().updateUser( user : self )
+    }
+    
+    public func delete() throws -> APIResponse
+    {
+        return try UserAPIHandler().deleteUser( userId : self.getId()! )
     }
     
     public func downloadProfilePhoto() throws -> FileAPIResponse

@@ -6,7 +6,7 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
-internal class ModuleAPIHandler
+internal class ModuleAPIHandler : CommonAPIHandler
 {
     private let module : ZCRMModule
     
@@ -14,28 +14,42 @@ internal class ModuleAPIHandler
     {
         self.module = module
     }
-    
+	
+	// MARK: - Handler functions
+	
     internal func getAllLayouts( modifiedSince : String? ) throws -> BulkAPIResponse
     {
-        let request : APIRequest = APIRequest(urlPath: "/settings/layouts", reqMethod: RequestMethod.GET)
-        request.addParam(paramName: "module", paramVal: self.module.getAPIName())
-        if ( modifiedSince != nil )
-        {
-            request.addHeader( headerName : "If-Modified-Since", headerVal : modifiedSince! )
-        }
+		
+		setUrlPath(urlPath: "/settings/layouts")
+		setRequestMethod(requestMethod: .GET )
+		addRequestParam(param: "module" , value: self.module.getAPIName())
+		if modifiedSince.notNilandEmpty
+		{ 
+			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
+			
+		}
+		let request : APIRequest = APIRequest(handler: self )
+        print( "Request : \( request.toString() )" )
+		
         let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
         {
             response.setData( data : self.getAllLayouts( layoutsList : responseJSON.getArrayOfDictionaries( key : "layouts" ) ) )
         }
+		
+		
         return response
     }
     
     internal func getLayout(layoutId : Int64) throws -> APIResponse
     {
-        let request : APIRequest = APIRequest(urlPath: "/settings/layouts/\(layoutId)", reqMethod: RequestMethod.GET)
-        request.addParam(paramName: "module", paramVal: self.module.getAPIName())
+		setUrlPath(urlPath:  "/settings/layouts/\(layoutId)")
+		setRequestMethod(requestMethod: .GET )
+		addRequestParam(param: "module" , value: self.module.getAPIName())
+		let request : APIRequest = APIRequest(handler: self )
+		print( "Request : \( request.toString() )" )
+		
         let response = try request.getAPIResponse()
         let responseJSON = response.getResponseJSON()
         let layoutsList:[[String : Any]] = responseJSON.getArrayOfDictionaries( key : "layouts" )
@@ -45,12 +59,17 @@ internal class ModuleAPIHandler
     
     internal func getAllFields( modifiedSince : String? ) throws -> BulkAPIResponse
     {
-        let request : APIRequest = APIRequest(urlPath: "/settings/fields", reqMethod: RequestMethod.GET)
-        request.addParam(paramName: "module", paramVal: self.module.getAPIName())
-        if ( modifiedSince != nil )
-        {
-            request.addHeader( headerName : "If-Modified-Since", headerVal : modifiedSince! )
-        }
+		setUrlPath(urlPath: "/settings/fields")
+		setRequestMethod(requestMethod: .GET )
+		addRequestParam(param: "module" , value: self.module.getAPIName())
+		if modifiedSince.notNilandEmpty
+		{
+			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
+			
+		}
+		let request : APIRequest = APIRequest(handler: self)
+        print( "Request : \( request.toString() )" )
+		
         let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
@@ -59,17 +78,21 @@ internal class ModuleAPIHandler
         }
         return response
     }
-    
+
     internal func getAllCustomViews( modifiedSince : String? ) throws -> BulkAPIResponse
     {
-        let request : APIRequest = APIRequest(urlPath: "/settings/custom_views", reqMethod: RequestMethod.GET)
-        request.addParam(paramName: "module", paramVal: self.module.getAPIName())
-        if ( modifiedSince != nil )
-        {
-            request.addHeader( headerName : "If-Modified-Since", headerVal : modifiedSince! )
-        }
+		setUrlPath(urlPath: "/settings/custom_views")
+		setRequestMethod(requestMethod: .GET )
+		addRequestParam(param: "module" , value: self.module.getAPIName())
+		if modifiedSince.notNilandEmpty
+		{
+			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
+			
+		}
+		let request : APIRequest = APIRequest(handler: self)
+        print( "Request : \( request.toString() )" )
+		
         let response = try request.getBulkAPIResponse()
-        
         let responseJSON = response.getResponseJSON()
         var allCVs : [ZCRMCustomView] = [ZCRMCustomView]()
         let allCVsList : [[String:Any]] = responseJSON.getArrayOfDictionaries( key : "custom_views" )
@@ -83,14 +106,20 @@ internal class ModuleAPIHandler
     
     internal func getCustomView( cvId : Int64 ) throws -> APIResponse
     {
-        let request : APIRequest = APIRequest( urlPath : "/settings/custom_views/\(cvId)", reqMethod : RequestMethod.GET )
-        request.addParam( paramName : "module", paramVal : self.module.getAPIName() )
+		setUrlPath(urlPath: "/settings/custom_views/\(cvId)" )
+		setRequestMethod(requestMethod: .GET )
+		addRequestParam(param: "module" , value: self.module.getAPIName() )
+		let request : APIRequest = APIRequest(handler: self )
+        print( "Request : \( request.toString() )" )
+        
         let response = try request.getAPIResponse()
         let cvArray : [ [ String : Any ] ] = response.getResponseJSON().getArrayOfDictionaries( key : "custom_views" )
         response.setData( data : getZCRMCustomView( cvDetails : cvArray[ 0 ] ) )
         return response
     }
-    
+	
+	// MARK: - Utility functions
+	
     internal func getZCRMCustomView(cvDetails: [String:Any]) -> ZCRMCustomView
     {
         let customView : ZCRMCustomView = ZCRMCustomView( cvId : cvDetails.getInt64( key : "id" ), moduleAPIName : self.module.getAPIName() )
@@ -100,10 +129,7 @@ internal class ModuleAPIHandler
         customView.setIsDefault(isDefault: cvDetails.optBoolean(key: "default")!)
         customView.setCategory(category: cvDetails.optString(key: "category")!)
         customView.setFavouriteSequence(favourite: cvDetails.optInt(key: "favorite"))
-        if cvDetails.hasValue( forKey : "fields" )
-        {
-            customView.setDisplayFields(fieldsAPINames: cvDetails.optArray(key: "fields") as! [String])
-        }
+        customView.setDisplayFields(fieldsAPINames: cvDetails.optArray(key: "fields") as? [String])
         customView.setSortByCol(fieldAPIName: cvDetails.optString(key: "sort_by"))
         customView.setSortOrder(sortOrder: cvDetails.optString(key: "sort_order"))
         return customView
@@ -223,9 +249,9 @@ internal class ModuleAPIHandler
         if(fieldDetails.hasValue(forKey: "view_type"))
         {
             let subLayouts : [String:Bool] = fieldDetails.getDictionary(key: "view_type") as! [String : Bool]
-            var layoutsPresent : [String] = [String]()
+			var layoutsPresent : [String] = [String]()
             if(subLayouts.optBoolean(key: "create")!)
-            {
+			{
                 layoutsPresent.append("CREATE")
             }
             if(subLayouts.optBoolean(key: "edit")!)
@@ -244,5 +270,6 @@ internal class ModuleAPIHandler
         }
         return field
     }
+	
 }
 

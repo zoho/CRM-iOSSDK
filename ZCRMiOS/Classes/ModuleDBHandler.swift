@@ -266,10 +266,12 @@ public class ZCRMCachedModuleHandler
     
     private func setCvFieldDetails(moduleAPIname: String, customView: ZCRMCustomView) throws
     {
-        let fieldNames = customView.getDisplayFieldsAPINames()
-        for fieldName in fieldNames
+        if let fieldNames = customView.getDisplayFieldsAPINames()
         {
-            try formDBHelper.insertCustomViewFields(moduleAPIname: moduleAPIName, customViewId: customView.getId(), fieldName: fieldName)
+            for fieldName in fieldNames
+            {
+                try formDBHelper.insertCustomViewFields(moduleAPIname: moduleAPIName, customViewId: customView.getId(), fieldName: fieldName)
+            }
         }
     }
     
