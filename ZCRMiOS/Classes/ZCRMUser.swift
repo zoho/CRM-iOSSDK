@@ -468,16 +468,30 @@ public class ZCRMUser : ZCRMEntity
         }
     }
     
-    public func uploadProfilePhoto( filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
+    public func uploadProfilePhotoWithPath( filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
     {
-        UserAPIHandler(user: self).uploadPhoto(photoViewPermission: XPhotoViewPermission.zero, filePath: filePath) { ( response, error ) in
+        UserAPIHandler(user: self).uploadPhotoWithPath(photoViewPermission: XPhotoViewPermission.zero, filePath: filePath) { ( response, error ) in
             completion( response, error )
         }
     }
     
-    public func uploadProfilePhoto( photoViewPermission : XPhotoViewPermission, filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
+    public func uploadProfilePhotoWithData( fileName : String, data : Data, completion : @escaping( APIResponse?, Error? ) -> () )
     {
-        UserAPIHandler(user: self).uploadPhoto(photoViewPermission: photoViewPermission, filePath: filePath) { ( response, error ) in
+        UserAPIHandler(user: self).uploadPhotoWithData( photoViewPermission: XPhotoViewPermission.zero, fileName: fileName, data : data ) { ( response, error ) in
+            completion( response, error )
+        }
+    }
+    
+    public func uploadProfilePhotoWithPath( photoViewPermission : XPhotoViewPermission, filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
+    {
+        UserAPIHandler(user: self).uploadPhotoWithPath(photoViewPermission: photoViewPermission, filePath: filePath) { ( response, error ) in
+            completion( response, error )
+        }
+    }
+    
+    public func uploadProfilePhotoWithData( photoViewPermission : XPhotoViewPermission, fileName : String, data : Data, completion : @escaping( APIResponse?, Error? ) -> () )
+    {
+        UserAPIHandler(user: self).uploadPhotoWithData( photoViewPermission: photoViewPermission, fileName: fileName, data : data ) { ( response, error ) in
             completion( response, error )
         }
     }

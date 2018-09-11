@@ -95,7 +95,7 @@ internal class APIRequest
                 else
                 {
                     print( "oAuthtoken is nil." )
-                    completion( ZCRMSDKError.ResponseNil( code: RESPONSE_NIL, message: "oauthtoken is empty" ) )
+                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTHTOKEN_NIL, message: ErrorCode.OAUTHTOKEN_NIL.rawValue))
                 }
             }
         }
@@ -118,7 +118,7 @@ internal class APIRequest
                 else
                 {
                     print( "oAuthtoken is empty." )
-                    completion( ZCRMSDKError.ResponseNil( code: RESPONSE_NIL, message: "oauthtoken is empty" ) )
+                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTHTOKEN_NIL, message: ErrorCode.OAUTHTOKEN_NIL.rawValue))
                 }
             }
         }
@@ -165,12 +165,12 @@ internal class APIRequest
                             }
                             else
                             {
-                                completion(ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : "Unable to construct URL"))
+                                completion(ZCRMError.SDKError(code: .INTERNAL_ERROR, message: "Unable to construct URL"))
                             }
                         }
                         else
                         {
-                            completion(ZCRMSDKError.InternalError( code : INTERNAL_ERROR, message : "Adding percent encoding error occured" ))
+                            completion(ZCRMError.SDKError(code: .INTERNAL_ERROR, message: "Adding percent encoding error occured"))
                         }
                     }
                     else
@@ -227,7 +227,7 @@ internal class APIRequest
                     }
                     else
                     {
-                        completion( nil, ZCRMSDKError.ResponseNil( code: RESPONSE_NIL, message: "Response is nil" ) )
+                        completion( nil, ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorCode.RESPONSE_NIL.rawValue))
                     }
                 }
             }
@@ -262,7 +262,7 @@ internal class APIRequest
                     }
                     else
                     {
-                        completion( nil, ZCRMSDKError.ResponseNil( code: RESPONSE_NIL, message: "Response is nil" ) )
+                        completion( nil, ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorCode.RESPONSE_NIL.rawValue))
                     }
                 }
             }
@@ -292,7 +292,7 @@ internal class APIRequest
             }
             else
             {
-                completion( nil, ZCRMSDKError.ResponseNil( code: RESPONSE_NIL, message: "Response is nil" ) )
+                completion( nil, ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorCode.RESPONSE_NIL.rawValue))
             }
         }
     }
@@ -301,7 +301,7 @@ internal class APIRequest
     {
         let fileURL = URL( fileURLWithPath : filePath )
         let boundary = BOUNDARY
-        let httpBodyData = getFilePart( fileURL : fileURL, boundary : boundary )
+        let httpBodyData = getFilePart( fileURL : fileURL, data : nil, fileName: nil, boundary : boundary )
         createMultipartRequest( bodyData : httpBodyData, boundary : boundary )
         self.makeRequest { ( urlResponse, responseData, error ) in
             if let err = error
@@ -315,13 +315,43 @@ internal class APIRequest
                     let response = try APIResponse( response : urlResp, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
                     completion( response, nil )
                 }
-                catch{
+                catch
+                {
                     completion( nil, error )
                 }
             }
             else
             {
-                completion( nil, ZCRMSDKError.ResponseNil( code: RESPONSE_NIL, message: "Response is nil" ) )
+                completion( nil, ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorCode.RESPONSE_NIL.rawValue))
+            }
+        }
+    }
+    
+    internal func uploadFileWithData( fileName : String, data : Data, completion : @escaping( APIResponse?, Error? ) -> () )
+    {
+        let boundary = BOUNDARY
+        let httpBodyData = getFilePart( fileURL : nil, data : data, fileName : fileName, boundary : boundary )
+        createMultipartRequest(bodyData: httpBodyData, boundary: boundary)
+        self.makeRequest { ( urlResponse, responseData, error) in
+            if let err = error
+            {
+                completion( nil, err )
+            }
+            else if let urlResp = urlResponse
+            {
+                do
+                {
+                    let response = try APIResponse( response : urlResp, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+                    completion( response, nil )
+                }
+                catch
+                {
+                    completion( nil, error )
+                }
+            }
+            else
+            {
+                completion( nil, ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorCode.RESPONSE_NIL.rawValue))
             }
         }
     }
@@ -337,7 +367,7 @@ internal class APIRequest
                 guard err == nil else
                 {
                     error = err
-                    completion( nil, nil, ZCRMError.ProcessingError( code: String( error!.code ), message: error!.localizedDescription ) )
+                    completion( nil, nil, ZCRMError.SDKError(code: .INTERNAL_ERROR, message: (error?.description)!) )
                     return
                 }
                 if let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse
@@ -346,14 +376,14 @@ internal class APIRequest
                 }
                 else
                 {
-                    completion( nil, nil, ZCRMSDKError.ResponseNil( code: RESPONSE_NIL, message: "Response is nil" ) )
+                    completion( nil, nil, ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorCode.RESPONSE_NIL.rawValue))
                     return
                 }
             }).resume()
         }
         else
         {
-            completion( nil, nil, ZCRMSDKError.ResponseNil( code: RESPONSE_NIL, message: "Request is nil" ) )
+            completion( nil, nil, ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorCode.RESPONSE_NIL.rawValue))
         }
     }
     
@@ -373,13 +403,22 @@ internal class APIRequest
         }
     }
     
-    private func getFilePart( fileURL : URL, boundary : String ) -> Data
+    private func getFilePart( fileURL : URL?, data : Data?, fileName : String?, boundary : String ) -> Data
     {
         var filePartData : Data = Data()
         filePartData.append( "\r\n--\(boundary)\r\n".data( using : String.Encoding.utf8 )! )
-        filePartData.append( "Content-Disposition: form-data; name=\"file\"; filename=\"\(fileURL.lastPathComponent)\"\r\n".data( using : String.Encoding.utf8 )! )
-        filePartData.append( "Content-Type: \(getMimeTypeFor( fileURL : fileURL ))\r\n\r\n".data( using : String.Encoding.utf8 )! )
-        filePartData.append( try! Data( contentsOf : fileURL ) )
+        if let url = fileURL
+        {
+            filePartData.append( "Content-Disposition: form-data; name=\"file\"; filename=\"\(url.lastPathComponent)\"\r\n".data( using : String.Encoding.utf8 )! )
+            filePartData.append( "Content-Type: \(getMimeTypeFor( fileURL : url ))\r\n\r\n".data( using : String.Encoding.utf8 )! )
+            filePartData.append( try! Data( contentsOf : url ) )
+        }
+        if let fileData = data, let name = fileName
+        {
+            filePartData.append( "Content-Disposition: form-data; name=\"file\"; filename=\"\( name )\"\r\n".data( using : String.Encoding.utf8 )! )
+            filePartData.append( "Content-Type: \(getMimeTypeFor( fileURL : URL(string : name)! ))\r\n\r\n".data( using : String.Encoding.utf8 )! )
+            filePartData.append( fileData )
+        }
         return filePartData
     }
     
@@ -410,7 +449,7 @@ internal class APIRequest
                     guard err == nil else
                     {
                         error = err
-                        completion( nil, ZCRMError.ProcessingError( code: String( error!.code ), message: error!.localizedDescription ) )
+                        completion( nil, ZCRMError.SDKError(code: .INTERNAL_ERROR, message: (error?.description)!) )
                         return
                     }
                     if let fileResponse = response as? HTTPURLResponse, let localUrl = tempLocalUrl
@@ -427,7 +466,7 @@ internal class APIRequest
                     }
                     else
                     {
-                        completion( nil, ZCRMSDKError.ResponseNil( code: RESPONSE_NIL, message: "Response is nil" ) )
+                        completion( nil, ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorCode.RESPONSE_NIL.rawValue))
                     }
                 }).resume()
             }

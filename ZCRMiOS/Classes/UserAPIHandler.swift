@@ -314,7 +314,7 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func uploadPhoto( photoViewPermission : XPhotoViewPermission, filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func uploadPhotoWithPath( photoViewPermission : XPhotoViewPermission, filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
     {
         if let user = self.user
         {
@@ -327,6 +327,25 @@ internal class UserAPIHandler : CommonAPIHandler
                 let request : APIRequest = APIRequest(handler: self)
                 print( "Request : \(request.toString())" )
                 request.uploadFile(filePath: filePath) { (response, error) in
+                    completion( response, error )
+                }
+            }
+        }
+    }
+    
+    internal func uploadPhotoWithData( photoViewPermission : XPhotoViewPermission, fileName : String, data : Data, completion : @escaping( APIResponse?, Error? ) -> () )
+    {
+        if let user = self.user
+        {
+            if let emailId = user.getEmailId()
+            {
+                let PHOTOURL : URL = URL( string : "https://profile.zoho.com/api/v1/user/\(emailId)/photo" )!
+                setUrl(url : PHOTOURL)
+                setRequestMethod(requestMethod: .PUT)
+                addRequestHeader(header: "X-PHOTO-VIEW-PERMISSION", value: String(photoViewPermission.rawValue))
+                let request : APIRequest = APIRequest(handler: self)
+                print( "Request : \(request.toString())" )
+                request.uploadFileWithData(fileName: fileName, data: data) { ( response, error ) in
                     completion( response, error )
                 }
             }

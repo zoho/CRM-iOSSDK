@@ -79,7 +79,8 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+//            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( nil, nil, ZCRMError.ProcessingError(code: .INVALID_DATA, message: "Related List MUST NOT be nil"))
         }
 	}
 	
@@ -131,7 +132,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( nil, nil, ZCRMError.ProcessingError(code: .INVALID_DATA, message: "Related List MUST NOT be nil"))
         }
 	}
 	
@@ -175,11 +176,11 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( nil, nil, ZCRMError.ProcessingError(code: .INVALID_DATA, message: "Related List MUST NOT be nil"))
         }
 	}
 	
-    internal func uploadAttachment( filePath : String, completion : @escaping( ZCRMAttachment?, APIResponse?, Error? ) -> () )
+    internal func uploadAttachmentWithPath( filePath : String, completion : @escaping( ZCRMAttachment?, APIResponse?, Error? ) -> () )
     {
         if let relatedList = self.relatedList
         {
@@ -207,7 +208,39 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( nil, nil, ZCRMError.ProcessingError(code: .INVALID_DATA, message: "Related List MUST NOT be nil"))
+        }
+    }
+    
+    internal func uploadAttachmentWithData( fileName : String, data : Data, completion : @escaping( ZCRMAttachment?, APIResponse?, Error? ) -> () )
+    {
+        if let relatedList = self.relatedList
+        {
+            setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String( self.parentRecord.getId()))/\(relatedList.getAPIName())" )
+            setRequestMethod(requestMethod: .POST )
+            let request : APIRequest = APIRequest(handler: self)
+            print( "Request : \( request.toString() )" )
+            request.uploadFileWithData(fileName: fileName, data: data) { ( resp, err) in
+                if let error = err
+                {
+                    completion( nil, nil, error )
+                    return
+                }
+                if let response = resp
+                {
+                    let responseJSON = response.getResponseJSON()
+                    let respDataArr : [[String:Any?]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                    let respData : [String:Any?] = respDataArr[0]
+                    let recordDetails : [String:Any] = respData.getDictionary( key : DETAILS )
+                    let attachment = self.getZCRMAttachment(attachmentDetails: recordDetails)
+                    response.setData(data: attachment)
+                    completion( attachment, response, nil )
+                }
+            }
+        }
+        else
+        {
+            completion( nil, nil, ZCRMError.ProcessingError(code: .INVALID_DATA, message: "Related List MUST NOT be nil"))
         }
     }
     
@@ -238,7 +271,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( nil, nil, ZCRMError.ProcessingError(code: .INVALID_DATA, message: "Related List MUST NOT be nil"))
         }
     }
     
@@ -256,7 +289,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( nil, ZCRMError.ProcessingError(code: .INVALID_DATA, message: "Related List MUST NOT be nil"))
         }
 	}
     
@@ -274,7 +307,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( nil, ZCRMError.ProcessingError(code: .INVALID_DATA, message: "Related List MUST NOT be nil"))
         }
     }
 	
@@ -313,7 +346,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( nil, nil, ZCRMError.ProcessingError(code: .INVALID_DATA, message: "Related List MUST NOT be nil"))
         }
 	}
 	
@@ -323,7 +356,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         {
             if note.getId() == nil
             {
-                completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Note ID MUST NOT be nil" ) )
+                completion( nil, nil, ZCRMError.ProcessingError(code: .INVALID_DATA, message: "Note ID not found"))
             }
             else
             {
@@ -360,7 +393,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( nil, nil, ZCRMError.ProcessingError(code: .INVALID_DATA, message: "Related List MUST NOT be nil"))
         }
 	}
 	
@@ -379,7 +412,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) )
+            completion( nil, ZCRMError.ProcessingError(code: .INVALID_DATA, message: "Related List MUST NOT be nil"))
         }
 	}
 	
@@ -524,7 +557,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Juction Record MUST NOT be nil" ) )
+            completion( nil, ZCRMError.ProcessingError(code: .INVALID_DATA, message: "Junction Record MUST NOT be nil"))
         }
     }
     
@@ -553,7 +586,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( nil, ZCRMError.ProcessingError( code : MANDATORY_NOT_FOUND, message : "Juction Record MUST NOT be nil" ) )
+            completion( nil, ZCRMError.ProcessingError(code: .INVALID_DATA, message: "Junction Record MUST NOT be nil"))
         }
     }
     

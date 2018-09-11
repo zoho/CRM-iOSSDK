@@ -23,7 +23,8 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.DATA )
         if(records.count > 100)
         {
-            completion( nil, nil, ZCRMError.MaxRecordCountExceeded( code : MAX_COUNT_EXCEEDED, message : "Cannot process more than 100 records at a time." ) )
+//            completion( nil, nil, ZCRMError.MaxRecordCountExceeded( code : MAX_COUNT_EXCEEDED, message : "Cannot process more than 100 records at a time." ) )
+            completion( nil, nil, ZCRMError.MaxRecordCountExceeded(code: .MAX_COUNT_EXCEEDED, message: ErrorMessage.API_MAX_RECORDS_MSG))
         }
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         var dataArray : [[String:Any]] = [[String:Any]]()
@@ -227,7 +228,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.DATA )
         if(ids.count > 100)
         {
-            completion( nil, nil, ZCRMError.MaxRecordCountExceeded( code : MAX_COUNT_EXCEEDED, message : "Cannot process more than 100 records at a time.") )
+            completion( nil, nil, ZCRMError.MaxRecordCountExceeded(code: .MAX_COUNT_EXCEEDED, message: ErrorMessage.API_MAX_RECORDS_MSG))
         }
 		var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
 		var dataArray : [[String:Any]] = [[String:Any]]()
@@ -284,7 +285,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.DATA )
         if ( records.count > 100 )
         {
-            completion( nil, nil, ZCRMError.MaxRecordCountExceeded( code : MAX_COUNT_EXCEEDED, message : "Cannot process more than 100 records at a time." ) )
+            completion( nil, nil, ZCRMError.MaxRecordCountExceeded(code: .MAX_COUNT_EXCEEDED, message: ErrorMessage.API_MAX_RECORDS_MSG))
         }
         var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
         var dataArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
@@ -337,7 +338,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     {
         if(ids.count > 100)
         {
-            completion( nil, ZCRMError.MaxRecordCountExceeded( code : MAX_COUNT_EXCEEDED, message : "Cannot process more than 100 records at a time.") )
+            completion( nil, ZCRMError.MaxRecordCountExceeded(code: .MAX_COUNT_EXCEEDED, message: ErrorMessage.API_MAX_RECORDS_MSG))
         }
         var idsStr : String = "\(ids)"
         idsStr = idsStr.replacingOccurrences(of: " ", with: "")
@@ -456,7 +457,8 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func addTags( recordIds : [Int64], tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( [ZCRMRecord]?, BulkAPIResponse?, Error? ) -> () )
+    // TODO : Add response object as List of Records when overwrite false case is fixed
+    internal func addTags( recordIds : [Int64], tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( BulkAPIResponse?, Error? ) -> () )
     {
 
         setJSONRootKey(key: JSONRootKey.DATA)
@@ -498,7 +500,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         request.getBulkAPIResponse { ( response, err ) in
             if let error = err
             {
-                completion( nil, nil, error )
+                completion( nil, error )
                 return
             }
             if let bulkResponse = response
@@ -528,7 +530,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     }
                 }
                 bulkResponse.setData(data: addedRecords)
-                completion( addedRecords, bulkResponse, nil )
+                completion( bulkResponse, nil )
             }
         }
     }

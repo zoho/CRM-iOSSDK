@@ -411,9 +411,16 @@ public class ZCRMRecord : ZCRMEntity
         }
     }
     
-    public func uploadPhoto( filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
+    public func uploadPhotoWithPath( filePath : String, completion : @escaping( APIResponse?, Error? ) -> () )
     {
-        EntityAPIHandler( record : self ).uploadPhoto( filePath : filePath) { ( response, error ) in
+        EntityAPIHandler( record : self ).uploadPhotoWithPath( filePath : filePath) { ( response, error ) in
+            completion( response, error )
+        }
+    }
+    
+    public func uploadPhotoWithData( fileName : String, data : Data, completion : @escaping( APIResponse?, Error? ) -> () )
+    {
+        EntityAPIHandler( record: self ).uploadPhotoWithData( fileName : fileName, data : data) { ( response, nil ) in
             completion( response, error )
         }
     }
@@ -655,9 +662,16 @@ public class ZCRMRecord : ZCRMEntity
     /// - Parameter filePath: file path of the attachment
     /// - Returns: APIResponse of the attachment upload
     /// - Throws: ZCRMSDKError if failed to upload the attachment
-    public func uploadAttachment( filePath : String, completion : @escaping( ZCRMAttachment?, APIResponse?, Error? ) -> () )
+    public func uploadAttachmentWithPath( filePath : String, completion : @escaping( ZCRMAttachment?, APIResponse?, Error? ) -> () )
     {
-        ZCRMModuleRelation( relatedListAPIName : "Attachments", parentModuleAPIName : self.getModuleAPIName() ).uploadAttachment( ofParentRecord : self, filePath : filePath ) { ( attachment, response, error ) in
+        ZCRMModuleRelation( relatedListAPIName : "Attachments", parentModuleAPIName : self.getModuleAPIName() ).uploadAttachmentWithPath( ofParentRecord : self, filePath : filePath ) { ( attachment, response, error ) in
+            completion( attachment, response, error )
+        }
+    }
+    
+    public func uploadAttachmentWithData( fileName : String, data : Data, completion : @escaping( ZCRMAttachment?, APIResponse?, Error? ) -> () )
+    {
+        ZCRMModuleRelation( relatedListAPIName : "Attachments", parentModuleAPIName : self.getModuleAPIName() ).uploadAttachmentWithData( ofParentRecord : self, fileName : fileName, data : data) { ( attachment, response, error ) in
             completion( attachment, response, error )
         }
     }
@@ -758,17 +772,17 @@ public class ZCRMRecord : ZCRMEntity
         return cloneRecord
     }
     
-    public func addTags( tags : [ZCRMTag], completion : @escaping( [ZCRMTag]?, APIResponse?, Error? ) -> () )
+    public func addTags( tags : [ZCRMTag], completion : @escaping( APIResponse?, Error? ) -> () )
     {
-        EntityAPIHandler(record: self).addTags(tags: tags, overWrite: nil) { (tags, response, error) in
-            completion( tags, response, error )
+        EntityAPIHandler(record: self).addTags(tags: tags, overWrite: nil) { (response, error) in
+            completion( response, error )
         }
     }
     
-    public func addTags( tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( [ZCRMTag]?, APIResponse?, Error? ) -> () )
+    public func addTags( tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( APIResponse?, Error? ) -> () )
     {
-        EntityAPIHandler(record: self).addTags(tags: tags, overWrite: overWrite) { (tags, response, error) in
-            completion( tags, response, error )
+        EntityAPIHandler(record: self).addTags(tags: tags, overWrite: overWrite) { (response, error) in
+            completion( response, error )
         }
     }
     

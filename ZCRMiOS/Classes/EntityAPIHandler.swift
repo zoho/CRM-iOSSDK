@@ -179,7 +179,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     }
     
     
-    internal func uploadPhoto(filePath : String,completion: @escaping(APIResponse?,Error?)->Void){
+    internal func uploadPhotoWithPath(filePath : String,completion: @escaping(APIResponse?,Error?)->Void){
         
         do {
             try fileDetailCheck(filePath:filePath)
@@ -199,6 +199,19 @@ internal class EntityAPIHandler : CommonAPIHandler
         catch
         {
             completion(nil,error)
+        }
+    }
+    
+    internal func uploadPhotoWithData( fileName : String, data : Data, completion: @escaping(APIResponse?,Error?)->Void)
+    {
+        setUrlPath(urlPath :"/\(self.record.getModuleAPIName())/\(String(self.record.getId()))/photo")
+        setRequestMethod(requestMethod : .POST )
+        let request : APIRequest = APIRequest(handler : self )
+        
+        print( "Request : \( request.toString() )" )
+        
+        request.uploadFileWithData(fileName : fileName, data: data) { ( response, error ) in
+            completion( response, error )
         }
     }
     
@@ -807,7 +820,8 @@ internal class EntityAPIHandler : CommonAPIHandler
         return participant
     }
     
-    internal func addTags( tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( [ZCRMTag]?, APIResponse?, Error? ) -> () )
+    // TODO : Add response object as List of Tags when overwrite false case is fixed
+    internal func addTags( tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( APIResponse?, Error? ) -> () )
     {
 
         setJSONRootKey(key: JSONRootKey.DATA)
@@ -839,7 +853,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         request.getAPIResponse { ( resp, err ) in
             if let error = err
             {
-                completion( nil, nil, error )
+                completion( nil, error )
                 return
             }
             if let response = resp
@@ -854,7 +868,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                     let singleTag : ZCRMTag = ZCRMTag( tagName: tagDetail )
                     tags.append(singleTag)
                 }
-                completion( tags, response, nil )
+                completion( response, nil )
             }
         }
     }

@@ -378,18 +378,25 @@ public class ZCRMModuleRelation : ZCRMEntity
     ///   - filePath: file path of the attachment
     /// - Returns: APIResponse of the attachment upload
     /// - Throws: ZCRMSDKError if failed to upload the attachment
-    public func uploadAttachment( ofParentRecord : ZCRMRecord, filePath : String, completion : @escaping( ZCRMAttachment?, APIResponse?, Error? ) -> () )
+    public func uploadAttachmentWithPath( ofParentRecord : ZCRMRecord, filePath : String, completion : @escaping( ZCRMAttachment?, APIResponse?, Error? ) -> () )
     {
         do
         {
             try fileDetailCheck( filePath : filePath )
-            RelatedListAPIHandler( parentRecord : ofParentRecord, relatedList : self ).uploadAttachment( filePath : filePath) { ( attachment, response, error ) in
+            RelatedListAPIHandler( parentRecord : ofParentRecord, relatedList : self ).uploadAttachmentWithPath( filePath : filePath) { ( attachment, response, error ) in
                 completion( attachment, response, error )
             }
         }
         catch
         {
             completion( nil, nil, error )
+        }
+    }
+    
+    public func uploadAttachmentWithData( ofParentRecord : ZCRMRecord, fileName : String, data : Data, completion : @escaping( ZCRMAttachment?, APIResponse?, Error? ) -> () )
+    {
+        RelatedListAPIHandler( parentRecord: ofParentRecord, relatedList: self).uploadAttachmentWithData( fileName : fileName, data : data ) { ( attachment, response, error ) in
+            completion( attachment, response, error )
         }
     }
     
