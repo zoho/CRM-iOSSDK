@@ -179,7 +179,7 @@ internal class APIRequest
         sema.wait()
         if error != nil
         {
-            throw ZCRMSDKError.ConnectionError( "URLSession dataTask error : \( error!.description )" )
+            throw ZCRMSDKError.ProcessingError( "URLSession dataTask error : \( error!.description )" )
         }
         return try APIResponse(response: urlResponse, responseData: responseData)
     }
@@ -204,7 +204,7 @@ internal class APIRequest
         sema.wait()
         if error != nil
         {
-            throw ZCRMSDKError.ConnectionError( "URLSession dataTask error : \( error!.description )" )
+            throw ZCRMSDKError.ProcessingError( "URLSession dataTask error : \( error!.description )" )
         }
         return try BulkAPIResponse(response: urlResponse, responseData: responseData)
     }
@@ -229,7 +229,7 @@ internal class APIRequest
         } ).resume()
         sema.wait()
         if err != nil {
-            throw ZCRMSDKError.ConnectionError( "URLSession dataTask error : \( err!.description )" )
+            throw ZCRMSDKError.ProcessingError( "URLSession dataTask error : \( err!.description )" )
         }
         return try APIResponse( response : urlResponse, responseData : responseData )
     }
@@ -256,7 +256,7 @@ internal class APIRequest
         } ).resume()
         sema.wait()
         if err != nil {
-            throw ZCRMSDKError.ConnectionError( "URLSession dataTask error : \( err!.description )" )
+            throw ZCRMSDKError.ProcessingError( "URLSession dataTask error : \( err!.description )" )
         }
         return try APIResponse( response : urlResponse, responseData : responseData )
     }
@@ -316,7 +316,7 @@ internal class APIRequest
         sema.wait()
         if error != nil
         {
-            throw ZCRMSDKError.ConnectionError( "URLSession dataTask error : \( error!.description )" )
+            throw ZCRMSDKError.ProcessingError( "URLSession dataTask error : \( error!.description )" )
         }
         return try FileAPIResponse(response: fileResponse!, tempLocalUrl: localUrl!)
     }
