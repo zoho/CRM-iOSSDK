@@ -152,7 +152,7 @@ internal class APIRequest
         sema.wait()
         if error != nil
         {
-            throw ZCRMSDKError.ConnectionError( "URLSession dataTask error : \( error!.description )" )
+            throw ZCRMSDKError.ProcessingError( "URLSession dataTask error : \( error!.description )" )
         }
         try self.checkForException(response: urlResponse, responseData: responseData)
         let jsonStr : Any? = try? JSONSerialization.jsonObject(with: responseData!, options: [])
