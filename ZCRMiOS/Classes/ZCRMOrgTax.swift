@@ -4,7 +4,7 @@
 //
 //  Created by Umashri R on 06/09/18.
 //
-
+/*
 import Foundation
 
 public class ZCRMOrgTax : ZCRMEntity
@@ -84,4 +84,4 @@ public class ZCRMOrgTax : ZCRMEntity
     {
         return self.sequenceNumber
     }
-}
+}*/
