@@ -18,6 +18,7 @@ public enum ZCRMSDKError : Error
     case MaxRecordCountExceeded(String)
     case FileSizeExceeded(String)
     case InternalError( String )
+    case ConnectionError( String )
 }
 
 public enum SortOrder : String
@@ -68,50 +69,46 @@ internal extension Dictionary
     
     func optString(key : Key) -> String?
     {
-        return optValue(key: key) as! String?
+        return optValue(key: key) as? String
     }
     
     func optInt(key : Key) -> Int?
     {
-        return optValue(key: key) as! Int?
+        return optValue(key: key) as? Int
     }
     
     func optInt64(key : Key) -> Int64?
     {
-        let str = optValue(key: key) as! String?
-        if(str != nil)
-        {
-            return Int64(str!)
-        }
-        else
-        {
+        guard let stringID = optValue(key: key) as? String else {
             return nil
         }
+        
+        return Int64(stringID)
     }
     
     func optDouble(key : Key) -> Double?
     {
-        return optValue(key: key) as! Double?
+        return optValue(key: key) as? Double
     }
     
     func optBoolean(key : Key) -> Bool?
     {
-        return optValue(key: key) as! Bool?
+        return optValue(key: key) as? Bool
     }
     
     func optDictionary(key : Key) -> Dictionary<String, Any>?
     {
-        return optValue(key: key) as! Dictionary<String, Any>?
+        return optValue(key: key) as? Dictionary<String, Any>
     }
     
     func optArray(key : Key) -> Array<Any>?
     {
-        return optValue(key: key) as! Array<Any>?
+        return optValue(key: key) as? Array<Any>
     }
     
     func optArrayOfDictionaries( key : Key ) -> Array< Dictionary < String, Any > >?
     {
-        return ( optValue( key : key ) as! Array< Dictionary < String, Any > >? )
+        return ( optValue( key : key ) as? Array< Dictionary < String, Any > > )
     }
     
     func getInt( key : Key ) -> Int
@@ -160,22 +157,20 @@ internal extension Dictionary
         let jsonString = String(data: jsonData!, encoding: String.Encoding.ascii)
         return jsonString!
     }
-	
-	func equateKeys( dictionary : [ String : Any ] ) -> Bool
-	{
-		let dictKeys = dictionary.keys
-		var isEqual : Bool = true
-		for key in self.keys
-		{
-			if dictKeys.index(of: key as! String) == nil
-			{
-				isEqual = false
-			}
-		}
-		return isEqual
-	}
-	
-	
+    
+    func equateKeys( dictionary : [ String : Any ] ) -> Bool
+    {
+        let dictKeys = dictionary.keys
+        var isEqual : Bool = true
+        for key in self.keys
+        {
+            if dictKeys.index(of: key as! String) == nil
+            {
+                isEqual = false
+            }
+        }
+        return isEqual
+    }
 }
 
 public extension Array

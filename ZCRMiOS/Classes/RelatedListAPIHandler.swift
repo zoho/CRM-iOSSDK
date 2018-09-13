@@ -153,12 +153,12 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     
     internal func uploadLinkAsAttachment( attachmentURL : String ) throws -> APIResponse
     {
-		
 		setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())" )
 		addRequestParam(param:  "attachmentUrl" , value: attachmentURL )
 		setRequestMethod(requestMethod: .POST )
 		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
+        
         let response = try request.uploadLink()
         let responseJSONArray : [ [ String : Any ] ]  = response.getResponseJSON().getArrayOfDictionaries( key : "data" )
         let details = responseJSONArray[ 0 ].getDictionary( key : "details" )
@@ -168,7 +168,6 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     
 	internal func downloadAttachment(attachmentId: Int64) throws -> FileAPIResponse
 	{
-		
 		setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String( self.parentRecord.getId()))/\(self.relatedList.getAPIName())/\(attachmentId)" )
 		setRequestMethod(requestMethod: .GET )
 		let request : APIRequest = APIRequest(handler: self)
@@ -193,7 +192,6 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 		var dataArray : [[String:Any]] = [[String:Any]]()
 		dataArray.append(self.getZCRMNoteAsJSON(note: note))
 		reqBodyObj["data"] = dataArray
-
 		setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String( self.parentRecord.getId()))/\(self.relatedList.getAPIName())" )
 		setRequestMethod(requestMethod: .POST )
 		setRequestBody(requestBody: reqBodyObj )
@@ -221,7 +219,6 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 		var dataArray : [[String:Any]] = [[String:Any]]()
 		dataArray.append(self.getZCRMNoteAsJSON(note: note))
 		reqBodyObj["data"] = dataArray
-		
 		setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(self.relatedList.getAPIName())/\(noteId)")
 		setRequestMethod(requestMethod: .PUT )
 		setRequestBody(requestBody: reqBodyObj)
@@ -363,13 +360,11 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             dataArray.append( [ String : Any ]() )
         }
         reqBodyObj["data"] = dataArray
-
 		setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(self.parentRecord.getId())/\(self.junctionRecord!.getApiName())/\(self.junctionRecord!.getId())" )
 		setRequestMethod(requestMethod: .PUT )
 		setRequestBody(requestBody: reqBodyObj )
 		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
-		
         return try request.getAPIResponse()
     }
     
@@ -386,7 +381,6 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     
     internal func deleteRelation() throws -> APIResponse
     {
-
 		setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\( String( self.parentRecord.getId() ) )/\(self.junctionRecord!.getApiName())/\(self.junctionRecord!.getId())" )
 		setRequestMethod(requestMethod: .DELETE )
 		let request : APIRequest = APIRequest(handler: self)

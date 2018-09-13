@@ -111,7 +111,6 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 		addRequestParam(param: "per_page" , value: String(per_page) )
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
-		
 		let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
         if responseJSON.isEmpty == false
@@ -243,7 +242,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 		setRequestBody(requestBody: reqBodyObj )
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
-		
+        
         let response : BulkAPIResponse = try request.getBulkAPIResponse()
         let responses : [ EntityResponse ] = response.getEntityResponses()
         var upsertRecords : [ ZCRMRecord ] = [ ZCRMRecord ]()
@@ -317,6 +316,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 		addRequestParam(param: "type" , value: type )
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
+        
         let response : BulkAPIResponse = try request.getBulkAPIResponse()
         let responses : [ EntityResponse ] = response.getEntityResponses()
         var trashRecords : [ ZCRMTrashRecord ] = [ ZCRMTrashRecord ]()

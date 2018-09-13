@@ -182,6 +182,7 @@ internal class UserAPIHandler : CommonAPIHandler
 		setRequestMethod(requestMethod: .GET )
 		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
+
         let response = try request.getAPIResponse()
         let responseJSON = response.getResponseJSON()
         let profileList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : "profiles" )
@@ -195,6 +196,7 @@ internal class UserAPIHandler : CommonAPIHandler
 		setRequestMethod(requestMethod: .GET )
 		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
+
         let response = try request.getAPIResponse()
         let responseJSON = response.getResponseJSON()
         let rolesList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : "roles" )

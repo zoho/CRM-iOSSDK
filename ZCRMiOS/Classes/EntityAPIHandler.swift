@@ -44,7 +44,6 @@ internal class EntityAPIHandler : CommonAPIHandler
 		setRequestBody(requestBody : reqBodyObj)
 		let request : APIRequest = APIRequest(handler : self)
         print( "Request : \( request.toString() )" )
-		
         let response = try request.getAPIResponse()
         let responseJSON : [String:Any] = response.getResponseJSON()
         let respDataArr : [[String:Any?]] = responseJSON.getArrayOfDictionaries(key: "data")
@@ -61,13 +60,12 @@ internal class EntityAPIHandler : CommonAPIHandler
         var dataArray : [[String:Any]] = [[String:Any]]()
         dataArray.append(self.getZCRMRecordAsJSON() as Any as! [ String : Any ])
         reqBodyObj["data"] = dataArray
-		
+
 		setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )" )
 		setRequestMethod( requestMethod : .PUT )
 		setRequestBody( requestBody : reqBodyObj )
 		let request : APIRequest = APIRequest( handler : self)
         print( "Request : \( request.toString() )" )
-		
         let response = try request.getAPIResponse()
         let responseJSON : [String:Any] = response.getResponseJSON()
         let respDataArr : [[String:Any?]] = responseJSON.getArrayOfDictionaries(key: "data")
@@ -80,13 +78,11 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     internal func deleteRecord() throws -> APIResponse
     {
-		
 		setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\(self.record.getId())")
 		setRequestMethod(requestMethod : .DELETE )
 		
 		let request : APIRequest = APIRequest(handler : self )
         print( "Request : \( request.toString() )" )
-		
         return try request.getAPIResponse()
     }
     
@@ -152,19 +148,17 @@ internal class EntityAPIHandler : CommonAPIHandler
 		setRequestMethod(requestMethod : .GET )
 		let request : APIRequest = APIRequest(handler : self )
         print( "Request : \( request.toString() )" )
-		
         return try request.downloadFile()
     }
     
     internal func deletePhoto() throws -> APIResponse
     {
         try photoSupportedModuleCheck( moduleAPIName : self.record.getModuleAPIName() )
-		
+
 		setUrlPath(urlPath : "/\( self.record.getModuleAPIName() )/\( String( self.record.getId() ) )/photo" )
 		setRequestMethod(requestMethod : .DELETE )
 		let request : APIRequest = APIRequest(handler : self )
         print( "Request : \( request.toString() )" )
-		
         return try request.getAPIResponse()
     }
 	
@@ -500,13 +494,22 @@ internal class EntityAPIHandler : CommonAPIHandler
 	
 	internal func getZCRMSubformRecord( apiName : String , subformDetails : [ String : Any ] ) -> ZCRMSubformRecord
 	{
-		let zcrmSubform : ZCRMSubformRecord = ZCRMSubformRecord(apiName : apiName, id: subformDetails.getInt64(key: "id" ))
-		zcrmSubform.setModifiedTime(modifiedTime: subformDetails.getString(key: "Modified_Time" ) )
-		zcrmSubform.setCreatedTime(createdTime: subformDetails.getString(key: "Created_Time" ) )
-		let ownerDetails : [ String : Any ] = subformDetails.getDictionary(key: "Owner")
-		let owner : ZCRMUser = ZCRMUser(userId: ownerDetails.getInt64(key: "id"), userFullName: ownerDetails.getString(key: "name"))
-		zcrmSubform.setOwner(owner: owner)
-		return zcrmSubform
+        let zcrmSubform : ZCRMSubformRecord = ZCRMSubformRecord(apiName : apiName, id: subformDetails.getInt64(key: "id" ))
+        if subformDetails.hasValue(forKey: "Modified_Time")
+        {
+            zcrmSubform.setModifiedTime(modifiedTime: subformDetails.getString(key: "Modified_Time"))
+        }
+        if subformDetails.hasValue(forKey: "Created_Time")
+        {
+            zcrmSubform.setCreatedTime(createdTime: subformDetails.getString(key: "Created_Time"))
+        }
+        if subformDetails.hasValue(forKey: "Owner")
+        {
+            let ownerDetails : [ String : Any ] = subformDetails.getDictionary(key: "Owner")
+            let owner : ZCRMUser = ZCRMUser(userId: ownerDetails.getInt64(key: "id"), userFullName: ownerDetails.getString(key: "name"))
+            zcrmSubform.setOwner(owner: owner)
+        }
+        return zcrmSubform
 	}
 	
     private func setTaxDetails( taxDetails : [ [ String : Any ] ] )

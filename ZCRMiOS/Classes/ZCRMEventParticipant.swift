@@ -49,7 +49,7 @@ public class ZCRMEventParticipant
     /// set the name of the ZCRMEventParticipant.
     ///
     /// - Parameter name: name of the ZCRMEventParticipant
-    internal func setName( name : String? )
+    internal func setName( name : String )
     {
         self.name = name
     }
@@ -65,7 +65,7 @@ public class ZCRMEventParticipant
     /// Set the email of the ZCRMEventParticipant.
     ///
     /// - Parameter email: email of the ZCRMEventParticipant
-    internal func setEmail( email : String? )
+    internal func setEmail( email : String )
     {
         self.email = email
     }
@@ -81,7 +81,7 @@ public class ZCRMEventParticipant
     /// Set the status of the ZCRMEventParticipant.
     ///
     /// - Parameter status: status of the ZCRMEventParticipant
-    internal func setStatus( status : String? )
+    internal func setStatus( status : String )
     {
         self.status = status
     }
@@ -105,7 +105,7 @@ public class ZCRMEventParticipant
     /// Set true if the ZCRMEventParticipant invited
     ///
     /// - Parameter invited: true if the ZCRMEventParticipant invited
-    internal func setInvited( invited : Bool? )
+    internal func setInvited( invited : Bool )
     {
         self.isInvited = invited
     }

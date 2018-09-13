@@ -81,7 +81,6 @@ internal class ModuleAPIHandler : CommonAPIHandler
 
     internal func getAllCustomViews( modifiedSince : String? ) throws -> BulkAPIResponse
     {
- 
 		setUrlPath(urlPath: "/settings/custom_views")
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param: "module" , value: self.module.getAPIName())
@@ -112,6 +111,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
 		addRequestParam(param: "module" , value: self.module.getAPIName() )
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
+        
         let response = try request.getAPIResponse()
         let cvArray : [ [ String : Any ] ] = response.getResponseJSON().getArrayOfDictionaries( key : "custom_views" )
         response.setData( data : getZCRMCustomView( cvDetails : cvArray[ 0 ] ) )

@@ -45,7 +45,7 @@ internal class APIRequest
     private var requestMethod : RequestMethod
     private var headers : [String : String] = [String : String]()
     private var params : [String : String] = [String : String]()
-    private var requestBody : Any?
+    private var requestBody : [ String : Any ]?
     private var request : URLRequest?
     private var url : URL?
 	private var isOAuth : Bool = true
@@ -78,12 +78,22 @@ internal class APIRequest
             self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( ZVCRMLoginHandler().getOauth2Token() )" )
         }
     }
-	
+    
     private func addHeader(headerName : String, headerVal : String)
     {
         self.headers[headerName] = headerVal
     }
-	
+    
+    internal func addParam(paramName : String, paramVal : String)
+    {
+        self.params[paramName] = paramVal
+    }
+    
+    internal func setRequestBody( body : [ String : Any ] )
+    {
+        self.requestBody = body
+    }
+    
     private func initialiseRequest()
     {
 		if isOAuth == true
@@ -119,6 +129,7 @@ internal class APIRequest
             let reqBody = try? JSONSerialization.data(withJSONObject: self.requestBody!, options: [])
             self.request?.httpBody = reqBody
         }
+        print( "Request : \( self.toString() )" )
     }
     
     internal func getResponse() throws -> ([String : Any])
@@ -127,12 +138,22 @@ internal class APIRequest
         self.initialiseRequest()
         var urlResponse : URLResponse?
         var responseData : Data?
+        var error : Error? = nil
         URLSession.shared.dataTask(with: self.request!, completionHandler: { data, response, err in
+            guard err == nil else
+            {
+                error = err
+                return
+            }
             responseData = data
             urlResponse = response
             sema.signal()
         }).resume()
         sema.wait()
+        if error != nil
+        {
+            throw ZCRMSDKError.ProcessingError( "URLSession dataTask error : \( error!.description )" )
+        }
         try self.checkForException(response: urlResponse, responseData: responseData)
         let jsonStr : Any? = try? JSONSerialization.jsonObject(with: responseData!, options: [])
         var responseJSON : [String : Any] = [String : Any]()
@@ -158,7 +179,7 @@ internal class APIRequest
         sema.wait()
         if error != nil
         {
-            throw ZCRMSDKError.ProcessingError( error!.localizedDescription )
+            throw ZCRMSDKError.ProcessingError( "URLSession dataTask error : \( error!.description )" )
         }
         return try APIResponse(response: urlResponse, responseData: responseData)
     }
@@ -169,12 +190,22 @@ internal class APIRequest
         self.initialiseRequest()
         var urlResponse : HTTPURLResponse = HTTPURLResponse()
         var responseData : Data?
+        var error : Error?
         URLSession.shared.dataTask(with: self.request!, completionHandler: { data, response, err in
+            guard err == nil else
+            {
+                error = err
+                return
+            }
             responseData = data
 			urlResponse = response as! HTTPURLResponse
             sema.signal()
         }).resume()
         sema.wait()
+        if error != nil
+        {
+            throw ZCRMSDKError.ProcessingError( "URLSession dataTask error : \( error!.description )" )
+        }
         return try BulkAPIResponse(response: urlResponse, responseData: responseData)
     }
     
@@ -185,12 +216,21 @@ internal class APIRequest
         var urlResponse : HTTPURLResponse = HTTPURLResponse()
         var responseData : Data?
         let sema = DispatchSemaphore( value : 0 )
+        var err : Error?
         URLSession.shared.dataTask( with : self.request!, completionHandler : { data, response, error in
+            guard error == nil else
+            {
+                err = error
+                return
+            }
             responseData = data
             urlResponse = response as! HTTPURLResponse
             sema.signal()
         } ).resume()
         sema.wait()
+        if err != nil {
+            throw ZCRMSDKError.ProcessingError( "URLSession dataTask error : \( err!.description )" )
+        }
         return try APIResponse( response : urlResponse, responseData : responseData )
     }
     
@@ -203,12 +243,21 @@ internal class APIRequest
         var urlResponse : HTTPURLResponse = HTTPURLResponse()
         var responseData : Data?
         let sema = DispatchSemaphore( value : 0 )
+        var err : Error?
         URLSession.shared.dataTask( with : self.request!, completionHandler : { data, response, error in
+            guard error == nil else
+            {
+                err = error
+                return
+            }
             responseData = data
             urlResponse = response as! HTTPURLResponse
             sema.signal()
         } ).resume()
         sema.wait()
+        if err != nil {
+            throw ZCRMSDKError.ProcessingError( "URLSession dataTask error : \( err!.description )" )
+        }
         return try APIResponse( response : urlResponse, responseData : responseData )
     }
     
@@ -267,7 +316,7 @@ internal class APIRequest
         sema.wait()
         if error != nil
         {
-            throw ZCRMSDKError.ProcessingError( error!.localizedDescription )
+            throw ZCRMSDKError.ProcessingError( "URLSession dataTask error : \( error!.description )" )
         }
         return try FileAPIResponse(response: fileResponse!, tempLocalUrl: localUrl!)
     }
@@ -306,12 +355,17 @@ internal class APIRequest
         }
         if( url?.absoluteString != nil )
         {
-            return "URL : \( url!.absoluteString ), HEADERS : \( headers.description ) PARAMS : \( params.description )"
+            return "URL : \( url!.absoluteString ), HEADERS : \( headers.description ) PARAMS : \( params.description ), METHOD : \( self.requestMethod.rawValue )"
         }
         else
         {
-            return "URL : \( self.baseUrl + self.urlPath ), HEADERS : \( headers.description ) PARAMS : \( params.description )"
+            return "URL : \( self.baseUrl + self.urlPath ), HEADERS : \( headers.description ) PARAMS : \( params.description ), METHOD : \( self.requestMethod.rawValue )"
         }
+    }
+    
+    public func getRequestBodyString() -> String
+    {
+        return "BODY : \( self.requestBody.debugDescription )"
     }
 }
 
