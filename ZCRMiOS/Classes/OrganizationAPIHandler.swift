@@ -13,27 +13,26 @@ internal class OrganizationAPIHandler : CommonAPIHandler
 	override init() {
 
 	}
-    
-    internal func getOrganizationDetails( completion : @escaping( ZCRMOrganisation?, APIResponse?, Error? ) -> () )
+
+    internal func getOrganizationDetails( completion : @escaping( Result.DataResponse< ZCRMOrganisation, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.ORG )
 		setUrlPath(urlPath:  "/org" )
 		setRequestMethod(requestMethod: .GET)
         let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
-        request.getAPIResponse { ( resp, err ) in
-            if let error = err
-            {
-                completion( nil, nil, error )
-                return
-            }
-            if let response = resp
-            {
+        
+        request.getAPIResponse { ( resultType ) in
+            do{
+                let response = try resultType.resolve()
                 let responseJSON : [ String :  Any ] = response.responseJSON
                 let orgArray = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                 let org = self.getZCRMOrganization( orgDetails : orgArray[ 0 ] )
                 response.setData( data : org )
-                completion( org, response, nil )
+                completion( .success( org, response ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
     }

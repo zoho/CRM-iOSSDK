@@ -350,7 +350,7 @@ public class ZCRMUser : ZCRMEntity
         return self.confirm
     }
     
-    internal func setReportingTo( reportingTo : ZCRMUser? )
+    public func setReportingTo( reportingTo : ZCRMUser? )
     {
         self.reportingTo = reportingTo
     }
@@ -400,7 +400,7 @@ public class ZCRMUser : ZCRMEntity
         return self.modifiedTime
     }
     
-    internal func setFieldValue( fieldAPIName : String, value : Any )
+    public func setFieldValue( fieldAPIName : String, value : Any )
     {
         if self.fieldNameVsValue == nil
         {
@@ -424,7 +424,7 @@ public class ZCRMUser : ZCRMEntity
         }
         else
         {
-            throw ZCRMError.ProcessingError( "The given field is not present in this user - \( fieldAPIName )" )
+            throw ZCRMError.ProcessingError( code : ErrorCode.FIELD_NOT_FOUND, message : "The given field is not present in this user - \( fieldAPIName )" )
         }
     }
     
@@ -433,38 +433,38 @@ public class ZCRMUser : ZCRMEntity
         return self.fieldNameVsValue
     }
     
-    public func create( completion : @escaping( ZCRMUser?, APIResponse?, Error? ) -> () )
+    public func create( completion : @escaping( Result.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
-        UserAPIHandler().addUser( user : self ) { ( user, response, error ) in
-            completion( user, response, error )
+        UserAPIHandler().addUser( user : self ) { ( result ) in
+            completion( result )
         }
     }
     
-    public func update( completion : @escaping( APIResponse?, Error? ) -> () )
+    public func update( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        UserAPIHandler().updateUser( user : self ) { ( response, error ) in
-            completion( response, error )
+        UserAPIHandler().updateUser( user : self ) { ( result ) in
+            completion( result )
         }
     }
     
-    public func delete( completion : @escaping( APIResponse?, Error? ) -> () )
+    public func delete( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        UserAPIHandler().deleteUser( userId : self.getId()! ) { ( response, error ) in
-            completion( response, error )
+        UserAPIHandler().deleteUser( userId : self.getId()! ) { ( result ) in
+            completion( result )
         }
     }
     
-    public func downloadProfilePhoto( completion : @escaping( FileAPIResponse?, Error? ) -> () )
+    public func downloadProfilePhoto( completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
     {
-        UserAPIHandler().downloadPhoto( size : PhotoSize.ORIGINAL ) { ( response, error ) in
-            completion( response, error )
+        UserAPIHandler().downloadPhoto( size : PhotoSize.ORIGINAL ) { ( result ) in
+            completion( result )
         }
     }
     
-    public func downloadProfilePhoto( size : PhotoSize, completion : @escaping( FileAPIResponse?, Error? ) -> () )
+    public func downloadProfilePhoto( size : PhotoSize, completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
     {
-        UserAPIHandler().downloadPhoto( size : size ) { ( response, error ) in
-            completion( response, error )
+        UserAPIHandler().downloadPhoto( size : size ) { ( result ) in
+            completion( result )
         }
     }
 }

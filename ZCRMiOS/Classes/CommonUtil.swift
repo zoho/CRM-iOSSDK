@@ -11,47 +11,61 @@ import Foundation
 let PhotoSupportedModules = ["Leads", "Contacts"]
 
 
-internal enum ZCRMSDKError : Error {
-    case InternalError(String)
-    case ResponseNil(String)
+public enum ZCRMError : Error
+{
+    case UnAuthenticatedError( code : String, message : String )
+    case InValidError( code : String, message : String )
+    case MaxRecordCountExceeded( code : String, message : String )
+    case FileSizeExceeded( code : String, message : String )
+    case ProcessingError( code : String, message : String )
+    case SDKError( code : String, message : String )
     
-    func getMessage() -> String {
-        
-        switch self {
-        case .InternalError(let errorString):
-            return errorString
-        case .ResponseNil(let errorString):
-            return errorString
+    var details : ( code : String, description : String )
+    {
+        switch self
+        {
+            case .UnAuthenticatedError( let code, let desc ):
+                return ( code, desc )
+            case .InValidError( let code, let desc ):
+                return ( code, desc )
+            case .MaxRecordCountExceeded( let code, let desc ):
+                return ( code, desc )
+            case .FileSizeExceeded( let code, let desc ):
+                return ( code, desc )
+            case .ProcessingError( let code, let desc ):
+                return ( code, desc )
+            case .SDKError( let code, let desc ):
+                return ( code, desc )
         }
     }
-    
 }
 
-public enum ZCRMError : Error {
-    case UnAuthenticatedError(String)
-    case InValidError(String)
-    case MaxRecordCountExceeded(String)
-    case FileSizeExceeded(String)
-    case ProcessingError(String)
-    
-    func getMessage() -> String{
-        
-        switch self {
-        case .UnAuthenticatedError(let errorString):
-            return errorString
-        case .InValidError(let errorString):
-            return errorString
-        case .MaxRecordCountExceeded(let errorString):
-            return errorString
-        case .FileSizeExceeded(let errorString):
-            return errorString
-        case .ProcessingError(let errorString):
-            return errorString
-            
-        }
-        
-    }
-    
+public struct ErrorCode
+{
+    static var INVALID_DATA = "INVALID_DATA"
+    static var INTERNAL_ERROR = "INTERNAL_ERROR"
+    static var RESPONSE_NIL = "RESPONSE_NIL"
+    static var MANDATORY_NOT_FOUND = "MANDATORY_NOT_FOUND"
+    static var RESPONSE_ROOT_KEY_NIL = "RESPONSE_ROOT_KEY_NIL"
+    static var FILE_SIZE_EXCEEDED = "FILE_SIZE_EXCEEDED"
+    static var MAX_COUNT_EXCEEDED = "MAX_COUNT_EXCEEDED"
+    static var FIELD_NOT_FOUND = "FIELD_NOT_FOUND"
+    static var OAUTHTOKEN_NIL = "OAUTHTOKEN_NIL"
+    static var OAUTH_FETCH_ERROR = "OAUTH_FETCH_ERROR"
+    static var UNABLE_TO_CONSTRUCT_URL = "UNABLE_TO_CONSTRUCT_URL"
+    static var INVALID_FILE_TYPE = "INVALID_FILE_TYPE"
+    static var INVALID_MODULE = "INVALID_MODULE"
+}
+
+struct ErrorMessage
+{
+    static var INVALID_ID_MSG  = "The given id seems to be invalid."
+    static var API_MAX_RECORDS_MSG = "Cannot process more than 100 records at a time."
+    static var RESPONSE_NIL_MSG  = "Response is nil"
+    static var OAUTHTOKEN_NIL_MSG = "The oauth token is nil"
+    static var OAUTH_FETCH_ERROR_MSG = "There was an error in fetching oauth Token"
+    static var UNABLE_TO_CONSTRUCT_URL_MSG = "There was a problem constructing the URL"
+    static var INVALID_FILE_TYPE_MSG = "The file you have chosen is not supported. Please choose a PNG, JPG, BMP, or GIF file type."
 }
 
 public enum SortOrder : String
@@ -118,50 +132,46 @@ internal extension Dictionary
     
     func optString(key : Key) -> String?
     {
-        return optValue(key: key) as! String?
+        return optValue(key: key) as? String
     }
     
     func optInt(key : Key) -> Int?
     {
-        return optValue(key: key) as! Int?
+        return optValue(key: key) as? Int
     }
     
     func optInt64(key : Key) -> Int64?
     {
-        let str = optValue(key: key) as! String?
-        if(str != nil)
-        {
-            return Int64(str!)
-        }
-        else
-        {
+        guard let stringID = optValue(key: key) as? String else {
             return nil
         }
+        
+        return Int64(stringID)
     }
     
     func optDouble(key : Key) -> Double?
     {
-        return optValue(key: key) as! Double?
+        return optValue(key: key) as? Double
     }
     
     func optBoolean(key : Key) -> Bool?
     {
-        return optValue(key: key) as! Bool?
+        return optValue(key: key) as? Bool
     }
     
     func optDictionary(key : Key) -> Dictionary<String, Any>?
     {
-        return optValue(key: key) as! Dictionary<String, Any>?
+        return optValue(key: key) as? Dictionary<String, Any>
     }
     
     func optArray(key : Key) -> Array<Any>?
     {
-        return optValue(key: key) as! Array<Any>?
+        return optValue(key: key) as? Array<Any>
     }
     
     func optArrayOfDictionaries( key : Key ) -> Array< Dictionary < String, Any > >?
     {
-        return ( optValue( key : key ) as! Array< Dictionary < String, Any > >? )
+        return ( optValue( key : key ) as? Array< Dictionary < String, Any > > )
     }
     
     func getInt( key : Key ) -> Int
@@ -210,22 +220,22 @@ internal extension Dictionary
         let jsonString = String(data: jsonData!, encoding: String.Encoding.ascii)
         return jsonString!
     }
-	
-	func equateKeys( dictionary : [ String : Any ] ) -> Bool
-	{
-		let dictKeys = dictionary.keys
-		var isEqual : Bool = true
-		for key in self.keys
-		{
-			if dictKeys.index(of: key as! String) == nil
-			{
-				isEqual = false
-			}
-		}
-		return isEqual
-	}
-	
-	
+    
+    func equateKeys( dictionary : [ String : Any ] ) -> Bool
+    {
+        let dictKeys = dictionary.keys
+        var isEqual : Bool = true
+        for key in self.keys
+        {
+            if dictKeys.index(of: key as! String) == nil
+            {
+                isEqual = false
+            }
+        }
+        return isEqual
+    }
+    
+    
 }
 
 public extension Array
@@ -483,11 +493,11 @@ public func fileDetailCheck( filePath : String ) throws
 {
     if ( FileManager.default.fileExists( atPath : filePath )  == false )
     {
-        throw ZCRMError.InValidError( "File not found at given path : \( filePath )" )
+        throw ZCRMError.InValidError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "File not found at given path : \( filePath )" )
     }
     if ( getFileSize( filePath : filePath ) > 2097152 )
     {
-        throw ZCRMError.FileSizeExceeded( "Cannot upload. File size should not exceed to 20MB" )
+        throw ZCRMError.FileSizeExceeded( code : ErrorCode.FILE_SIZE_EXCEEDED, message : "Cannot upload. File size should not exceed to 20MB" )
     }
 }
 
@@ -529,10 +539,6 @@ let SALESORDERS : String = "SalesOrders"
 let INVOICES : String = "Invoices"
 let PURCHASEORDERS : String = "PurchaseOrders"
 
-let INVALID_ID_MSG : String = "The given id seems to be invalid."
-let INVALID_DATA : String = "INVALID_DATA"
-let API_MAX_RECORDS_MSG : String = "Cannot process more than 100 records at a time."
-
 let ACTION : String = "action"
 let DUPLICATE_FIELD : String = "duplicate_field"
 
@@ -571,4 +577,65 @@ struct JSONRootKey {
     static let ANALYTICS : String = "Analytics"
     static let STAGES : String = "stages"
 }
+
+//MARK:- RESULT TYPES
+//MARK:  Error Type (ZCRMError) is common to every Result Type
+//MARK:  Result types can be handled in 2 ways:
+//MARK:  1) Handle Result Types either by calling Resolve()
+//MARK:  2) on them or use the traditional switch case pattern to handle success and failure seperately
+public struct Result {
+    
+    //MARK: DATA RESPONSE RESULT TYPE (Data,Response,Error)
+    //MARK: This either gives (DATA,RESPONSE) as TUPLE OR (ERROR) but NOT BOTH AT THE SAME TIME
+    //MARK: Data -> Any ZCRMInstance
+    //MARK: Response -> (FileAPIResponse,APIResponse,BulkAPIResponse)->>> (Any Class inhering from CommonAPIResponse)
+    //MARK: Error -> ZCRMError ->>> (Conforms to Error Type)
+    public enum DataResponse<Data: Any,Response: CommonAPIResponse>{
+        
+        case success(Data,Response)
+        case failure(ZCRMError)
+        
+        public func resolve() throws -> (data:Data,response:Response){
+            
+            switch self {
+            case .success(let data,let response):
+                return (data,response)
+                
+            case .failure(let error):
+                throw error
+            } // switch
+        } // func ends
+    }
+    
+    //MARK: RESPONSE RESULT TYPE (Only Response and Error)
+    //MARK: This either gives (RESPONSE) OR (ERROR) but NOT BOTH AT THE SAME TIME
+    //MARK: Response -> (FileAPIResponse,APIResponse,BulkAPIResponse)->>> (Any Class inhering from CommonAPIResponse)
+    //MARK: Error -> ZCRMError ->>> (Conforms to Error Type)
+    public enum Response<Response: CommonAPIResponse> {
+        
+        case success(Response)
+        case failure(ZCRMError)
+        
+        public func resolve() throws -> Response{
+            
+            switch self {
+            case .success(let response):
+                return response
+                
+            case .failure(let error):
+                throw error
+            } // switch
+        } // func ends
+    }
+    
+    
+} // struct ends ..
+
+func typeCastToZCRMError(_ error:Error) -> ZCRMError {
+    guard let typecastedError = error as? ZCRMError else {
+        return ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: error.description)
+    }
+    return typecastedError
+}
+
 

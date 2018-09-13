@@ -119,51 +119,51 @@ public class ZCRMTag : ZCRMEntity
         return modifiedTime
     }
     
-    public func getRecordCount( completion : @escaping ( Int64?, Error? ) -> () )
+    public func getRecordCount( completion : @escaping ( Result.DataResponse< Int64, APIResponse > ) -> () )
     {
         if self.moduleAPIName == nil
         {
-            completion( nil, ZCRMError.ProcessingError( "Tag Module API Name must not be nil." ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND , message: "Tag Module API Name must not be nil." ) ) )
         }
         else
         {
-            TagAPIHandler( tag : self, module : ZCRMModule( moduleAPIName : self.moduleAPIName! ) ).getRecordCount { ( count, error ) in
-                completion( count, error )
+            TagAPIHandler( tag : self, module : ZCRMModule( moduleAPIName : self.moduleAPIName! ) ).getRecordCount { ( result ) in
+                completion( result )
             }
         }
     }
     
-    public func merge( withTag : ZCRMTag, completion : @escaping ( ZCRMTag?, APIResponse?, Error? ) -> () )
+    public func merge( withTag : ZCRMTag, completion : @escaping ( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
-        TagAPIHandler(tag: self).merge(withTag: withTag) { (tag, response, error) in
-            completion( tag, response, error )
+        TagAPIHandler(tag: self).merge(withTag: withTag) { ( result ) in
+            completion( result )
         }
     }
     
-    public func update( updateTag : ZCRMTag, completion : @escaping ( ZCRMTag?, APIResponse?, Error? ) -> () )
+    public func update( updateTag : ZCRMTag, completion : @escaping ( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
         if self.moduleAPIName == nil
         {
-            completion( nil, nil, ZCRMError.ProcessingError( "Tag Module API Name must not be nil." ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND , message: "Tag Module API Name must not be nil." ) ) )
         }
         else
         {
-            TagAPIHandler( tag : self, module : ZCRMModule( moduleAPIName : self.moduleAPIName! ) ).update( updateTag : updateTag, completion : { ( tag, response, error ) in
-                completion( tag, response, error )
+            TagAPIHandler( tag : self, module : ZCRMModule( moduleAPIName : self.moduleAPIName! ) ).update( updateTag : updateTag, completion : { ( result ) in
+                completion( result )
             } )
         }
     }
     
-    public func delete( completion : @escaping ( APIResponse?, Error? ) -> () )
+    public func delete( completion : @escaping ( Result.Response< APIResponse > ) -> () )
     {
         if ( self.getId() == nil )
         {
-            completion( nil, ZCRMError.ProcessingError( "Tag ID must not be nil for delete operation." ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Tag ID must not be nil for delete operation." ) ) )
         }
         else
         {
-            TagAPIHandler().delete( tagId : self.getId()! , completion: { ( response, error ) in
-                completion( response, error )
+            TagAPIHandler().delete( tagId : self.getId()! , completion: { ( result ) in
+                completion( result )
             } )
         }
     }

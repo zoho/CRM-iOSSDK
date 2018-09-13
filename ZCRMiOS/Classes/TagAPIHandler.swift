@@ -13,9 +13,7 @@ internal class TagAPIHandler : CommonAPIHandler
     private var tag : ZCRMTag?
     private var module : ZCRMModule?
     
-    public override init ()
-    {
-    }
+    public override init (){}
     
     public init(tag : ZCRMTag)
     {
@@ -34,8 +32,7 @@ internal class TagAPIHandler : CommonAPIHandler
     }
     
     // MARK: - Handler Functions
-    
-    internal func getTags( completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+    internal func getTags( completion : @escaping( Result.DataResponse< [ ZCRMTag ], BulkAPIResponse > ) -> () )
     {
         if let module = self.module
         {
@@ -48,14 +45,9 @@ internal class TagAPIHandler : CommonAPIHandler
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \(request.toString())" )
             
-            request.getBulkAPIResponse { ( response, err ) in
-                if let error = err
-                {
-                    completion( nil, nil, error )
-                    return
-                }
-                if let bulkResponse = response
-                {
+            request.getBulkAPIResponse { ( resultType ) in
+                do{
+                    let bulkResponse = try resultType.resolve()
                     let responseJSON = bulkResponse.getResponseJSON()
                     if( responseJSON.isEmpty == false )
                     {
@@ -65,25 +57,31 @@ internal class TagAPIHandler : CommonAPIHandler
                             tags.append(self.getZCRMTag(tagDetails: tagDetails))
                         }
                         bulkResponse.setData(data: tags)
+                        completion( .success( tags, bulkResponse ) )
                     }
-                    completion( tags, bulkResponse, nil)
+                    else
+                    {
+                        completion( .failure( ZCRMError.SDKError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG ) ) )
+                    }
+                }
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( "Module MUST NOT be nil" ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Module MUST NOT be nil" ) ) )
         }
     }
-    
-    internal func getRecordCount( completion : @escaping( Int64?, Error? ) -> () )
+
+    internal func getRecordCount( completion : @escaping( Result.DataResponse< Int64, APIResponse > ) -> () )
     {
         if let tag = self.tag, let module = self.module
         {
             if tag.getId() == nil
             {
-                completion( nil, ZCRMError.ProcessingError( "Tag ID MUST NOT be nil" ) )
-                return
+                completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Tag ID MUST NOT be nil" ) ) )
             }
             let tagIdString : String = String(tag.getId()!)
             setJSONRootKey(key: JSONRootKey.TAGS)
@@ -93,25 +91,32 @@ internal class TagAPIHandler : CommonAPIHandler
             
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \(request.toString())" )
-        
-            request.getAPIResponse { ( resp, error ) in
-                guard let response = resp else
-                {
-                    completion( nil, error )
-                    return
+            
+            request.getAPIResponse { ( resultType ) in
+                do{
+                    let response = try resultType.resolve()
+                    let responseJSON = response.getResponseJSON()
+                    if let count = Int64( responseJSON.getString( key : ResponseJSONKeys.count ) )
+                    {
+                        completion( .success( count, response ) )
+                    }
+                    else
+                    {
+                        completion( .success( 0, response ) )
+                    }
                 }
-                let responseJSON = response.getResponseJSON()
-                let count = Int64( responseJSON.getString( key : ResponseJSONKeys.count ) )
-                completion( count, nil )
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
             }
         }
         else
         {
-            completion( nil, ZCRMError.ProcessingError( "Module and Tag MUST NOT be nil" ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Module and Tag ID MUST NOT be nil" ) ) )
         }
     }
-    
-    internal func createTags( tags : [ZCRMTag], completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+
+    internal func createTags( tags : [ZCRMTag], completion : @escaping( Result.DataResponse< [ ZCRMTag ], BulkAPIResponse > ) -> () )
     {
         if let module = module
         {
@@ -127,24 +132,17 @@ internal class TagAPIHandler : CommonAPIHandler
             }
             reqBodyObj[getJSONRootKey()] = dataArray
             
-            
             setUrlPath(urlPath: "/settings/tags")
             setRequestMethod(requestMethod: .POST)
             addRequestParam(param: "module", value: module.getAPIName())
             setRequestBody(requestBody: reqBodyObj)
             
-            
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \(request.toString())" )
             
-            request.getBulkAPIResponse { ( response, err ) in
-                if let error = err
-                {
-                    completion( nil, nil, error )
-                    return
-                }
-                if let bulkResponse = response
-                {
+            request.getBulkAPIResponse { ( resultType ) in
+                do{
+                    let bulkResponse = try resultType.resolve()
                     let responses : [EntityResponse] = bulkResponse.getEntityResponses()
                     var createdTags : [ZCRMTag] = [ZCRMTag]()
                     for entityResponse in responses
@@ -163,23 +161,26 @@ internal class TagAPIHandler : CommonAPIHandler
                         }
                     }
                     bulkResponse.setData(data: createdTags)
-                    completion( createdTags, bulkResponse, nil )
+                    completion( .success( createdTags, bulkResponse ) )
+                }
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( "Module MUST NOT be nil" ) )
+            completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Module MUST NOT be nil" ) ) )
         }
     }
-    
-    internal func merge( withTag : ZCRMTag, completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
+
+    internal func merge( withTag : ZCRMTag, completion : @escaping( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
         if let tag = self.tag
         {
             if tag.getId() == nil
             {
-                completion( nil, nil, ZCRMError.ProcessingError( "Tag ID MUST NOT be nil" ) )
+                completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Tag ID MUST NOT be nil" ) ) )
                 return
             }
             var conflictTagJSON : [String:Any] = self.getZCRMTagAsJSON(tag: withTag) as Any as! [String:Any]
@@ -197,36 +198,35 @@ internal class TagAPIHandler : CommonAPIHandler
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \(request.toString())" )
             
-            request.getAPIResponse{ ( resp, err ) in
-                if let error = err
-                {
-                    completion( nil, nil, error)
-                }
-                if let response = resp
-                {
+            request.getAPIResponse { ( resultType ) in
+                do{
+                    let response = try resultType.resolve()
                     let responseJSON :[String:Any] = response.getResponseJSON()
                     let respDataArray : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     let respData : [String:Any?] = respDataArray[0]
                     let tagDetails : [String:Any] = respData.getDictionary(key: DETAILS)
                     let tag = self.getZCRMTag(tagDetails: tagDetails)
                     response.setData(data: tag)
-                    completion( tag, response, nil )
+                    completion( .success( tag, response ) )
+                }
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( "Tag MUST NOT be nil" ) )
+            completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Tag MUST NOT be nil" ) ) )
         }
     }
-    
-    internal func update(updateTag : ZCRMTag, completion : @escaping( ZCRMTag?, APIResponse?, Error? ) -> () )
+
+    internal func update(updateTag : ZCRMTag, completion : @escaping( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
         if let module = self.module, let tag = self.tag
         {
             if tag.getId() == nil
             {
-                completion( nil, nil, ZCRMError.ProcessingError( "Tag ID MUST NOT be nil" ) )
+                completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Tag ID MUST NOT be nil" ) ) )
                 return
             }
             setJSONRootKey(key: JSONRootKey.TAGS)
@@ -246,31 +246,29 @@ internal class TagAPIHandler : CommonAPIHandler
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
             
-            request.getAPIResponse { ( resp, err ) in
-                if let error = err
-                {
-                    completion( nil, nil, error )
-                    return
-                }
-                if let response = resp
-                {
+            request.getAPIResponse { ( resultType ) in
+                do{
+                    let response = try resultType.resolve()
                     let responseJSON = response.getResponseJSON()
                     let respDataArr : [[String:Any?]] = responseJSON.optArrayOfDictionaries(key: self.getJSONRootKey())!
                     let respData : [String:Any?] = respDataArr[0]
                     let recordDetails : [String:Any] = respData.getDictionary(key: DETAILS)
                     let updatedTag = self.getZCRMTag(tagDetails : recordDetails)
                     response.setData(data: updatedTag )
-                    completion( updatedTag, response, nil )
+                    completion( .success( updatedTag, response ) )
+                }
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( "Module and Tag MUST NOT be nil" ) )
+            completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Module and Tag MUST NOT be nil" ) ) )
         }
     }
-    
-    internal func updateTags( tags : [ZCRMTag], completion : @escaping( [ZCRMTag]?, BulkAPIResponse?, Error? ) -> () )
+
+    internal func updateTags( tags : [ZCRMTag], completion : @escaping( Result.DataResponse< [ZCRMTag], BulkAPIResponse > ) -> () )
     {
         if let module = self.module
         {
@@ -293,14 +291,10 @@ internal class TagAPIHandler : CommonAPIHandler
             
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \(request.toString())" )
-            request.getBulkAPIResponse { ( response, err ) in
-                if let error = err
-                {
-                    completion( nil, nil, error )
-                    return
-                }
-                if let bulkResponse = response
-                {
+            
+            request.getBulkAPIResponse { ( resultType ) in
+                do{
+                    let bulkResponse = try resultType.resolve()
                     let responses : [EntityResponse] = bulkResponse.getEntityResponses()
                     var updatedTags : [ZCRMTag] = [ZCRMTag]()
                     for entityResponse in responses
@@ -319,26 +313,37 @@ internal class TagAPIHandler : CommonAPIHandler
                         }
                     }
                     bulkResponse.setData(data: updatedTags)
-                    completion( updatedTags, bulkResponse, nil )
+                    completion( .success( updatedTags, bulkResponse ) )
+                }
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            completion( nil, nil, ZCRMError.ProcessingError( "Module MUST NOT be nil" ) )
+            completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Module MUST NOT be nil" ) ) )
         }
     }
-    
-    internal func delete( tagId : Int64, completion : @escaping( APIResponse?, Error? ) -> () )
+
+    internal func delete( tagId : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.TAGS)
         let idString = String(tagId)
         setUrlPath(urlPath: "/settings/tags/\(idString)" )
         setRequestMethod(requestMethod: .DELETE )
+        setJSONRootKey( key : JSONRootKey.TAGS )
         let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
-        request.getAPIResponse { ( response, error ) in
-            completion( response, error )
+        
+        request.getAPIResponse { ( resultType ) in
+            do{
+                let response = try resultType.resolve()
+                completion( .success( response ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
         }
     }
     

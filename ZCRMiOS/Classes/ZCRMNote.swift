@@ -75,7 +75,7 @@ public class ZCRMNote : ZCRMEntity
     
     /// Returns note's ZCRMRecord
     ///
-    /// - Returns: <#return value description#>
+    /// - Returns: the parent record of the note
     public func getParentRecord() -> ZCRMRecord
     {
         return self.parentRecord!
@@ -237,10 +237,10 @@ public class ZCRMNote : ZCRMEntity
     /// - Parameter filePath: file path of the attachment
     /// - Returns: APIResponse of the attachment upload
     /// - Throws: ZCRMSDKError if failed to upload the attachment
-    public func uploadAttachment( filePath : String, completion : @escaping( ZCRMAttachment?, APIResponse?, Error? ) -> () )
+    public func uploadAttachment( filePath : String, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
     {
-        ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: "Notes").uploadAttachment(ofParentRecord: ZCRMRecord(moduleAPIName: "Notes", recordId: self.getId()!), filePath: filePath) { ( attachment, response, error ) in
-            completion( attachment, response, error )
+        ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: "Notes").uploadAttachment(ofParentRecord: ZCRMRecord(moduleAPIName: "Notes", recordId: self.getId()!), filePath: filePath) { ( result ) in
+            completion( result )
         }
     }
     
@@ -249,10 +249,10 @@ public class ZCRMNote : ZCRMEntity
     /// - Parameter attachmentId: Id of the attachment to be downloaded
     /// - Returns: FileAPIResponse containing the data of the file downloaded.
     /// - Throws: ZCRMSDKError if failed to download the attachment
-    public func downloadAttachment(attachmentId : Int64, completion : @escaping( FileAPIResponse?, Error? ) -> ())
+    public func downloadAttachment(attachmentId : Int64, completion : @escaping( Result.Response< FileAPIResponse > ) -> ())
     {
-        ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: "Notes").downloadAttachment(ofParentRecord: ZCRMRecord(moduleAPIName: "Notes", recordId: self.getId()!), attachmentId: attachmentId) { ( response, error ) in
-            completion( response, error )
+        ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: "Notes").downloadAttachment(ofParentRecord: ZCRMRecord(moduleAPIName: "Notes", recordId: self.getId()!), attachmentId: attachmentId) { ( result ) in
+            completion( result )
         }
     }
     
@@ -261,10 +261,10 @@ public class ZCRMNote : ZCRMEntity
     /// - Parameter attachmentId: Id of the attachment to be deleted
     /// - Returns: APIResponse of the file deleted.
     /// - Throws: ZCRMSDKError if failed to delete the attachment
-    public func deleteAttachment( attachmentId : Int64, completion : @escaping( APIResponse?, Error? ) -> () )
+    public func deleteAttachment( attachmentId : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        ZCRMModuleRelation( relatedListAPIName : "Attachments", parentModuleAPIName : "Notes" ).deleteAttachment( ofParentRecord : ZCRMRecord( moduleAPIName : "Notes", recordId : self.getId()! ), attachmentId : attachmentId ) { ( response, error ) in
-            completion( response, error )
+        ZCRMModuleRelation( relatedListAPIName : "Attachments", parentModuleAPIName : "Notes" ).deleteAttachment( ofParentRecord : ZCRMRecord( moduleAPIName : "Notes", recordId : self.getId()! ), attachmentId : attachmentId ) { ( result ) in
+            completion( result )
         }
     }
 }

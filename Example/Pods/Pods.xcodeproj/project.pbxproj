@@ -693,6 +693,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5F3C2378AFADA8100EA1EEE1A4A9B514 /* Pods-ZCRMiOS_Tests.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
@@ -784,6 +785,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 26F29EF63D4F9B732F6C899EEDE2B2CB /* Pods-ZCRMiOS_Tests.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";

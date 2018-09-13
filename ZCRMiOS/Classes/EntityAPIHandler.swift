@@ -16,8 +16,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     }
     
 	// MARK: - Handler Functions
-	
-    internal func getRecord( withPrivateFields : Bool, completion : @escaping( ZCRMRecord?, APIResponse?, Error? ) -> () )
+	internal func getRecord( withPrivateFields : Bool, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         let urlPath = "/\(self.record.getModuleAPIName())/\(self.record.getId())"
@@ -31,24 +30,24 @@ internal class EntityAPIHandler : CommonAPIHandler
 		
         print( "Request : \( request.toString() )" )
    
-        request.getAPIResponse { ( resp, err ) in
-            if let error = err
+        request.getAPIResponse { ( resultType ) in
+            do
             {
-                completion( nil, nil, error )
-                return
-            }
-            if let response = resp
-            {
+                let response = try resultType.resolve()
                 let responseJSON : [String:Any] = response.getResponseJSON()
                 let responseDataArray : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                 self.setRecordProperties(recordDetails: responseDataArray[0])
                 response.setData(data: self.record)
-                completion( self.record, response, nil )
+                completion( .success( self.record, response ))
+            }
+            catch
+            {
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
     }
     
-    internal func createRecord( completion : @escaping( ZCRMRecord?, APIResponse?, Error? ) -> () )
+    internal func createRecord( completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
@@ -62,26 +61,26 @@ internal class EntityAPIHandler : CommonAPIHandler
 		let request : APIRequest = APIRequest(handler : self)
         print( "Request : \( request.toString() )" )
 		
-        request.getAPIResponse { ( resp, err ) in
-            if let error = err
+        request.getAPIResponse { ( resultType ) in
+            do
             {
-                completion( nil, nil, error )
-                return
-            }
-            if let response = resp
-            {
+                let response = try resultType.resolve()
                 let responseJSON : [String:Any] = response.getResponseJSON()
                 let respDataArr : [[String:Any?]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                 let respData : [String:Any?] = respDataArr[0]
                 let recordDetails : [String:Any] = respData.getDictionary(key: DETAILS)
                 self.setRecordProperties(recordDetails: recordDetails)
                 response.setData(data: self.record)
-                completion( self.record, response, nil )
+                completion( .success( self.record, response ) )
+            }
+            catch
+            {
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
     }
     
-    internal func updateRecord( completion : @escaping( ZCRMRecord?, APIResponse?, Error? ) -> () )
+    internal func updateRecord( completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
@@ -94,43 +93,44 @@ internal class EntityAPIHandler : CommonAPIHandler
 		setRequestBody( requestBody : reqBodyObj )
 		let request : APIRequest = APIRequest( handler : self)
         print( "Request : \( request.toString() )" )
-
-        request.getAPIResponse { ( resp, err ) in
-            if let error = err
-            {
-                completion( nil, nil, error )
-                return
-            }
-            if let response = resp
-            {
+        
+        request.getAPIResponse { ( resultType ) in
+            do{
+                let response = try resultType.resolve()
                 let responseJSON : [String:Any] = response.getResponseJSON()
                 let respDataArr : [[String:Any?]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                 let respData : [String:Any?] = respDataArr[0]
                 let recordDetails : [String:Any] = respData.getDictionary(key: DETAILS)
                 self.setRecordProperties(recordDetails: recordDetails)
                 response.setData(data: self.record)
-                completion( self.record, response, nil )
+                completion( .success( self.record, response ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
     }
     
-    internal func deleteRecord( completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func deleteRecord( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-		
 		setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\(self.record.getId())")
 		setRequestMethod(requestMethod : .DELETE )
-		
 		let request : APIRequest = APIRequest(handler : self )
         print( "Request : \( request.toString() )" )
-		
-        request.getAPIResponse { ( response, error ) in
-            completion( response, error )
+        
+        request.getAPIResponse { ( resultType ) in
+            do{
+                let response = try resultType.resolve()
+                completion( .success( response ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
         }
     }
-    
-    internal func convertRecord( newPotential : ZCRMRecord?, assignTo : ZCRMUser?, completion : @escaping( [ String : Int64 ]?, Error? ) -> () )
-    {
 
+    internal func convertRecord( newPotential : ZCRMRecord?, assignTo : ZCRMUser?, completion : @escaping( Result.DataResponse< [ String : Int64 ], APIResponse > ) -> () )
+    {
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         var dataArray : [[String:Any]] = [[String:Any]]()
         var convertData : [String:Any] = [String:Any]()
@@ -144,22 +144,16 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
         dataArray.append(convertData)
         reqBodyObj[getJSONRootKey()] = dataArray
-		
         
-		setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )/actions/convert" )
-		setRequestMethod(requestMethod : .POST )
-		setRequestBody(requestBody : reqBodyObj )
-		let request : APIRequest = APIRequest(handler : self)
+        setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )/actions/convert" )
+        setRequestMethod(requestMethod : .POST )
+        setRequestBody(requestBody : reqBodyObj )
+        let request : APIRequest = APIRequest(handler : self)
         print( "Request : \( request.toString() )" )
         
-        request.getAPIResponse { ( resp, err ) in
-            if let error = err
-            {
-                completion( nil, error )
-                return
-            }
-            if let response = resp
-            {
+        request.getAPIResponse { ( resultType ) in
+            do{
+                let response = try resultType.resolve()
                 let responseJSON : [String:Any] = response.getResponseJSON()
                 let respDataArr : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                 let respData : [String:Any] = respDataArr[0]
@@ -172,64 +166,80 @@ internal class EntityAPIHandler : CommonAPIHandler
                 {
                     convertedDetails.updateValue( respData.optInt64(key: DEALS)! , forKey : DEALS )
                 }
-                convertedDetails.updateValue( respData.optInt64(key: CONTACTS)! , forKey : CONTACTS )
-                completion( convertedDetails, nil )
+                convertedDetails.updateValue( respData.optInt64(key: "Contacts")! , forKey : "Contacts" )
+                completion( .success( convertedDetails, response ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
     }
     
-    
-    internal func uploadPhoto(filePath : String,completion: @escaping(APIResponse?,Error?)->Void){
-        
+    internal func uploadPhoto(filePath : String,completion: @escaping( Result.Response< APIResponse > )->Void)
+    {
         do {
-
             try fileDetailCheck(filePath:filePath)
             guard UIImage(contentsOfFile: filePath) != nil else {
-                completion(nil,
-                ZCRMError.ProcessingError("INVALID_FILE_TYPE -> PLEASE UPLOAD AN IMAGE FILE"))
+                completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.INVALID_FILE_TYPE, message : ErrorMessage.INVALID_FILE_TYPE_MSG ) ) )
                 return
             }
-            
             setUrlPath(urlPath :"/\(self.record.getModuleAPIName())/\(String(self.record.getId()))/photo")
             setRequestMethod(requestMethod : .POST )
             let request : APIRequest = APIRequest(handler : self )
-            
             print( "Request : \( request.toString() )" )
-            
-            request.uploadFile( filePath : filePath) { ( response, error ) in
-                completion( response, error )
+            request.getAPIResponse { ( resultType ) in
+                do{
+                    let response = try resultType.resolve()
+                    completion( .success( response ) )
+                }
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
             }
-            
-        } catch {
-            completion(nil,error)
+        }
+        catch
+        {
+            completion( .failure( typeCastToZCRMError( error ) ) )
         }
     }
-    
-    internal func downloadPhoto( completion : @escaping( FileAPIResponse?, Error? ) -> () )
+
+    internal func downloadPhoto( completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
     {
         setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )/photo" )
         setRequestMethod(requestMethod : .GET )
         let request : APIRequest = APIRequest(handler : self )
         print( "Request : \( request.toString() )" )
         
-        request.downloadFile { ( response, error ) in
-            completion( response, error )
+        request.downloadFile { ( resultType ) in
+            do{
+                let response = try resultType.resolve()
+                completion( .success( response ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
         }
     }
-    
-    internal func deletePhoto( completion : @escaping( APIResponse?, Error? ) -> () )
+
+    internal func deletePhoto( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         setUrlPath(urlPath : "/\( self.record.getModuleAPIName() )/\( String( self.record.getId() ) )/photo" )
         setRequestMethod(requestMethod : .DELETE )
         let request : APIRequest = APIRequest(handler : self )
         print( "Request : \( request.toString() )" )
         
-        request.getAPIResponse { ( response, error ) in
-            completion( response, error )
+        request.getAPIResponse { ( resultType ) in
+            do{
+                let response = try resultType.resolve()
+                completion( .success( response ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
         }
     }
-    
-    internal func follow( completion : @escaping( APIResponse?, Error? ) -> () )
+
+    internal func follow( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         setUrlPath( urlPath : "/\(self.record.getModuleAPIName())/\(self.record.getId())/actions/follow" )
@@ -237,12 +247,18 @@ internal class EntityAPIHandler : CommonAPIHandler
         let request : APIRequest = APIRequest( handler : self )
         print( "Request : \( request.toString() )" )
         
-        request.getAPIResponse { ( response, error ) in
-            completion( response, error )
+        request.getAPIResponse { ( resultType ) in
+            do{
+                let response = try resultType.resolve()
+                completion( .success( response ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
         }
     }
     
-    internal func unfollow( completion : @escaping( APIResponse?, Error? ) -> () )
+    internal func unfollow( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         setUrlPath( urlPath : "/\(self.record.getModuleAPIName())/\(self.record.getId())/actions/follow" )
@@ -250,27 +266,120 @@ internal class EntityAPIHandler : CommonAPIHandler
         let request : APIRequest = APIRequest( handler : self )
         print( "Request : \( request.toString() )" )
         
-        request.getAPIResponse { ( response, error ) in
-            completion( response, error )
+        request.getAPIResponse { ( resultType ) in
+            do{
+                let response = try resultType.resolve()
+                completion( .success( response ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func addTags( tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( Result.DataResponse< [ZCRMTag], APIResponse > ) -> () )
+    {
+        setJSONRootKey(key: JSONRootKey.DATA)
+        var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
+        let dataArray : [[String:Any]] = [[String:Any]]()
+        let recordIdString = String(record.getId())
+        reqBodyObj[getJSONRootKey()] = dataArray
+        
+        setUrlPath(urlPath: "/\(self.record.getModuleAPIName())/\(recordIdString)/actions/add_tags")
+        setRequestMethod(requestMethod: .POST)
+        var tagNamesString : String = String()
+        for index in 0..<tags.count
+        {
+            if let name = tags[index].getName()
+            {
+                tagNamesString.append( name )
+                if ( index != ( tags.count - 1 ) )
+                {
+                    tagNamesString.append(",")
+                }
+            }
+        }
+        addRequestParam(param: RequestParamKeys.tagNames, value: tagNamesString)
+        if overWrite != nil
+        {
+            addRequestParam(param: RequestParamKeys.overWrite, value: String(overWrite!))
+        }
+        setRequestBody(requestBody: reqBodyObj)
+        
+        let request : APIRequest = APIRequest(handler: self)
+        print("Request : \(request.toString())")
+        
+        request.getAPIResponse { ( resultType ) in
+            do{
+                let response = try resultType.resolve()
+                let responseJSON = response.getResponseJSON()
+                let respDataArray : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                let respData : [String:Any] = respDataArray[0]
+                let tagDetails : [String] = respData.getDictionary(key: DETAILS).getArray(key: JSONRootKey.TAGS) as! [String]
+                var tags : [ZCRMTag] = [ZCRMTag]()
+                for tagDetail in tagDetails
+                {
+                    let singleTag : ZCRMTag = ZCRMTag( tagName: tagDetail )
+                    tags.append(singleTag)
+                }
+                completion( .success( tags, response ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func removeTags( tags : [ZCRMTag], completion : @escaping( Result.Response< APIResponse > ) -> () )
+    {
+        setJSONRootKey(key: JSONRootKey.DATA)
+        var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
+        let dataArray : [[String:Any]] = [[String:Any]]()
+        let recordIdString = String(record.getId())
+        reqBodyObj[getJSONRootKey()] = dataArray
+        
+        setUrlPath(urlPath: "/\(self.record.getModuleAPIName())/\(recordIdString)/actions/remove_tags")
+        setRequestMethod(requestMethod: .POST)
+        var tagNamesString : String = String()
+        for index in 0..<tags.count
+        {
+            if let name = tags[index].getName()
+            {
+                tagNamesString.append( name )
+                if ( index != ( tags.count - 1 ) )
+                {
+                    tagNamesString.append(",")
+                }
+            }
+        }
+        addRequestParam(param: RequestParamKeys.tagNames, value: tagNamesString)
+        setRequestBody(requestBody: reqBodyObj)
+        
+        let request : APIRequest = APIRequest(handler: self)
+        print("Request : \(request.toString())")
+        
+        request.getAPIResponse { ( resultType ) in
+            do{
+                let response = try resultType.resolve()
+                completion( .success( response ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
         }
     }
 	
 	// MARK: - Utility Functions
-	
-    private func setPriceDetails(priceDetails priceDetailsArrayOfJSON : [[ String : Any]]) {
-        
+	private func setPriceDetails(priceDetails priceDetailsArrayOfJSON : [[ String : Any]]) {
         for priceDetailJSON in priceDetailsArrayOfJSON {
-            
-             let ZCRMPriceBookPricing = try! getZCRMPriceDetail(From: priceDetailJSON)
+            let ZCRMPriceBookPricing = try! getZCRMPriceDetail(From: priceDetailJSON)
              record.addPriceDetail(priceDetail: ZCRMPriceBookPricing)
         }
     }
     
-    
     private func getZCRMPriceDetail(From priceDetailDict : [ String : Any ] ) throws -> ZCRMPriceBookPricing
     {
         let priceDetail = ZCRMPriceBookPricing()
-        
         priceDetail.setId(id : priceDetailDict.getInt64( key : ResponseJSONKeys.id ) )
         
         if let discount = priceDetailDict.optDouble(key : ResponseJSONKeys.discount){
@@ -281,7 +390,6 @@ internal class EntityAPIHandler : CommonAPIHandler
            let toRange = priceDetailDict.optDouble(key : ResponseJSONKeys.toRange ){
             priceDetail.setRange(From: fromRange, To: toRange)
         }
-        
         return priceDetail
     }
     
@@ -616,7 +724,7 @@ internal class EntityAPIHandler : CommonAPIHandler
             {
                 var propertyName : String = fieldAPIName
                 propertyName.remove(at: propertyName.startIndex)
-                if propertyName.contains(ResponseJSONKeys.followers)
+                if propertyName.contains(ResponseJSONKeys.followers), recordDetails.hasValue( forKey : fieldAPIName )
                 {
                     var users : [ ZCRMUser ] = [ ZCRMUser ]()
                     let userDetails : [ [ String : Any ] ] = value as! [ [ String : Any ] ]
@@ -672,29 +780,22 @@ internal class EntityAPIHandler : CommonAPIHandler
 	
     private func getZCRMSubformRecord(apiName:String,subformDetails:[String:Any]) -> ZCRMSubformRecord
     {
-        
         let zcrmSubform : ZCRMSubformRecord = ZCRMSubformRecord(apiName : apiName, id: subformDetails.getInt64(key: ResponseJSONKeys.id ))
-        
         if subformDetails.hasValue(forKey: ResponseJSONKeys.modifiedTime){
-            
             let modifiedTime = subformDetails.optString(key: ResponseJSONKeys.modifiedTime)!
             zcrmSubform.setModifiedTime(modifiedTime: modifiedTime)
-            
         }
         
         if subformDetails.hasValue(forKey: ResponseJSONKeys.createdTime){
-            
             let createdTime = subformDetails.optString(key: ResponseJSONKeys.createdTime)!
             zcrmSubform.setCreatedTime(createdTime: createdTime)
         }
-        
         
         if subformDetails.hasValue( forKey : ResponseJSONKeys.owner )
         {
             let ownerDict = subformDetails.getDictionary( key : ResponseJSONKeys.owner )
             let owner : ZCRMUser = ZCRMUser(userId: ownerDict.getInt64(key: ResponseJSONKeys.id),
                                             userFullName: ownerDict.getString(key: ResponseJSONKeys.name))
-            
             zcrmSubform.setOwner(owner: owner)
         }
         
@@ -809,96 +910,6 @@ internal class EntityAPIHandler : CommonAPIHandler
         participant.setInvited( invited : participantDetails.getBoolean( key : ResponseJSONKeys.invited ) )
         return participant
     }
-    
-    internal func addTags( tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( [ZCRMTag]?, APIResponse?, Error? ) -> () )
-    {
-
-        setJSONRootKey(key: JSONRootKey.DATA)
-        var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
-        let dataArray : [[String:Any]] = [[String:Any]]()
-        let recordIdString = String(record.getId())
-        reqBodyObj[getJSONRootKey()] = dataArray
-        
-        setUrlPath(urlPath: "/\(self.record.getModuleAPIName())/\(recordIdString)/actions/add_tags")
-        setRequestMethod(requestMethod: .POST)
-        var tagNamesString : String = String()
-        for index in 0..<tags.count
-        {
-            if let name = tags[index].getName()
-            {
-                tagNamesString.append( name )
-                if ( index != ( tags.count - 1 ) )
-                {
-                    tagNamesString.append(",")
-                }
-            }
-        }
-        addRequestParam(param: RequestParamKeys.tagNames, value: tagNamesString)
-        if overWrite != nil
-        {
-            addRequestParam(param: RequestParamKeys.overWrite, value: String(overWrite!))
-        }
-        setRequestBody(requestBody: reqBodyObj)
-        
-        let request : APIRequest = APIRequest(handler: self)
-        print("Request : \(request.toString())")
-        
-        request.getAPIResponse { ( resp, err ) in
-            if let error = err
-            {
-                completion( nil, nil, error )
-                return
-            }
-            if let response = resp
-            {
-                let responseJSON = response.getResponseJSON()
-                let respDataArray : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
-                let respData : [String:Any] = respDataArray[0]
-                let tagDetails : [String] = respData.getDictionary(key: DETAILS).getArray(key: JSONRootKey.TAGS) as! [String]
-                var tags : [ZCRMTag] = [ZCRMTag]()
-                for tagDetail in tagDetails
-                {
-                    let singleTag : ZCRMTag = ZCRMTag( tagName: tagDetail )
-                    tags.append(singleTag)
-                }
-                completion( tags, response, nil )
-            }
-        }
-    }
-    
-    internal func removeTags( tags : [ZCRMTag], completion : @escaping( APIResponse?, Error? ) -> () )
-    {
-        setJSONRootKey(key: JSONRootKey.DATA)
-        var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
-        let dataArray : [[String:Any]] = [[String:Any]]()
-        let recordIdString = String(record.getId())
-        reqBodyObj[getJSONRootKey()] = dataArray
-        
-        setUrlPath(urlPath: "/\(self.record.getModuleAPIName())/\(recordIdString)/actions/remove_tags")
-        setRequestMethod(requestMethod: .POST)
-        var tagNamesString : String = String()
-        for index in 0..<tags.count
-        {
-            if let name = tags[index].getName()
-            {
-                tagNamesString.append( name )
-                if ( index != ( tags.count - 1 ) )
-                {
-                    tagNamesString.append(",")
-                }
-            }
-        }
-        addRequestParam(param: RequestParamKeys.tagNames, value: tagNamesString)
-        setRequestBody(requestBody: reqBodyObj)
-        
-        let request : APIRequest = APIRequest(handler: self)
-        print("Request : \(request.toString())")
-        
-        request.getAPIResponse { ( resp, err ) in
-            completion( resp, err )
-        }
-    }
-    
 }
 
 fileprivate extension EntityAPIHandler

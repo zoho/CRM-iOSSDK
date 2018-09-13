@@ -8,7 +8,7 @@
 
 internal class MetaDataAPIHandler : CommonAPIHandler
 {
-    internal func getAllModules( modifiedSince : String?, completion: @escaping( [ ZCRMModule ]?, BulkAPIResponse?, Error? ) -> () )
+    internal func getAllModules( modifiedSince : String?, completion: @escaping( Result.DataResponse< [ ZCRMModule ], BulkAPIResponse > ) -> () )
 	{
 		var allModules : [ZCRMModule] = [ZCRMModule]()
 		setUrlPath(urlPath: "/settings/modules" )
@@ -19,14 +19,10 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         }
 		let request : APIRequest = APIRequest(handler : self ) 
         print( "Request : \( request.toString() )" )
-        request.getBulkAPIResponse { ( response, err ) in
-            if let error = err
-            {
-                completion( nil, nil, error )
-                return
-            }
-            if let bulkResponse = response
-            {
+        
+        request.getBulkAPIResponse { ( resultType ) in
+            do{
+                let bulkResponse = try resultType.resolve()
                 let responseJSON = bulkResponse.getResponseJSON()
                 if responseJSON.isEmpty == false
                 {
@@ -37,35 +33,36 @@ internal class MetaDataAPIHandler : CommonAPIHandler
                     }
                     bulkResponse.setData(data: allModules)
                 }
-                completion( allModules, bulkResponse, nil )
+                completion( .success( allModules, bulkResponse ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
 	}
-	
-    internal func getModule( apiName : String, completion: @escaping( ZCRMModule?, APIResponse?, Error? ) -> () )
+
+    internal func getModule( apiName : String, completion: @escaping( Result.DataResponse< ZCRMModule, APIResponse > ) -> () )
 	{
 		setUrlPath(urlPath: "/settings/modules/\(apiName)" )
 		setRequestMethod(requestMethod: .GET )
 		let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
-        request.getAPIResponse { ( resp, err ) in
-            if let error = err
-            {
-                completion( nil, nil, error )
-                return
-            }
-            if let response = resp
-            {
+        
+        request.getAPIResponse { ( resultType ) in
+            do{
+                let response = try resultType.resolve()
                 let responseJSON = response.getResponseJSON()
                 let modulesList:[[String : Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                 let moduleDetails : [String : Any] = modulesList[0]
                 let module = self.getZCRMModule( moduleDetails : moduleDetails )
                 response.setData( data : module )
-                completion( module, response, nil )
+                completion( .success( module, response ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
-        
-	}
+    }
 	
 	private func getZCRMModule(moduleDetails : [String:Any]) -> ZCRMModule
 	{

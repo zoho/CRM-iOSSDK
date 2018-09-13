@@ -29,20 +29,20 @@ public class ZVCRMLoginHandler
             {
                 if( dict.keys.contains( key ) == false )
                 {
-                    throw ZCRMSDKError.InternalError( "\( key ) not present in the App configuration plist!" )
+                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "\( key ) not present in the App configuration plist!" )
                 }
             }
             for key in dict.keys
             {
                 if( dict[ key ] == nil )
                 {
-                    throw ZCRMSDKError.InternalError( "\( key ) is nil. It should have value" )
+                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "\( key ) is nil. It should have value" )
                 }
             }
         }
         else
         {
-            throw ZCRMSDKError.InternalError( "App configuration property list is empty!" )
+            throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "App configuration property list is empty!" )
         }
     }
 
