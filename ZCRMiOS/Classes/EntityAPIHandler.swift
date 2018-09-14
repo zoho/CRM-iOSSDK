@@ -737,8 +737,7 @@ internal class EntityAPIHandler : CommonAPIHandler
             {
                 var propertyName : String = fieldAPIName
                 propertyName.remove(at: propertyName.startIndex)
-    
-                if propertyName.contains(ResponseJSONKeys.followers) , recordDetails.hasValue(forKey: ResponseJSONKeys.followers)
+                if propertyName.contains(ResponseJSONKeys.followers), recordDetails.hasValue( forKey : fieldAPIName )
                 {
                     var users : [ ZCRMUser ] = [ ZCRMUser ]()
                     let userDetails : [ [ String : Any ] ] = value as! [ [ String : Any ] ]
