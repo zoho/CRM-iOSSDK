@@ -569,6 +569,12 @@ let REMAINING_COUNT_FOR_THIS_DAY : String = "X-RATELIMIT-LIMIT"
 let REMAINING_COUNT_FOR_THIS_WINDOW : String = "X-RATELIMIT-REMAINING"
 let REMAINING_TIME_FOR_THIS_WINDOW_RESET : String = "X-RATELIMIT-RESET"
 
+let STRING_NIL : String = "NIL_STRING"
+let INT_NIL : Int = -555
+let INT64_NIL : Int64 = -555
+let DOUBLE_NIL : Double = -55.5555555555555555
+let BOOL_NIL : Bool = false
+
 
 struct JSONRootKey {
     static let DATA : String = "data"
@@ -647,4 +653,15 @@ func typeCastToZCRMError(_ error:Error) -> ZCRMError {
     return typecastedError
 }
 
+func getUserDelegate(userJSON : [String : Any] ) -> ZCRMUserDelegate
+{
+    let userObj : ZCRMUserDelegate = ZCRMUserDelegate(userId: userJSON.getInt64(key: "id"), userFullName: userJSON.getString(key: "name"))
+    return userObj
+}
 
+func setUserDelegate( userObj : ZCRMUserDelegate ) -> [String:Any]
+{
+    let userJSON : [String:Any] = [String:Any]()
+    userJSON["id"] = userObj.userId
+    userJSON["name"] = userObj.fullName
+}

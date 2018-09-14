@@ -129,21 +129,21 @@ public class FormDBHelper{
     {
         var contentValues : [String : Any] = [ String : Any ]()
         contentValues.updateValue(module, forKey: ZCRMTableDetails.CustomView.MODULE)
-        contentValues.updateValue(customView.getName(), forKey: ZCRMTableDetails.CustomView.NAME)
-        contentValues.updateValue(customView.getDisplayName(), forKey: ZCRMTableDetails.CustomView.DISPLAY_NAME)
-        contentValues.updateValue(customView.getSystemName()!, forKey: ZCRMTableDetails.CustomView.SYSTEM_NAME)
-        contentValues.updateValue(String(customView.getId()), forKey: ZCRMTableDetails.CustomView.CUSTOM_VIEW_ID)
-        if(customView.getSortByCol() != nil)
+        contentValues.updateValue(customView.cvName, forKey: ZCRMTableDetails.CustomView.NAME)
+        contentValues.updateValue(customView.displayName, forKey: ZCRMTableDetails.CustomView.DISPLAY_NAME)
+        contentValues.updateValue(customView.sysName, forKey: ZCRMTableDetails.CustomView.SYSTEM_NAME)
+        contentValues.updateValue(String(customView.cvId), forKey: ZCRMTableDetails.CustomView.CUSTOM_VIEW_ID)
+        if(customView.sortByCol != nil)
         {
-        contentValues.updateValue(customView.getSortByCol()!, forKey: ZCRMTableDetails.CustomView.SORT_BY)
+            contentValues.updateValue(customView.sortByCol, forKey: ZCRMTableDetails.CustomView.SORT_BY)
         }
-        if(customView.getSortOrder() != nil)
+        if(customView.sortOrder != nil)
         {
-        contentValues.updateValue(customView.getSortOrder()!, forKey: ZCRMTableDetails.CustomView.SORT_ORDER)
+            contentValues.updateValue(customView.sortOrder!, forKey: ZCRMTableDetails.CustomView.SORT_ORDER)
         }
-        contentValues.updateValue(customView.getCategory()!, forKey: ZCRMTableDetails.CustomView.CATEGORY)
-        contentValues.updateValue(customView.getFavouriteSequence(), forKey: ZCRMTableDetails.CustomView.FAVORITE)
-        contentValues.updateValue(String(customView.isDefaultCV()), forKey: ZCRMTableDetails.CustomView.IS_DEFAULT)
+        contentValues.updateValue(customView.category, forKey: ZCRMTableDetails.CustomView.CATEGORY)
+        contentValues.updateValue(customView.favouriteSequence, forKey: ZCRMTableDetails.CustomView.FAVORITE)
+        contentValues.updateValue(String(customView.isDefault), forKey: ZCRMTableDetails.CustomView.IS_DEFAULT)
         try db.insert(tableName: ZCRMTableDetails.CustomView.TABLE_NAME,contentValues: contentValues)
         
         let currentTimeInMiliseconds = Date().timeIntervalSince1970 * 1000.0
@@ -164,26 +164,26 @@ public class FormDBHelper{
     {
         var contentValues : [String : Any] = [ String : Any ]()
         contentValues.updateValue( module, forKey: ZCRMTableDetails.Layout.MODULE)
-        contentValues.updateValue(layout.getName()!, forKey: ZCRMTableDetails.Layout.LAYOUT_NAME)
-        contentValues.updateValue(String(layout.getId()), forKey: ZCRMTableDetails.Layout.LAYOUT_ID)
-        if (layout.getCreatedBy() != nil)
+        contentValues.updateValue(layout.layoutName, forKey: ZCRMTableDetails.Layout.LAYOUT_NAME)
+        contentValues.updateValue(String(layout.layoutName), forKey: ZCRMTableDetails.Layout.LAYOUT_ID)
+        if (layout.createdBy != USER_NIL)
         {
-            contentValues.updateValue(layout.getCreatedBy()!.getFullName()!, forKey: ZCRMTableDetails.Layout.CREATED_BY_NAME)
-            contentValues.updateValue(String(layout.getCreatedBy()!.getId()!), forKey: ZCRMTableDetails.Layout.CREATED_BY_ID)
+            contentValues.updateValue(layout.createdBy.getFullName()!, forKey: ZCRMTableDetails.Layout.CREATED_BY_NAME)
+            contentValues.updateValue(String(layout.createdBy.getId()!), forKey: ZCRMTableDetails.Layout.CREATED_BY_ID)
             
-            contentValues.updateValue(layout.getCreatedTime()!, forKey: ZCRMTableDetails.Layout.CREATED_TIME)
+            contentValues.updateValue(layout.createdTime, forKey: ZCRMTableDetails.Layout.CREATED_TIME)
         }
         
-        if (layout.getModifiedBy() != nil)
+        if (layout.modifiedBy != USER_NIL)
         {
-            contentValues.updateValue(layout.getModifiedBy()!.getFullName()!, forKey: ZCRMTableDetails.Layout.MODIFIED_BY_NAME)
-            contentValues.updateValue(String(layout.getModifiedBy()!.getId()!), forKey: ZCRMTableDetails.Layout.MODIFIED_BY_ID)
+            contentValues.updateValue(layout.modifiedBy.getFullName()!, forKey: ZCRMTableDetails.Layout.MODIFIED_BY_NAME)
+            contentValues.updateValue(String(layout.modifiedBy.getId()!), forKey: ZCRMTableDetails.Layout.MODIFIED_BY_ID)
         
-            contentValues.updateValue(layout.getModifiedTime()!, forKey: ZCRMTableDetails.Layout.MODIFIED_TIME)
+            contentValues.updateValue(layout.modifiedTime, forKey: ZCRMTableDetails.Layout.MODIFIED_TIME)
         }
         
-        contentValues.updateValue(layout.getStatus()!, forKey: ZCRMTableDetails.Layout.STATUS)
-        contentValues.updateValue(String(layout.isVisible()!), forKey: ZCRMTableDetails.Layout.VISIBLE)
+        contentValues.updateValue(layout.status, forKey: ZCRMTableDetails.Layout.STATUS)
+        contentValues.updateValue(String(layout.visible), forKey: ZCRMTableDetails.Layout.VISIBLE)
         
         try db.insert(tableName: ZCRMTableDetails.Layout.TABLE_NAME,contentValues:  contentValues)
         
@@ -191,14 +191,14 @@ public class FormDBHelper{
         try updateLayoutTime(module: module, time: currentTimeInMiliseconds)
     }
     
-    func insertLayoutProfiles(layoutId: Int64, profile: ZCRMProfile) throws
+    func insertLayoutProfiles(layoutId: Int64, profile: ZCRMProfileDelegate) throws
     {
         
         var contentValues : [String : Any] = [ String : Any ]()
         contentValues.updateValue(String(layoutId), forKey: ZCRMTableDetails.Profile.LAYOUT_ID)
-        contentValues.updateValue(String(profile.getId()), forKey: ZCRMTableDetails.Profile.PROFILE_ID)
-        contentValues.updateValue(profile.getName(), forKey: ZCRMTableDetails.Profile.PROFILE_NAME)
-        contentValues.updateValue(String(profile.isDefaultProfile()!), forKey: ZCRMTableDetails.Profile.DEFAULT)
+        contentValues.updateValue(String(profile.profileId), forKey: ZCRMTableDetails.Profile.PROFILE_ID)
+        contentValues.updateValue(profile.profileName, forKey: ZCRMTableDetails.Profile.PROFILE_NAME)
+        contentValues.updateValue(String(profile.isDefault), forKey: ZCRMTableDetails.Profile.DEFAULT)
         try db.insert(tableName: ZCRMTableDetails.Profile.TABLE_NAME, contentValues: contentValues)
     }
     

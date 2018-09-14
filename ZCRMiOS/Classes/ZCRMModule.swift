@@ -585,16 +585,16 @@ public class ZCRMModule : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to get the record
     public func getRecord( recordId : Int64, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
 	{
-		let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.getAPIName(), recordId: recordId)
-        EntityAPIHandler(record: record).getRecord( withPrivateFields : false, completion : { ( result ) in
+        let record : ZCRMRecordDelegate = ZCRMRecordDelegate(recordId: recordId, moduleAPIName: self.getAPIName())
+        EntityAPIHandler(recordDelegate: record).getRecord( withPrivateFields : false, completion : { ( result ) in
             completion( result )
         } )
 	}
     
     public func getRecordWithPrivateFields( recordId : Int64, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
-        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.getAPIName(), recordId: recordId)
-        EntityAPIHandler(record: record).getRecord( withPrivateFields : true, completion : { ( result ) in
+        let record : ZCRMRecordDelegate = ZCRMRecordDelegate(recordId: recordId, moduleAPIName: self.getAPIName())
+        EntityAPIHandler(recordDelegate: record).getRecord( withPrivateFields : true, completion : { ( result ) in
             completion( result )
         } )
     }

@@ -9,17 +9,23 @@
 internal class EntityAPIHandler : CommonAPIHandler
 {
     private var record : ZCRMRecord
+    private var recordDelegate : ZCRMRecordDelegate
 
     init(record : ZCRMRecord)
     {
         self.record = record
     }
     
+    init( recordDelegate : ZCRMRecordDelegate )
+    {
+        self.recordDelegate = recordDelegate
+    }
+    
 	// MARK: - Handler Functions
 	internal func getRecord( withPrivateFields : Bool, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
-        let urlPath = "/\(self.record.getModuleAPIName())/\(self.record.getId())"
+        let urlPath = "/\(self.record.moduleAPIName)/\(self.record.recordId)"
 		setUrlPath(urlPath : urlPath )
         if( withPrivateFields == true )
         {
@@ -55,7 +61,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         dataArray.append(self.getZCRMRecordAsJSON() as Any as! [ String : Any ] )
         reqBodyObj[ getJSONRootKey() ] = dataArray
 		
-		setUrlPath(urlPath : "/\(self.record.getModuleAPIName())")
+		setUrlPath(urlPath : "/\(self.record.moduleAPIName)")
 		setRequestMethod(requestMethod : .POST)
 		setRequestBody(requestBody : reqBodyObj)
 		let request : APIRequest = APIRequest(handler : self)
@@ -88,7 +94,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         dataArray.append(self.getZCRMRecordAsJSON() as Any as! [ String : Any ])
         reqBodyObj[ getJSONRootKey() ] = dataArray
 		
-		setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )" )
+		setUrlPath(urlPath : "/\(self.record.moduleAPIName)/\( String( self.record.recordId ) )" )
 		setRequestMethod( requestMethod : .PUT )
 		setRequestBody( requestBody : reqBodyObj )
 		let request : APIRequest = APIRequest( handler : self)
@@ -113,7 +119,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     internal func deleteRecord( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-		setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\(self.record.getId())")
+		setUrlPath(urlPath : "/\(self.record.moduleAPIName)/\(self.recordDelegate.recordId)")
 		setRequestMethod(requestMethod : .DELETE )
 		let request : APIRequest = APIRequest(handler : self )
         print( "Request : \( request.toString() )" )
@@ -145,7 +151,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         dataArray.append(convertData)
         reqBodyObj[getJSONRootKey()] = dataArray
         
-        setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )/actions/convert" )
+        setUrlPath(urlPath : "/\(self.record.moduleAPIName)/\( String( self.recordDelegate.recordId ) )/actions/convert" )
         setRequestMethod(requestMethod : .POST )
         setRequestBody(requestBody : reqBodyObj )
         let request : APIRequest = APIRequest(handler : self)
@@ -184,7 +190,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.INVALID_FILE_TYPE, message : ErrorMessage.INVALID_FILE_TYPE_MSG ) ) )
                 return
             }
-            setUrlPath(urlPath :"/\(self.record.getModuleAPIName())/\(String(self.record.getId()))/photo")
+            setUrlPath(urlPath :"/\(self.recordDelegate.moduleAPIName)/\(String(self.recordDelegate.recordId))/photo")
             setRequestMethod(requestMethod : .POST )
             let request : APIRequest = APIRequest(handler : self )
             print( "Request : \( request.toString() )" )
@@ -206,7 +212,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     internal func uploadPhotoWithData( fileName : String, data : Data, completion: @escaping(Result.Response< APIResponse > )->Void)
     {
-        setUrlPath(urlPath :"/\(self.record.getModuleAPIName())/\(String(self.record.getId()))/photo")
+        setUrlPath(urlPath :"/\(self.recordDelegate.moduleAPIName)/\(String(self.recordDelegate.recordId))/photo")
         setRequestMethod(requestMethod : .POST )
         let request : APIRequest = APIRequest(handler : self )
         
@@ -225,7 +231,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     internal func downloadPhoto( completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
     {
-        setUrlPath(urlPath : "/\(self.record.getModuleAPIName())/\( String( self.record.getId() ) )/photo" )
+        setUrlPath(urlPath : "/\(self.recordDelegate.moduleAPIName)/\( String( self.recordDelegate.recordId ) )/photo" )
         setRequestMethod(requestMethod : .GET )
         let request : APIRequest = APIRequest(handler : self )
         print( "Request : \( request.toString() )" )
@@ -243,7 +249,7 @@ internal class EntityAPIHandler : CommonAPIHandler
 
     internal func deletePhoto( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        setUrlPath(urlPath : "/\( self.record.getModuleAPIName() )/\( String( self.record.getId() ) )/photo" )
+        setUrlPath(urlPath : "/\( self.recordDelegate.moduleAPIName)/\( String( self.recordDelegate.recordId ) )/photo" )
         setRequestMethod(requestMethod : .DELETE )
         let request : APIRequest = APIRequest(handler : self )
         print( "Request : \( request.toString() )" )
@@ -262,7 +268,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     internal func follow( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
-        setUrlPath( urlPath : "/\(self.record.getModuleAPIName())/\(self.record.getId())/actions/follow" )
+        setUrlPath( urlPath : "/\(self.recordDelegate.moduleAPIName)/\(self.recordDelegate.recordId)/actions/follow" )
         setRequestMethod( requestMethod : .PUT )
         let request : APIRequest = APIRequest( handler : self )
         print( "Request : \( request.toString() )" )
@@ -281,7 +287,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     internal func unfollow( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
-        setUrlPath( urlPath : "/\(self.record.getModuleAPIName())/\(self.record.getId())/actions/follow" )
+        setUrlPath( urlPath : "/\(self.recordDelegate.moduleAPIName)/\(self.recordDelegate.recordId)/actions/follow" )
         setRequestMethod( requestMethod : .DELETE )
         let request : APIRequest = APIRequest( handler : self )
         print( "Request : \( request.toString() )" )
@@ -301,16 +307,16 @@ internal class EntityAPIHandler : CommonAPIHandler
     internal func addTags( tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.DATA)
-        let recordIdString = String(record.getId())
+        let recordIdString = String(recordDelegate.recordId)
         
-        setUrlPath(urlPath: "/\(self.record.getModuleAPIName())/\(recordIdString)/actions/add_tags")
+        setUrlPath(urlPath: "/\(self.recordDelegate.moduleAPIName)/\(recordIdString)/actions/add_tags")
         setRequestMethod(requestMethod: .POST)
         var tagNamesString : String = String()
         for index in 0..<tags.count
         {
-            if let name = tags[index].getName()
+            if tags[index].tagName != STRING_NIL
             {
-                tagNamesString.append( name )
+                tagNamesString.append( tags[index].tagName )
                 if ( index != ( tags.count - 1 ) )
                 {
                     tagNamesString.append(",")
@@ -350,16 +356,16 @@ internal class EntityAPIHandler : CommonAPIHandler
     internal func removeTags( tags : [ZCRMTag], completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.DATA)
-        let recordIdString = String(record.getId())
+        let recordIdString = String(recordDelegate.recordId)
         
-        setUrlPath(urlPath: "/\(self.record.getModuleAPIName())/\(recordIdString)/actions/remove_tags")
+        setUrlPath(urlPath: "/\(self.recordDelegate.moduleAPIName)/\(recordIdString)/actions/remove_tags")
         setRequestMethod(requestMethod: .POST)
         var tagNamesString : String = String()
         for index in 0..<tags.count
         {
-            if let name = tags[index].getName()
+            if tags[index].tagName != STRING_NIL
             {
-                tagNamesString.append( name )
+                tagNamesString.append( tags[index].tagName )
                 if ( index != ( tags.count - 1 ) )
                 {
                     tagNamesString.append(",")
@@ -411,24 +417,24 @@ internal class EntityAPIHandler : CommonAPIHandler
     {
         var recordJSON : [ String : Any? ] = [ String : Any? ]()
         let recordData : [ String : Any? ] = self.record.getData()
-        if ( self.record.getOwner() != nil )
+        if ( self.record.owner != USER_NIL )
         {
-            recordJSON[ ResponseJSONKeys.owner ] = self.record.getOwner()!.getId()
+            recordJSON[ ResponseJSONKeys.owner ] = self.record.owner.userId
         }
-        if ( self.record.getLayout() != nil )
+        if ( self.record.layout.layoutId != LAYOUT_NIL.layoutId )
         {
-            recordJSON[ ResponseJSONKeys.layout ] = self.record.getLayout()?.getId()
+            recordJSON[ ResponseJSONKeys.layout ] = self.record.layout.layoutId
         }
         for fieldApiName in recordData.keys
         {
             var value  = recordData[ fieldApiName ]
             if( recordData[ fieldApiName ] is ZCRMRecord )
             {
-                value = ( value as? ZCRMRecord )?.getId()
+                value = ( value as? ZCRMRecord )?.recordId
             }
-            if( recordData[ fieldApiName ] is ZCRMUser )
+            if( recordData[ fieldApiName ] is ZCRMUserDelegate )
             {
-                value = ( value as? ZCRMUser )?.getId()
+                value = ( value as? ZCRMUserDelegate )?.userId
             }
 			if( recordData[ fieldApiName ] is [ZCRMSubformRecord]  && (recordData[fieldApiName] as! [ZCRMSubformRecord]).isEmpty == false)
 			{
@@ -440,9 +446,9 @@ internal class EntityAPIHandler : CommonAPIHandler
 			}
             recordJSON[ fieldApiName ] = value
         }
-        if( self.record.getDataProcessingBasicDetails() != nil )
+        if( self.record.dataProcessingBasicDetails != nil )
         {
-            recordJSON[ ResponseJSONKeys.dataProcessingBasisDetails ] = self.getZCRMDataProcessingDetailsAsJSON(details: self.record.getDataProcessingBasicDetails()! )
+            recordJSON[ ResponseJSONKeys.dataProcessingBasisDetails ] = self.getZCRMDataProcessingDetailsAsJSON(details: self.record.dataProcessingBasicDetails! )
         }
         recordJSON[ ResponseJSONKeys.productDetails ] = self.getLineItemsAsJSONArray()
         recordJSON[ ResponseJSONKeys.tax ] = self.getTaxAsJSONArray()
@@ -510,15 +516,17 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getTaxAsJSONArray() -> [ [ String : Any ] ]?
     {
-        if ( self.record.getTax().isEmpty )
+        if ( self.record.tax.isEmpty )
         {
             return nil
         }
         var taxJSONArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
-        let allTax : [ ZCRMTax ] = self.record.getTax()
+        var taxJSON : [ String : Any ] = [ String : Any ]()
+        let allTax : [ ZCRMTaxDelegate ] = self.record.tax
         for tax in allTax
         {
-            taxJSONArray.append( self.getTaxAsJSON( tax : tax ) as Any as! [ String : Any ] )
+//            taxJSONArray.append( self.getTaxAsJSON( tax : tax ) as Any as! [ String : Any ] )
+            taxJSON[ ResponseJSONKeys.name ] = self.record.tax.taxName
         }
         return taxJSONArray
     }
@@ -526,24 +534,20 @@ internal class EntityAPIHandler : CommonAPIHandler
     private func  getTaxAsJSON( tax : ZCRMTax ) -> [ String : Any? ]
     {
         var taxJSON : [ String : Any? ] = [ String : Any? ]()
-        taxJSON[ ResponseJSONKeys.name ] = tax.getTaxName()
-        if tax.getTaxPercentage() != nil {
-            taxJSON[ ResponseJSONKeys.percentage ] = tax.getTaxPercentage()
-        }
-        if tax.getTaxValue() != nil  {
-            taxJSON[ ResponseJSONKeys.value ] = tax.getTaxValue()
-        }
+        taxJSON[ ResponseJSONKeys.name ] = tax.taxName
+        taxJSON[ ResponseJSONKeys.percentage ] = tax.percentage
+        taxJSON[ ResponseJSONKeys.value ] = tax.value
         return taxJSON
     }
     
     private func getLineItemsAsJSONArray() -> [[String:Any]]?
     {
-        if(self.record.getLineItems().isEmpty)
+        if(self.record.lineItems.isEmpty)
         {
             return nil
         }
         var allLineItems : [[String:Any]] = [[String:Any]]()
-        let allLines : [ZCRMInventoryLineItem] = self.record.getLineItems()
+        let allLines : [ZCRMInventoryLineItem] = self.record.lineItems
         for lineItem in allLines
         {
             allLineItems.append(self.getZCRMInventoryLineItemAsJSON(invLineItem: lineItem) as Any as! [ String : Any ] )
@@ -553,12 +557,12 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getPriceDetailsAsJSONArray() -> [ [ String : Any ] ]?
     {
-        if( self.record.getPriceDetails().isEmpty )
+        if( self.record.priceDetails.isEmpty )
         {
             return nil
         }
         var priceDetails : [ [ String : Any ] ] = [ [ String : Any ] ]()
-        let allPriceDetails : [ ZCRMPriceBookPricing ] = self.record.getPriceDetails()
+        let allPriceDetails : [ ZCRMPriceBookPricing ] = self.record.priceDetails
         for priceDetail in allPriceDetails
         {
             priceDetails.append( self.getZCRMPriceDetailAsJSON(priceDetail : priceDetail ) as Any as! [ String : Any ] )
@@ -568,12 +572,12 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getParticipantsAsJSONArray() -> [ [ String : Any ] ]?
     {
-        if( self.record.getParticipants().isEmpty)
+        if( self.record.participants.isEmpty)
         {
             return nil
         }
         var participantsDetails : [ [ String : Any ] ] = [ [ String : Any ] ]()
-        let allParticipants : [ ZCRMEventParticipant ] = self.record.getParticipants()
+        let allParticipants : [ ZCRMEventParticipant ] = self.record.participants
         for participant in allParticipants
         {
             participantsDetails.append( self.getZCRMEventParticipantAsJSON( participant : participant ) as Any as! [ String : Any ] )
@@ -612,7 +616,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
         else
         {
-            lineItem[ResponseJSONKeys.product] = String(invLineItem.getProduct().getId())
+            lineItem[ResponseJSONKeys.product] = String(invLineItem.getProduct().recordId)
         }
         if(invLineItem.isDeleted())
         {
@@ -636,8 +640,8 @@ internal class EntityAPIHandler : CommonAPIHandler
             for lineTax in lineTaxes
             {
                 var tax : [String:Any] = [String:Any]()
-                tax[ResponseJSONKeys.name] = lineTax.getTaxName()
-                tax[ResponseJSONKeys.percentage] = lineTax.getTaxPercentage()
+                tax[ResponseJSONKeys.name] = lineTax.taxName
+                tax[ResponseJSONKeys.percentage] = lineTax.percentage
                 allTaxes.append(tax)
             }
             if(!allTaxes.isEmpty)
@@ -654,7 +658,8 @@ internal class EntityAPIHandler : CommonAPIHandler
         {
             if(ResponseJSONKeys.id == fieldAPIName)
             {
-                self.record.setId(recordId: Int64(value as! String)!)
+//                self.record.setId(recordId: Int64(value as! String)!)
+                self.record.recordId = Int64(value as! String)!
             }
             else if(ResponseJSONKeys.productDetails == fieldAPIName)
             {
@@ -673,9 +678,10 @@ internal class EntityAPIHandler : CommonAPIHandler
                 let taxesDetails : [ [ String : Any ] ] = value as! [ [ String : Any ] ]
                 for taxJSON in taxesDetails
                 {
-                    let tax : ZCRMTax = ZCRMTax( taxName : taxJSON.getString( key : ResponseJSONKeys.name ) )
-                    tax.setTaxValue( taxValue : taxJSON.optDouble( key : ResponseJSONKeys.value ) )
-                    tax.setTaxPercentage( percentage : taxJSON.getDouble( key : ResponseJSONKeys.percentage ) )
+//                    let tax : ZCRMTax = ZCRMTax( taxName : taxJSON.getString( key : ResponseJSONKeys.name ) )
+//                    tax.setTaxValue( taxValue : taxJSON.optDouble( key : ResponseJSONKeys.value ) )
+//                    tax.setTaxPercentage( percentage : taxJSON.getDouble( key : ResponseJSONKeys.percentage ) )
+                    let tax : ZCRMTax = ZCRMTax(taxName: taxJSON.getString( key : ResponseJSONKeys.name ), percentage: taxJSON.getDouble( key : ResponseJSONKeys.value ), value: taxJSON.getDouble( key : ResponseJSONKeys.percentage ))
                     self.record.addTax( tax : tax )
                 }
             }
@@ -684,47 +690,41 @@ internal class EntityAPIHandler : CommonAPIHandler
                 let taxNames : [ String ] = value as! [ String ]
                 for taxName in taxNames
                 {
-                    self.record.addTax( tax : ZCRMTax( taxName : taxName ) )
+                    self.record.addTax( tax : ZCRMTaxDelegate( taxName : taxName ) )
                 }
             }
             else if(ResponseJSONKeys.createdBy == fieldAPIName)
             {
                 let createdBy : [String:Any] = value as! [String : Any]
-                let createdByUser : ZCRMUser = ZCRMUser(userId: createdBy.getInt64(key: ResponseJSONKeys.id), userFullName: createdBy.getString(key: ResponseJSONKeys.name))
-                self.record.setCreatedBy(createdBy: createdByUser)
+//                self.record.createdBy = ZCRMUserDelegate(userId: createdBy.getInt64(key: ResponseJSONKeys.id), userFullName: createdBy.getString(key: ResponseJSONKeys.name))
+                self.record.createdBy = getUserDelegate(userJSON : createdBy)
             }
             else if(ResponseJSONKeys.modifiedBy == fieldAPIName)
             {
                 let modifiedBy : [String:Any] = value as! [String : Any]
-                let modifiedByUser : ZCRMUser = ZCRMUser(userId: modifiedBy.getInt64(key: ResponseJSONKeys.id), userFullName: modifiedBy.getString(key: ResponseJSONKeys.name))
-                self.record.setModifiedBy(modifiedBy: modifiedByUser)
+//                self.record.modifiedBy = ZCRMUserDelegate(userId: modifiedBy.getInt64(key: ResponseJSONKeys.id), userFullName: modifiedBy.getString(key: ResponseJSONKeys.name))
+                self.record.modifiedBy = getUserDelegate(userJSON : modifiedBy)
             }
             else if(ResponseJSONKeys.createdTime == fieldAPIName)
             {
-                self.record.setCreatedTime(createdTime: value as! String)
+                self.record.createdTime = value as! String
             }
             else if(ResponseJSONKeys.modifiedTime == fieldAPIName)
             {
-                self.record.setModifiedTime(modifiedTime: value as! String)
+                self.record.modifiedTime = value as! String
             }
             else if(ResponseJSONKeys.owner == fieldAPIName)
             {
                 let ownerObj : [String:Any] = value as! [String : Any]
-                let owner : ZCRMUser = ZCRMUser(userId: ownerObj.getInt64(key: ResponseJSONKeys.id), userFullName: ownerObj.getString(key: ResponseJSONKeys.name))
-                self.record.setOwner(owner: owner)
+//                self.record.owner = ZCRMUserDelegate(userId: ownerObj.getInt64(key: ResponseJSONKeys.id), userFullName: ownerObj.getString(key: ResponseJSONKeys.name))
+                self.record.createdBy = getUserDelegate(userJSON : ownerObj)
             }
             else if(ResponseJSONKeys.layout == fieldAPIName)
             {
                 if(recordDetails.hasValue(forKey: fieldAPIName))
                 {
                     let layoutObj : [String:Any] = value  as! [String : Any]
-                    let layout : ZCRMLayout = ZCRMLayout(layoutId: layoutObj.getInt64(key: ResponseJSONKeys.id))
-                    layout.setName(name: layoutObj.getString(key: ResponseJSONKeys.name))
-                    self.record.setLayout(layout: layout)
-                }
-                else
-                {
-                    self.record.setLayout(layout: nil)
+                    let layout : ZCRMLayoutDelegate = ZCRMLayoutDelegate(layoutId : layoutObj.getInt64(key: ResponseJSONKeys.id), layoutName : layoutObj.getString(key: ResponseJSONKeys.name))
                 }
             }
             else if(ResponseJSONKeys.handler == fieldAPIName && recordDetails.hasValue(forKey: fieldAPIName))
@@ -767,8 +767,10 @@ internal class EntityAPIHandler : CommonAPIHandler
             else if( value is [ String : Any ] )
             {
                 let lookupDetails : [ String : Any ] = value as! [ String : Any ]
-                let lookupRecord : ZCRMRecord = ZCRMRecord( moduleAPIName : fieldAPIName, recordId : lookupDetails.getInt64( key : ResponseJSONKeys.id ) )
-                lookupRecord.setLookupLabel( label : lookupDetails.optString( key : ResponseJSONKeys.name ) )
+//                let lookupRecord : ZCRMRecord = ZCRMRecord( moduleAPIName : fieldAPIName, recordId : lookupDetails.getInt64( key : ResponseJSONKeys.id ) )
+                let lookupRecord : ZCRMRecord = ZCRMRecord(moduleAPIName: fieldAPIName)
+                lookupRecord.recordId = lookupDetails.getInt64( key : ResponseJSONKeys.id )
+                lookupRecord.lookupLabel = lookupDetails.optString( key : ResponseJSONKeys.name )
                 self.record.setValue( forField : fieldAPIName, value : lookupRecord )
             }
 			else if( value is [[ String : Any ]] )
@@ -877,8 +879,11 @@ internal class EntityAPIHandler : CommonAPIHandler
     private func getZCRMInventoryLineItem(lineItemDetails : [String:Any]) -> ZCRMInventoryLineItem
     {
         let productDetails : [String:Any] = lineItemDetails.getDictionary(key: ResponseJSONKeys.product)
-        let product : ZCRMRecord = ZCRMRecord(moduleAPIName: ResponseJSONKeys.products, recordId: productDetails.getInt64(key: ResponseJSONKeys.id))
-        product.setLookupLabel(label: productDetails.getString(key: ResponseJSONKeys.name))
+//        let product : ZCRMRecord = ZCRMRecord(moduleAPIName: ResponseJSONKeys.products, recordId: productDetails.getInt64(key: ResponseJSONKeys.id))
+        let product : ZCRMRecord = ZCRMRecord(moduleAPIName: ResponseJSONKeys.products)
+        product.recordId = productDetails.getInt64(key: ResponseJSONKeys.id)
+//        product.setLookupLabel(label: productDetails.getString(key: ResponseJSONKeys.name))
+        product.lookupLabel = productDetails.getString(key: ResponseJSONKeys.name)
         let lineItem : ZCRMInventoryLineItem = ZCRMInventoryLineItem(lineItemId: lineItemDetails.getInt64(key: ResponseJSONKeys.id), product: product)
         lineItem.setDescription(description: lineItemDetails.optString(key: ResponseJSONKeys.productDescription))
         lineItem.setQuantity(quantity: lineItemDetails.optDouble(key: ResponseJSONKeys.quantity)!)
@@ -898,9 +903,10 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getZCRMTax( taxDetails : [ String : Any ] ) -> ZCRMTax
     {
-        let lineTax : ZCRMTax = ZCRMTax( taxName : taxDetails.getString( key: ResponseJSONKeys.name ) )
-        lineTax.setTaxPercentage( percentage : taxDetails.getDouble( key : ResponseJSONKeys.percentage ) )
-        lineTax.setTaxValue( taxValue : taxDetails.optDouble( key : ResponseJSONKeys.value )! )
+//        let lineTax : ZCRMTax = ZCRMTax( taxName : taxDetails.getString( key: ResponseJSONKeys.name ) )
+//        lineTax.setTaxPercentage( percentage : taxDetails.getDouble( key : ResponseJSONKeys.percentage ) )
+//        lineTax.setTaxValue( taxValue : taxDetails.optDouble( key : ResponseJSONKeys.value )! )
+        let lineTax : ZCRMTax = ZCRMTax(taxName: taxDetails.getString( key: ResponseJSONKeys.name ), percentage: taxDetails.getDouble( key : ResponseJSONKeys.percentage ), value: taxDetails.getDouble( key : ResponseJSONKeys.value ))
         return lineTax
     }
     

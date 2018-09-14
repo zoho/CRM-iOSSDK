@@ -283,18 +283,48 @@ internal class ModuleAPIHandler : CommonAPIHandler
     
 	internal func getZCRMCustomView(cvDetails: [String:Any]) -> ZCRMCustomView
     {
-        let customView : ZCRMCustomView = ZCRMCustomView( cvId : cvDetails.getInt64( key : ResponseJSONKeys.id ), moduleAPIName : self.module.getAPIName() )
-        customView.setName( name : cvDetails.getString( key : ResponseJSONKeys.name ) )
-        customView.setSystemName(systemName: cvDetails.optString(key: ResponseJSONKeys.systemName))
-        customView.setDisplayName(displayName: cvDetails.optString(key: ResponseJSONKeys.displayValue)!)
-        customView.setIsDefault(isDefault: cvDetails.optBoolean(key: ResponseJSONKeys.defaultString)!)
-        customView.setCategory(category: cvDetails.optString(key: ResponseJSONKeys.category)!)
-        customView.setFavouriteSequence(favourite: cvDetails.optInt(key: ResponseJSONKeys.favorite))
-        customView.setDisplayFields(fieldsAPINames: cvDetails.optArray(key: ResponseJSONKeys.fields) as? [String])
-        customView.setSortByCol(fieldAPIName: cvDetails.optString(key: ResponseJSONKeys.sortBy))
-        customView.setSortOrder(sortOrder: cvDetails.optString(key: ResponseJSONKeys.sortOrder))
-        customView.setIsOffline(isOffline: cvDetails.optBoolean(key: ResponseJSONKeys.offline))
-        customView.setIsSystemDefined(isSystemDefined: cvDetails.optBoolean(key: ResponseJSONKeys.systemDefined))
+        let customView : ZCRMCustomView = ZCRMCustomView(cvName: cvDetails.getString( key : ResponseJSONKeys.name ), moduleAPIName: self.module.getAPIName())
+        customView.cvId = cvDetails.getInt64( key : ResponseJSONKeys.id )
+        if( cvDetails.hasValue(forKey: ResponseJSONKeys.systemName))
+        {
+            customView.sysName = cvDetails.getString(key: ResponseJSONKeys.systemName)
+        }
+        if( cvDetails.hasValue(forKey: ResponseJSONKeys.displayValue))
+        {
+            customView.displayName = cvDetails.getString(key: ResponseJSONKeys.displayValue)
+        }
+        if( cvDetails.hasValue(forKey: ResponseJSONKeys.defaultString))
+        {
+            customView.isDefault = cvDetails.getBoolean(key: ResponseJSONKeys.defaultString)
+        }
+        if( cvDetails.hasValue(forKey: ResponseJSONKeys.category))
+        {
+            customView.category = cvDetails.getString(key: ResponseJSONKeys.category)
+        }
+        if( cvDetails.hasValue(forKey: ResponseJSONKeys.favorite))
+        {
+            customView.favouriteSequence = cvDetails.getInt(key: ResponseJSONKeys.favorite)
+        }
+        if( cvDetails.hasValue(forKey: ResponseJSONKeys.fields))
+        {
+            customView.fields = (cvDetails.getArray(key: ResponseJSONKeys.fields) as? [String])!
+        }
+        if(cvDetails.hasValue(forKey: ResponseJSONKeys.sortBy))
+        {
+            customView.sortByCol = cvDetails.optString(key: ResponseJSONKeys.sortBy)
+        }
+        if( cvDetails.hasValue(forKey: ResponseJSONKeys.sortOrder))
+        {
+            customView.sortOrder = cvDetails.optString(key: ResponseJSONKeys.sortOrder).map { SortOrder(rawValue: $0) }!
+        }
+        if( cvDetails.hasValue(forKey: ResponseJSONKeys.offline))
+        {
+            customView.isOffline = cvDetails.getBoolean(key: ResponseJSONKeys.offline)
+        }
+        if( cvDetails.hasValue(forKey: ResponseJSONKeys.systemDefined))
+        {
+            customView.isSystemDefined = cvDetails.getBoolean(key: ResponseJSONKeys.systemDefined)
+        }
         return customView
     }
     
@@ -310,32 +340,45 @@ internal class ModuleAPIHandler : CommonAPIHandler
     
     internal func getZCRMLayout(layoutDetails : [String : Any]) -> ZCRMLayout
     {
-        let layout : ZCRMLayout = ZCRMLayout(layoutId: layoutDetails.getInt64(key: ResponseJSONKeys.id))
-        layout.setName(name: layoutDetails.optString(key: ResponseJSONKeys.name))
-        layout.setVisibility(isVisible: layoutDetails.optBoolean(key: ResponseJSONKeys.visible))
-        layout.setStatus(status: layoutDetails.optInt(key: ResponseJSONKeys.status))
+        let layout : ZCRMLayout = ZCRMLayout(layoutName: layoutDetails.getString(key: ResponseJSONKeys.name))
+        if( layoutDetails.hasValue(forKey: ResponseJSONKeys.id))
+        {
+            layout.layoutId = layoutDetails.getInt64(key: ResponseJSONKeys.id)
+        }
+        if( layoutDetails.hasValue(forKey: ResponseJSONKeys.visible))
+        {
+            layout.visible = layoutDetails.getBoolean(key: ResponseJSONKeys.visible)
+        }
+        if ( layoutDetails.hasValue(forKey: ResponseJSONKeys.status))
+        {
+            layout.status = layoutDetails.getInt(key: ResponseJSONKeys.status)
+        }
         if(layoutDetails.hasValue(forKey: ResponseJSONKeys.createdBy))
         {
             let createdByObj : [String:Any] = layoutDetails.getDictionary(key: ResponseJSONKeys.createdBy)
-            let createdBy : ZCRMUser = ZCRMUser(userId: createdByObj.getInt64(key: ResponseJSONKeys.id), userFullName: createdByObj.getString(key: ResponseJSONKeys.name))
-            layout.setCreatedBy(createdByUser: createdBy)
-            layout.setCreatedTime(createdTime: layoutDetails.optString(key: ResponseJSONKeys.createdTime))
+//            layout.createdBy = ZCRMUserDelegate(userId: createdByObj.getInt64(key: ResponseJSONKeys.id), userFullName: createdByObj.getString(key: ResponseJSONKeys.name))
+            layout.createdBy = getUserDelegate(userJSON : createdByObj)
+            layout.createdTime = layoutDetails.getString(key: ResponseJSONKeys.createdTime)
         }
-        if(layoutDetails.hasValue(forKey: ResponseJSONKeys.modifiedBy))
+        if(layoutDetails.hasValue(forKey: ResponseJSONKeys.createdBy))
         {
-            let modifiedByObj : [String:Any] = layoutDetails.getDictionary(key: ResponseJSONKeys.modifiedBy)
-            let modifiedBy : ZCRMUser = ZCRMUser(userId: modifiedByObj.getInt64(key: ResponseJSONKeys.id), userFullName: modifiedByObj.getString(key: ResponseJSONKeys.name))
-            layout.setModifiedBy(modifiedByUser: modifiedBy)
-            layout.setModifiedTime(modifiedTime: layoutDetails.optString(key: ResponseJSONKeys.modifiedTime))
+            let modifiedByObj : [String:Any] = layoutDetails.getDictionary(key: ResponseJSONKeys.createdBy)
+//            layout.modifiedBy = ZCRMUserDelegate(userId: modifiedByObj.getInt64(key: ResponseJSONKeys.id), userFullName: modifiedByObj.getString(key: ResponseJSONKeys.name))
+            layout.modifiedBy = getUserDelegate(userJSON : modifiedByObj)
+            layout.modifiedTime = layoutDetails.getString(key: ResponseJSONKeys.modifiedTime)
         }
         let profilesDetails : [[String:Any]] = layoutDetails.getArrayOfDictionaries(key: ResponseJSONKeys.profiles)
         for profileDetails in profilesDetails
         {
-            let profile : ZCRMProfile = ZCRMProfile(profileId: profileDetails.getInt64(key: ResponseJSONKeys.id), profileName: profileDetails.getString(key: ResponseJSONKeys.name))
-            profile.setIsDefault(isDefault: profileDetails.getBoolean(key: ResponseJSONKeys.defaultString))
+            let profile : ZCRMProfileDelegate = ZCRMProfileDelegate(profileId: profileDetails.getInt64(key: ResponseJSONKeys.id), profileName: profileDetails.getString(key: ResponseJSONKeys.name), isDefault: profileDetails.getBoolean(key: ResponseJSONKeys.defaultString))
             layout.addAccessibleProfile(profile: profile)
         }
-        layout.setSections(allSections: self.getAllSectionsOfLayout(allSectionsDetails: layoutDetails.getArrayOfDictionaries(key: ResponseJSONKeys.sections)))
+        let sectionDetails : [[String:Any]] = layoutDetails.getArrayOfDictionaries(key: ResponseJSONKeys.sections)
+        for sectionDetail in sectionDetails
+        {
+            let section : ZCRMSection = ZCRMSection(sectionName: sectionDetail.getString(key: ResponseJSONKeys.name))
+            layout.addSection(section: section)
+        }
         return layout
     }
     

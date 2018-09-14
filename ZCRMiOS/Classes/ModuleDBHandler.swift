@@ -68,22 +68,22 @@ public class ZCRMCachedModuleHandler
     
     private func setSectionDetails(layout : ZCRMLayout) throws
     {
-        let sections : [ZCRMSection] = layout.getAllSections()!
+        let sections : [ZCRMSection] = layout.sections
         for section in sections
         {
-            try formDBHelper.insertSection(layoutId: layout.getId(), section: section)
+            try formDBHelper.insertSection(layoutId: layout.layoutId, section: section)
             try self.setFieldDetails(layout: layout, section: section)
         }
     }
     
     private func setProfileDetails(layout : ZCRMLayout) throws
     {
-        if(layout.getAccessibleProfiles() != nil)
+        if(layout.accessibleProfiles.count > 0)
         {
-            let profiles : [ZCRMProfile] = layout.getAccessibleProfiles()!
+            let profiles : [ZCRMProfileDelegate] = layout.accessibleProfiles
             for profile in profiles
             {
-                try formDBHelper.insertLayoutProfiles(layoutId: layout.getId(), profile: profile)
+                try formDBHelper.insertLayoutProfiles(layoutId: layout.layoutId, profile: profile)
             }
         }
     }
@@ -93,8 +93,8 @@ public class ZCRMCachedModuleHandler
         let fields : [ZCRMField] = section.getAllFields()!
         for field in fields
         {
-            try formDBHelper.insertField(layoutId: layout.getId(), sectionName: section.getName(), fields: field)
-            try self.setPickListDetails(layoutId: layout.getId(), field: field)
+            try formDBHelper.insertField(layoutId: layout.layoutId, sectionName: section.getName(), fields: field)
+            try self.setPickListDetails(layoutId: layout.layoutId, field: field)
         }
     }
     
@@ -266,13 +266,10 @@ public class ZCRMCachedModuleHandler
     
     private func setCvFieldDetails(moduleAPIname: String, customView: ZCRMCustomView) throws
     {
-        if let fieldNames = customView.getDisplayFieldsAPINames()
-        {
-            for fieldName in fieldNames
+            for fieldName in customView.fields
             {
-                try formDBHelper.insertCustomViewFields(moduleAPIname: moduleAPIName, customViewId: customView.getId(), fieldName: fieldName)
+                try formDBHelper.insertCustomViewFields(moduleAPIname: moduleAPIName, customViewId: customView.cvId, fieldName: fieldName)
             }
-        }
     }
     
     func getCustomView(customViewId: Int64) throws -> ZCRMCustomView

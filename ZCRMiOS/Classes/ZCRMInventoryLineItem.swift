@@ -192,7 +192,7 @@ public class ZCRMInventoryLineItem
     /// - Parameter tax: ZCRMTax for the ZCRMInventoryLineItem
 	public func addLineTax(tax : ZCRMTax)
 	{
-		self.lineTaxes[tax.getTaxName()] = tax
+		self.lineTaxes[tax.taxName] = tax
 	}
 	
     /// Set the tax amount.

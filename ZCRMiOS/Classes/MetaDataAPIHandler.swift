@@ -98,7 +98,8 @@ internal class MetaDataAPIHandler : CommonAPIHandler
             let profilesDetails : [[String:Any]] = moduleDetails.getArrayOfDictionaries(key: ResponseJSONKeys.profiles)
             for profileDetails in profilesDetails
             {
-                let profile : ZCRMProfile = ZCRMProfile(profileId: profileDetails.getInt64(key: ResponseJSONKeys.id), profileName: profileDetails.getString(key: ResponseJSONKeys.name))
+//                let profile : ZCRMProfile = ZCRMProfile(profileId: profileDetails.getInt64(key: ResponseJSONKeys.id), profileName: profileDetails.getString(key: ResponseJSONKeys.name))
+                let profile : ZCRMProfileDelegate = ZCRMProfileDelegate(profileId: profileDetails.getInt64(key: ResponseJSONKeys.id), profileName: profileDetails.getString(key: ResponseJSONKeys.name))
                 profiles.append(profile)
             }
             module.setAllowedProfiles(allowedProfiles: profiles)

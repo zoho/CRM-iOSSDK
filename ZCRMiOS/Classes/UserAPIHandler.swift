@@ -476,13 +476,15 @@ internal class UserAPIHandler : CommonAPIHandler
         if ( userDict.hasValue( forKey : ResponseJSONKeys.profile ) )
         {
             let profileObj : [String : Any] = userDict.getDictionary(key: ResponseJSONKeys.profile)
-            let profile : ZCRMProfile = ZCRMProfile(profileId : profileObj.getInt64( key : ResponseJSONKeys.id ), profileName : profileObj.getString( key : ResponseJSONKeys.name ) )
+//            let profile : ZCRMProfile = ZCRMProfile(profileId : profileObj.getInt64( key : ResponseJSONKeys.id ), profileName : profileObj.getString( key : ResponseJSONKeys.name ) )
+            let profile : ZCRMProfileDelegate = ZCRMProfileDelegate(profileId: profileObj.getInt64( key : ResponseJSONKeys.id ), profileName: profileObj.getString( key : ResponseJSONKeys.name ))
             user.setProfile(profile: profile)
         }
         if ( userDict.hasValue( forKey : ResponseJSONKeys.role ) )
         {
             let roleObj : [String : Any] = userDict.getDictionary(key: ResponseJSONKeys.role)
-            let role : ZCRMRole = ZCRMRole( roleId : roleObj.getInt64( key : ResponseJSONKeys.id ), roleName : roleObj.getString( key : ResponseJSONKeys.name ) )
+//            let role : ZCRMRole = ZCRMRole( roleId : roleObj.getInt64( key : ResponseJSONKeys.id ), roleName : roleObj.getString( key : ResponseJSONKeys.name ) )
+            let role : ZCRMRoleDelegate = ZCRMRoleDelegate(roleId: roleObj.getInt64( key : ResponseJSONKeys.id ), roleName: roleObj.getString( key : ResponseJSONKeys.name ))
             user.setRole( role : role )
         }
         user.setAlias( alias : userDict.optString( key : ResponseJSONKeys.alias ) )
@@ -525,51 +527,40 @@ internal class UserAPIHandler : CommonAPIHandler
     
     private func getZCRMRole( roleDetails : [ String : Any ] ) -> ZCRMRole
     {
-        let roleName : String = roleDetails.getString( key : ResponseJSONKeys.name )
-        let id : Int64 = roleDetails.getInt64( key : ResponseJSONKeys.id )
-        let role = ZCRMRole( roleId : id, roleName : roleName )
-        role.setLabel( label : roleDetails.getString( key : ResponseJSONKeys.displayLabel ) )
-        role.setAdminUser( isAdminUser : roleDetails.getBoolean( key : ResponseJSONKeys.adminUser ) )
+        let role = ZCRMRole(roleName: roleDetails.getString( key : ResponseJSONKeys.name ))
+        role.roleId = roleDetails.getInt64( key : ResponseJSONKeys.id )
+        role.label = roleDetails.getString( key : ResponseJSONKeys.displayLabel )
+        role.isAdminUser = roleDetails.getBoolean( key : ResponseJSONKeys.adminUser )
         if ( roleDetails.hasValue(forKey: ResponseJSONKeys.reportingTo) )
         {
             let reportingToObj : [String : Any] = roleDetails.getDictionary( key : ResponseJSONKeys.reportingTo )
-            let reportingRole : ZCRMRole = ZCRMRole( roleId : reportingToObj.getInt64( key : ResponseJSONKeys.id ), roleName : reportingToObj.getString( key : ResponseJSONKeys.name ) )
-            role.setReportingTo( reportingTo : reportingRole )
+            role.reportingTo = ZCRMRoleDelegate(roleId: reportingToObj.getInt64( key : ResponseJSONKeys.id ), roleName: reportingToObj.getString( key : ResponseJSONKeys.name ))
         }
         return role
     }
     
     private func getZCRMProfile( profileDetails : [ String : Any ] ) -> ZCRMProfile
     {
-        let name : String = profileDetails.getString( key : ResponseJSONKeys.name )
-        let id : Int64 = profileDetails.getInt64( key : ResponseJSONKeys.id )
-        let profile = ZCRMProfile( profileId : id, profileName :  name )
-        profile.setCategory( category : profileDetails.getBoolean( key : ResponseJSONKeys.category ) )
+        let profile = ZCRMProfile(profileName: profileDetails.getString( key : ResponseJSONKeys.name ) )
+        profile.profileId = profileDetails.getInt64( key : ResponseJSONKeys.id )
+        profile.category = profileDetails.getBoolean( key : ResponseJSONKeys.category )
         if ( profileDetails.hasValue( forKey : ResponseJSONKeys.description ) )
         {
-            profile.setDescription( description : profileDetails.getString( key : ResponseJSONKeys.description ) )
+            profile.description = profileDetails.getString( key : ResponseJSONKeys.description )
         }
         if ( profileDetails.hasValue( forKey : ResponseJSONKeys.modifiedBy ) )
         {
             let modifiedUserObj : [ String : Any ] = profileDetails.getDictionary( key : ResponseJSONKeys.modifiedBy )
-            let modifiedUser = ZCRMUser( userId : modifiedUserObj.getInt64( key : ResponseJSONKeys.id ), userFullName : modifiedUserObj.getString( key : ResponseJSONKeys.name ) )
-            profile.setModifiedBy( modifiedBy : modifiedUser )
+//            profile.modifiedBy = ZCRMUserDelegate( userId : modifiedUserObj.getInt64( key : ResponseJSONKeys.id ), userFullName : modifiedUserObj.getString( key : ResponseJSONKeys.name ) )
+            profile.modifiedBy = getUserDelegate(userJSON : modifiedUserObj)
+            profile.modifiedTime = profileDetails.getString( key : ResponseJSONKeys.modifiedTime )
         }
         if ( profileDetails.hasValue( forKey : ResponseJSONKeys.createdBy ) )
         {
             let createdUserObj : [ String : Any ] = profileDetails.getDictionary( key : ResponseJSONKeys.createdBy )
-            let createdUser = ZCRMUser( userId : createdUserObj.getInt64( key : ResponseJSONKeys.id ), userFullName : createdUserObj.getString( key : ResponseJSONKeys.name ) )
-            profile.setCreatedBy( createdBy : createdUser )
-        }
-        if ( profileDetails.hasValue( forKey : ResponseJSONKeys.modifiedTime ) )
-        {
-            let modifiedTime = profileDetails.getString( key : ResponseJSONKeys.modifiedTime )
-            profile.setModifiedTime( modifiedTime : modifiedTime )
-        }
-        if ( profileDetails.hasValue( forKey : ResponseJSONKeys.createdTime ) )
-        {
-            let createdTime = profileDetails.getString( key : ResponseJSONKeys.createdTime )
-            profile.setCreatedTime( createdTime : createdTime )
+//            profile.createdBy = ZCRMUserDelegate( userId : createdUserObj.getInt64( key : ResponseJSONKeys.id ), userFullName : createdUserObj.getString( key : ResponseJSONKeys.name ) )
+            profile.createdBy = getUserDelegate(userJSON : createdUserObj)
+            profile.createdTime = profileDetails.getString( key : ResponseJSONKeys.createdTime )
         }
         return profile
     }
@@ -771,7 +762,7 @@ internal class UserAPIHandler : CommonAPIHandler
         }
         if let profile = user.getProfile()
         {
-            userJSON[ ResponseJSONKeys.profile ] = String( profile.getId() )
+            userJSON[ ResponseJSONKeys.profile ] = String( profile.profileId )
         }
         else
         {
@@ -779,7 +770,7 @@ internal class UserAPIHandler : CommonAPIHandler
         }
         if let role = user.getRole()
         {
-            userJSON[ ResponseJSONKeys.role ] = role.getId()
+            userJSON[ ResponseJSONKeys.role ] = role.roleId
         }
         else
         {
@@ -795,7 +786,7 @@ internal class UserAPIHandler : CommonAPIHandler
                 var value = userData[ fieldAPIName ]
                 if( value != nil && value is ZCRMRecord )
                 {
-                    value = String( ( value as! ZCRMRecord ).getId() )
+                    value = String( ( value as! ZCRMRecord ).recordId )
                 }
                 else if( value != nil && value is ZCRMUser )
                 {

@@ -8,23 +8,23 @@
 
 internal class RelatedListAPIHandler : CommonAPIHandler
 {
-	private var parentRecord : ZCRMRecord
+	private var parentRecord : ZCRMRecordDelegate
 	private var relatedList : ZCRMModuleRelation?
     private var junctionRecord : ZCRMJunctionRecord?
     
-    private init( parentRecord : ZCRMRecord, relatedList : ZCRMModuleRelation?, junctionRecord : ZCRMJunctionRecord? )
+    private init( parentRecord : ZCRMRecordDelegate, relatedList : ZCRMModuleRelation?, junctionRecord : ZCRMJunctionRecord? )
     {
         self.parentRecord = parentRecord
         self.relatedList = relatedList
         self.junctionRecord = junctionRecord
     }
 	
-    convenience init(parentRecord : ZCRMRecord, relatedList : ZCRMModuleRelation)
+    convenience init(parentRecord : ZCRMRecordDelegate, relatedList : ZCRMModuleRelation)
     {
         self.init(parentRecord: parentRecord, relatedList: relatedList, junctionRecord: nil)
     }
     
-    convenience init( parentRecord : ZCRMRecord, junctionRecord : ZCRMJunctionRecord )
+    convenience init( parentRecord : ZCRMRecordDelegate, junctionRecord : ZCRMJunctionRecord )
     {
         self.init(parentRecord: parentRecord, relatedList: nil, junctionRecord: junctionRecord)
     }
@@ -34,7 +34,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 		var records : [ZCRMRecord] = [ZCRMRecord]()
         if let relatedList = self.relatedList
         {
-            setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(relatedList.getAPIName())" )
+            setUrlPath(urlPath:  "/\(self.parentRecord.moduleAPIName)/\(String(self.parentRecord.recordId))/\(relatedList.getAPIName())" )
             setRequestMethod(requestMethod: .GET )
             addRequestParam(param:  "page" , value: String(page) )
             addRequestParam(param: "per_page", value: String(per_page) )
@@ -62,7 +62,8 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         let recordsList:[[String:Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                         for recordDetails in recordsList
                         {
-                            let record : ZCRMRecord = ZCRMRecord(moduleAPIName: relatedList.getAPIName(), recordId: recordDetails.optInt64(key: "id")!)
+//                            let record : ZCRMRecord = ZCRMRecord(moduleAPIName: relatedList.getAPIName(), recordId: recordDetails.optInt64(key: "id")!)
+                            let record : ZCRMRecord = ZCRMRecord(moduleAPIName: relatedList.getAPIName())
                             EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordDetails)
                             records.append(record)
                         }
@@ -90,7 +91,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         if let relatedList = self.relatedList
         {
             var notes : [ZCRMNote] = [ZCRMNote]()
-            setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(relatedList.getAPIName())" )
+            setUrlPath(urlPath:  "/\(self.parentRecord.moduleAPIName)/\(String(self.parentRecord.recordId))/\(relatedList.getAPIName())" )
             setRequestMethod(requestMethod: .GET )
             addRequestParam(param:  "page" , value: String(page) )
             addRequestParam(param: "per_page", value: String(per_page) )
@@ -118,7 +119,8 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         let notesList:[[String:Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                         for noteDetails in notesList
                         {
-                            notes.append( self.getZCRMNote( noteDetails : noteDetails, note : ZCRMNote( noteId : noteDetails.getInt64( key : ResponseJSONKeys.id ) ) ) )
+//                            notes.append( self.getZCRMNote( noteDetails : noteDetails, note : ZCRMNote( noteId : noteDetails.getInt64( key : ResponseJSONKeys.id ) ) ) )
+                            notes.append( self.getZCRMNote(noteDetails: noteDetails))
                         }
                         bulkResponse.setData(data: notes)
                         completion( .success( notes, bulkResponse ) )
@@ -144,7 +146,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         if let relatedList = self.relatedList
         {
             var attachments : [ZCRMAttachment] = [ZCRMAttachment]()
-            setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(relatedList.getAPIName())" )
+            setUrlPath(urlPath:  "/\(self.parentRecord.moduleAPIName)/\(String(self.parentRecord.recordId))/\(relatedList.getAPIName())" )
             setRequestMethod(requestMethod: .GET )
             addRequestParam(param:  "page" , value: String(page) )
             addRequestParam(param: "per_page", value: String(per_page) )
@@ -189,7 +191,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     {
         if let relatedList = self.relatedList
         {
-            setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String( self.parentRecord.getId()))/\(relatedList.getAPIName())" )
+            setUrlPath(urlPath: "/\(self.parentRecord.moduleAPIName)/\(String( self.parentRecord.recordId))/\(relatedList.getAPIName())" )
             setRequestMethod(requestMethod: .POST )
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
@@ -220,7 +222,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     {
         if let relatedList = self.relatedList
         {
-            setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String( self.parentRecord.getId()))/\(relatedList.getAPIName())" )
+            setUrlPath(urlPath: "/\(self.parentRecord.moduleAPIName)/\(String( self.parentRecord.recordId))/\(relatedList.getAPIName())" )
             setRequestMethod(requestMethod: .POST )
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
@@ -250,7 +252,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     {
         if let relatedList = self.relatedList
         {
-            setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(relatedList.getAPIName())" )
+            setUrlPath(urlPath: "/\(self.parentRecord.moduleAPIName)/\(String(self.parentRecord.recordId))/\(relatedList.getAPIName())" )
             addRequestParam(param:  "attachmentUrl" , value: attachmentURL )
             setRequestMethod(requestMethod: .POST )
             let request : APIRequest = APIRequest(handler: self)
@@ -280,7 +282,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 	{
         if let relatedList = self.relatedList
         {
-            setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String( self.parentRecord.getId()))/\(relatedList.getAPIName())/\(attachmentId)" )
+            setUrlPath(urlPath:  "/\(self.parentRecord.moduleAPIName)/\(String( self.parentRecord.recordId))/\(relatedList.getAPIName())/\(attachmentId)" )
             setRequestMethod(requestMethod: .GET )
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
@@ -305,7 +307,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     {
         if let relatedList = self.relatedList
         {
-            setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String( self.parentRecord.getId()))/\(relatedList.getAPIName())/\(attachmentId)" )
+            setUrlPath(urlPath: "/\(self.parentRecord.moduleAPIName)/\(String( self.parentRecord.recordId))/\(relatedList.getAPIName())/\(attachmentId)" )
             setRequestMethod(requestMethod: .DELETE )
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
@@ -335,7 +337,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             dataArray.append( self.getZCRMNoteAsJSON(note: note) )
             reqBodyObj[getJSONRootKey()] = dataArray
             
-            setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String( self.parentRecord.getId()))/\(relatedList.getAPIName())" )
+            setUrlPath(urlPath: "/\(self.parentRecord.moduleAPIName)/\(String( self.parentRecord.recordId))/\(relatedList.getAPIName())" )
             setRequestMethod(requestMethod: .POST )
             setRequestBody(requestBody: reqBodyObj )
             let request : APIRequest = APIRequest(handler: self)
@@ -348,7 +350,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     let respDataArr : [[String:Any?]] = responseJSON.optArrayOfDictionaries(key: self.getJSONRootKey())!
                     let respData : [String:Any?] = respDataArr[0]
                     let recordDetails : [String:Any] = respData.getDictionary( key : DETAILS )
-                    let note = self.getZCRMNote(noteDetails: recordDetails, note: note)
+                    let note = self.getZCRMNote(noteDetails: recordDetails)
                     response.setData(data: note )
                     completion( .success( note, response ) )
                 }
@@ -367,19 +369,19 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 	{
         if let relatedList = self.relatedList
         {
-            if note.getId() == nil
+            if note.noteId == INT64_NIL
             {
                 completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Note ID MUST NOT be nil" ) ) )
             }
             else
             {
-                let noteId : String = String( note.getId()! )
+                let noteId : String = String( note.noteId )
                 var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
                 var dataArray : [[String:Any]] = [[String:Any]]()
                 dataArray.append(self.getZCRMNoteAsJSON(note: note))
                 reqBodyObj[getJSONRootKey()] = dataArray
                 
-                setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(relatedList.getAPIName())/\(noteId)")
+                setUrlPath(urlPath: "/\(self.parentRecord.moduleAPIName)/\(String(self.parentRecord.recordId))/\(relatedList.getAPIName())/\(noteId)")
                 setRequestMethod(requestMethod: .PUT )
                 setRequestBody(requestBody: reqBodyObj)
                 let request : APIRequest = APIRequest(handler: self)
@@ -392,7 +394,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         let respDataArr : [[String:Any?]] = responseJSON.optArrayOfDictionaries(key: self.getJSONRootKey())!
                         let respData : [String:Any?] = respDataArr[0]
                         let recordDetails : [String:Any] = respData.getDictionary(key: DETAILS)
-                        let updatedNote = self.getZCRMNote(noteDetails: recordDetails, note: note)
+                        let updatedNote = self.getZCRMNote(noteDetails: recordDetails)
                         response.setData(data: updatedNote )
                         completion( .success( updatedNote, response ) )
                     }
@@ -413,7 +415,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         if let relatedList = self.relatedList
         {
             let noteIdString : String = String( noteId )
-            setUrlPath(urlPath:  "/\(self.parentRecord.getModuleAPIName())/\(String(self.parentRecord.getId()))/\(relatedList.getAPIName())/\( noteIdString )" )
+            setUrlPath(urlPath:  "/\(self.parentRecord.moduleAPIName)/\(String(self.parentRecord.recordId))/\(relatedList.getAPIName())/\( noteIdString )" )
             setRequestMethod(requestMethod: .DELETE )
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
@@ -435,84 +437,86 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 	
 	private func getZCRMAttachment(attachmentDetails : [String:Any?]) -> ZCRMAttachment
 	{
-        var createdBy : ZCRMUser?
-		let attachment : ZCRMAttachment = ZCRMAttachment(parentRecord: self.parentRecord, attachmentId: attachmentDetails.getInt64(key: ResponseJSONKeys.id))
-        if ( attachmentDetails.hasValue( forKey : ResponseJSONKeys.fileName ) )
-        {
-            let fileName : String = attachmentDetails.optString( key : ResponseJSONKeys.fileName )!
-            attachment.setFileName( fileName : fileName )
-            let fileType = fileName.pathExtension()
-            attachment.setFileType(type: fileType)
-        }
+//        let attachment : ZCRMAttachment = ZCRMAttachment(parentRecord: self.parentRecord, attachmentId: attachmentDetails.getInt64(key: ResponseJSONKeys.id))
+        
+//        if ( attachmentDetails.hasValue( forKey : ResponseJSONKeys.fileName ) )
+//        {
+//            let fileName : String = attachmentDetails.optString( key : ResponseJSONKeys.fileName )!
+//            attachment.setFileName( fileName : fileName )
+//            attachment.setFileType(type: fileType)
+//        }
+        let fileName : String = attachmentDetails.optString( key : ResponseJSONKeys.fileName )!
+        let attachment : ZCRMAttachment = ZCRMAttachment(parentRecord: self.parentRecord, fileName: fileName)
+        let fileType = fileName.pathExtension()
         if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.size))
         {
-            attachment.setFileSize(size: Int64(attachmentDetails.optInt64(key: ResponseJSONKeys.size)!))
+            attachment.fileSize = Int64(attachmentDetails.getInt64(key: ResponseJSONKeys.size))
         }
         if ( attachmentDetails.hasValue( forKey : ResponseJSONKeys.createdBy ) )
         {
             let createdByDetails : [String:Any] = attachmentDetails.getDictionary(key: ResponseJSONKeys.createdBy)
-            createdBy = ZCRMUser(userId: createdByDetails.getInt64(key: ResponseJSONKeys.id), userFullName: createdByDetails.getString(key: ResponseJSONKeys.name))
-            attachment.setCreatedByUser(createdByUser: createdBy)
-            attachment.setCreatedTime(createdTime: attachmentDetails.getString(key: ResponseJSONKeys.createdTime))
+//            attachment.createdBy = ZCRMUserDelegate(userId: createdByDetails.getInt64(key: ResponseJSONKeys.id), userFullName: createdByDetails.getString(key: ResponseJSONKeys.name))
+            attachment.createdBy = getUserDelegate(userJSON : createdByDetails)
+            attachment.createdTime = attachmentDetails.getString(key: ResponseJSONKeys.createdTime)
         }
         if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.modifiedBy))
         {
             let modifiedByDetails : [String:Any] = attachmentDetails.getDictionary(key: ResponseJSONKeys.modifiedBy)
-            let modifiedBy : ZCRMUser = ZCRMUser(userId: modifiedByDetails.getInt64(key: ResponseJSONKeys.id), userFullName: modifiedByDetails.getString(key: ResponseJSONKeys.name))
-            attachment.setModifiedByUser(modifiedByUser: modifiedBy)
-            attachment.setModifiedTime(modifiedTime: attachmentDetails.getString(key: ResponseJSONKeys.modifiedTime))
+//            attachment.modifiedBy = ZCRMUserDelegate(userId: modifiedByDetails.getInt64(key: ResponseJSONKeys.id), userFullName: modifiedByDetails.getString(key: ResponseJSONKeys.name))
+            attachment.modifiedBy = getUserDelegate(userJSON : modifiedByDetails)
+            attachment.modifiedTime = attachmentDetails.getString(key: ResponseJSONKeys.modifiedTime)
         }
 		if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.owner))
 		{
 			let ownerDetails : [String:Any] = attachmentDetails.getDictionary(key: ResponseJSONKeys.owner)
-			let owner : ZCRMUser = ZCRMUser(userId: ownerDetails.getInt64(key: ResponseJSONKeys.id), userFullName: ownerDetails.getString(key: ResponseJSONKeys.name))
-			attachment.setOwner(owner: owner)
+//            attachment.owner = ZCRMUserDelegate(userId: ownerDetails.getInt64(key: ResponseJSONKeys.id), userFullName: ownerDetails.getString(key: ResponseJSONKeys.name))
+            attachment.owner = getUserDelegate(userJSON : ownerDetails)
 		}
-        else if( createdBy != nil )
+        else if( attachment.createdBy != USER_NIL )
         {
-            attachment.setOwner( owner : createdBy! )
+            attachment.owner = attachment.createdBy
         }
-        attachment.setIsEditable( isEditable : attachmentDetails.optBoolean( key : ResponseJSONKeys.editable ) )
-        attachment.setType( type : attachmentDetails.optString( key : ResponseJSONKeys.type ) )
-        attachment.setLinkURL( linkURL : attachmentDetails.optString( key : ResponseJSONKeys.linkURL ) )
+        if( attachmentDetails.hasValue(forKey: ResponseJSONKeys.editable))
+        {
+            attachment.isEditable = attachmentDetails.getBoolean( key : ResponseJSONKeys.editable )
+        }
+        if( attachmentDetails.hasValue(forKey: ResponseJSONKeys.type))
+        {
+            attachment.type = attachmentDetails.getString( key : ResponseJSONKeys.type )
+        }
+        if( attachmentDetails.hasValue(forKey: ResponseJSONKeys.linkURL) )
+        {
+            attachment.linkURL = attachmentDetails.getString( key : ResponseJSONKeys.linkURL )
+        }
 		return attachment
 	}
 	
-    private func getZCRMNote(noteDetails : [String:Any?], note : ZCRMNote) -> ZCRMNote
+    private func getZCRMNote(noteDetails : [String:Any?]) -> ZCRMNote
 	{
-        var createdBy : ZCRMUser?
-		note.setId( noteId : noteDetails.getInt64( key : ResponseJSONKeys.id ) )
-        if ( noteDetails.hasValue( forKey : ResponseJSONKeys.noteTitle ) )
-        {
-            note.setTitle( title : noteDetails.getString( key : ResponseJSONKeys.noteTitle ) )
-        }
-        if ( noteDetails.hasValue( forKey : ResponseJSONKeys.noteContent ) )
-        {
-            note.setContent( content : noteDetails.getString( key : ResponseJSONKeys.noteContent ) )
-        }
+        var note : ZCRMNote = ZCRMNote(title: noteDetails.getString( key : ResponseJSONKeys.noteTitle ), content: noteDetails.getString( key : ResponseJSONKeys.noteContent ), parentRecord: self.parentRecord)
         if ( noteDetails.hasValue( forKey : ResponseJSONKeys.createdBy ) )
         {
             let createdByDetails : [String:Any] = noteDetails.getDictionary(key: ResponseJSONKeys.createdBy)
-            createdBy = ZCRMUser(userId: createdByDetails.getInt64(key: ResponseJSONKeys.id), userFullName: createdByDetails.getString(key: ResponseJSONKeys.name))
-            note.setCreatedByUser(createdByUser: createdBy)
-            note.setCreatedTime(createdTime: noteDetails.getString(key: ResponseJSONKeys.createdTime))
+//            note.createdBy = ZCRMUserDelegate(userId: createdByDetails.getInt64(key: ResponseJSONKeys.id), userFullName: createdByDetails.getString(key: ResponseJSONKeys.name))
+            note.createdBy = getUserDelegate(userJSON : createdByDetails)
+            note.createdTime = noteDetails.getString(key: ResponseJSONKeys.createdTime)
         }
         if ( noteDetails.hasValue( forKey : ResponseJSONKeys.modifiedBy ) )
         {
             let modifiedByDetails : [String:Any] = noteDetails.getDictionary( key : ResponseJSONKeys.modifiedBy )
-            let modifiedBy : ZCRMUser = ZCRMUser(userId: modifiedByDetails.getInt64(key: ResponseJSONKeys.id), userFullName: modifiedByDetails.getString(key: ResponseJSONKeys.name))
-            note.setModifiedByUser(modifiedByUser: modifiedBy)
-            note.setModifiedTime(modifiedTime: noteDetails.getString(key: ResponseJSONKeys.modifiedTime))
+//            note.modifiedBy = ZCRMUserDelegate(userId: modifiedByDetails.getInt64(key: ResponseJSONKeys.id), userFullName: modifiedByDetails.getString(key: ResponseJSONKeys.name))
+            note.modifiedBy = getUserDelegate(userJSON : modifiedByDetails)
+            note.modifiedTime = noteDetails.getString(key: ResponseJSONKeys.modifiedTime)
         }
         if( noteDetails.hasValue( forKey: ResponseJSONKeys.owner ) )
         {
             let ownerDetails : [String:Any] = noteDetails.getDictionary(key: ResponseJSONKeys.owner)
-            let owner : ZCRMUser = ZCRMUser(userId: ownerDetails.getInt64(key: ResponseJSONKeys.id), userFullName: ownerDetails.getString(key: ResponseJSONKeys.name))
-            note.setOwner(owner: owner)
+//            note.owner = ZCRMUserDelegate(userId: ownerDetails.getInt64(key: ResponseJSONKeys.id), userFullName: ownerDetails.getString(key: ResponseJSONKeys.name))
+            note.owner = getUserDelegate(userJSON : ownerDetails)
         }
-        else if( createdBy != nil )
+        else if( note.createdBy != USER_NIL )
         {
-            note.setOwner( owner : createdBy! )
+            note.owner = note.createdBy
         }
         if(noteDetails.hasValue(forKey: ResponseJSONKeys.attachments))
         {
@@ -527,12 +531,13 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             let parentRecordList : [ String : Any ] = noteDetails.getDictionary(key: ResponseJSONKeys.parentId)
             if( parentRecordList.optString(key: ResponseJSONKeys.name) != nil)
             {
-                note.setParentRecord(parentRecord: ZCRMRecord(moduleAPIName: noteDetails.getString(key: ResponseJSONKeys.seModule), recordId: self.parentRecord.getId()))
-                note.getParentRecord().setValue(forField: ResponseJSONKeys.name, value: parentRecordList.getString(key: ResponseJSONKeys.name))
+//                note.setParentRecord(parentRecord: ZCRMRecord(moduleAPIName: noteDetails.getString(key: ResponseJSONKeys.seModule), recordId: self.parentRecord.getId()))
+                note.parentRecord = ZCRMRecordDelegate(recordId: self.parentRecord.recordId, moduleAPIName: noteDetails.getString(key: ResponseJSONKeys.seModule))
             }
             else
             {
-                note.setParentRecord(parentRecord: ZCRMRecord(moduleAPIName: self.parentRecord.getModuleAPIName(), recordId: self.parentRecord.getId()))
+//                note.setParentRecord(parentRecord: ZCRMRecord(moduleAPIName: self.parentRecord.getModuleAPIName(), recordId: self.parentRecord.getId()))
+                note.parentRecord = ZCRMRecordDelegate(recordId: self.parentRecord.recordId, moduleAPIName: self.parentRecord.moduleAPIName)
             }
         }
 		return note
@@ -541,8 +546,8 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 	private func getZCRMNoteAsJSON(note : ZCRMNote) -> [String:Any]
 	{
 		var noteJSON : [String:Any] = [String:Any]()
-		noteJSON[ResponseJSONKeys.noteTitle] = note.getTitle()
-		noteJSON[ResponseJSONKeys.noteContent] = note.getContent()
+		noteJSON[ResponseJSONKeys.noteTitle] = note.title
+		noteJSON[ResponseJSONKeys.noteContent] = note.content
 		return noteJSON
 	}
 
@@ -562,7 +567,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             }
             reqBodyObj[getJSONRootKey()] = dataArray
             
-            setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\(self.parentRecord.getId())/\(junctionRecord.getApiName())/\(junctionRecord.getId())" )
+            setUrlPath(urlPath: "/\(self.parentRecord.moduleAPIName)/\(self.parentRecord.recordId)/\(junctionRecord.getApiName())/\(junctionRecord.getId())" )
             setRequestMethod(requestMethod: .PUT )
             setRequestBody(requestBody: reqBodyObj )
             let request : APIRequest = APIRequest(handler: self)
@@ -599,7 +604,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     {
         if let junctionRecord = self.junctionRecord
         {
-            setUrlPath(urlPath: "/\(self.parentRecord.getModuleAPIName())/\( String( self.parentRecord.getId() ) )/\(junctionRecord.getApiName())/\(junctionRecord.getId())" )
+            setUrlPath(urlPath: "/\(self.parentRecord.moduleAPIName)/\( String( self.parentRecord.recordId ) )/\(junctionRecord.getApiName())/\(junctionRecord.getId())" )
             setRequestMethod(requestMethod: .DELETE )
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
