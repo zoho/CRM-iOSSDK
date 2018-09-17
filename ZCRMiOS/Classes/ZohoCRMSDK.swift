@@ -71,36 +71,53 @@ public class ZohoCRMSDK {
 	
 	public func showLogin(completion: @escaping (Bool) -> ()) {
 		
-		if self.isVerticalCRM {
+		self.isUserSignedIn { (isUserSignedIn) in
 			
-			if self.zvcrmLoginHandler.isUserSignedIn() {
+			if isUserSignedIn {
 				completion(true)
 			} else {
-				self.zvcrmLoginHandler.handleLogin { (success) in
-					completion(success)
-				}
-			}
-		} else {
-			
-			if self.zcrmLoginHandler.isUserSignedIn() {
-				completion(true)
-			} else {
-				self.zcrmLoginHandler.handleLogin { (success) in
-					completion(success)
+				
+				if self.isVerticalCRM {
+					
+					self.zvcrmLoginHandler.handleLogin { (success) in
+						completion(success)
+					}
+				} else {
+					
+					self.zcrmLoginHandler.handleLogin(completion: { (success) in
+						completion(success)
+					})
 				}
 			}
 		}
+		
 	}
 	
-	public func isUserSignedIn() -> Bool {
+	public func isUserSignedIn(completion: @escaping (Bool) -> ()) {
 		
-		var isUserSignedIn:Bool = false
+		
 		if self.isVerticalCRM {
-			isUserSignedIn = self.zvcrmLoginHandler.isUserSignedIn()
+			
+			self.zvcrmLoginHandler.getOauth2Token { (token, error) in
+				
+				if error != nil {
+					completion(false)
+				} else {
+					completion(true)
+				}
+			}
 		} else {
-			isUserSignedIn = self.zcrmLoginHandler.isUserSignedIn()
+			
+			self.zcrmLoginHandler.getOauth2Token { (token, error) in
+				
+				if error != nil {
+					completion(false)
+				} else {
+					completion(true)
+				}
+			}
 		}
-		return isUserSignedIn
+		
 	}
 
 	public func logout(completion: @escaping (Bool) -> ()) {
