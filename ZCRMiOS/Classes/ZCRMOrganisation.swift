@@ -20,6 +20,7 @@ public class ZCRMOrganisation : ZCRMEntity
     private var website : String?
     private var mobile : String?
     private var phone : String?
+    private var fax : String?
     
     private var employee_count : String?
     private var description : String?
@@ -37,6 +38,7 @@ public class ZCRMOrganisation : ZCRMEntity
     
     private var mc_status : Bool?
     private var gapps_enabled : Bool?
+    private var privacySettingsEnable : Bool?
     
     public init() {}
     
@@ -128,6 +130,16 @@ public class ZCRMOrganisation : ZCRMEntity
     public func getPhone() -> String?
     {
         return self.phone
+    }
+    
+    internal func setFax( fax : String? )
+    {
+        self.fax = fax
+    }
+    
+    public func getFax() -> String?
+    {
+        return self.fax
     }
     
     internal func setEmployeeCount( count : String )
@@ -240,6 +252,19 @@ public class ZCRMOrganisation : ZCRMEntity
         return self.mc_status
     }
     
+    internal func setPrivacySettingsEnabled( privacyEnabled : Bool )
+    {
+        self.privacySettingsEnable = privacyEnabled
+    }
+    
+    public func getPrivacySettingsEnabled() -> Bool
+    {
+        if privacySettingsEnable == nil {
+            self.privacySettingsEnable = false
+        }
+        return self.privacySettingsEnable!
+    }
+    
     internal func setGappsEnabled( gappsEnabled : Bool )
     {
         self.gapps_enabled = gappsEnabled
@@ -270,59 +295,123 @@ public class ZCRMOrganisation : ZCRMEntity
         return self.currency_symbol
     }
 	
-	public func getAllUsers() throws -> BulkAPIResponse
-	{
-		return try UserAPIHandler().getAllUsers( modifiedSince : nil )
-	}
-    
-    public func getAllUsers( modifiedSince : String? ) throws -> BulkAPIResponse
+    public func getAllUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
-        return try UserAPIHandler().getAllUsers( modifiedSince : modifiedSince )
+        UserAPIHandler().getAllUsers( modifiedSince : nil, page : 1, perPage : 200 ) { ( result ) in
+            completion( result )
+        }
+    }
+
+    public func getAllUsers( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    {
+        UserAPIHandler().getAllUsers( modifiedSince : modifiedSince, page : 1, perPage : 200 ) { ( result ) in
+            completion( result )
+        }
+    }
+
+    public func getAllActiveConfirmedUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    {
+        UserAPIHandler().getAllActiveConfirmedUsers( page : 1, perPage : 200 ) { ( result ) in
+            completion( result )
+        }
     }
     
-    public func getAllActiveConfirmedUsers() throws -> BulkAPIResponse
+    public func getAllActiveConfirmedUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
-        return try UserAPIHandler().getAllActiveConfirmedUsers()
+        UserAPIHandler().getAllActiveConfirmedAdmins( page : page, perPage : perPage ) { ( result ) in
+            completion( result )
+        }
+    }
+
+    public func getAllAdminUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    {
+        UserAPIHandler().getAllAdminUsers( page : 1, perPage : 200 ) { ( result ) in
+            completion( result )
+        }
     }
     
-    public func getAllAdminUsers() throws -> BulkAPIResponse
+    public func getAllAdminUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
-        return try UserAPIHandler().getAllAdminUsers()
+        UserAPIHandler().getAllAdminUsers( page : page, perPage : perPage ) { ( result ) in
+            completion( result )
+        }
+    }
+
+    public func getAllActiveUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    {
+        UserAPIHandler().getAllActiveUsers( page : 1, perPage : 200 ) { ( result ) in
+            completion( result )
+        }
     }
     
-    public func getAllActiveUsers() throws -> BulkAPIResponse
+    public func getAllActiveUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
-        return try UserAPIHandler().getAllActiveUsers()
+        UserAPIHandler().getAllActiveUsers( page : page, perPage : perPage ) { ( result ) in
+            completion( result )
+        }
+    }
+
+    public func getAllInActiveUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    {
+        UserAPIHandler().getAllDeactiveUsers( page : 1, perPage : 200 ) { ( result ) in
+            completion( result )
+        }
     }
     
-    public func getAllInActiveUsers() throws -> BulkAPIResponse
+    public func getAllInActiveUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
-        return try UserAPIHandler().getAllDeactiveUsers()
+        UserAPIHandler().getAllDeactiveUsers( page : page, perPage : perPage ) { ( result ) in
+            completion( result )
+        }
     }
 	
-	public func getUser(userId : Int64) throws -> APIResponse
+    public func getUser(userId : Int64, completion : @escaping( Result.DataResponse< ZCRMUser, APIResponse > ) -> () )
 	{
-		return try UserAPIHandler().getUser(userId: userId)
+        UserAPIHandler().getUser(userId: userId) { ( result ) in
+            completion( result )
+        }
 	}
     
-    public func getAllProfiles() throws -> BulkAPIResponse
+    public func getAllProfiles( completion : @escaping( Result.DataResponse< [ ZCRMProfile ], BulkAPIResponse > ) -> () )
     {
-        return try UserAPIHandler().getAllProfiles()
+        UserAPIHandler().getAllProfiles() { ( result ) in
+            completion( result )
+        }
     }
     
-    public func getProfile( profileId : Int64 ) throws -> APIResponse
+    public func getProfile( profileId : Int64, completion : @escaping( Result.DataResponse< ZCRMProfile, APIResponse > ) -> () )
     {
-        return try UserAPIHandler().getProfile( profileId : profileId )
+        UserAPIHandler().getProfile( profileId : profileId ) { ( result ) in
+            completion( result )
+        }
     }
     
-    public func getAllRoles() throws -> BulkAPIResponse
+    public func getAllRoles( completion : @escaping( Result.DataResponse< [ ZCRMRole ], BulkAPIResponse > ) -> () )
     {
-        return try UserAPIHandler().getAllRoles()
+        UserAPIHandler().getAllRoles() { ( result ) in
+            completion( result )
+        }
     }
     
-    public func getRole( roleId : Int64 ) throws -> APIResponse
+    public func getRole( roleId : Int64, completion : @escaping( Result.DataResponse< ZCRMRole, APIResponse > ) -> () )
     {
-        return try UserAPIHandler().getRole( roleId : roleId )
+        UserAPIHandler().getRole( roleId : roleId ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func searchUsers( withCriteria : String, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    {
+        UserAPIHandler().searchUsers( criteria : withCriteria, page : 1, perPage : 200) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func searchUsers( withCriteria : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    {
+        UserAPIHandler().searchUsers( criteria : withCriteria, page : page, perPage : perPage) { ( result ) in
+            completion( result )
+        }
     }
 	
 }

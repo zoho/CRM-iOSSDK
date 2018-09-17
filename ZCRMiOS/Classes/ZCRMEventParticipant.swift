@@ -57,9 +57,9 @@ public class ZCRMEventParticipant
     /// Returns the name of the ZCRMEventParticipant.
     ///
     /// - Returns: name of the ZCRMEventParticipant
-    public func getName() -> String
+    public func getName() -> String?
     {
-        return self.name!
+        return self.name
     }
     
     /// Set the email of the ZCRMEventParticipant.
@@ -73,9 +73,9 @@ public class ZCRMEventParticipant
     /// Returns the email of the ZCRMEventParticipant
     ///
     /// - Returns: email of the ZCRMEventParticipant
-    public func getEmail() -> String
+    public func getEmail() -> String?
     {
-        return self.email!
+        return self.email
     }
     
     /// Set the status of the ZCRMEventParticipant.
@@ -89,17 +89,17 @@ public class ZCRMEventParticipant
     /// Returns the status of the ZCRMEventParticipant.
     ///
     /// - Returns: status of the ZCRMEventParticipant
-    public func getStatus() -> String
+    public func getStatus() -> String?
     {
-        return self.status!
+        return self.status
     }
     
     /// Returns true if the ZCRMEventParticipant invited
     ///
     /// - Returns: true if the ZCRMEventParticipant invited
-    public func didInvite() -> Bool
+    public func didInvite() -> Bool?
     {
-        return self.isInvited!
+        return self.isInvited
     }
     
     /// Set true if the ZCRMEventParticipant invited

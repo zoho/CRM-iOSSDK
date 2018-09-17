@@ -29,20 +29,20 @@ public class ZVCRMLoginHandler
             {
                 if( dict.keys.contains( key ) == false )
                 {
-                    throw ZCRMSDKError.InternalError( "\( key ) not present in the App configuration plist!" )
+                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "\( key ) not present in the App configuration plist!" )
                 }
             }
             for key in dict.keys
             {
                 if( dict[ key ] == nil )
                 {
-                    throw ZCRMSDKError.InternalError( "\( key ) is nil. It should have value" )
+                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "\( key ) is nil. It should have value" )
                 }
             }
         }
         else
         {
-            throw ZCRMSDKError.InternalError( "App configuration property list is empty!" )
+            throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "App configuration property list is empty!" )
         }
     }
 
@@ -97,25 +97,11 @@ public class ZVCRMLoginHandler
         ZohoPortalAuth.handleURL( url, sourceApplication : sourceApplication, annotation : annotation )
     }
 
-    internal func getOauth2Token() -> String
+    internal func getOauth2Token( completion : @escaping( String?, Error? ) -> () )
     {
-        var oAuth2Token : String = String()
-        ZohoPortalAuth.getOauth2Token { ( accessToken, error ) in
-            if( accessToken == nil )
-            {
-                print( "Unable to get oAuthToken!" )
-            }
-            else
-            {
-                oAuth2Token = accessToken!
-                print( "Got the oAuthtoken!" )
-            }
-            if( error != nil )
-            {
-                print( "Error occured in getOauth2Token(): \(error!)" )
-            }
+        ZohoPortalAuth.getOauth2Token { ( token, error ) in
+            completion( token, error )
         }
-        return oAuth2Token
     }
 
     public func clearIAMLoginFirstLaunch()

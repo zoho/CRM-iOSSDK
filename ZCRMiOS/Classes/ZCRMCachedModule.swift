@@ -17,21 +17,48 @@ public class ZCRMCachedModule : ZCRMModule{
         super.init(moduleAPIName: moduleAPIName)
     }
     
-    public override func getLayout(layoutId: Int64) throws -> APIResponse
+    public override func getLayout( layoutId : Int64, completion : @escaping( Result.DataResponse< ZCRMLayout, APIResponse > ) -> () )
     {
-        return try self.getLayout(layoutId: layoutId, refreshCache: false)
+        self.getLayout( layoutId : layoutId, refreshCache : false) { ( result ) in
+            completion( result )
+        }
     }
     
-    func getLayout(layoutId: Int64, refreshCache: Bool) throws -> APIResponse
+    func getLayout(layoutId: Int64, refreshCache: Bool, completion : @escaping( Result.DataResponse< ZCRMLayout, APIResponse > ) -> () )
     {
-        let cachedModuleHandler = ZCRMCachedModuleHandler(moduleAPIName: self.apiName)
-        let response : APIResponse = APIResponse()
-        if(try !cachedModuleHandler.isLayoutUnderDBMode(refreshCache: refreshCache))
+        do
         {
-            try cachedModuleHandler.saveLayoutsToDB(layouts: super.getAllLayouts().getData() as! [ZCRMLayout])
+            let cachedModuleHandler = ZCRMCachedModuleHandler(moduleAPIName: self.apiName)
+            let response : APIResponse = APIResponse()
+            if(try !cachedModuleHandler.isLayoutUnderDBMode(refreshCache: refreshCache))
+            {
+                super.getAllLayouts { ( result ) in
+                    do{
+                        let bulkResponse = try result.resolve()
+                        let allLayouts = bulkResponse.data
+                        do
+                        {
+                            try cachedModuleHandler.saveLayoutsToDB( layouts : allLayouts )
+                            let layout = try cachedModuleHandler.getLayout(layoutId: layoutId)
+                            response.setData(data: layout )
+                            completion( .success( layout, response ) )
+                        }
+                        catch
+                        {
+                            completion( .failure( ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : error.localizedDescription ) ) )
+                        }
+                        
+                    }
+                    catch{
+                        completion( .failure( typeCastToZCRMError( error ) ) )
+                    }
+                }
+            }
         }
-        response.setData(data: try cachedModuleHandler.getLayout(layoutId: layoutId))
-        return response
+        catch
+        {
+            completion( .failure( ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : error.localizedDescription ) ) )
+        }
     }
     
     func getLayoutId(moduleAPIName: String, layoutName: String) throws -> Int64
@@ -40,61 +67,132 @@ public class ZCRMCachedModule : ZCRMModule{
         return try cachedModuleHandler.getLayoutId(layoutName: moduleAPIName)
     }
 
-    public override func getAllLayouts() throws -> BulkAPIResponse
+    public override func getAllLayouts( completion : @escaping( Result.DataResponse< [ ZCRMLayout ], BulkAPIResponse > ) -> () )
     {
-        return try self.getAllLayouts(refreshCache: false)
-    }
-    
-    public func getAllLayouts(refreshCache: Bool) throws -> BulkAPIResponse
-    {
-        let cachedModuleHandler = ZCRMCachedModuleHandler(moduleAPIName: self.apiName)
-        let response : BulkAPIResponse = BulkAPIResponse()
-        if(try !cachedModuleHandler.isLayoutUnderDBMode(refreshCache: refreshCache))
-        {
-            try cachedModuleHandler.saveLayoutsToDB(layouts: super.getAllLayouts().getData() as! [ZCRMLayout])
+        self.getAllLayouts( refreshCache : false) { ( result ) in
+            completion( result )
         }
-        response.setData(data: try cachedModuleHandler.getAllLayouts())
-        return response
     }
-    
-    public override func getCustomView(cvId: Int64) throws -> APIResponse
+
+    public func getAllLayouts( refreshCache : Bool, completion : @escaping( Result.DataResponse< [ ZCRMLayout ], BulkAPIResponse > ) -> () )
     {
-        return try self.getCustomView(cvId: cvId, refreshCache: false)
-    }
-    
-    public func getCustomView(cvId: Int64, refreshCache: Bool) throws -> APIResponse
-    {
-        let cachedModuleHandler = ZCRMCachedModuleHandler(moduleAPIName: self.apiName)
-        let response : APIResponse = APIResponse()
-        if(try !cachedModuleHandler.isCustomViewUnderDBMode(refreshCache: refreshCache))
+        do
         {
-            try cachedModuleHandler.saveCustomViewsToDB(customViews: super.getAllCustomViews().getData() as! [ZCRMCustomView])
+            let cachedModuleHandler = ZCRMCachedModuleHandler(moduleAPIName: self.apiName)
+            let response : BulkAPIResponse = BulkAPIResponse()
+            if(try !cachedModuleHandler.isLayoutUnderDBMode(refreshCache: refreshCache))
+            {
+                super.getAllLayouts { ( result ) in
+                    do{
+                        let bulkResponse = try result.resolve()
+                        let allLayouts = bulkResponse.data
+                        do
+                        {
+                            try cachedModuleHandler.saveLayoutsToDB( layouts : allLayouts )
+                            let cachedLayouts = try cachedModuleHandler.getAllLayouts()
+                            response.setData(data: cachedLayouts )
+                            completion( .success( cachedLayouts, response ) )
+                        }
+                        catch
+                        {
+                            completion( .failure( ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : error.localizedDescription ) ) )
+                        }
+                    }
+                    catch{
+                        completion( .failure( typeCastToZCRMError( error ) ) )
+                    }
+                }
+            }
         }
-        response.setData(data: try cachedModuleHandler.getCustomView(customViewId: cvId))
-        return response
-    }
-    
-    public override func getAllCustomViews() throws -> BulkAPIResponse
-    {
-        return try self.getAllCustomViews(refreshCache: false)
-    }
-    
-    public func getAllCustomViews(refreshCache: Bool) throws -> BulkAPIResponse
-    {
-        let cachedModuleHandler = ZCRMCachedModuleHandler(moduleAPIName: self.apiName)
-        let response : BulkAPIResponse = BulkAPIResponse()
-        if(try !cachedModuleHandler.isCustomViewUnderDBMode(refreshCache: refreshCache))
+        catch
         {
-            try cachedModuleHandler.saveCustomViewsToDB(customViews: super.getAllCustomViews().getData() as! [ZCRMCustomView])
+            completion( .failure( ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : error.localizedDescription ) ) )
         }
-        response.setData(data: try cachedModuleHandler.getAllCustomViews()!)
-        return response
     }
     
-    public func refreshMetaData() throws -> (BulkAPIResponse, BulkAPIResponse)
+    public override func getCustomView( cvId : Int64, completion : @escaping( Result.DataResponse< ZCRMCustomView, APIResponse > ) -> () )
     {
-        let customViews = try self.getAllCustomViews(refreshCache: true)
-        let layouts = try self.getAllLayouts(refreshCache: true)
-        return (customViews, layouts)
+        self.getCustomView( cvId : cvId, refreshCache : false) { ( result ) in
+            completion( result )
+        }
+    }
+
+    public func getCustomView( cvId : Int64, refreshCache : Bool, completion : @escaping( Result.DataResponse< ZCRMCustomView, APIResponse > ) -> () )
+    {
+        do
+        {
+            let cachedModuleHandler = ZCRMCachedModuleHandler(moduleAPIName: self.apiName)
+            let response : APIResponse = APIResponse()
+            if(try !cachedModuleHandler.isCustomViewUnderDBMode(refreshCache: refreshCache))
+            {
+                super.getAllCustomViews { ( result ) in
+                    do{
+                        let bulkResponse = try result.resolve()
+                        let allCVs = bulkResponse.data
+                        do
+                        {
+                            try cachedModuleHandler.saveCustomViewsToDB( customViews : allCVs )
+                            let customView = try cachedModuleHandler.getCustomView(customViewId: cvId)
+                            response.setData(data: customView )
+                            completion( .success( customView, response ) )
+                        }
+                        catch
+                        {
+                            completion( .failure( ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : error.localizedDescription ) ) )
+                        }
+                    }
+                    catch{
+                        completion( .failure( typeCastToZCRMError( error ) ) )
+                    }
+                }
+            }
+        }
+        catch
+        {
+            completion( .failure( ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : error.localizedDescription ) ) )
+        }
+    }
+    
+    public override func getAllCustomViews( completion : @escaping( Result.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
+    {
+        self.getAllCustomViews( refreshCache : false) { ( result ) in
+            completion( result )
+        }
+    }
+
+    public func getAllCustomViews( refreshCache : Bool, completion : @escaping( Result.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
+    {
+        do
+        {
+            let cachedModuleHandler = ZCRMCachedModuleHandler(moduleAPIName: self.apiName)
+            let response : BulkAPIResponse = BulkAPIResponse()
+            if(try !cachedModuleHandler.isCustomViewUnderDBMode(refreshCache: refreshCache))
+            {
+                super.getAllCustomViews { ( result ) in
+                    do{
+                        let bulkResponse = try result.resolve()
+                        let allCVs = bulkResponse.data
+                        do
+                        {
+                            try cachedModuleHandler.saveCustomViewsToDB( customViews : allCVs )
+                            let cvs = try cachedModuleHandler.getAllCustomViews()!
+                            response.setData( data : cvs )
+                            completion( .success( cvs, response ) )
+                        }
+                        catch
+                        {
+                            completion( .failure( ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : error.localizedDescription ) ) )
+                        }
+                    }
+                    catch{
+                        completion( .failure( typeCastToZCRMError( error ) ) )
+                    }
+                }
+            }
+        }
+        catch
+        {
+            completion( .failure( ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : error.localizedDescription ) ) )
+        }
     }
 }

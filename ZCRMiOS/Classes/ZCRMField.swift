@@ -24,6 +24,22 @@ public class ZCRMField : ZCRMEntity
 	private var pickListValues : [ ZCRMPickListValue ]?
 	private var formulaReturnType : String?
 	private var formulaExpression : String?
+    
+    private var tooltip : String?
+    private var webhook : Bool?
+    private var isRestricted : Bool?
+    private var restrictedType : String?
+    private var isSupportExport : Bool?
+    private var createdSource : String?
+    private var bussinessCardSupported : Bool?
+    
+    private var roundingOption : CurrencyRoundingOption?
+    private var decimalPlace : Int?
+    private var lookup : [String : Any]?
+    private var multiSelectLookup : [String : Any]?
+    private var subFormTabId : Int64?
+    private var subForm : [String : Any]?
+    
 	
     /// Initialise the instance of ZCRMField with given field API name.
     ///
@@ -40,6 +56,136 @@ public class ZCRMField : ZCRMEntity
 	{
 		return self.apiName
 	}
+    
+    internal func setTooltip( tooltip : String? )
+    {
+        self.tooltip = tooltip
+    }
+    
+    public func getTooltip() -> String?
+    {
+        return self.tooltip
+    }
+    
+    internal func setWebhook( webhook : Bool? )
+    {
+        self.webhook = webhook
+    }
+    
+    public func getWebhook() -> Bool?
+    {
+        return self.webhook
+    }
+    
+    internal func setIsRestricted( isRestricted : Bool? )
+    {
+        self.isRestricted = isRestricted
+    }
+    
+    public func getIsRestricted() -> Bool?
+    {
+        return self.isRestricted
+    }
+    
+    internal func setRestrictedType( type : String? )
+    {
+        self.restrictedType = type
+    }
+    
+    public func getRestrictedType() -> String?
+    {
+        return self.restrictedType
+    }
+    
+    internal func setIsSupportExport( exportSupported : Bool? )
+    {
+        self.isSupportExport = exportSupported
+    }
+    
+    public func getIsSupportExport() -> Bool?
+    {
+        return self.isSupportExport
+    }
+    
+    internal func setBussinessCardSupported( bussinessCardSupported : Bool? )
+    {
+        self.bussinessCardSupported = bussinessCardSupported
+    }
+    
+    public func getBussinessCardSupported() -> Bool?
+    {
+        return self.bussinessCardSupported
+    }
+    
+    internal func setCreatedSource( createdSource : String )
+    {
+        self.createdSource = createdSource
+    }
+    
+    public func getCreatedSource() -> String
+    {
+        return self.createdSource!
+    }
+    
+    internal func setRoundingOption(roundingOption : CurrencyRoundingOption?)
+    {
+        self.roundingOption = roundingOption
+    }
+    
+    public func getRoundingOption() -> CurrencyRoundingOption?
+    {
+        return self.roundingOption
+    }
+    
+    internal func setDecimalPlace(decimalPlace : Int?)
+    {
+        self.decimalPlace = decimalPlace
+    }
+    
+    public func getDecimalPlace() -> Int?
+    {
+        return self.decimalPlace
+    }
+    
+    internal func setLookup(lookup : [String : Any]?)
+    {
+        self.lookup = lookup
+    }
+    
+    public func getLookup() -> [String : Any]?
+    {
+        return self.lookup
+    }
+    
+    internal func setMultiSelectLookup(multiSelectLookup : [String : Any]?)
+    {
+        self.multiSelectLookup = multiSelectLookup
+    }
+    
+    public func getMultiSelectLookup() -> [String : Any]?
+    {
+        return self.multiSelectLookup
+    }
+    
+    internal func setSubFormTabId(subFormTabId : Int64?)
+    {
+        self.subFormTabId = subFormTabId
+    }
+    
+    public func getSubFormTabId() -> Int64?
+    {
+        return self.subFormTabId
+    }
+    
+    internal func setSubForm(subForm : [String : Any]?)
+    {
+        self.subForm = subForm
+    }
+    
+    public func getSubForm() -> [String : Any]?
+    {
+        return self.subForm
+    }
 	
     /// Set the id of the ZCRMField.
     ///
@@ -311,4 +457,9 @@ public class ZCRMField : ZCRMEntity
 	{
 		return self.formulaExpression
 	}
+}
+
+public class ZCRMPrivateField
+{
+    
 }

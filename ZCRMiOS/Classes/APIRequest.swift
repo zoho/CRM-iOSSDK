@@ -38,8 +38,8 @@ internal enum RequestMethod : String
     case DELETE = "DELETE"
 }
 
-internal class APIRequest 
-{
+ internal class APIRequest
+ {
     private var baseUrl : String = "\( APIBASEURL )/crm/\( APIVERSION )"
     private var urlPath : String = ""
     private var requestMethod : RequestMethod
@@ -48,168 +48,321 @@ internal class APIRequest
     private var requestBody : Any?
     private var request : URLRequest?
     private var url : URL?
-	private var isOAuth : Bool = true
-	
-	init( handler : APIHandler)
-	{
-		if let urlPath = handler.getUrlPath()
-		{
-			self.urlPath = urlPath
-		}
-		else if let url = handler.getUrl()
-		{
-			self.url = url
-		}
-		self.requestMethod = handler.getRequestMethod()
-		self.params = handler.getRequestParams()
-		self.headers = handler.getRequestHeaders()
-		self.requestBody = handler.getRequestBody()
-		self.isOAuth = handler.getRequestType()
-	}
-	
-    private func authenticateRequest()
+    private var isOAuth : Bool = true
+    private var jsonRootKey = String()
+    
+    init( handler : APIHandler)
     {
-        if( APPTYPE == "ZCRM" )
+        if let urlPath = handler.getUrlPath()
         {
-            self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( ZCRMLoginHandler().getOauth2Token() )" )
+            self.urlPath = urlPath
+        }
+        else if let url = handler.getUrl()
+        {
+            self.url = url
+        }
+        self.requestMethod = handler.getRequestMethod()
+        self.params = handler.getRequestParams()
+        self.headers = handler.getRequestHeaders()
+        self.requestBody = handler.getRequestBody()
+        self.isOAuth = handler.getRequestType()
+        self.jsonRootKey = handler.getJSONRootKey()
+    }
+    
+    
+    private func authenticateRequest( completion : @escaping( ZCRMError? ) -> () )
+    {
+        if let bundleID = Bundle.main.bundleIdentifier
+        {
+            self.addHeader( headerName : "User-Agent", headerVal : "ZCRMiOS_\(bundleID)" )
         }
         else
         {
-            self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( ZVCRMLoginHandler().getOauth2Token() )" )
+            self.addHeader( headerName : "User-Agent", headerVal : "ZCRMiOS_unknown_bundle" )
+        }
+        if( APPTYPE == "ZCRM" )
+        {
+            ZCRMLoginHandler().getOauth2Token { ( token, error ) in
+                if let err = error
+                {
+                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTH_FETCH_ERROR, message: err.description))
+                    return
+                }
+                if let oAuthtoken = token, token.notNilandEmpty
+                {
+                    self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( oAuthtoken )" )
+                    completion( nil )
+                    return
+                }
+                else
+                {
+                    print( "oAuthtoken is nil." )
+                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTHTOKEN_NIL, message: ErrorMessage.OAUTHTOKEN_NIL_MSG))
+                }
+            }
+        }
+        else
+        {
+            ZVCRMLoginHandler().getOauth2Token { ( token, error ) in
+                if( APPTYPE == "ZCRMCP" )
+                {
+                    self.addHeader( headerName : "X-CRMPORTAL", headerVal : "SDKCLIENT" )
+                }
+                if let err = error
+                {
+                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTH_FETCH_ERROR, message: err.description))
+                    return
+                }
+                if let oAuthtoken = token, token.notNilandEmpty
+                {
+                    self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( oAuthtoken )")
+                    completion( nil )
+                    return
+                }
+                else
+                {
+                    print( "oAuthtoken is empty." )
+                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTHTOKEN_NIL, message: ErrorMessage.OAUTHTOKEN_NIL_MSG))
+                }
+            }
         }
     }
-	
+    
+    
     private func addHeader(headerName : String, headerVal : String)
     {
         self.headers[headerName] = headerVal
     }
-	
-    private func initialiseRequest()
+    
+    private func initialiseRequest( completion : @escaping( ZCRMError? ) -> () )
     {
-		if isOAuth == true
-		{
-			self.authenticateRequest()
-		}
-        if(!self.params.isEmpty)
+        if isOAuth == true
         {
-            self.urlPath += "?"
-            for (key, value) in self.params
-            {
-                self.urlPath += key + "=" + value + "&"
+            self.authenticateRequest { ( error ) in
+                if let err = error
+                {
+                    print( "Error Occured : \( err.localizedDescription )" )
+                    completion( err )
+                }
+                else
+                {
+                    if(!self.params.isEmpty)
+                    {
+                        self.urlPath += "?"
+                        for (key, value) in self.params
+                        {
+                            self.urlPath += key + "=" + value + "&"
+                        }
+                        self.urlPath = String(self.urlPath.dropLast())
+                    }
+                    if ( self.url?.absoluteString == nil )
+                    {
+                        let urlString = self.baseUrl+self.urlPath
+                        
+                        let set = CharacterSet(charactersIn: " ").inverted
+                        if let encodedURLString = urlString.addingPercentEncoding(withAllowedCharacters: set)
+                        {
+                            let requestURL = URL(string: encodedURLString )
+                            if let reqURL = requestURL
+                            {
+                                self.url = reqURL
+                            }
+                            else
+                            {
+                                completion(ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: "Unable to construct URL"))
+                                return
+                            }
+                        }
+                        else
+                        {
+                            completion(ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: "Adding percent encoding error occured"))
+                        }
+                    }
+                    else
+                    {
+                        let urlSting = self.url!.absoluteString
+                        self.url = URL( string : ( urlSting + self.urlPath ) )!
+                    }
+                    self.request = URLRequest(url: self.url!)
+                    self.request?.httpMethod = self.requestMethod.rawValue
+                    for (key, value) in self.headers
+                    {
+                        self.request?.setValue(value, forHTTPHeaderField: key)
+                    }
+                    if(self.requestBody != nil && (self.requestBody as! [ String : Any? ] ).isEmpty == false )
+                    {
+                        let reqBody = try? JSONSerialization.data(withJSONObject: self.requestBody!, options: [])
+                        self.request?.httpBody = reqBody
+                    }
+                    completion( nil )
+                }
             }
-			self.urlPath = String(self.urlPath.dropLast())
-        }
-        if ( self.url?.absoluteString == nil )
-        {
-            self.url = URL(string: (self.baseUrl + self.urlPath))!
-        }
-        else
-        {
-            let urlSting = self.url!.absoluteString
-            self.url = URL( string : ( urlSting + self.urlPath ) )!
-        }
-        self.request = URLRequest(url: self.url!)
-        self.request?.httpMethod = self.requestMethod.rawValue
-        for (key, value) in self.headers
-        {
-            request?.setValue(value, forHTTPHeaderField: key)
-        }
-		if(self.requestBody != nil && (self.requestBody as! [ String : Any? ] ).isEmpty == false )
-        {
-            let reqBody = try? JSONSerialization.data(withJSONObject: self.requestBody!, options: [])
-            self.request?.httpBody = reqBody
+        } else {
+            completion(nil)
         }
     }
     
-    internal func getResponse() throws -> ([String : Any])
+    
+    internal func getAPIResponse( completion : @escaping (Result.Response<APIResponse>) -> Void )
     {
-        let sema = DispatchSemaphore(value: 0)
-        self.initialiseRequest()
-        var urlResponse : URLResponse?
-        var responseData : Data?
-        URLSession.shared.dataTask(with: self.request!, completionHandler: { data, response, err in
-            responseData = data
-            urlResponse = response
-            sema.signal()
-        }).resume()
-        sema.wait()
-        try self.checkForException(response: urlResponse, responseData: responseData)
-        let jsonStr : Any? = try? JSONSerialization.jsonObject(with: responseData!, options: [])
-        var responseJSON : [String : Any] = [String : Any]()
-        if let tempJSON = jsonStr as? [String : Any]
-        {
-            responseJSON = tempJSON
+        self.initialiseRequest { ( err ) in
+            
+            if let error = err
+            {
+                completion(.failure(error))
+                return
+            }
+            else
+            {
+                self.makeRequest { ( urlResp, responseData, error ) in
+                    if let err = error
+                    {
+                        completion(.failure(err))
+                        return
+                    }
+                    else if let urlResponse = urlResp
+                    {
+                        do
+                        {
+                            let response = try APIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+                            completion(.success(response))
+                        }
+                        catch
+                        {
+                            completion(.failure( typeCastToZCRMError( error ) ) )
+                        }
+                    }
+                    else
+                    {
+                        completion(.failure(ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG)))
+                    }
+                }
+            }
         }
-        return responseJSON
     }
     
-    internal func getAPIResponse() throws -> APIResponse
+    internal func getBulkAPIResponse( completion : @escaping(Result.Response<BulkAPIResponse>) -> () )
     {
-        let sema = DispatchSemaphore(value: 0)
-        self.initialiseRequest()
-        var urlResponse : HTTPURLResponse = HTTPURLResponse()
-        var responseData : Data?
-        var error : Error? = nil
-        URLSession.shared.dataTask(with: self.request!, completionHandler: { data, response, err in
-            responseData = data
-            urlResponse = response as! HTTPURLResponse
-            sema.signal()
-        }).resume()
-        sema.wait()
-        if error != nil
-        {
-            throw ZCRMSDKError.ProcessingError( error!.localizedDescription )
+        self.initialiseRequest { ( err ) in
+            if let initialiseReqError = err
+            {
+                completion(.failure(initialiseReqError))
+            }
+            else
+            {
+                self.makeRequest { ( urlResp, responseData, error ) in
+                    if let reqError = error
+                    {
+                        completion(.failure(reqError))
+                        return
+                    }
+                    else if let urlResponse = urlResp
+                    {
+                        do
+                        {
+                            let response = try BulkAPIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+                            completion(.success(response))
+                        }
+                        catch
+                        {
+                            completion(.failure( typeCastToZCRMError( error ) ) )
+                        }
+                    }
+                    else
+                    {
+                        completion(.failure(ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG)))
+                    }
+                }
+            }
         }
-        return try APIResponse(response: urlResponse, responseData: responseData)
     }
-    
-    internal func getBulkAPIResponse() throws -> BulkAPIResponse
-    {
-        let sema = DispatchSemaphore(value: 0)
-        self.initialiseRequest()
-        var urlResponse : HTTPURLResponse = HTTPURLResponse()
-        var responseData : Data?
-        URLSession.shared.dataTask(with: self.request!, completionHandler: { data, response, err in
-            responseData = data
-			urlResponse = response as! HTTPURLResponse
-            sema.signal()
-        }).resume()
-        sema.wait()
-        return try BulkAPIResponse(response: urlResponse, responseData: responseData)
-    }
-    
-    internal func uploadLink() throws -> APIResponse
+
+    internal func uploadLink( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         let boundary = BOUNDARY
         self.createMultipartRequest( bodyData : Data(), boundary : boundary )
-        var urlResponse : HTTPURLResponse = HTTPURLResponse()
-        var responseData : Data?
-        let sema = DispatchSemaphore( value : 0 )
-        URLSession.shared.dataTask( with : self.request!, completionHandler : { data, response, error in
-            responseData = data
-            urlResponse = response as! HTTPURLResponse
-            sema.signal()
-        } ).resume()
-        sema.wait()
-        return try APIResponse( response : urlResponse, responseData : responseData )
+        self.makeRequest { ( urlResp, responseData, error ) in
+            if let err = error
+            {
+                completion( .failure( typeCastToZCRMError( err ) ) )
+                return
+            }
+            else if let urlResponse = urlResp
+            {
+                do
+                {
+                    let response = try APIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+                    completion( .success( response ) )
+                }
+                catch
+                {
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+            else
+            {
+                completion( .failure( ZCRMError.SDKError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG ) ) )
+            }
+        }
     }
-    
-    internal func uploadFile( filePath : String ) throws -> APIResponse
+
+    internal func uploadFile( filePath : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         let fileURL = URL( fileURLWithPath : filePath )
         let boundary = BOUNDARY
         let httpBodyData = getFilePart( fileURL : fileURL, boundary : boundary )
         createMultipartRequest( bodyData : httpBodyData, boundary : boundary )
-        var urlResponse : HTTPURLResponse = HTTPURLResponse()
-        var responseData : Data?
-        let sema = DispatchSemaphore( value : 0 )
-        URLSession.shared.dataTask( with : self.request!, completionHandler : { data, response, error in
-            responseData = data
-            urlResponse = response as! HTTPURLResponse
-            sema.signal()
-        } ).resume()
-        sema.wait()
-        return try APIResponse( response : urlResponse, responseData : responseData )
+        self.makeRequest { ( urlResponse, responseData, error ) in
+            if let err = error
+            {
+                completion( .failure( typeCastToZCRMError( err ) ) )
+                return
+            }
+            else if let urlResp = urlResponse
+            {
+                do
+                {
+                    let response = try APIResponse( response : urlResp, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+                    completion( .success( response ) )
+                }
+                catch{
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+            else
+            {
+                completion( .failure( ZCRMError.SDKError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG ) ) )
+            }
+        }
+    }
+    
+    private func makeRequest( completion : @escaping ( HTTPURLResponse?, Data?, ZCRMError? ) -> () )
+    {
+        if let request = self.request
+        {
+            URLSession.shared.dataTask( with : request, completionHandler:{
+                ( data, response, err ) in
+                
+                if let error = err
+                {
+                    completion( nil, nil, ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: (error.description)) )
+                    return
+                }
+                if let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse
+                {
+                    completion( httpResponse, data, nil )
+                }
+                else
+                {
+                    completion(nil, nil, ZCRMError.SDKError(code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG))
+                    return
+                }
+            }).resume()
+        }
+        else
+        {
+            completion(nil, nil, ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: "Request is nil"))
+        }
     }
     
     private func createMultipartRequest( bodyData : Data, boundary : String )
@@ -217,11 +370,15 @@ internal class APIRequest
         var httpBodyData = bodyData
         httpBodyData.append( "\r\n--\(boundary)".data( using : String.Encoding.utf8 )! )
         
-        self.initialiseRequest()
-        self.request!.setValue( "multipart/form-data; boundary=\(boundary)", forHTTPHeaderField : "Content-Type" )
-        
-        self.request!.setValue( "\(httpBodyData.count)", forHTTPHeaderField : "Content-Length" )
-        self.request!.httpBody = httpBodyData
+        self.initialiseRequest { ( error ) in
+            if error == nil
+            {
+                self.request!.setValue( "multipart/form-data; boundary=\(boundary)", forHTTPHeaderField : "Content-Type" )
+                
+                self.request!.setValue( "\(httpBodyData.count)", forHTTPHeaderField : "Content-Length" )
+                self.request!.httpBody = httpBodyData
+            }
+        }
     }
     
     private func getFilePart( fileURL : URL, boundary : String ) -> Data
@@ -246,48 +403,41 @@ internal class APIRequest
         }
         return "application/octet-stream"
     }
-    
-    internal func downloadFile() throws -> FileAPIResponse
+
+    internal func downloadFile( completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
     {
-        let sema = DispatchSemaphore(value: 0)
-        self.initialiseRequest()
-        var fileResponse : HTTPURLResponse?
-        var localUrl : URL?
-        var error : Error?
-        URLSession.shared.downloadTask(with: self.request!, completionHandler: {tempLocalUrl, response, err in
-            guard err == nil else
+        self.initialiseRequest { ( err ) in
+            if let error = err
             {
-                error = err
-                return
-            }
-            fileResponse = response as? HTTPURLResponse
-            localUrl = tempLocalUrl!
-            sema.signal()
-        }).resume()
-        sema.wait()
-        if error != nil
-        {
-            throw ZCRMSDKError.ProcessingError( error!.localizedDescription )
-        }
-        return try FileAPIResponse(response: fileResponse!, tempLocalUrl: localUrl!)
-    }
-    
-    private func checkForException(response : URLResponse?, responseData : Data?) throws
-    {
-        let httpResponse = response as! HTTPURLResponse
-        let responseCode : HTTPStatusCode = HTTPStatusCode(rawValue: httpResponse.statusCode)!
-        if(faultyStatusCodes.contains(responseCode))
-        {
-            if(responseCode == HTTPStatusCode.NO_CONTENT)
-            {
-                throw ZCRMSDKError.InValidError("The given id seems to be invalid.")
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
             else
             {
-                let responseJSON = try? JSONSerialization.jsonObject(with: responseData!, options: [])
-                let errJSON = (responseJSON as? [String:Any])!
-                let errMsg : String = "\(errJSON["status"]!) - \(errJSON["message"]!)"
-                throw ZCRMSDKError.ProcessingError(errMsg)
+                var error : Error?
+                URLSession.shared.downloadTask(with: self.request!, completionHandler: { tempLocalUrl, response, err in
+                    guard err == nil else
+                    {
+                        error = err
+                        completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.INTERNAL_ERROR, message : ( error?.description )! ) ) )
+                        return
+                    }
+                    if let fileResponse = response as? HTTPURLResponse, let localUrl = tempLocalUrl
+                    {
+                        do
+                        {
+                            let response = try FileAPIResponse( response : fileResponse, tempLocalUrl : localUrl )
+                            completion( .success( response ) )
+                        }
+                        catch
+                        {
+                            completion( .failure( typeCastToZCRMError( error ) ) )
+                        }
+                    }
+                    else
+                    {
+                        completion( .failure( ZCRMError.SDKError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG ) ) )
+                    }
+                }).resume()
             }
         }
     }
@@ -314,4 +464,3 @@ internal class APIRequest
         }
     }
 }
-

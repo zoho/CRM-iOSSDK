@@ -12,28 +12,38 @@ public class ZCRMRestClient
 {
     public init() {}
     
-    public func getOrganisationDetails() throws -> APIResponse
+    public func getOrganisationDetails( completion : @escaping( Result.DataResponse< ZCRMOrganisation, APIResponse > ) -> () )
     {
-        return try OrganizationAPIHandler().getOrganizationDetails()
+        OrganizationAPIHandler().getOrganizationDetails() { ( result ) in
+            completion( result )
+        }
     }
     
-    public func getModule( moduleAPIName : String ) throws -> APIResponse
+    public func getModule( moduleAPIName : String, completion : @escaping( Result.DataResponse< ZCRMModule, APIResponse > ) -> () )
     {
-        return try MetaDataAPIHandler().getModule( apiName : moduleAPIName )
+        MetaDataAPIHandler().getModule( apiName : moduleAPIName ) { ( result ) in
+            completion( result )
+        }
     }
     
-    public func getAllModules() throws -> BulkAPIResponse
+    public func getAllModules( completion : @escaping( Result.DataResponse< [ ZCRMModule ], BulkAPIResponse > ) -> () )
     {
-        return try self.getAllModules( modifiedSince : nil )
+        MetaDataAPIHandler().getAllModules( modifiedSince : nil ) { ( result ) in
+            completion( result )
+        }
     }
     
-    public func getAllModules( modifiedSince : String? ) throws -> BulkAPIResponse
+    public func getAllModules( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMModule ], BulkAPIResponse > ) -> () )
     {
-        return try MetaDataAPIHandler().getAllModules( modifiedSince : modifiedSince )
+        MetaDataAPIHandler().getAllModules( modifiedSince : modifiedSince ) { ( result ) in
+            completion( result )
+        }
     }
     
-    public func getCurrentUser() throws -> APIResponse
+    public func getCurrentUser( completion : @escaping( Result.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
-        return try UserAPIHandler().getCurrentUser()
+        UserAPIHandler().getCurrentUser() { ( result ) in
+            completion( result )
+        }
     }
 }

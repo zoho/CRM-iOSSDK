@@ -29,20 +29,20 @@ public class ZCRMLoginHandler
             {
                 if( dict.keys.contains( key ) == false )
                 {
-                    throw ZCRMSDKError.InternalError( "\( key ) not present in the App configuration plist!" )
+                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "\( key ) not present in the App configuration plist!" )
                 }
             }
             for key in dict.keys
             {
                 if( dict[ key ] == nil )
                 {
-                    throw ZCRMSDKError.InternalError( "\( key ) is nil. It should have value" )
+                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "\( key ) is nil. It should have value" )
                 }
             }
         }
         else
         {
-            throw ZCRMSDKError.InternalError( "App configuration property list is empty!" )
+            throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "App configuration property list is empty!" )
         }
     }
     
@@ -95,19 +95,22 @@ public class ZCRMLoginHandler
         {
         case ( "com" ), ( "us" ) :
             APIBASEURL = "https://\( domain ).zohoapis.com"
+            ACCOUNTSURL = "https://accounts.zoho.com"
             break
             
         case "eu" :
             APIBASEURL = "https://\( domain ).zohoapis.eu"
+            ACCOUNTSURL = "https://accounts.zoho.eu"
             break
             
         case "cn" :
             APIBASEURL = "https://\( domain ).zohoapis.com.cn"
+            ACCOUNTSURL = "https://accounts.zoho.com.cn"
             break
             
         default :
             print( "Country domain is invalid. \( domain )" )
-            throw ZCRMSDKError.InternalError( "Country domain is invalid." )
+            throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message :  "Country domain is invalid." )
         }
         print( "API Base URL : \(APIBASEURL)")
     }
@@ -115,6 +118,11 @@ public class ZCRMLoginHandler
     public func clearIAMLoginFirstLaunch()
     {
         ZohoAuth.clearDetailsForFirstLaunch()
+    }
+    
+    public func getBaseURL() -> String
+    {
+        return APIBASEURL
     }
     
     public func iamLoginHandleURL( url : URL, sourceApplication : String?, annotation : Any )
@@ -172,17 +180,20 @@ public class ZCRMLoginHandler
                 {
                     self.clearIAMLoginFirstLaunch()
                     print( "removed AllScopesWithSuccess!" )
-                    if( self.appConfigurationUtil.isLoginCustomized() == false )
-                    {
-                        self.handleLogin( completion : { _ in
-                            
-                        })
-                    }
                     URLCache.shared.removeAllCachedResponses()
                     if let cookies = HTTPCookieStorage.shared.cookies {
                         for cookie in cookies {
                             HTTPCookieStorage.shared.deleteCookie( cookie )
                         }
+                    }
+                    if( self.appConfigurationUtil.isLoginCustomized() == false )
+                    {
+                        self.handleLogin( completion : { success in
+                            if success == true
+                            {
+                                print( "login screen loaded successfully on Logout call!")
+                            }
+                        })
                     }
                     completion( true )
                     print( "logout ZCRM!" )
@@ -190,26 +201,11 @@ public class ZCRMLoginHandler
         })
     }
     
-    internal func getOauth2Token() -> String
+    internal func getOauth2Token( completion : @escaping( String?, Error? ) -> () )
     {
-        var oAuth2Token : String = String()
-        
-        ZohoAuth.getOauth2Token { (accessToken, error) in
-            if( accessToken == nil )
-            {
-                print( "Unable to get oAuthToken!" )
-            }
-            else
-            {
-                oAuth2Token = accessToken!
-                print( "Got the oAuthtoken!" )
-            }
-            if( error != nil )
-            {
-                print( "Error occured in getOauth2Token(): \(error!)" )
-            }
+        ZohoAuth.getOauth2Token { ( token, error ) in
+            completion( token, error )
         }
-        return oAuth2Token
     }
     
     internal func getLoginScreenParams() -> String
