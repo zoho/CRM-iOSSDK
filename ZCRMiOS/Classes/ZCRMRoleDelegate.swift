@@ -15,4 +15,5 @@ open class ZCRMRoleDelegate : ZCRMEntity
         self.roleName = roleName
     }
 }
-var ROLE_NIL = ZCRMRoleDelegate(roleId: INT64_NIL, roleName: STRING_NIL)
+
+let ROLE_MOCK = ZCRMRoleDelegate( roleId : APIConstants.INT64_MOCK, roleName : APIConstants.STRING_MOCK )

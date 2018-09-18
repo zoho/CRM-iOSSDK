@@ -7,14 +7,14 @@
 //
 
 import Foundation
-public class ZCRMCachedModule : ZCRMModule{
+public class ZCRMCachedModule : ZCRMModuleDelegate{
     
-    private var apiName : String
+    private var moduleAPIName : String
     
-    public override init(moduleAPIName: String)
+    public init(moduleAPIName: String)
     {
-        self.apiName = moduleAPIName
-        super.init(moduleAPIName: moduleAPIName)
+        self.moduleAPIName = moduleAPIName
+        super.init( apiName : moduleAPIName)
     }
     
     public override func getLayout( layoutId : Int64, completion : @escaping( Result.DataResponse< ZCRMLayout, APIResponse > ) -> () )

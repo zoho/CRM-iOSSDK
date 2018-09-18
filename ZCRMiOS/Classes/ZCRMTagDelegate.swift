@@ -8,8 +8,8 @@
 open class ZCRMTagDelegate : ZCRMEntity
 {
     var tagId : Int64
-    var tagName : String = STRING_NIL
-    var moduleAPIName : String = STRING_NIL
+    var tagName : String  = APIConstants.STRING_MOCK
+    var moduleAPIName : String  = APIConstants.STRING_MOCK
     
     init( tagId : Int64 )
     {
@@ -31,13 +31,13 @@ open class ZCRMTagDelegate : ZCRMEntity
     
     public func getRecordCount( completion : @escaping ( Result.DataResponse< Int64, APIResponse > ) -> () )
     {
-        if self.moduleAPIName == STRING_NIL
+        if self.moduleAPIName == APIConstants.STRING_MOCK
         {
             completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND , message: "Tag Module API Name must not be nil." ) ) )
         }
         else
         {
-            TagAPIHandler( tag : self, module : ZCRMModule( moduleAPIName : self.moduleAPIName ) ).getRecordCount { ( result ) in
+            TagAPIHandler( tag : self, module : ZCRMModuleDelegate( apiName : self.moduleAPIName ) ).getRecordCount { ( result ) in
                 completion( result )
             }
         }
@@ -52,13 +52,13 @@ open class ZCRMTagDelegate : ZCRMEntity
     
     public func update( updateTag : ZCRMTag, completion : @escaping ( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
-        if self.moduleAPIName == STRING_NIL
+        if self.moduleAPIName == APIConstants.STRING_MOCK
         {
             completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND , message: "Tag Module API Name must not be nil." ) ) )
         }
         else
         {
-            TagAPIHandler( tag : self, module : ZCRMModule( moduleAPIName : self.moduleAPIName ) ).update( updateTag : updateTag, completion : { ( result ) in
+            TagAPIHandler( tag : self, module : ZCRMModuleDelegate( apiName : self.moduleAPIName ) ).update( updateTag : updateTag, completion : { ( result ) in
                 completion( result )
             } )
         }

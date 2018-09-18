@@ -179,8 +179,8 @@ internal class UserAPIHandler : CommonAPIHandler
                 let response = try resultType.resolve()
                 let responseJSONArray  = response.getResponseJSON().getArrayOfDictionaries( key : self.getJSONRootKey() )
                 let responseJSONData = responseJSONArray[ 0 ]
-                let responseDetails : [ String : Any ] = responseJSONData[ DETAILS ] as! [ String : Any ]
-                user.setId( id : Int64( responseDetails[ "id" ] as! String )! )
+                let responseDetails : [ String : Any ] = responseJSONData[ APIConstants.DETAILS ] as! [ String : Any ]
+                user.id = responseDetails.getInt64( key : "id" )
                 response.setData( data : user )
                 completion( .success( user, response ) )
             }
@@ -194,7 +194,7 @@ internal class UserAPIHandler : CommonAPIHandler
     {
         setJSONRootKey( key : JSONRootKey.USERS )
         setRequestMethod( requestMethod : .PUT )
-        setUrlPath( urlPath : "/users/\( user.getId()! )" )
+        setUrlPath( urlPath : "/users/\( user.id )" )
         var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
         var dataArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
         dataArray.append( self.getZCRMUserAsJSON( user : user ) )
@@ -317,7 +317,8 @@ internal class UserAPIHandler : CommonAPIHandler
     {
         if let user = self.user
         {
-            if let emailId = user.getEmailId()
+            let emailId = user.emailId
+            if emailId != APIConstants.STRING_MOCK
             {
                 let PHOTOURL : URL = URL( string : "https://profile.zoho.com/api/v1/user/\(emailId)/photo" )!
                 setUrl(url: PHOTOURL )
@@ -345,7 +346,8 @@ internal class UserAPIHandler : CommonAPIHandler
     {
         if let user = self.user
         {
-            if let emailId = user.getEmailId()
+            let emailId = user.emailId
+            if emailId != APIConstants.STRING_MOCK
             {
                 let PHOTOURL : URL = URL( string : "https://profile.zoho.com/api/v1/user/\(emailId)/photo" )!
                 setUrl(url : PHOTOURL)
@@ -370,7 +372,8 @@ internal class UserAPIHandler : CommonAPIHandler
     {
         if let user = self.user
         {
-            if let emailId = user.getEmailId()
+            let emailId = user.emailId
+            if emailId != APIConstants.STRING_MOCK
             {
                 let PHOTOURL : URL = URL( string : "https://profile.zoho.com/api/v1/user/\(emailId)/photo" )!
                 setUrl(url : PHOTOURL)
@@ -465,69 +468,70 @@ internal class UserAPIHandler : CommonAPIHandler
 	{
         let fullName : String = userDict.getString( key : ResponseJSONKeys.fullName )
         let userId : Int64? = userDict.getInt64( key : ResponseJSONKeys.id )
-        let user = ZCRMUser(userId : userId!, userFullName : fullName)
-        user.setFirstName(fName: userDict.optString(key: ResponseJSONKeys.firstName))
-        user.setLastName(lName: userDict.getString(key: ResponseJSONKeys.lastName))
-        user.setEmailId(email: userDict.getString(key: ResponseJSONKeys.email))//
-        user.setMobile(mobile: userDict.optString(key: ResponseJSONKeys.mobile))
-        user.setLanguage(language: userDict.optString(key: ResponseJSONKeys.language))
-        user.setStatus(status: userDict.optString(key: ResponseJSONKeys.status))
-        user.setZuId(zuId: userDict.optInt64(key: ResponseJSONKeys.ZUID))
+        var role : ZCRMRoleDelegate = ROLE_MOCK
+        var profile : ZCRMProfileDelegate = PROFILE_MOCK
+        let lastName = userDict.getString(key: ResponseJSONKeys.lastName)
+        let email = userDict.getString(key: ResponseJSONKeys.email)
         if ( userDict.hasValue( forKey : ResponseJSONKeys.profile ) )
         {
             let profileObj : [String : Any] = userDict.getDictionary(key: ResponseJSONKeys.profile)
-//            let profile : ZCRMProfile = ZCRMProfile(profileId : profileObj.getInt64( key : ResponseJSONKeys.id ), profileName : profileObj.getString( key : ResponseJSONKeys.name ) )
-            let profile : ZCRMProfileDelegate = ZCRMProfileDelegate(profileId: profileObj.getInt64( key : ResponseJSONKeys.id ), profileName: profileObj.getString( key : ResponseJSONKeys.name ))
-            user.setProfile(profile: profile)
+            profile = ZCRMProfileDelegate(profileId: profileObj.getInt64( key : ResponseJSONKeys.id ), profileName: profileObj.getString( key : ResponseJSONKeys.name ))
         }
         if ( userDict.hasValue( forKey : ResponseJSONKeys.role ) )
         {
             let roleObj : [String : Any] = userDict.getDictionary(key: ResponseJSONKeys.role)
-//            let role : ZCRMRole = ZCRMRole( roleId : roleObj.getInt64( key : ResponseJSONKeys.id ), roleName : roleObj.getString( key : ResponseJSONKeys.name ) )
-            let role : ZCRMRoleDelegate = ZCRMRoleDelegate(roleId: roleObj.getInt64( key : ResponseJSONKeys.id ), roleName: roleObj.getString( key : ResponseJSONKeys.name ))
-            user.setRole( role : role )
+            role = ZCRMRoleDelegate(roleId: roleObj.getInt64( key : ResponseJSONKeys.id ), roleName: roleObj.getString( key : ResponseJSONKeys.name ))
         }
-        user.setAlias( alias : userDict.optString( key : ResponseJSONKeys.alias ) )
-        user.setCity( city : userDict.optString( key : ResponseJSONKeys.city ) )
-        user.setIsConfirmed( confirm: userDict.optBoolean( key : ResponseJSONKeys.confirm ) )
-        user.setCountryLocale( countryLocale : userDict.optString(key : ResponseJSONKeys.countryLocale ) )
-        user.setDateFormat( format : userDict.optString( key : ResponseJSONKeys.dateFormat ) )
-        user.setDateOfBirth( dateOfBirth : userDict.optString( key : ResponseJSONKeys.dob ) )
-        user.setCountry( country : userDict.optString( key : ResponseJSONKeys.country ) )
-        user.setFax( fax : userDict.optString( key : ResponseJSONKeys.fax ) )
-        user.setLocale( locale : userDict.optString( key : ResponseJSONKeys.locale ) )
-        user.setNameFormat( format : userDict.optString( key : ResponseJSONKeys.nameFormat ) )
-        user.setPhone( phone : userDict.optString( key : ResponseJSONKeys.phone ) )
-        user.setWebsite( website : userDict.optString( key : ResponseJSONKeys.website ) )
-        user.setStreet( street : userDict.optString( key : ResponseJSONKeys.street ) )
-        user.setTimeZone( timeZone : userDict.optString( key : ResponseJSONKeys.timeZone ) )
-        user.setState( state : userDict.optString( key : ResponseJSONKeys.state) )
+        let user = ZCRMUser(lastName: lastName, emailId: email, role: role, profile: profile)
+        user.id = userId ?? APIConstants.INT64_MOCK
+        user.fullName = fullName
+        user.firstName = userDict.optString(key: ResponseJSONKeys.firstName) ?? APIConstants.STRING_MOCK
+        user.mobile = userDict.optString(key: ResponseJSONKeys.mobile) ?? APIConstants.STRING_MOCK
+        user.language = userDict.optString(key: ResponseJSONKeys.language) ?? APIConstants.STRING_MOCK
+        user.status = userDict.optString(key: ResponseJSONKeys.status) ?? APIConstants.STRING_MOCK
+        user.zuId = userDict.optInt64(key: ResponseJSONKeys.ZUID) ?? APIConstants.INT64_MOCK
+        
+        user.alias = userDict.optString( key : ResponseJSONKeys.alias ) ?? APIConstants.STRING_MOCK
+        user.city = userDict.optString( key : ResponseJSONKeys.city ) ?? APIConstants.STRING_MOCK
+        user.confirm = userDict.optBoolean( key : ResponseJSONKeys.confirm ) ?? APIConstants.BOOL_MOCK
+        user.countryLocale = userDict.optString(key : ResponseJSONKeys.countryLocale ) ?? APIConstants.STRING_MOCK
+        user.dateFormat = userDict.optString( key : ResponseJSONKeys.dateFormat ) ?? APIConstants.STRING_MOCK
+        user.dateOfBirth = userDict.optString( key : ResponseJSONKeys.dob ) ?? APIConstants.STRING_MOCK
+        user.country = userDict.optString( key : ResponseJSONKeys.country ) ?? APIConstants.STRING_MOCK
+        user.fax = userDict.optString( key : ResponseJSONKeys.fax ) ?? APIConstants.STRING_MOCK
+        user.locale = userDict.optString( key : ResponseJSONKeys.locale ) ?? APIConstants.STRING_MOCK
+        user.nameFormat = userDict.optString( key : ResponseJSONKeys.nameFormat ) ?? APIConstants.STRING_MOCK
+        user.phone = userDict.optString( key : ResponseJSONKeys.phone ) ?? APIConstants.STRING_MOCK
+        user.website = userDict.optString( key : ResponseJSONKeys.website ) ?? APIConstants.STRING_MOCK
+        user.street = userDict.optString( key : ResponseJSONKeys.street ) ?? APIConstants.STRING_MOCK
+        user.timeZone = userDict.optString( key : ResponseJSONKeys.timeZone ) ?? APIConstants.STRING_MOCK
+        user.state = userDict.optString( key : ResponseJSONKeys.state) ?? APIConstants.STRING_MOCK
         if( userDict.hasValue( forKey : ResponseJSONKeys.CreatedBy))
         {
             let createdByObj : [String:Any] = userDict.getDictionary(key: ResponseJSONKeys.CreatedBy)
-            let createdBy : ZCRMUser = ZCRMUser(userId: createdByObj.getInt64( key : ResponseJSONKeys.id ), userFullName: createdByObj.getString( key : ResponseJSONKeys.name ) )
-            user.setCreatedBy( createdBy : createdBy )
-            user.setCreatedTime( createdTime : userDict.getString( key : ResponseJSONKeys.CreatedTime) )
+            let createdBy : ZCRMUserDelegate = ZCRMUserDelegate(id: createdByObj.getInt64( key : ResponseJSONKeys.id ), name: createdByObj.getString( key : ResponseJSONKeys.name ) )
+            user.createdBy = createdBy
+            user.createdTime = userDict.getString( key : ResponseJSONKeys.CreatedTime)
         }
         if( userDict.hasValue( forKey : ResponseJSONKeys.ModifiedBy ) )
         {
             let modifiedByObj : [ String : Any ] = userDict.getDictionary( key : ResponseJSONKeys.ModifiedBy)
-            let modifiedBy : ZCRMUser = ZCRMUser( userId : modifiedByObj.getInt64( key : ResponseJSONKeys.id), userFullName : modifiedByObj.getString( key : ResponseJSONKeys.name ) )
-            user.setModifiedBy( modifiedBy : modifiedBy )
-            user.setModifiedTime( modifiedTime : userDict.getString( key : ResponseJSONKeys.ModifiedTime ) )
+            let modifiedBy : ZCRMUserDelegate = ZCRMUserDelegate( id : modifiedByObj.getInt64( key : ResponseJSONKeys.id), name : modifiedByObj.getString( key : ResponseJSONKeys.name ) )
+            user.modifiedBy = modifiedBy
+            user.modifiedTime = userDict.getString( key : ResponseJSONKeys.ModifiedTime )
         }
         if ( userDict.hasValue( forKey : ResponseJSONKeys.ReportingTo ) )
         {
             let reportingObj : [ String : Any ] = userDict.getDictionary( key : ResponseJSONKeys.ReportingTo )
-            let reportingTo : ZCRMUser = ZCRMUser( userId : reportingObj.getInt64( key : ResponseJSONKeys.id), userFullName : reportingObj.getString( key : ResponseJSONKeys.name ) )
-            user.setReportingTo( reportingTo : reportingTo )
+            let reportingTo : ZCRMUserDelegate = ZCRMUserDelegate( id : reportingObj.getInt64( key : ResponseJSONKeys.id), name : reportingObj.getString( key : ResponseJSONKeys.name ) )
+            user.reportingTo = reportingTo
         }
 		return user
 	}
     
     private func getZCRMRole( roleDetails : [ String : Any ] ) -> ZCRMRole
     {
-        let role = ZCRMRole(roleName: roleDetails.getString( key : ResponseJSONKeys.name ))
+        let role = ZCRMRole(name: roleDetails.getString( key : ResponseJSONKeys.name ))
         role.roleId = roleDetails.getInt64( key : ResponseJSONKeys.id )
         role.label = roleDetails.getString( key : ResponseJSONKeys.displayLabel )
         role.isAdminUser = roleDetails.getBoolean( key : ResponseJSONKeys.adminUser )
@@ -541,7 +545,7 @@ internal class UserAPIHandler : CommonAPIHandler
     
     private func getZCRMProfile( profileDetails : [ String : Any ] ) -> ZCRMProfile
     {
-        let profile = ZCRMProfile(profileName: profileDetails.getString( key : ResponseJSONKeys.name ) )
+        let profile = ZCRMProfile(name: profileDetails.getString( key : ResponseJSONKeys.name ) )
         profile.profileId = profileDetails.getInt64( key : ResponseJSONKeys.id )
         profile.category = profileDetails.getBoolean( key : ResponseJSONKeys.category )
         if ( profileDetails.hasValue( forKey : ResponseJSONKeys.description ) )
@@ -568,7 +572,8 @@ internal class UserAPIHandler : CommonAPIHandler
     private func getZCRMUserAsJSON( user : ZCRMUser ) -> [ String : Any ]
     {
         var userJSON : [ String : Any ] = [ String : Any ]()
-        if let id = user.getId()
+        let id = user.id
+        if id != APIConstants.INT64_MOCK
         {
              userJSON[ ResponseJSONKeys.id ] = id
         }
@@ -576,7 +581,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
              userJSON[ ResponseJSONKeys.id ] = nil
         }
-        if let firstName = user.getFirstName()
+        let firstName = user.firstName
+        if firstName != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.firstName ] = firstName
         }
@@ -584,7 +590,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.firstName ] = nil
         }
-        if let lastName = user.getLastName()
+        let lastName = user.lastName
+        if lastName != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.lastName ] = lastName
         }
@@ -592,7 +599,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.lastName ] = nil
         }
-        if let fullName = user.getFullName()
+        let fullName = user.fullName
+        if fullName != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.fullName ] = fullName
         }
@@ -600,7 +608,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.fullName ] = nil
         }
-        if let alias = user.getAlias()
+        let alias = user.alias
+        if alias != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.alias ] = alias
         }
@@ -608,7 +617,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.alias ] = nil
         }
-        if let dob = user.getDateOfBirth()
+        let dob = user.dateOfBirth
+        if dob != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.dob ] = dob
         }
@@ -616,7 +626,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.dob ] = nil
         }
-        if let mobile = user.getMobile()
+        let mobile = user.mobile
+        if mobile != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.mobile ] = mobile
         }
@@ -624,7 +635,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.mobile ] = nil
         }
-        if let phone = user.getPhone()
+        let phone = user.phone
+        if phone != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.phone ] = phone
         }
@@ -632,7 +644,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.phone ] = nil
         }
-        if let fax = user.getFax()
+        let fax = user.fax
+        if fax != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.fax ] = fax
         }
@@ -640,7 +653,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.fax ] = nil
         }
-        if let email = user.getEmailId()
+        let email = user.emailId
+        if email != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.email ] = email
         }
@@ -648,7 +662,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.email ] = nil
         }
-        if let zip = user.getZip()
+        let zip = user.zip
+        if zip != APIConstants.INT64_MOCK
         {
             userJSON[ ResponseJSONKeys.zip ] = zip
         }
@@ -656,7 +671,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.zip ] = nil
         }
-        if let country = user.getCountry()
+        let country = user.country
+        if country != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.country ] = country
         }
@@ -664,7 +680,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.country ] = nil
         }
-        if let state = user.getState()
+        let state = user.state
+        if state != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.state ] = state
         }
@@ -672,7 +689,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.state ] = nil
         }
-        if let city = user.getCity()
+        let city = user.city
+        if city != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.city ] = city
         }
@@ -680,7 +698,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.city ] = nil
         }
-        if let street = user.getStreet()
+        let street = user.street
+        if street != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.street ] = street
         }
@@ -688,7 +707,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.street ] = nil
         }
-        if let locale = user.getLocale()
+        let locale = user.locale
+        if locale != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.locale ] = locale
         }
@@ -696,7 +716,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.locale ] = nil
         }
-        if let countryLocale = user.getCountryLocale()
+        let countryLocale = user.countryLocale
+        if countryLocale != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.countryLocale ] = countryLocale
         }
@@ -704,7 +725,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.countryLocale ] = nil
         }
-        if let nameFormat = user.getNameFormat()
+        let nameFormat = user.nameFormat
+        if nameFormat != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.nameFormat ] = nameFormat
         }
@@ -712,7 +734,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.nameFormat ] = nil
         }
-        if let dateFormat = user.getDateFormat()
+        let dateFormat = user.dateFormat
+        if dateFormat != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.dateFormat ] = dateFormat
         }
@@ -720,7 +743,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.dateFormat ] = nil
         }
-        if let timeFormat = user.getTimeFormat()
+        let timeFormat = user.timeFormat
+        if timeFormat != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.timeFormat ] = timeFormat
         }
@@ -728,7 +752,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.timeFormat ] = nil
         }
-        if let timeZone = user.getTimeZone()
+        let timeZone = user.timeZone
+        if timeZone != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.timeZone ] = timeZone
         }
@@ -736,7 +761,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.timeZone ] = nil
         }
-        if let website = user.getWebsite()
+        let website = user.website
+        if website != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.website ] = website
         }
@@ -744,15 +770,10 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.website ] = nil
         }
-        if let confirm = user.isConfirmedUser()
-        {
-            userJSON[ ResponseJSONKeys.confirm ] = confirm
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.confirm ] = nil
-        }
-        if let status = user.getStatus()
+        let confirm = user.confirm
+        userJSON[ ResponseJSONKeys.confirm ] = confirm
+        let status = user.status
+        if status != APIConstants.STRING_MOCK
         {
             userJSON[ ResponseJSONKeys.status ] = status
         }
@@ -760,7 +781,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.status ] = nil
         }
-        if let profile = user.getProfile()
+        let profile = user.profile
+        if profile.profileId != APIConstants.INT64_MOCK
         {
             userJSON[ ResponseJSONKeys.profile ] = String( profile.profileId )
         }
@@ -768,7 +790,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             print( "User must have profile" )
         }
-        if let role = user.getRole()
+        let role = user.role
+        if role.roleId != APIConstants.INT64_MOCK
         {
             userJSON[ ResponseJSONKeys.role ] = role.roleId
         }
@@ -777,9 +800,9 @@ internal class UserAPIHandler : CommonAPIHandler
             print( "User must have role" )
         }
         
-        if user.getData() != nil
+        if user.getData().isEmpty == false
         {
-            var userData : [ String : Any ] = user.getData()!
+            var userData : [ String : Any ] = user.getData()
 
             for fieldAPIName in userData.keys
             {
@@ -790,7 +813,7 @@ internal class UserAPIHandler : CommonAPIHandler
                 }
                 else if( value != nil && value is ZCRMUser )
                 {
-                    value = String( ( value as! ZCRMUser ).getId()! )
+                    value = String( ( value as! ZCRMUser ).id )
                 }
                 else if( value != nil && value is [ [ String : Any ] ] )
                 {

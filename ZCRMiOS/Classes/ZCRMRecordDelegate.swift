@@ -22,7 +22,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if Entity ID of the record is nil
     public func delete( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        if(self.recordId == INT64_NIL)
+        if(self.recordId == APIConstants.INT64_MOCK)
         {
             completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Entity ID MUST NOT be null for delete operation." ) ) )
         }
@@ -170,7 +170,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if Note id is not nil
     public func addNote(note: ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
     {
-        if( note.noteId != INT64_NIL )
+        if( note.noteId != APIConstants.INT64_MOCK )
         {
             completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Note ID must be nil for create operation." ) ) )
         }
@@ -189,7 +189,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if Note id is nil
     public func updateNote(note: ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> ())
     {
-        if( note.noteId != INT64_NIL )
+        if( note.noteId != APIConstants.INT64_MOCK )
         {
             completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Note ID must not be nil for update operation." ) ) )
         }
@@ -380,9 +380,9 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Throws: ZCRMError if failed to add relation
     public func addRelation( junctionRecord : ZCRMJunctionRecord, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        ZCRMModuleRelation().addRelation( parentRecord: self, junctionRecord : junctionRecord ) { ( result ) in
+        RelatedListAPIHandler( parentRecord : self, junctionRecord : junctionRecord ).addRelation(completion: { ( result ) in
             completion( result )
-        }
+        })
     }
     
     /// To delete the association between ZCRMRecords.
@@ -392,7 +392,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Throws: ZCRMError if failed to delete the relation
     public func deleteRelation( junctionRecord : ZCRMJunctionRecord, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        ZCRMModuleRelation().deleteRelation( parentRecord: self, junctionRecord : junctionRecord ) { ( result ) in
+        RelatedListAPIHandler( parentRecord : self, junctionRecord : junctionRecord ).deleteRelation { ( result ) in
             completion( result )
         }
     }
@@ -433,4 +433,4 @@ open class ZCRMRecordDelegate : ZCRMEntity
     }
 }
 
-var RECORD_NIL : ZCRMRecordDelegate = ZCRMRecordDelegate(recordId: INT64_NIL, moduleAPIName: STRING_NIL)
+let RECORD_MOCK : ZCRMRecordDelegate = ZCRMRecordDelegate( recordId : APIConstants.INT64_MOCK, moduleAPIName : APIConstants.STRING_MOCK )

@@ -20,12 +20,12 @@ internal class TagAPIHandler : CommonAPIHandler
         self.tag = tag
     }
     
-    public init(module : ZCRMModule)
+    public init(module : ZCRMModuleDelegate)
     {
         self.module = module
     }
     
-    public init(tag : ZCRMTagDelegate, module : ZCRMModule)
+    public init(tag : ZCRMTagDelegate, module : ZCRMModuleDelegate)
     {
         self.tag = tag
         self.module = module
@@ -40,7 +40,7 @@ internal class TagAPIHandler : CommonAPIHandler
             setJSONRootKey(key: JSONRootKey.TAGS)
             setUrlPath(urlPath: "/settings/tags")
             setRequestMethod(requestMethod: .GET)
-            addRequestParam(param: "module", value: module.getAPIName())
+            addRequestParam(param: "module", value: module.apiName)
             
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \(request.toString())" )
@@ -79,7 +79,7 @@ internal class TagAPIHandler : CommonAPIHandler
     {
         if let tag = self.tag, let module = self.module
         {
-            if tag.tagId == INT64_NIL
+            if tag.tagId == APIConstants.INT64_MOCK
             {
                 completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Tag ID MUST NOT be nil" ) ) )
                 return
@@ -88,7 +88,7 @@ internal class TagAPIHandler : CommonAPIHandler
             setJSONRootKey(key: JSONRootKey.TAGS)
             setUrlPath(urlPath: "/settings/tags/\(tagIdString)/actions/records_count")
             setRequestMethod(requestMethod: .GET)
-            addRequestParam(param: "module", value: module.getAPIName())
+            addRequestParam(param: "module", value: module.apiName)
             
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \(request.toString())" )
@@ -126,7 +126,7 @@ internal class TagAPIHandler : CommonAPIHandler
             var dataArray : [[String:Any]] = [[String:Any]]()
             for tag in tags
             {
-                if ( tag.tagName != STRING_NIL )
+                if ( tag.tagName != APIConstants.STRING_MOCK )
                 {
                     dataArray.append( self.getZCRMTagAsJSON(tag: tag) as Any as! [String:Any] )
                 }
@@ -135,7 +135,7 @@ internal class TagAPIHandler : CommonAPIHandler
             
             setUrlPath(urlPath: "/settings/tags")
             setRequestMethod(requestMethod: .POST)
-            addRequestParam(param: "module", value: module.getAPIName())
+            addRequestParam(param: "module", value: module.apiName)
             setRequestBody(requestBody: reqBodyObj)
             
             let request : APIRequest = APIRequest(handler: self)
@@ -148,10 +148,10 @@ internal class TagAPIHandler : CommonAPIHandler
                     var createdTags : [ZCRMTag] = [ZCRMTag]()
                     for entityResponse in responses
                     {
-                        if(CODE_SUCCESS == entityResponse.getStatus())
+                        if( APIConstants.CODE_SUCCESS == entityResponse.getStatus())
                         {
                             let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                            let tagJSON :[String:Any] = entResponseJSON.getDictionary(key: DETAILS)
+                            let tagJSON :[String:Any] = entResponseJSON.getDictionary(key: APIConstants.DETAILS)
                             let tag : ZCRMTag = self.getZCRMTag(tagDetails: tagJSON)
                             createdTags.append(tag)
                             entityResponse.setData(data: tag)
@@ -179,7 +179,7 @@ internal class TagAPIHandler : CommonAPIHandler
     {
         if let tag = self.tag
         {
-            if tag.tagId == INT64_NIL
+            if tag.tagId == APIConstants.INT64_MOCK
             {
                 completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Tag ID MUST NOT be nil" ) ) )
                 return
@@ -205,7 +205,7 @@ internal class TagAPIHandler : CommonAPIHandler
                     let responseJSON :[String:Any] = response.getResponseJSON()
                     let respDataArray : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     let respData : [String:Any?] = respDataArray[0]
-                    let tagDetails : [String:Any] = respData.getDictionary(key: DETAILS)
+                    let tagDetails : [String:Any] = respData.getDictionary(key: APIConstants.DETAILS)
                     let tag = self.getZCRMTag(tagDetails: tagDetails)
                     response.setData(data: tag)
                     completion( .success( tag, response ) )
@@ -225,7 +225,7 @@ internal class TagAPIHandler : CommonAPIHandler
     {
         if let module = self.module, let tag = self.tag
         {
-            if tag.tagId == INT64_NIL
+            if tag.tagId == APIConstants.INT64_MOCK
             {
                 completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Tag ID MUST NOT be nil" ) ) )
                 return
@@ -241,7 +241,7 @@ internal class TagAPIHandler : CommonAPIHandler
             reqBodyObj[getJSONRootKey()] = dataArray
             
             setUrlPath(urlPath: "/settings/tags/\(tagId)")
-            addRequestParam(param: "module", value: module.getAPIName())
+            addRequestParam(param: "module", value: module.apiName)
             setRequestMethod(requestMethod: .PUT )
             setRequestBody(requestBody: reqBodyObj)
             let request : APIRequest = APIRequest(handler: self)
@@ -253,7 +253,7 @@ internal class TagAPIHandler : CommonAPIHandler
                     let responseJSON = response.getResponseJSON()
                     let respDataArr : [[String:Any?]] = responseJSON.optArrayOfDictionaries(key: self.getJSONRootKey())!
                     let respData : [String:Any?] = respDataArr[0]
-                    let recordDetails : [String:Any] = respData.getDictionary(key: DETAILS)
+                    let recordDetails : [String:Any] = respData.getDictionary(key: APIConstants.DETAILS)
                     let updatedTag = self.getZCRMTag(tagDetails : recordDetails)
                     response.setData(data: updatedTag )
                     completion( .success( updatedTag, response ) )
@@ -278,7 +278,7 @@ internal class TagAPIHandler : CommonAPIHandler
             var dataArray : [[String:Any]] = [[String:Any]]()
             for tag in tags
             {
-                if tag.tagId != INT64_NIL
+                if tag.tagId != APIConstants.INT64_MOCK
                 {
                     dataArray.append( self.getZCRMTagAsJSON(tag: tag) as Any as! [String:Any] )
                 }
@@ -286,7 +286,7 @@ internal class TagAPIHandler : CommonAPIHandler
             reqBodyObj[getJSONRootKey()] = dataArray
             
             setUrlPath(urlPath: "/settings/tags")
-            addRequestParam(param: "module", value: module.getAPIName())
+            addRequestParam(param: "module", value: module.apiName)
             setRequestMethod(requestMethod: .PUT)
             setRequestBody(requestBody: reqBodyObj)
             
@@ -300,10 +300,10 @@ internal class TagAPIHandler : CommonAPIHandler
                     var updatedTags : [ZCRMTag] = [ZCRMTag]()
                     for entityResponse in responses
                     {
-                        if(CODE_SUCCESS == entityResponse.getStatus())
+                        if(APIConstants.CODE_SUCCESS == entityResponse.getStatus())
                         {
                             let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                            let tagJSON :[String:Any] = entResponseJSON.getDictionary(key: DETAILS)
+                            let tagJSON :[String:Any] = entResponseJSON.getDictionary(key: APIConstants.DETAILS)
                             let tag : ZCRMTag = self.getZCRMTag(tagDetails: tagJSON)
                             updatedTags.append(tag)
                             entityResponse.setData(data: tag)
@@ -362,18 +362,16 @@ internal class TagAPIHandler : CommonAPIHandler
         if ( tagDetails.hasValue( forKey : ResponseJSONKeys.createdBy ) )
         {
             let createdByDetails : [String:Any] = tagDetails.getDictionary(key: ResponseJSONKeys.createdBy)
-//            tag.createdBy = ZCRMUserDelegate(userId: createdByDetails.getInt64(key: ResponseJSONKeys.id), userFullName: createdByDetails.getString(key: ResponseJSONKeys.name))
             tag.createdBy = getUserDelegate(userJSON : createdByDetails)
             tag.createdTime = tagDetails.getString(key: ResponseJSONKeys.createdTime)
         }
         if ( tagDetails.hasValue( forKey : ResponseJSONKeys.modifiedBy ) )
         {
             let modifiedByDetails : [String:Any] = tagDetails.getDictionary(key: ResponseJSONKeys.modifiedBy)
-//            tag.modifiedBy = ZCRMUserDelegate(userId: modifiedByDetails.getInt64(key: ResponseJSONKeys.id), userFullName: modifiedByDetails.getString(key: ResponseJSONKeys.name))
             tag.modifiedBy = getUserDelegate(userJSON : modifiedByDetails)
             tag.modifiedTime = tagDetails.getString(key: ResponseJSONKeys.modifiedTime)
         }
-        if let moduleAPIName = module?.getAPIName()
+        if let moduleAPIName = module?.apiName
         {
             tag.moduleAPIName = moduleAPIName
         }
@@ -383,30 +381,22 @@ internal class TagAPIHandler : CommonAPIHandler
     internal func getZCRMTagAsJSON( tag : ZCRMTag ) -> [String : Any?]
     {
         var tagJSON : [String:Any?] = [String:Any?]()
-        if tag.tagId != INT64_NIL
+        if tag.tagId != APIConstants.INT64_MOCK
         {
             tagJSON[ResponseJSONKeys.id] = tag.tagId
         }
-        if tag.tagName != STRING_NIL
+        if tag.tagName != APIConstants.STRING_MOCK
         {
             tagJSON[ResponseJSONKeys.name] = tag.tagName
         }
-        if tag.createdBy != USER_NIL
+        if tag.createdBy.id != APIConstants.INT64_MOCK
         {
-            var createdByJSON : [String:Any] = [String:Any]()
-//            createdByJSON[ResponseJSONKeys.id] = tag.createdBy.userId
-//            createdByJSON[ResponseJSONKeys.name] = tag.createdBy.fullName
-//            tagJSON[ResponseJSONKeys.createdBy] = createdByJSON
-            createdByJSON = setUserDelegate( userObj : tag.createdBy )
+            tagJSON[ResponseJSONKeys.createdBy] = setUserDelegate( userObj : tag.createdBy )
             tagJSON[ResponseJSONKeys.createdTime] = tag.createdTime
         }
-        if tag.modifiedBy != USER_NIL
+        if tag.modifiedBy.id != APIConstants.INT64_MOCK
         {
-            var modifiedByJSON : [String:Any] = [String:Any]()
-//            modifiedByJSON[ResponseJSONKeys.id] = tag.modifiedBy.userId
-//            modifiedByJSON[ResponseJSONKeys.name] = tag.modifiedBy.fullName
-//            tagJSON[ResponseJSONKeys.modifiedBy] = modifiedByJSON
-            modifiedByJSON = setUserDelegate( userObj : tag.modifiedBy )
+            tagJSON[ResponseJSONKeys.modifiedBy] = setUserDelegate( userObj : tag.modifiedBy )
             tagJSON[ResponseJSONKeys.modifiedTime] = tag.modifiedTime
         }
         return tagJSON

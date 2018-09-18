@@ -8,18 +8,18 @@
 
 open class ZCRMCustomView : ZCRMCustomViewDelegate
 {
-    var sysName : String = STRING_NIL
-    var cvName : String
-    var displayName : String = STRING_NIL
-	var isDefault : Bool = BOOL_NIL
-    var fields : [String] = [String]()
-    var favouriteSequence : Int = INT_NIL
-    var sortByCol : String?
-    var sortOrder : SortOrder?
-    var category : String = STRING_NIL
+    public var sysName : String = APIConstants.STRING_MOCK
+    public var cvName : String
+    public var displayName : String = APIConstants.STRING_MOCK
+	public var isDefault : Bool = APIConstants.BOOL_MOCK
+    public var fields : [String] = [String]()
+    public var favouriteSequence : Int = APIConstants.INT_MOCK
+    public var sortByCol : String?
+    public var sortOrder : SortOrder?
+    public var category : String = APIConstants.STRING_MOCK
     
-    var isOffline : Bool = BOOL_NIL
-    var isSystemDefined : Bool = BOOL_NIL
+    public var isOffline : Bool = APIConstants.BOOL_MOCK
+    public var isSystemDefined : Bool = APIConstants.BOOL_MOCK
 	
     /// Initialise the instance of a custom view with the given custom view Id.
     ///
@@ -28,7 +28,7 @@ open class ZCRMCustomView : ZCRMCustomViewDelegate
     ///   - moduleAPIName: module API name of a custom view is to be initialised
     init ( cvName : String, moduleAPIName : String )
     {
-        super.init(cvId: INT64_NIL, moduleAPIName: moduleAPIName)
         self.cvName = cvName
+        super.init( cvId : APIConstants.INT64_MOCK, moduleAPIName : moduleAPIName )
     }
 }

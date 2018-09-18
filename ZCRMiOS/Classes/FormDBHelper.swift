@@ -166,18 +166,18 @@ public class FormDBHelper{
         contentValues.updateValue( module, forKey: ZCRMTableDetails.Layout.MODULE)
         contentValues.updateValue(layout.layoutName, forKey: ZCRMTableDetails.Layout.LAYOUT_NAME)
         contentValues.updateValue(String(layout.layoutName), forKey: ZCRMTableDetails.Layout.LAYOUT_ID)
-        if (layout.createdBy != USER_NIL)
+        if (layout.createdBy.id != APIConstants.INT64_MOCK)
         {
-            contentValues.updateValue(layout.createdBy.getFullName()!, forKey: ZCRMTableDetails.Layout.CREATED_BY_NAME)
-            contentValues.updateValue(String(layout.createdBy.getId()!), forKey: ZCRMTableDetails.Layout.CREATED_BY_ID)
+            contentValues.updateValue(layout.createdBy.name, forKey: ZCRMTableDetails.Layout.CREATED_BY_NAME)
+            contentValues.updateValue(String(layout.createdBy.id), forKey: ZCRMTableDetails.Layout.CREATED_BY_ID)
             
             contentValues.updateValue(layout.createdTime, forKey: ZCRMTableDetails.Layout.CREATED_TIME)
         }
         
-        if (layout.modifiedBy != USER_NIL)
+        if (layout.modifiedBy.id != APIConstants.INT64_MOCK)
         {
-            contentValues.updateValue(layout.modifiedBy.getFullName()!, forKey: ZCRMTableDetails.Layout.MODIFIED_BY_NAME)
-            contentValues.updateValue(String(layout.modifiedBy.getId()!), forKey: ZCRMTableDetails.Layout.MODIFIED_BY_ID)
+            contentValues.updateValue(layout.modifiedBy.name, forKey: ZCRMTableDetails.Layout.MODIFIED_BY_NAME)
+            contentValues.updateValue(String(layout.modifiedBy.id), forKey: ZCRMTableDetails.Layout.MODIFIED_BY_ID)
         
             contentValues.updateValue(layout.modifiedTime, forKey: ZCRMTableDetails.Layout.MODIFIED_TIME)
         }
@@ -206,10 +206,10 @@ public class FormDBHelper{
     {
         var contentValues : [String : Any] = [ String : Any ]()
         contentValues.updateValue(String(layoutId), forKey: ZCRMTableDetails.Section.LAYOUT_ID)
-        contentValues.updateValue(section.getName(), forKey: ZCRMTableDetails.Section.SECTION_NAME)
-        contentValues.updateValue(section.getDisplayName()!, forKey: ZCRMTableDetails.Section.SECTION_DISPLAY_NAME)
-        contentValues.updateValue(section.getColumnCount()!, forKey: ZCRMTableDetails.Section.COLUMN_COUNT)
-        contentValues.updateValue(section.getSequence()!, forKey: ZCRMTableDetails.Section.SEQUENCE)
+        contentValues.updateValue(section.name, forKey: ZCRMTableDetails.Section.SECTION_NAME)
+        contentValues.updateValue(section.displayName, forKey: ZCRMTableDetails.Section.SECTION_DISPLAY_NAME)
+        contentValues.updateValue(section.columnCount, forKey: ZCRMTableDetails.Section.COLUMN_COUNT)
+        contentValues.updateValue(section.sequence, forKey: ZCRMTableDetails.Section.SEQUENCE)
         try db.insert(tableName: ZCRMTableDetails.Section.TABLE_NAME, contentValues: contentValues)
     }
     
@@ -218,25 +218,25 @@ public class FormDBHelper{
         var contentValues : [String : Any] = [ String : Any ]()
         contentValues.updateValue(String(layoutId), forKey: ZCRMTableDetails.Fields.LAYOUT_ID)
         contentValues.updateValue(sectionName, forKey: ZCRMTableDetails.Fields.SECTION_NAME)
-        contentValues.updateValue(String(fields.getId()!), forKey: ZCRMTableDetails.Fields.FIELD_ID)
-        contentValues.updateValue(fields.getAPIName(), forKey: ZCRMTableDetails.Fields.FIELD_APINAME)
-        contentValues.updateValue(fields.getDisplayLabel()!, forKey: ZCRMTableDetails.Fields.FIELD_DISPLAY_NAME)
-        contentValues.updateValue(fields.getDataType()!, forKey: ZCRMTableDetails.Fields.DATA_TYPE)
+        contentValues.updateValue(String(fields.id), forKey: ZCRMTableDetails.Fields.FIELD_ID)
+        contentValues.updateValue(fields.apiName, forKey: ZCRMTableDetails.Fields.FIELD_APINAME)
+        contentValues.updateValue(fields.displayLabel, forKey: ZCRMTableDetails.Fields.FIELD_DISPLAY_NAME)
+        contentValues.updateValue(fields.type, forKey: ZCRMTableDetails.Fields.DATA_TYPE)
         contentValues.updateValue(String(fields.isPresentInCreateLayout()!), forKey: ZCRMTableDetails.Fields.CREATE_LAYOUT)
         contentValues.updateValue(String(fields.isPresentInViewLayout()!), forKey: ZCRMTableDetails.Fields.VIEW_LAYOUT)
         contentValues.updateValue(String(fields.isPresentInEditLayout()!), forKey: ZCRMTableDetails.Fields.EDIT_LAYOUT)
         contentValues.updateValue(String(fields.isPresentInQuickCreateLayout()!), forKey: ZCRMTableDetails.Fields.QUICK_CREATE_LAYOUT)
-        contentValues.updateValue(fields.getMaxLength()!, forKey: ZCRMTableDetails.Fields.MAX_LENGTH)
-        contentValues.updateValue(String(fields.isCustomField()!), forKey: ZCRMTableDetails.Fields.CUSTOM_FIELD)
-        contentValues.updateValue(String(fields.isMandatory()!), forKey: ZCRMTableDetails.Fields.MANDATORY)
-        contentValues.updateValue(String(fields.isVisible()!), forKey: ZCRMTableDetails.Fields.VISIBLE)
-        contentValues.updateValue(String(fields.isReadOnly()!), forKey: ZCRMTableDetails.Fields.READ_ONLY)
-        if(fields.getDefaultValue() != nil)
+        contentValues.updateValue(fields.maxLength, forKey: ZCRMTableDetails.Fields.MAX_LENGTH)
+        contentValues.updateValue(String(fields.customField), forKey: ZCRMTableDetails.Fields.CUSTOM_FIELD)
+        contentValues.updateValue(String(fields.mandatory), forKey: ZCRMTableDetails.Fields.MANDATORY)
+        contentValues.updateValue(String(fields.visible), forKey: ZCRMTableDetails.Fields.VISIBLE)
+        contentValues.updateValue(String(fields.readOnly), forKey: ZCRMTableDetails.Fields.READ_ONLY)
+        if(fields.defaultValue != nil)
         {
-            contentValues.updateValue(fields.getDefaultValue()!, forKey: ZCRMTableDetails.Fields.DEFAULT_VALUE)
+            contentValues.updateValue(fields.defaultValue, forKey: ZCRMTableDetails.Fields.DEFAULT_VALUE)
         }
-        contentValues.updateValue(fields.getSequenceNo()!, forKey: ZCRMTableDetails.Fields.SEQ_NUM)
-        contentValues.updateValue(String(layoutId)+String(fields.getId()!), forKey: ZCRMTableDetails.Fields.UNIQUE_ID)
+        contentValues.updateValue(fields.sequenceNo, forKey: ZCRMTableDetails.Fields.SEQ_NUM)
+        contentValues.updateValue(String(layoutId)+String(fields.id), forKey: ZCRMTableDetails.Fields.UNIQUE_ID)
         try db.insert(tableName: ZCRMTableDetails.Fields.TABLE_NAME, contentValues: contentValues)
     }
     
@@ -244,10 +244,10 @@ public class FormDBHelper{
     {
         var contentValues : [String : Any] = [ String : Any ]()
         contentValues.updateValue(String(fieldId), forKey: ZCRMTableDetails.FieldPickListValues.FIELD_ID)
-        contentValues.updateValue(pickListValue.getActualName(), forKey: ZCRMTableDetails.FieldPickListValues.ACTUAL_NAME)
-        contentValues.updateValue(pickListValue.getDisplayName(), forKey: ZCRMTableDetails.FieldPickListValues.DISPLAY_NAME)
-        contentValues.updateValue(pickListValue.getSequenceNumber(), forKey: ZCRMTableDetails.FieldPickListValues.SEQ_NUM)
-        contentValues.updateValue(pickListValue.getMaps().ArrayOfDictToStringArray(), forKey: ZCRMTableDetails.FieldPickListValues.MAPS)
+        contentValues.updateValue(pickListValue.actualName, forKey: ZCRMTableDetails.FieldPickListValues.ACTUAL_NAME)
+        contentValues.updateValue(pickListValue.displayName, forKey: ZCRMTableDetails.FieldPickListValues.DISPLAY_NAME)
+        contentValues.updateValue(pickListValue.sequenceNumber, forKey: ZCRMTableDetails.FieldPickListValues.SEQ_NUM)
+        contentValues.updateValue(pickListValue.maps.ArrayOfDictToStringArray(), forKey: ZCRMTableDetails.FieldPickListValues.MAPS)
         contentValues.updateValue(String(layoutId)+String(fieldId), forKey: ZCRMTableDetails.FieldPickListValues.UNIQUE_ID)
         try db.insert(tableName: ZCRMTableDetails.FieldPickListValues.TABLE_NAME, contentValues: contentValues)
     }

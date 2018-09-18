@@ -8,25 +8,20 @@
 
 open class ZCRMLayout : ZCRMLayoutDelegate
 {
-    var createdBy : ZCRMUserDelegate = USER_NIL
-    var createdTime : String = STRING_NIL
-    var modifiedBy : ZCRMUserDelegate = USER_NIL
-    var modifiedTime : String = STRING_NIL
-    var visible : Bool = BOOL_NIL
-    var status : Int = INT_NIL
-    var sections : [ZCRMSection] = [ZCRMSection]()
-    var accessibleProfiles : [ZCRMProfileDelegate] = [ZCRMProfileDelegate]()
+    public var name : String
+    public var createdBy : ZCRMUserDelegate = USER_MOCK
+    public var createdTime : String = APIConstants.STRING_MOCK
+    public var modifiedBy : ZCRMUserDelegate = USER_MOCK
+    public var modifiedTime : String = APIConstants.STRING_MOCK
+    public var visible : Bool = APIConstants.BOOL_MOCK
+    public var status : Int = APIConstants.INT_MOCK
+    public var sections : [ZCRMSection] = [ZCRMSection]()
+    public var accessibleProfiles : [ZCRMProfileDelegate] = [ZCRMProfileDelegate]()
 	
-    /// Initialise the instance of ZCRMLayout with the given layout Id.
-    ///
-    /// - Parameter layoutId: layout Id whose associated layout is to be initialised
-//    init(layoutId : Int64) {
-//        self.id = layoutId
-//    }
-    
-    init( layoutName : String )
+    init( name : String )
     {
-        super.init(layoutId: INT64_NIL, layoutName: layoutName)
+        self.name = name
+        super.init( layoutId : APIConstants.INT64_MOCK, layoutName : self.name )
     }
 	
     /// Add ZCRMSection to the ZCRMLayout.
@@ -34,7 +29,7 @@ open class ZCRMLayout : ZCRMLayoutDelegate
     /// - Parameter section: ZCRMSection to be added
 	internal func addSection(section : ZCRMSection)
 	{
-        if( self.sections != nil )
+        if( self.sections.isEmpty == false )
         {
             self.sections.append(section)
         }
@@ -57,7 +52,7 @@ open class ZCRMLayout : ZCRMLayoutDelegate
     /// - Parameter profile: ZCRMProfile to be added
 	internal func addAccessibleProfile(profile : ZCRMProfileDelegate)
 	{
-        if self.accessibleProfiles != nil
+        if self.accessibleProfiles.isEmpty == false
         {
             self.accessibleProfiles.append(profile)
         }

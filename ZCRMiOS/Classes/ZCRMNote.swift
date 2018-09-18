@@ -8,23 +8,22 @@
 
 open class ZCRMNote : ZCRMNoteDelegate
 {
-    var title : String
+    var title : String?
     var content : String
-    var owner : ZCRMUserDelegate = USER_NIL
-    var createdBy : ZCRMUserDelegate = USER_NIL
-    var createdTime : String = STRING_NIL
-    var modifiedBy : ZCRMUserDelegate = USER_NIL
-    var modifiedTime : String = STRING_NIL
+    var owner : ZCRMUserDelegate = USER_MOCK
+    var createdBy : ZCRMUserDelegate = USER_MOCK
+    var createdTime : String = APIConstants.STRING_MOCK
+    var modifiedBy : ZCRMUserDelegate = USER_MOCK
+    var modifiedTime : String = APIConstants.STRING_MOCK
     var attachments : [ZCRMAttachment] = [ZCRMAttachment]()
 	
     /// Initialize the instance of ZCRMNote with the given content
     ///
     /// - Parameter content: note content
-    init( title : String, content : String, parentRecord : ZCRMRecordDelegate )
+    init( content : String, parentRecord : ZCRMRecordDelegate )
 	{
-        super.init(noteId: INT64_NIL, parentRecord: parentRecord)
-		self.title = title
         self.content = content
+        super.init( noteId : APIConstants.INT64_MOCK, parentRecord : parentRecord )
 	}
     
     /// To add attachment to the note(Only for internal use).

@@ -8,18 +8,18 @@
 
 open class ZCRMAttachment : ZCRMAttachmentDelegate
 {
-    var fileName : String
-    var fileType : String = STRING_NIL
-    var fileSize : Int64 = INT64_NIL
-    var owner : ZCRMUserDelegate = USER_NIL
-    var createdBy : ZCRMUserDelegate = USER_NIL
-    var createdTime : String = STRING_NIL
-    var modifiedBy : ZCRMUserDelegate = USER_NIL
-    var modifiedTime : String = STRING_NIL
+    public var fileName : String
+    public var fileType : String = APIConstants.STRING_MOCK
+    public var fileSize : Int64 = APIConstants.INT64_MOCK
+    public var owner : ZCRMUserDelegate = USER_MOCK
+    public var createdBy : ZCRMUserDelegate = USER_MOCK
+    public var createdTime : String = APIConstants.STRING_MOCK
+    public var modifiedBy : ZCRMUserDelegate = USER_MOCK
+    public var modifiedTime : String  = APIConstants.STRING_MOCK
     
-    var isEditable : Bool = BOOL_NIL
-    var type : String = STRING_NIL
-    var linkURL : String = STRING_NIL
+    public var isEditable : Bool = APIConstants.BOOL_MOCK
+    public var type : String = APIConstants.STRING_MOCK
+    public var linkURL : String = APIConstants.STRING_MOCK
 	
     /// Initialise the instance of a attachment for the given record with given note attachment Id
     ///
@@ -28,7 +28,7 @@ open class ZCRMAttachment : ZCRMAttachmentDelegate
     ///   - fileName: name to get that attachment detail
     init( parentRecord : ZCRMRecordDelegate, fileName : String )
 	{
-        super.init( attachmentId : INT64_NIL, parentRecord : parentRecord )
-		self.fileName = fileName
+        self.fileName = fileName
+        super.init( attachmentId : APIConstants.INT64_MOCK, parentRecord : parentRecord )
 	}
 }

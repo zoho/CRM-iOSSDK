@@ -19,12 +19,12 @@ open class ZCRMRecord : ZCRMRecordDelegate
     var lineItems : [ZCRMInventoryLineItem] = [ZCRMInventoryLineItem]()
     var priceDetails : [ ZCRMPriceBookPricing ] = [ ZCRMPriceBookPricing ]()
     var participants : [ ZCRMEventParticipant ] = [ ZCRMEventParticipant ]()
-    var tax : [ ZCRMTaxDelegate ] = [ ZCRMTaxDelegate ]()
-    var owner : ZCRMUserDelegate = USER_NIL
-    var createdBy : ZCRMUserDelegate = USER_NIL
-    var modifiedBy : ZCRMUserDelegate = USER_NIL
-    var createdTime : String = STRING_NIL
-    var modifiedTime : String = STRING_NIL
+    var tax : [ ZCRMTax ] = [ ZCRMTax ]()
+    var owner : ZCRMUserDelegate = USER_MOCK
+    var createdBy : ZCRMUserDelegate = USER_MOCK
+    var modifiedBy : ZCRMUserDelegate = USER_MOCK
+    var createdTime : String  = APIConstants.STRING_MOCK
+    var modifiedTime : String  = APIConstants.STRING_MOCK
     var layout : ZCRMLayoutDelegate = LAYOUT_NIL
     var tags : [ZCRMTag] = [ZCRMTag]()
     var dataProcessingBasicDetails : ZCRMDataProcessBasicDetails?
@@ -34,7 +34,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     /// - Parameter moduleAPIName: module whose associated ZCRMRecord to be initialized
     public init(moduleAPIName : String)
     {
-        super.init( recordId : INT64_NIL, moduleAPIName : moduleAPIName )
+        super.init( recordId : APIConstants.INT64_MOCK, moduleAPIName : moduleAPIName )
     }
     
     /// Set the field value to the specified field name is mapped.
@@ -129,7 +129,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     /// Add ZCRMTax to the ZCRMRecord
     ///
     /// - Parameter tax: ZCRMTax to be added
-    public func addTax( tax : ZCRMTaxDelegate )
+    public func addTax( tax : ZCRMTax )
     {
 //        self.tax[ tax.getTaxName() ] = tax
         self.tax.append(tax)
@@ -142,7 +142,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     public func clone() throws -> ZCRMRecord
     {
         let cloneRecord = self
-        cloneRecord.recordId = INT64_NIL
+        cloneRecord.recordId = APIConstants.INT64_MOCK
         cloneRecord.setProperties( properties : [ String : Any? ]() )
         return cloneRecord
     }
@@ -153,7 +153,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     /// - Throws: ZCRMSDKError if Entity ID of the record is not nil
     public func create( completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
-        if( recordId != INT64_NIL )
+        if( recordId != APIConstants.INT64_MOCK )
         {
             completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Entity ID MUST be null for create operation." ) ) )
         }
@@ -171,7 +171,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     /// - Throws: ZCRMSDKError if Entity ID of the record is nil
     public func update( completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
-        if(recordId == INT64_NIL)
+        if(recordId == APIConstants.INT64_MOCK)
         {
             completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Entity ID MUST NOT be null for update operation." ) ) )
         }

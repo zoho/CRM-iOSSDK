@@ -8,16 +8,16 @@
 
 public class ZCRMModuleRelation : ZCRMEntity
 {
-	private var apiName : String?
-	private var parentModuleAPIName : String?
-	private var childModuleAPIName : String?
-	private var label : String?
-	private var id : Int64?
-	private var visible : Bool?
-	private var isDefault : Bool?
-    private var name : String?
-    private var type : String?
-    private var module : String?
+	var apiName : String = APIConstants.STRING_MOCK
+	var parentModuleAPIName : String = APIConstants.STRING_MOCK
+	var childModuleAPIName : String = APIConstants.STRING_MOCK
+	var label : String = APIConstants.STRING_MOCK
+	var id : Int64 = APIConstants.INT64_MOCK
+	var visible : Bool = APIConstants.BOOL_MOCK
+	var isDefault : Bool = APIConstants.BOOL_MOCK
+    var name : String = APIConstants.STRING_MOCK
+    var type : String = APIConstants.STRING_MOCK
+    var module : String = APIConstants.STRING_MOCK
 
     
     /// Initialize the instance of a ZCRMModuleRelation with the given module and related list
@@ -31,144 +31,20 @@ public class ZCRMModuleRelation : ZCRMEntity
         self.parentModuleAPIName = parentModuleAPIName
     }
     
-    init() {}
-    
     public init( parentModuleAPIName : String, relatedListId : Int64 )
     {
         self.parentModuleAPIName = parentModuleAPIName
         self.id = relatedListId
     }
     
-    internal func setAPIName( apiName : String? )
+    func getJunctionRecord() throws -> ZCRMJunctionRecord
     {
-        self.apiName = apiName
+        if( apiName == APIConstants.STRING_MOCK || id != APIConstants.INT64_MOCK )
+        {
+            throw ZCRMError.SDKError( code : ErrorCode.INVALID_DATA, message : ErrorMessage.INVALID_ID_MSG )
+        }
+        return ZCRMJunctionRecord( apiName : apiName, id : id )
     }
-	
-    /// Returns related list apiname
-    ///
-    /// - Returns: related list apiname
-	public func getAPIName() -> String
-	{
-		return self.apiName!
-	}
-	
-    /// Returns module apiname.
-    ///
-    /// - Returns: module apiname
-	public func getParentModuleAPIName() -> String
-	{
-		return self.parentModuleAPIName!
-	}
-	
-    /// Set the child module apiname
-    ///
-    /// - Parameter childModuleAPIName: child module apiname
-	internal func setChildModuleAPIName(childModuleAPIName : String?)
-	{
-		self.childModuleAPIName = childModuleAPIName
-	}
-	
-    /// Returns the child module api name.
-    ///
-    /// - Returns: child module api name
-	public func getChildModuleAPIName() -> String?
-	{
-		return self.childModuleAPIName
-	}
-	
-    /// Set related list label.
-    ///
-    /// - Parameter label: related list label
-	internal func setLabel(label : String?)
-	{
-		self.label = label
-	}
-	
-    /// Returns the related list label
-    ///
-    /// - Returns: related list label
-	public func getDisplayLabel() -> String?
-	{
-		return self.label
-	}
-    
-    internal func setName( name : String? )
-    {
-        self.name = name
-    }
-    
-    public func getName() -> String?
-    {
-        return self.name
-    }
-    
-    internal func setType( type : String? )
-    {
-        self.type = type
-    }
-    
-    public func getType() -> String?
-    {
-        return self.type
-    }
-    
-    internal func setModule( module : String? )
-    {
-        self.module = module
-    }
-    
-    public func getModule() -> String?
-    {
-        return self.module
-    }
-	
-    /// Set the related list id
-    ///
-    /// - Parameter relatedListId: related list id
-	internal func setId(relatedListId : Int64?)
-	{
-		self.id = relatedListId
-	}
-	
-    /// Returns the related list id
-    ///
-    /// - Returns: related list id
-	public func getId() -> Int64?
-	{
-		return self.id
-	}
-	
-    /// Set true if related list is visible.
-    ///
-    /// - Parameter isVisible: true if related list is visible
-	internal func setVisibility(isVisible : Bool?)
-	{
-		self.visible = isVisible
-	}
-	
-    /// Return true if related list is visible.
-    ///
-    /// - Returns: true if related list is visible
-	public func isVisible() -> Bool?
-	{
-		return self.visible
-	}
-	
-    /// Set true if related list is defult.
-    ///
-    /// - Parameter isDefault: true if related list is defult
-	internal func setIsDefaultRelatedList(isDefault : Bool?)
-	{
-		self.isDefault = isDefault
-	}
-	
-    /// Returns true if related list is defult
-    ///
-    /// - Returns: true if related list is defult
-	public func isDefaultRelatedList() -> Bool?
-	{
-		return self.isDefault
-	}
 	
     /// Return list of related records of the module(BulkAPIResponse).
     ///

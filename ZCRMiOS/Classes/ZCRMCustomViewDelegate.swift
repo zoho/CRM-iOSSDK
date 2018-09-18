@@ -22,14 +22,14 @@ open class ZCRMCustomViewDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to get the records
     public func getRecords( includePrivateFields : Bool, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( page : 1, per_page : 200 ){ ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecords( page : 1, per_page : 200 ){ ( result ) in
             completion( result )
         }
     }
 
     public func getRecordsWithPrivateFields( completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecordsWithPrivateFields( page : 1, per_page : 200 ){ ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecordsWithPrivateFields( page : 1, per_page : 200 ){ ( result ) in
             completion( result )
         }
     }
@@ -43,14 +43,14 @@ open class ZCRMCustomViewDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to get the records
     public func getRecords( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( page : page, per_page : perPage ){ ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecords( page : page, per_page : perPage ){ ( result ) in
             completion( result )
         }
     }
     
     public func getRecordsWithPrivateFields( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecordsWithPrivateFields( page : page, per_page : perPage ){ ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecordsWithPrivateFields( page : page, per_page : perPage ){ ( result ) in
             completion( result )
         }
     }
@@ -64,14 +64,14 @@ open class ZCRMCustomViewDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to get the records
     public func getRecords( sortByField : String, sortOrder : SortOrder, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( cvId : self.cvId, sortByField : sortByField, sortOrder : sortOrder) { ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecords( cvId : self.cvId, sortByField : sortByField, sortOrder : sortOrder) { ( result ) in
             completion( result )
         }
     }
     
     public func getRecordsWithPrivateFields( sortByField : String, sortOrder : SortOrder, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecordsWithPrivateFields( cvId : self.cvId, sortByField : sortByField, sortOrder : sortOrder) { ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecordsWithPrivateFields( cvId : self.cvId, sortByField : sortByField, sortOrder : sortOrder) { ( result ) in
             completion( result )
         }
     }
@@ -88,30 +88,31 @@ open class ZCRMCustomViewDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to get the records
     public func getRecords( sortByField : String, sortOrder : SortOrder, startIndex : Int, endIndex : Int, modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( cvId : self.cvId, sortByField : sortByField, sortOrder : sortOrder, page: startIndex, per_page: endIndex, modifiedSince : modifiedSince ){ ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecords( cvId : self.cvId, sortByField : sortByField, sortOrder : sortOrder, page: startIndex, per_page: endIndex, modifiedSince : modifiedSince ){ ( result ) in
             completion( result )
         }
     }
     
     public func getRecordsWithPrivateFields( sortByField : String, sortOrder : SortOrder, startIndex : Int, endIndex : Int, modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( cvId : self.cvId, sortByField : sortByField, sortOrder : sortOrder, page: startIndex, per_page: endIndex, modifiedSince : modifiedSince ){ ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecords( cvId : self.cvId, sortByField : sortByField, sortOrder : sortOrder, page: startIndex, per_page: endIndex, modifiedSince : modifiedSince ){ ( result ) in
             completion( result )
         }
     }
 
     public func getRecords( kanbanView : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords(cvId: self.cvId, kanbanView: kanbanView) { ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecords(cvId: self.cvId, kanbanView: kanbanView) { ( result ) in
             completion( result )
         }
     }
     
     public func getRecords ( sortByField : String, sortOrder : SortOrder, kanbanView : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( cvId : self.cvId, sortByField : sortByField, sortOrder : sortOrder, kanbanView : kanbanView ) { ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecords( cvId : self.cvId, sortByField : sortByField, sortOrder : sortOrder, kanbanView : kanbanView ) { ( result ) in
             completion( result )
         }
     }
 }
-var CUSTOM_VIEW_NIL : ZCRMCustomViewDelegate = ZCRMCustomViewDelegate(cvId: INT64_NIL, moduleAPIName: STRING_NIL)
+
+let CUSTOM_VIEW_MOCK : ZCRMCustomViewDelegate = ZCRMCustomViewDelegate( cvId : APIConstants.INT64_MOCK, moduleAPIName : APIConstants.STRING_MOCK )

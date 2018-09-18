@@ -8,12 +8,14 @@
 
 open class ZCRMRole : ZCRMRoleDelegate
 {
-    var reportingTo : ZCRMRoleDelegate?
-    var isAdminUser : Bool?
-    var label : String?
+    var name : String
+    var reportingTo : ZCRMRoleDelegate = ROLE_MOCK
+    public var isAdminUser : Bool = APIConstants.BOOL_MOCK
+    public var label : String = APIConstants.STRING_MOCK
 	
-    init(roleName : String)
+    init( name : String)
 	{
-        super.init(roleId: INT64_NIL, roleName: roleName)
+        self.name = name
+        super.init( roleId : APIConstants.INT64_MOCK, roleName : self.name )
 	}
 }

@@ -279,7 +279,7 @@ internal enum RequestMethod : String
 
     internal func uploadLink( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        let boundary = BOUNDARY
+        let boundary = APIConstants.BOUNDARY
         self.createMultipartRequest( bodyData : Data(), boundary : boundary )
         self.makeRequest { ( urlResp, responseData, error ) in
             if let err = error
@@ -309,7 +309,7 @@ internal enum RequestMethod : String
     internal func uploadFile( filePath : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         let fileURL = URL( fileURLWithPath : filePath )
-        let boundary = BOUNDARY
+        let boundary = APIConstants.BOUNDARY
         let httpBodyData = getFilePart( fileURL : fileURL, data : nil, fileName: nil, boundary : boundary )
         createMultipartRequest( bodyData : httpBodyData, boundary : boundary )
         self.makeRequest { ( urlResponse, responseData, error ) in
@@ -338,7 +338,7 @@ internal enum RequestMethod : String
     
     internal func uploadFileWithData( fileName : String, data : Data, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        let boundary = BOUNDARY
+        let boundary = APIConstants.BOUNDARY
         let httpBodyData = getFilePart( fileURL : nil, data : data, fileName : fileName, boundary : boundary )
         createMultipartRequest(bodyData: httpBodyData, boundary: boundary)
         self.makeRequest { ( urlResponse, responseData, error) in

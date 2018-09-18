@@ -28,4 +28,4 @@ open class ZCRMAttachmentDelegate : ZCRMEntity
     }
 }
 
-var ATTACHMENT_NIL : ZCRMAttachmentDelegate = ZCRMAttachmentDelegate(attachmentId: INT64_NIL, parentRecord: RECORD_NIL)
+let ATTACHMENT_MOCK : ZCRMAttachmentDelegate = ZCRMAttachmentDelegate( attachmentId : APIConstants.INT64_MOCK, parentRecord : RECORD_MOCK )

@@ -18,7 +18,7 @@ open class ZCRMNoteDelegate : ZCRMEntity
     
     public func getAllAttachmentsDetails( page : Int, per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
     {
-        if( self.noteId != INT64_NIL )
+        if( self.noteId != APIConstants.INT64_MOCK )
         {
             RelatedListAPIHandler(parentRecord: parentRecord, relatedList: ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: "Attachments")).getAllAttachmentsDetails(page: page, per_page: per_page, modifiedSince: nil) { ( result ) in
                 completion( result )
@@ -28,7 +28,7 @@ open class ZCRMNoteDelegate : ZCRMEntity
     
     public func getAllAttachmentsDetails( page : Int, per_page : Int, modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
     {
-        if( self.noteId != INT64_NIL )
+        if( self.noteId != APIConstants.INT64_MOCK )
         {
             RelatedListAPIHandler(parentRecord: parentRecord, relatedList: ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: "Attachments")).getAllAttachmentsDetails(page: page, per_page: per_page, modifiedSince: modifiedSince) { ( result ) in
                 completion( result )

@@ -90,30 +90,27 @@ public class ZCRMCachedModuleHandler
     
     private func setFieldDetails(layout : ZCRMLayout, section : ZCRMSection) throws
     {
-        let fields : [ZCRMField] = section.getAllFields()!
+        let fields : [ZCRMField] = section.fields
         for field in fields
         {
-            try formDBHelper.insertField(layoutId: layout.layoutId, sectionName: section.getName(), fields: field)
+            try formDBHelper.insertField(layoutId: layout.layoutId, sectionName: section.name, fields: field)
             try self.setPickListDetails(layoutId: layout.layoutId, field: field)
         }
     }
     
     private func setPickListDetails(layoutId : Int64, field: ZCRMField) throws
     {
-        if(field.getPickListValues() != nil)
+        let pickListValues : [ZCRMPickListValue] = field.pickListValues
+        for pickListValue in pickListValues
         {
-            let pickListValues : [ZCRMPickListValue] = field.getPickListValues()!
-            for pickListValue in pickListValues
-            {
-                try formDBHelper.insertFieldPickListValues(layoutId: layoutId, fieldId: field.getId()!, pickListValue: pickListValue)
-            }
+            try formDBHelper.insertFieldPickListValues(layoutId: layoutId, fieldId: field.id, pickListValue: pickListValue)
         }
     }
     
     private func getLayoutDetailsFromDB(apiName: String, layoutId: Int64) throws -> ZCRMLayout
     {
         let layoutJSON : [String:Any] = try getLayoutDetails(layoutId: layoutId)
-        let module = ZCRMModule(moduleAPIName: apiName)
+        let module = ZCRMModuleDelegate(apiName: apiName)
         return ModuleAPIHandler(module: module).getZCRMLayout(layoutDetails: layoutJSON)
     }
     
@@ -291,7 +288,7 @@ public class ZCRMCachedModuleHandler
     private func getCvDetailsFromDB(cvId: Int64) throws -> ZCRMCustomView
     {
         let cvJSON : [String:Any] = try getCvDetails(cvId: cvId)
-        let module = ZCRMModule(moduleAPIName: self.moduleAPIName)
+        let module = ZCRMModuleDelegate(apiName: self.moduleAPIName)
         return ModuleAPIHandler(module: module).getZCRMCustomView(cvDetails: cvJSON)
     }
     

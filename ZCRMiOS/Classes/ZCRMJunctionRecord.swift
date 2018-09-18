@@ -8,11 +8,11 @@
 
 import Foundation
 
-public class ZCRMJunctionRecord
+open class ZCRMJunctionRecord
 {
-    private var apiName : String
-    private var id : Int64
-    private var relatedDetails : [ String : Any ] = [ String : Any ]()
+    public var apiName : String
+    public var id : Int64
+    public var relatedDetails : [ String : Any ] = [ String : Any ]()
 
     /// Initialize the instance of a relation with the given record and related record.
     ///
@@ -25,25 +25,6 @@ public class ZCRMJunctionRecord
         self.id = id
     }
     
-    
-    /// Returns the Id of the related record.
-    ///
-    /// - Returns: the Id of the related record
-    public func getId() -> Int64
-    {
-        return self.id
-    }
-    
-    
-    /// Returns the API name of the related record.
-    ///
-    /// - Returns: the API name of the related record
-    public func getApiName() -> String
-    {
-        return self.apiName
-    }
-    
-    
     /// To set the related details between the records
     ///
     /// - Parameters:
@@ -52,14 +33,5 @@ public class ZCRMJunctionRecord
     public func setRelatedData( fieldAPIName : String, value : Any )
     {
         self.relatedDetails[fieldAPIName] = value
-    }
-    
-    
-    /// To get the related details between the records
-    ///
-    /// - Returns: related details between the records
-    public func getRelatedDetails() -> [ String : Any ]?
-    {
-        return self.relatedDetails
     }
 }

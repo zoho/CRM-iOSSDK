@@ -9,7 +9,7 @@ open class ZCRMProfileDelegate : ZCRMEntity
 {
     var profileId : Int64
     var profileName : String
-    var isDefault : Bool = BOOL_NIL
+    var isDefault : Bool = APIConstants.BOOL_MOCK
     
     init( profileId : Int64, profileName : String, isDefault : Bool )
     {
@@ -24,4 +24,5 @@ open class ZCRMProfileDelegate : ZCRMEntity
         self.profileName = profileName
     }
 }
-var PROFILE_NIL : ZCRMProfileDelegate = ZCRMProfileDelegate(profileId: INT64_NIL, profileName: STRING_NIL)
+
+let PROFILE_MOCK : ZCRMProfileDelegate = ZCRMProfileDelegate( profileId : APIConstants.INT64_MOCK, profileName : APIConstants.STRING_MOCK )

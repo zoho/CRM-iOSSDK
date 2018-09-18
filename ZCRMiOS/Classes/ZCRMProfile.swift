@@ -8,15 +8,17 @@
 
 open class ZCRMProfile : ZCRMProfileDelegate
 {
-    var category : Bool = BOOL_NIL
-    var description : String = STRING_NIL
-    var modifiedBy : ZCRMUserDelegate = USER_NIL
-    var createdBy : ZCRMUserDelegate = USER_NIL
-    var modifiedTime : String = STRING_NIL
-    var createdTime : String = STRING_NIL
+    var name : String
+    public var category : Bool = APIConstants.BOOL_MOCK
+    public var description : String  = APIConstants.STRING_MOCK
+    public var modifiedBy : ZCRMUserDelegate = USER_MOCK
+    public var createdBy : ZCRMUserDelegate = USER_MOCK
+    public var modifiedTime : String  = APIConstants.STRING_MOCK
+    public var createdTime : String  = APIConstants.STRING_MOCK
 	
-	init(profileName : String)
+	init( name : String )
 	{
-		super.init(profileId: INT64_NIL, profileName: profileName)
+        self.name = name
+		super.init( profileId : APIConstants.INT64_MOCK, profileName : self.name )
 	}
 }

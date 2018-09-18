@@ -61,7 +61,7 @@ public class  APIResponse : CommonAPIResponse
         }
         else
         {
-            throw ZCRMError.ProcessingError( code : responseJSON[ CODE ] as? String ?? ErrorCode.INVALID_DATA, message : responseJSON[MESSAGE] as? String ?? "Response is nil" )
+            throw ZCRMError.ProcessingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA, message : responseJSON[APIConstants.MESSAGE] as? String ?? "Response is nil" )
         }
     }
     
@@ -78,22 +78,22 @@ public class  APIResponse : CommonAPIResponse
             msgJSON = recordsArray[ 0 ] as Any as! [ String : Any ]
         }
         
-        if ( msgJSON.hasValue( forKey : MESSAGE ) )
+        if ( msgJSON.hasValue( forKey : APIConstants.MESSAGE ) )
         {
-            message = msgJSON[ MESSAGE ] as? String
+            message = msgJSON[ APIConstants.MESSAGE ] as? String
         }
         
         
-        if( msgJSON.hasValue( forKey : STATUS ) )
+        if( msgJSON.hasValue( forKey : APIConstants.STATUS ) )
         {
-            status = msgJSON[ STATUS ] as? String
-            if( status == CODE_ERROR )
+            status = msgJSON[ APIConstants.STATUS ] as? String
+            if( status == APIConstants.CODE_ERROR )
             {
-                if( msgJSON.hasValue( forKey : DETAILS ) )
+                if( msgJSON.hasValue( forKey : APIConstants.DETAILS ) )
                 {
-                    throw ZCRMError.ProcessingError( code :( msgJSON[ CODE ] as? String ?? ErrorCode.INVALID_DATA ), message : ( "\( message ?? "Empty Message" ) - \( msgJSON[ DETAILS] ?? [:] )" ) )
+                    throw ZCRMError.ProcessingError( code :( msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA ), message : ( "\( message ?? "Empty Message" ) - \( msgJSON[ APIConstants.DETAILS] ?? [:] )" ) )
                 }
-                throw ZCRMError.ProcessingError( code : msgJSON[ CODE ] as? String ?? ErrorCode.INVALID_DATA, message: message ?? "Empty Message" )
+                throw ZCRMError.ProcessingError( code : msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA, message: message ?? "Empty Message" )
             }
         } 
         
@@ -141,7 +141,7 @@ public class FileAPIResponse : APIResponse
             responseJSON = [String:Any]()
             if( httpStatusCode == HTTPStatusCode.OK )
             {
-                status = CODE_SUCCESS
+                status = APIConstants.CODE_SUCCESS
             }
         }
         else
@@ -200,7 +200,7 @@ public class BulkAPIResponse : CommonAPIResponse
             let recordsArray : [[String:Any?]] = responseJSON.optArray(key: responseJSONRootKey) as! [[String:Any?]]
             for recordJSON in recordsArray
             {
-                if(recordJSON.hasValue(forKey: STATUS) && recordJSON.hasValue(forKey: MESSAGE))
+                if(recordJSON.hasValue(forKey: APIConstants.STATUS) && recordJSON.hasValue(forKey: APIConstants.MESSAGE))
                 {
                     let individualResponse : EntityResponse = EntityResponse(entityResponseJSON: recordJSON as Any as! [ String : Any ])
                     self.bulkEntityResponses.append(individualResponse)
@@ -221,7 +221,7 @@ public class BulkAPIResponse : CommonAPIResponse
         }
         else
         {
-            throw ZCRMError.ProcessingError( code : ( responseJSON[ CODE ] as? String ?? ErrorCode.INVALID_DATA ), message : ( responseJSON[MESSAGE] as? String ?? "Response is nil" ) )
+            throw ZCRMError.ProcessingError( code : ( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA ), message : ( responseJSON[APIConstants.MESSAGE] as? String ?? "Response is nil" ) )
         }
     }
 }
@@ -238,17 +238,17 @@ public class EntityResponse
     init(entityResponseJSON: [String:Any])
     {
         self.responseJSON = entityResponseJSON
-        self.status = entityResponseJSON[STATUS] as! String
-        self.code = entityResponseJSON[CODE] as! String
-        self.message = entityResponseJSON[MESSAGE] as! String
-        if entityResponseJSON.hasValue( forKey : ACTION )
+        self.status = entityResponseJSON[APIConstants.STATUS] as! String
+        self.code = entityResponseJSON[APIConstants.CODE] as! String
+        self.message = entityResponseJSON[APIConstants.MESSAGE] as! String
+        if entityResponseJSON.hasValue( forKey : APIConstants.ACTION )
         {
-            self.upsertedDetails[ "\( ACTION )" ] = entityResponseJSON[ ACTION ] as? String
+            self.upsertedDetails[ "\( APIConstants.ACTION )" ] = entityResponseJSON[ APIConstants.ACTION ] as? String
             
         }
-        if entityResponseJSON.hasValue( forKey : DUPLICATE_FIELD )
+        if entityResponseJSON.hasValue( forKey : APIConstants.DUPLICATE_FIELD )
         {
-            self.upsertedDetails[ "\( DUPLICATE_FIELD )" ] = entityResponseJSON[ DUPLICATE_FIELD ] as? String
+            self.upsertedDetails[ "\( APIConstants.DUPLICATE_FIELD )" ] = entityResponseJSON[ APIConstants.DUPLICATE_FIELD ] as? String
         }
     }
     

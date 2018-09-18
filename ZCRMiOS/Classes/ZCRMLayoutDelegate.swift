@@ -17,4 +17,4 @@ open class ZCRMLayoutDelegate : ZCRMEntity
     }
 }
 
-var LAYOUT_NIL : ZCRMLayoutDelegate = ZCRMLayoutDelegate(layoutId: INT64_NIL, layoutName: STRING_NIL)
+var LAYOUT_NIL : ZCRMLayoutDelegate = ZCRMLayoutDelegate(layoutId: APIConstants.INT64_MOCK, layoutName: APIConstants.STRING_MOCK)
