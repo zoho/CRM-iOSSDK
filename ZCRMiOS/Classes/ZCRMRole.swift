@@ -6,57 +6,16 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
-public class ZCRMRole : ZCRMEntity
+open class ZCRMRole : ZCRMRoleDelegate
 {
-	private var id : Int64
-	private var name : String
-	private var reportingTo : ZCRMRole?
-    private var isAdminUser : Bool?
-    private var label : String?
+    var name : String
+    var reportingTo : ZCRMRoleDelegate = ROLE_MOCK
+    public var isAdminUser : Bool = APIConstants.BOOL_MOCK
+    public var label : String = APIConstants.STRING_MOCK
 	
-    init(roleId : Int64, roleName : String)
+    init( name : String)
 	{
-		self.id = roleId
-		self.name = roleName
+        self.name = name
+        super.init( roleId : APIConstants.INT64_MOCK, roleName : self.name )
 	}
-	
-	public func getId() -> Int64
-	{
-		return self.id
-	}
-	
-	public func getName() -> String
-	{
-		return self.name
-	}
-	
-	internal func setReportingTo(reportingTo : ZCRMRole?)
-	{
-		self.reportingTo = reportingTo
-	}
-	
-	public func getReportingTo() -> ZCRMRole?
-	{
-		return self.reportingTo
-	}
-    
-    public func getLabel() -> String?
-    {
-        return self.label
-    }
-    
-    internal func setLabel( label : String? )
-    {
-        self.label = label
-    }
-    
-    public func checkAdmin() -> Bool?
-    {
-        return self.isAdminUser
-    }
-    
-    internal func setAdminUser( isAdminUser : Bool? )
-    {
-        self.isAdminUser = isAdminUser
-    }
 }

@@ -90,6 +90,15 @@ public enum PhotoSize : String
     case MEDIUM = "medium"
 }
 
+public enum XPhotoViewPermission  : Int
+{
+    case zero = 0
+    case one = 1
+    case two = 2
+    case three = 3
+    case four = 4
+}
+
 public enum ConsentProcessThrough : String
 {
     case EMAIL = "Email"
@@ -522,45 +531,54 @@ internal func getFileSize( filePath : String ) -> Int64
     return 0
 }
 
+internal struct APIConstants
+{
+    static let BOUNDARY = String( format : "unique-consistent-string-%@", UUID.init().uuidString )
+    static let LEADS : String = "Leads"
+    static let ACCOUNTS : String = "Accounts"
+    static let CONTACTS : String = "Contacts"
+    static let DEALS : String = "Deals"
+    static let QUOTES : String = "Quotes"
+    static let SALESORDERS : String = "SalesOrders"
+    static let INVOICES : String = "Invoices"
+    static let PURCHASEORDERS : String = "PurchaseOrders"
+    
+    static let ACTION : String = "action"
+    static let DUPLICATE_FIELD : String = "duplicate_field"
+    
+    static let MESSAGE : String = "message"
+    static let STATUS : String = "status"
+    static let CODE : String = "code"
+    static let CODE_ERROR : String = "error"
+    static let CODE_SUCCESS : String = "success"
+    static let INFO : String = "info"
+    static let DETAILS : String = "details"
+    
+    static let MODULES : String = "modules"
+    static let PRIVATE_FIELDS = "private_fields"
+    static let PER_PAGE : String = "per_page"
+    static let PAGE : String = "page"
+    static let COUNT : String = "count"
+    static let MORE_RECORDS : String = "more_records"
+    
+    static let REMAINING_COUNT_FOR_THIS_DAY : String = "X-RATELIMIT-LIMIT"
+    static let REMAINING_COUNT_FOR_THIS_WINDOW : String = "X-RATELIMIT-REMAINING"
+    static let REMAINING_TIME_FOR_THIS_WINDOW_RESET : String = "X-RATELIMIT-RESET"
+    
+    static let STRING_MOCK : String = "SDK_NIL"
+    static let INT_MOCK : Int = -555
+    static let INT64_MOCK : Int64 = -555
+    static let DOUBLE_MOCK : Double = -55.5555555555555555
+    static let BOOL_MOCK : Bool = false
+    
+    static let MAX_ALLOWED_FILE_SIZE_IN_MB : Int = 20
+}
+
 var APPTYPE : String = "ZCRM"
 var APIBASEURL : String = String()
 var ACCOUNTSURL : String = String()
 var APIVERSION : String = String()
 var COUNTRYDOMAIN : String = "com"
-let PHOTOURL : URL = URL( string : "https://profile.zoho.com/api/v1/user/self/photo" )!
-
-let BOUNDARY = String( format : "unique-consistent-string-%@", UUID.init().uuidString )
-let LEADS : String = "Leads"
-let ACCOUNTS : String = "Accounts"
-let CONTACTS : String = "Contacts"
-let DEALS : String = "Deals"
-let QUOTES : String = "Quotes"
-let SALESORDERS : String = "SalesOrders"
-let INVOICES : String = "Invoices"
-let PURCHASEORDERS : String = "PurchaseOrders"
-
-let ACTION : String = "action"
-let DUPLICATE_FIELD : String = "duplicate_field"
-
-let MESSAGE : String = "message"
-let STATUS : String = "status"
-let CODE : String = "code"
-let CODE_ERROR : String = "error"
-let CODE_SUCCESS : String = "success"
-let INFO : String = "info"
-let DETAILS : String = "details"
-
-let MODULES : String = "modules"
-let PRIVATE_FIELDS = "private_fields"
-let PER_PAGE : String = "per_page"
-let PAGE : String = "page"
-let COUNT : String = "count"
-let MORE_RECORDS : String = "more_records"
-
-let REMAINING_COUNT_FOR_THIS_DAY : String = "X-RATELIMIT-LIMIT"
-let REMAINING_COUNT_FOR_THIS_WINDOW : String = "X-RATELIMIT-REMAINING"
-let REMAINING_TIME_FOR_THIS_WINDOW_RESET : String = "X-RATELIMIT-RESET"
-
 
 struct JSONRootKey {
     static let DATA : String = "data"
@@ -576,6 +594,7 @@ struct JSONRootKey {
     static let ROLES : String = "roles"
     static let ANALYTICS : String = "Analytics"
     static let STAGES : String = "stages"
+    static let TAXES : String = "taxes"
 }
 
 //MARK:- RESULT TYPES
@@ -627,8 +646,6 @@ public struct Result {
             } // switch
         } // func ends
     }
-    
-    
 } // struct ends ..
 
 func typeCastToZCRMError(_ error:Error) -> ZCRMError {
@@ -638,4 +655,16 @@ func typeCastToZCRMError(_ error:Error) -> ZCRMError {
     return typecastedError
 }
 
+func getUserDelegate( userJSON : [ String : Any ] ) -> ZCRMUserDelegate
+{
+    let user : ZCRMUserDelegate = ZCRMUserDelegate( id : userJSON.getInt64( key : "id" ), name : userJSON.getString( key : "name" ) )
+    return user
+}
 
+func setUserDelegate( userObj : ZCRMUserDelegate ) -> [ String : Any ]
+{
+    var userJSON : [String:Any] = [String:Any]()
+    userJSON[ "id" ] = userObj.id
+    userJSON[ "name" ] = userObj.name
+    return userJSON
+}

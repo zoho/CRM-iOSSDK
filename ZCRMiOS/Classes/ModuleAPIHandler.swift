@@ -8,9 +8,9 @@
 
 internal class ModuleAPIHandler : CommonAPIHandler
 {
-    private let module : ZCRMModule
+    private let module : ZCRMModuleDelegate
     
-    init(module : ZCRMModule)
+    init(module : ZCRMModuleDelegate)
     {
         self.module = module
     }
@@ -21,7 +21,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
 		setJSONRootKey( key : JSONRootKey.LAYOUTS )
 		setUrlPath(urlPath: "/settings/layouts")
 		setRequestMethod(requestMethod: .GET )
-		addRequestParam(param: "module" , value: self.module.getAPIName())
+		addRequestParam(param: "module" , value: self.module.apiName)
 		if modifiedSince.notNilandEmpty
 		{ 
 			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
@@ -56,7 +56,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.LAYOUTS )
 		setUrlPath(urlPath:  "/settings/layouts/\(layoutId)")
 		setRequestMethod(requestMethod: .GET )
-		addRequestParam(param: "module" , value: self.module.getAPIName())
+		addRequestParam(param: "module" , value: self.module.apiName)
 		let request : APIRequest = APIRequest(handler: self )
 		print( "Request : \( request.toString() )" )
 		
@@ -80,7 +80,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.FIELDS )
 		setUrlPath(urlPath: "/settings/fields")
 		setRequestMethod(requestMethod: .GET )
-		addRequestParam(param: "module" , value: self.module.getAPIName())
+		addRequestParam(param: "module" , value: self.module.apiName)
 		if modifiedSince.notNilandEmpty
 		{
 			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
@@ -115,7 +115,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.FIELDS )
         setUrlPath( urlPath : "/settings/fields/\( fieldId )" )
         setRequestMethod( requestMethod : .GET )
-        addRequestParam( param : "module", value : self.module.getAPIName() )
+        addRequestParam( param : "module", value : self.module.apiName )
         let request : APIRequest = APIRequest( handler : self )
         print( "Request : \( request.toString() )" )
         
@@ -139,7 +139,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.CUSTOM_VIEWS )
 		setUrlPath(urlPath: "/settings/custom_views")
 		setRequestMethod(requestMethod: .GET )
-		addRequestParam(param: "module" , value: self.module.getAPIName())
+		addRequestParam(param: "module" , value: self.module.apiName)
 		if modifiedSince.notNilandEmpty
 		{
 			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
@@ -171,7 +171,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.RELATED_LISTS )
         setUrlPath( urlPath : "/settings/related_lists/\(id)" )
         setRequestMethod( requestMethod : .GET )
-        addRequestParam( param : "module", value : self.module.getAPIName() )
+        addRequestParam( param : "module", value : self.module.apiName )
         let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         
@@ -194,7 +194,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.RELATED_LISTS )
         setUrlPath( urlPath : "/settings/related_lists" )
         setRequestMethod( requestMethod : .GET )
-        addRequestParam( param : "module", value : self.module.getAPIName() )
+        addRequestParam( param : "module", value : self.module.apiName )
         let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
         
@@ -217,7 +217,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         setJSONRootKey( key :  JSONRootKey.CUSTOM_VIEWS )
 		setUrlPath(urlPath: "/settings/custom_views/\(cvId)" )
 		setRequestMethod(requestMethod: .GET )
-		addRequestParam(param: "module" , value: self.module.getAPIName() )
+		addRequestParam(param: "module" , value: self.module.apiName )
 		let request : APIRequest = APIRequest(handler: self )
         print( "Request : \( request.toString() )" )
         
@@ -241,7 +241,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.STAGES )
         setUrlPath(urlPath: "/settings/stages")
         setRequestMethod(requestMethod: .GET)
-        addRequestParam(param: "module", value: self.module.getAPIName())
+        addRequestParam(param: "module", value: self.module.apiName)
         let request : APIRequest = APIRequest( handler: self )
         print( "Request : \( request.toString() )" )
         
@@ -283,18 +283,48 @@ internal class ModuleAPIHandler : CommonAPIHandler
     
 	internal func getZCRMCustomView(cvDetails: [String:Any]) -> ZCRMCustomView
     {
-        let customView : ZCRMCustomView = ZCRMCustomView( cvId : cvDetails.getInt64( key : ResponseJSONKeys.id ), moduleAPIName : self.module.getAPIName() )
-        customView.setName( name : cvDetails.getString( key : ResponseJSONKeys.name ) )
-        customView.setSystemName(systemName: cvDetails.optString(key: ResponseJSONKeys.systemName))
-        customView.setDisplayName(displayName: cvDetails.optString(key: ResponseJSONKeys.displayValue)!)
-        customView.setIsDefault(isDefault: cvDetails.optBoolean(key: ResponseJSONKeys.defaultString)!)
-        customView.setCategory(category: cvDetails.optString(key: ResponseJSONKeys.category)!)
-        customView.setFavouriteSequence(favourite: cvDetails.optInt(key: ResponseJSONKeys.favorite))
-        customView.setDisplayFields(fieldsAPINames: cvDetails.optArray(key: ResponseJSONKeys.fields) as? [String])
-        customView.setSortByCol(fieldAPIName: cvDetails.optString(key: ResponseJSONKeys.sortBy))
-        customView.setSortOrder(sortOrder: cvDetails.optString(key: ResponseJSONKeys.sortOrder))
-        customView.setIsOffline(isOffline: cvDetails.optBoolean(key: ResponseJSONKeys.offline))
-        customView.setIsSystemDefined(isSystemDefined: cvDetails.optBoolean(key: ResponseJSONKeys.systemDefined))
+        let customView : ZCRMCustomView = ZCRMCustomView(cvName: cvDetails.getString( key : ResponseJSONKeys.name ), moduleAPIName: self.module.apiName)
+        customView.cvId = cvDetails.getInt64( key : ResponseJSONKeys.id )
+        if( cvDetails.hasValue(forKey: ResponseJSONKeys.systemName))
+        {
+            customView.sysName = cvDetails.getString(key: ResponseJSONKeys.systemName)
+        }
+        if( cvDetails.hasValue(forKey: ResponseJSONKeys.displayValue))
+        {
+            customView.displayName = cvDetails.getString(key: ResponseJSONKeys.displayValue)
+        }
+        if( cvDetails.hasValue(forKey: ResponseJSONKeys.defaultString))
+        {
+            customView.isDefault = cvDetails.getBoolean(key: ResponseJSONKeys.defaultString)
+        }
+        if( cvDetails.hasValue(forKey: ResponseJSONKeys.category))
+        {
+            customView.category = cvDetails.getString(key: ResponseJSONKeys.category)
+        }
+        if( cvDetails.hasValue(forKey: ResponseJSONKeys.favorite))
+        {
+            customView.favouriteSequence = cvDetails.getInt(key: ResponseJSONKeys.favorite)
+        }
+        if( cvDetails.hasValue(forKey: ResponseJSONKeys.fields))
+        {
+            customView.fields = (cvDetails.getArray(key: ResponseJSONKeys.fields) as? [String])!
+        }
+        if(cvDetails.hasValue(forKey: ResponseJSONKeys.sortBy))
+        {
+            customView.sortByCol = cvDetails.optString(key: ResponseJSONKeys.sortBy)
+        }
+        if( cvDetails.hasValue(forKey: ResponseJSONKeys.sortOrder))
+        {
+            customView.sortOrder = cvDetails.optString(key: ResponseJSONKeys.sortOrder).map { SortOrder(rawValue: $0) }!
+        }
+        if( cvDetails.hasValue(forKey: ResponseJSONKeys.offline))
+        {
+            customView.isOffline = cvDetails.getBoolean(key: ResponseJSONKeys.offline)
+        }
+        if( cvDetails.hasValue(forKey: ResponseJSONKeys.systemDefined))
+        {
+            customView.isSystemDefined = cvDetails.getBoolean(key: ResponseJSONKeys.systemDefined)
+        }
         return customView
     }
     
@@ -310,32 +340,43 @@ internal class ModuleAPIHandler : CommonAPIHandler
     
     internal func getZCRMLayout(layoutDetails : [String : Any]) -> ZCRMLayout
     {
-        let layout : ZCRMLayout = ZCRMLayout(layoutId: layoutDetails.getInt64(key: ResponseJSONKeys.id))
-        layout.setName(name: layoutDetails.optString(key: ResponseJSONKeys.name))
-        layout.setVisibility(isVisible: layoutDetails.optBoolean(key: ResponseJSONKeys.visible))
-        layout.setStatus(status: layoutDetails.optInt(key: ResponseJSONKeys.status))
+        let layout : ZCRMLayout = ZCRMLayout(name: layoutDetails.getString(key: ResponseJSONKeys.name))
+        if( layoutDetails.hasValue(forKey: ResponseJSONKeys.id))
+        {
+            layout.layoutId = layoutDetails.getInt64(key: ResponseJSONKeys.id)
+        }
+        if( layoutDetails.hasValue(forKey: ResponseJSONKeys.visible))
+        {
+            layout.visible = layoutDetails.getBoolean(key: ResponseJSONKeys.visible)
+        }
+        if ( layoutDetails.hasValue(forKey: ResponseJSONKeys.status))
+        {
+            layout.status = layoutDetails.getInt(key: ResponseJSONKeys.status)
+        }
         if(layoutDetails.hasValue(forKey: ResponseJSONKeys.createdBy))
         {
             let createdByObj : [String:Any] = layoutDetails.getDictionary(key: ResponseJSONKeys.createdBy)
-            let createdBy : ZCRMUser = ZCRMUser(userId: createdByObj.getInt64(key: ResponseJSONKeys.id), userFullName: createdByObj.getString(key: ResponseJSONKeys.name))
-            layout.setCreatedBy(createdByUser: createdBy)
-            layout.setCreatedTime(createdTime: layoutDetails.optString(key: ResponseJSONKeys.createdTime))
+            layout.createdBy = getUserDelegate(userJSON : createdByObj)
+            layout.createdTime = layoutDetails.getString(key: ResponseJSONKeys.createdTime)
         }
-        if(layoutDetails.hasValue(forKey: ResponseJSONKeys.modifiedBy))
+        if(layoutDetails.hasValue(forKey: ResponseJSONKeys.createdBy))
         {
-            let modifiedByObj : [String:Any] = layoutDetails.getDictionary(key: ResponseJSONKeys.modifiedBy)
-            let modifiedBy : ZCRMUser = ZCRMUser(userId: modifiedByObj.getInt64(key: ResponseJSONKeys.id), userFullName: modifiedByObj.getString(key: ResponseJSONKeys.name))
-            layout.setModifiedBy(modifiedByUser: modifiedBy)
-            layout.setModifiedTime(modifiedTime: layoutDetails.optString(key: ResponseJSONKeys.modifiedTime))
+            let modifiedByObj : [String:Any] = layoutDetails.getDictionary(key: ResponseJSONKeys.createdBy)
+            layout.modifiedBy = getUserDelegate(userJSON : modifiedByObj)
+            layout.modifiedTime = layoutDetails.getString(key: ResponseJSONKeys.modifiedTime)
         }
         let profilesDetails : [[String:Any]] = layoutDetails.getArrayOfDictionaries(key: ResponseJSONKeys.profiles)
         for profileDetails in profilesDetails
         {
-            let profile : ZCRMProfile = ZCRMProfile(profileId: profileDetails.getInt64(key: ResponseJSONKeys.id), profileName: profileDetails.getString(key: ResponseJSONKeys.name))
-            profile.setIsDefault(isDefault: profileDetails.getBoolean(key: ResponseJSONKeys.defaultString))
+            let profile : ZCRMProfileDelegate = ZCRMProfileDelegate(profileId: profileDetails.getInt64(key: ResponseJSONKeys.id), profileName: profileDetails.getString(key: ResponseJSONKeys.name), isDefault: profileDetails.getBoolean(key: ResponseJSONKeys.defaultString))
             layout.addAccessibleProfile(profile: profile)
         }
-        layout.setSections(allSections: self.getAllSectionsOfLayout(allSectionsDetails: layoutDetails.getArrayOfDictionaries(key: ResponseJSONKeys.sections)))
+        let sectionDetails : [[String:Any]] = layoutDetails.getArrayOfDictionaries(key: ResponseJSONKeys.sections)
+        for sectionDetail in sectionDetails
+        {
+            let section : ZCRMSection = ZCRMSection(sectionName: sectionDetail.getString(key: ResponseJSONKeys.name))
+            layout.addSection(section: section)
+        }
         return layout
     }
     
@@ -352,11 +393,11 @@ internal class ModuleAPIHandler : CommonAPIHandler
     internal func getZCRMSection(sectionDetails : [String:Any]) -> ZCRMSection
     {
         let section : ZCRMSection = ZCRMSection(sectionName: sectionDetails.getString(key: ResponseJSONKeys.name))
-        section.setDisplayName(displayName: sectionDetails.optString(key: ResponseJSONKeys.displayLabel))
-        section.setColumnCount(colCount: sectionDetails.optInt(key: ResponseJSONKeys.columnCount))
-        section.setSequence(sequence: sectionDetails.optInt(key: ResponseJSONKeys.sequenceNumber))
-        section.setFields(allFields: self.getAllFields(allFieldsDetails: sectionDetails.getArrayOfDictionaries(key: ResponseJSONKeys.fields) ))
-        section.setIsSubformSection( isSubformSection : sectionDetails.getBoolean( key : ResponseJSONKeys.isSubformSection ) )
+        section.displayName = sectionDetails.optString(key: ResponseJSONKeys.displayLabel) ?? APIConstants.STRING_MOCK
+        section.columnCount = sectionDetails.optInt(key: ResponseJSONKeys.columnCount) ?? APIConstants.INT_MOCK
+        section.sequence = sectionDetails.optInt(key: ResponseJSONKeys.sequenceNumber) ?? APIConstants.INT_MOCK
+        section.addFields(allFields: self.getAllFields(allFieldsDetails: sectionDetails.getArrayOfDictionaries(key: ResponseJSONKeys.fields) ))
+        section.isSubformSection = sectionDetails.getBoolean( key : ResponseJSONKeys.isSubformSection )
         return section
     }
     
@@ -372,72 +413,70 @@ internal class ModuleAPIHandler : CommonAPIHandler
     
     internal func getZCRMField(fieldDetails : [String:Any]) -> ZCRMField
     {
-        let field : ZCRMField = ZCRMField(fieldAPIName: fieldDetails.getString(key: ResponseJSONKeys.apiName))
-        field.setId(fieldId: fieldDetails.optInt64(key: ResponseJSONKeys.id))
-        field.setDisplayLabel(displayLabel: fieldDetails.optString(key: ResponseJSONKeys.fieldLabel))
-        field.setMaxLength(maxLen: fieldDetails.optInt(key: ResponseJSONKeys.length))
-        field.setDataType(dataType: fieldDetails.optString(key: ResponseJSONKeys.dataType))
-        field.setVisible(isVisible: fieldDetails.optBoolean(key: ResponseJSONKeys.visible))
-        field.setDecimalPlace(decimalPlace: fieldDetails.optInt(key: ResponseJSONKeys.decimalPlace))
-        field.setReadOnly(isReadOnly: fieldDetails.optBoolean(key: ResponseJSONKeys.readOnly))
-        field.setCustomField(isCustomField: fieldDetails.optBoolean(key: ResponseJSONKeys.customField))
-        field.setDefaultValue(defaultValue: fieldDetails.optValue(key: ResponseJSONKeys.defaultValue))
-        field.setMandatory(isMandatory: fieldDetails.optBoolean(key: ResponseJSONKeys.required))
-        field.setSequenceNumber(sequenceNo: fieldDetails.optInt(key: ResponseJSONKeys.sequenceNumber))
-        field.setTooltip(tooltip: fieldDetails.optString(key: ResponseJSONKeys.toolTip))
-        field.setWebhook(webhook: fieldDetails.optBoolean(key: ResponseJSONKeys.webhook))
-        field.setCreatedSource(createdSource: fieldDetails.getString(key: ResponseJSONKeys.createdSource))
-        field.setLookup(lookup: fieldDetails.optDictionary(key: ResponseJSONKeys.lookup))
-        field.setMultiSelectLookup(multiSelectLookup: fieldDetails.optDictionary(key: ResponseJSONKeys.multiSelectLookup))
-        field.setSubFormTabId(subFormTabId: fieldDetails.optInt64(key: ResponseJSONKeys.subformTabId))
-        field.setSubForm(subForm: fieldDetails.optDictionary(key: ResponseJSONKeys.subform))
+        let field : ZCRMField = ZCRMField(apiName: fieldDetails.getString(key: ResponseJSONKeys.apiName))
+        field.id = fieldDetails.optInt64(key: ResponseJSONKeys.id) ?? APIConstants.INT64_MOCK
+        field.displayLabel = fieldDetails.optString(key: ResponseJSONKeys.fieldLabel) ?? APIConstants.STRING_MOCK
+        field.maxLength = fieldDetails.optInt(key: ResponseJSONKeys.length) ?? APIConstants.INT_MOCK
+        field.type = fieldDetails.optString(key: ResponseJSONKeys.dataType) ?? APIConstants.STRING_MOCK
+        field.visible = fieldDetails.optBoolean(key: ResponseJSONKeys.visible) ?? APIConstants.BOOL_MOCK
+        field.decimalPlace = fieldDetails.optInt(key: ResponseJSONKeys.decimalPlace) ?? APIConstants.INT_MOCK
+        field.readOnly = fieldDetails.optBoolean(key: ResponseJSONKeys.readOnly) ?? APIConstants.BOOL_MOCK
+        field.customField = fieldDetails.optBoolean(key: ResponseJSONKeys.customField) ?? APIConstants.BOOL_MOCK
+        field.defaultValue = fieldDetails.optValue(key: ResponseJSONKeys.defaultValue) ?? APIConstants.BOOL_MOCK
+        field.mandatory = fieldDetails.optBoolean(key: ResponseJSONKeys.required) ?? APIConstants.BOOL_MOCK
+        field.sequenceNo = fieldDetails.optInt(key: ResponseJSONKeys.sequenceNumber) ?? APIConstants.INT_MOCK
+        field.tooltip = fieldDetails.optString(key: ResponseJSONKeys.toolTip) ?? APIConstants.STRING_MOCK
+        field.webhook = fieldDetails.optBoolean(key: ResponseJSONKeys.webhook) ?? APIConstants.BOOL_MOCK
+        field.createdSource = fieldDetails.getString(key: ResponseJSONKeys.createdSource)
+        field.lookup = fieldDetails.optDictionary(key: ResponseJSONKeys.lookup) ?? [ String : Any ]()
+        field.multiSelectLookup = fieldDetails.optDictionary(key: ResponseJSONKeys.multiSelectLookup) ?? [ String : Any ]()
+        field.subFormTabId = fieldDetails.optInt64(key: ResponseJSONKeys.subformTabId)
+        field.subForm = fieldDetails.optDictionary(key: ResponseJSONKeys.subform) ?? [ String : Any ]()
         if(fieldDetails.hasValue(forKey: ResponseJSONKeys.currency))
         {
             let currencyDetails : [String:Any] = fieldDetails.getDictionary(key: ResponseJSONKeys.currency)
-            field.setPrecision(precision: currencyDetails.optInt(key: ResponseJSONKeys.precision))
+            field.precision = currencyDetails.optInt(key: ResponseJSONKeys.precision) ?? APIConstants.INT_MOCK
             if (currencyDetails.optString(key: ResponseJSONKeys.roundingOption) == CurrencyRoundingOption.RoundOff.rawValue)
             {
-                field.setRoundingOption(roundingOption: CurrencyRoundingOption.RoundOff)
+                field.roundingOption = CurrencyRoundingOption.RoundOff
             }
             else if (currencyDetails.optString(key: ResponseJSONKeys.roundingOption) == CurrencyRoundingOption.RoundDown.rawValue)
             {
-                field.setRoundingOption(roundingOption: CurrencyRoundingOption.RoundDown)
+                field.roundingOption = CurrencyRoundingOption.RoundDown
             }
             else if (currencyDetails.optString(key: ResponseJSONKeys.roundingOption) == CurrencyRoundingOption.RoundUp.rawValue)
             {
-                field.setRoundingOption(roundingOption: CurrencyRoundingOption.RoundUp)
+                field.roundingOption = CurrencyRoundingOption.RoundUp
             }
             else if (currencyDetails.optString(key: ResponseJSONKeys.roundingOption) == CurrencyRoundingOption.Normal.rawValue)
             {
-                field.setRoundingOption(roundingOption: CurrencyRoundingOption.Normal)
+                field.roundingOption = CurrencyRoundingOption.Normal
             }
         }
         
-        field.setBussinessCardSupported(bussinessCardSupported: fieldDetails.optBoolean(key: ResponseJSONKeys.businessCardSupported))
+        field.bussinessCardSupported = fieldDetails.optBoolean(key: ResponseJSONKeys.businessCardSupported) ?? APIConstants.BOOL_MOCK
         if ( fieldDetails.hasValue( forKey : ResponseJSONKeys.pickListValues ) )
         {
             let pickListValues = fieldDetails.getArrayOfDictionaries( key : ResponseJSONKeys.pickListValues )
             for pickListValueDict in pickListValues
             {
-                let pickListValue = ZCRMPickListValue()
+                let pickListValue = ZCRMPickListValue(displayName: pickListValueDict.optString( key : ResponseJSONKeys.displayValue ) ?? APIConstants.STRING_MOCK, actualName: pickListValueDict.optString( key : ResponseJSONKeys.actualValue ) ?? APIConstants.STRING_MOCK )
                 print( "pickListValueDict : \( pickListValueDict)" )
-                pickListValue.setMaps( maps : pickListValueDict.optArrayOfDictionaries( key : ResponseJSONKeys.maps ) )
-                pickListValue.setSequenceNumer( number : pickListValueDict.optInt(key : ResponseJSONKeys.sequenceNumber ) )
-                pickListValue.setActualName( actualName : pickListValueDict.optString( key : ResponseJSONKeys.actualValue ) )
-                pickListValue.setDisplayName( displayName : pickListValueDict.optString( key : ResponseJSONKeys.displayValue ) )
+                pickListValue.maps = pickListValueDict.optArrayOfDictionaries( key : ResponseJSONKeys.maps ) ?? Array< [ String : Any ] >()
+                pickListValue.sequenceNumber = pickListValueDict.optInt(key : ResponseJSONKeys.sequenceNumber ) ?? APIConstants.INT_MOCK
                 field.addPickListValue( pickListValue : pickListValue )
             }
         }
         if(fieldDetails.hasValue(forKey: ResponseJSONKeys.formula))
         {
             let formulaDetails : [String:String] = fieldDetails.getDictionary(key: ResponseJSONKeys.formula) as! [String:String]
-            field.setFormulaReturnType(formulaReturnType: formulaDetails.optString(key: ResponseJSONKeys.returnType))
-            field.setFormula(formulaExpression: formulaDetails.optString(key: ResponseJSONKeys.expression))
+            field.formulaReturnType = formulaDetails.optString(key: ResponseJSONKeys.returnType)
+            field.formulaExpression = formulaDetails.optString(key: ResponseJSONKeys.expression)
         }
         if(fieldDetails.hasValue(forKey: ResponseJSONKeys.currency))
         {
             let currencyDetails : [String:Any] = fieldDetails.getDictionary(key: ResponseJSONKeys.currency)
-            field.setPrecision(precision: currencyDetails.optInt(key: ResponseJSONKeys.precision))
+            field.precision = currencyDetails.optInt(key: ResponseJSONKeys.precision) ?? APIConstants.INT_MOCK
         }
         if(fieldDetails.hasValue(forKey: ResponseJSONKeys.viewType))
         {
@@ -459,26 +498,26 @@ internal class ModuleAPIHandler : CommonAPIHandler
             {
                 layoutsPresent.append(SubLayoutViewType.QUICK_CREATE.rawValue)
             }
-            field.setSubLayoutsPresent(subLayoutsPresent: layoutsPresent)
+            field.subLayoutsPresent = layoutsPresent
         }
         if( fieldDetails.hasValue( forKey : ResponseJSONKeys.privateString ) )
         {
             let privateDetails : [ String : Any ] = fieldDetails.getDictionary( key : ResponseJSONKeys.privateString )
-            field.setIsRestricted( isRestricted : privateDetails.optBoolean( key : ResponseJSONKeys.restricted ) )
-            field.setIsSupportExport( exportSupported : privateDetails.optBoolean( key : ResponseJSONKeys.export ) )
-            field.setRestrictedType( type : privateDetails.optString( key : ResponseJSONKeys.type )  )
+            field.isRestricted = privateDetails.optBoolean( key : ResponseJSONKeys.restricted )
+            field.isSupportExport = privateDetails.optBoolean( key : ResponseJSONKeys.export )
+            field.restrictedType = privateDetails.optString( key : ResponseJSONKeys.type )
         }
         return field
     }
     
     internal func getZCRMModuleRelation( relationListDetails : [ String : Any ] ) -> ZCRMModuleRelation
     {
-        let moduleRelation : ZCRMModuleRelation = ZCRMModuleRelation( parentModuleAPIName : module.getAPIName(), relatedListId : relationListDetails.getInt64( key : ResponseJSONKeys.id ) )
-        moduleRelation.setAPIName( apiName : relationListDetails.optString( key : ResponseJSONKeys.apiName ) )
-        moduleRelation.setLabel( label : relationListDetails.optString( key : ResponseJSONKeys.displayLabel ) )
-        moduleRelation.setModule( module : relationListDetails.optString( key : ResponseJSONKeys.module ) )
-        moduleRelation.setName( name : relationListDetails.optString( key : ResponseJSONKeys.name) )
-        moduleRelation.setType( type : relationListDetails.optString( key : ResponseJSONKeys.type ) )
+        let moduleRelation : ZCRMModuleRelation = ZCRMModuleRelation( parentModuleAPIName : module.apiName, relatedListId : relationListDetails.getInt64( key : ResponseJSONKeys.id ) )
+        moduleRelation.apiName = relationListDetails.optString( key : ResponseJSONKeys.apiName ) ?? APIConstants.STRING_MOCK
+        moduleRelation.label = relationListDetails.optString( key : ResponseJSONKeys.displayLabel ) ?? APIConstants.STRING_MOCK
+        moduleRelation.module = relationListDetails.optString( key : ResponseJSONKeys.module ) ?? APIConstants.STRING_MOCK
+        moduleRelation.name = relationListDetails.optString( key : ResponseJSONKeys.name) ?? APIConstants.STRING_MOCK
+        moduleRelation.type = relationListDetails.optString( key : ResponseJSONKeys.type ) ?? APIConstants.STRING_MOCK
         return moduleRelation
     }
     

@@ -68,52 +68,49 @@ public class ZCRMCachedModuleHandler
     
     private func setSectionDetails(layout : ZCRMLayout) throws
     {
-        let sections : [ZCRMSection] = layout.getAllSections()!
+        let sections : [ZCRMSection] = layout.sections
         for section in sections
         {
-            try formDBHelper.insertSection(layoutId: layout.getId(), section: section)
+            try formDBHelper.insertSection(layoutId: layout.layoutId, section: section)
             try self.setFieldDetails(layout: layout, section: section)
         }
     }
     
     private func setProfileDetails(layout : ZCRMLayout) throws
     {
-        if(layout.getAccessibleProfiles() != nil)
+        if(layout.accessibleProfiles.count > 0)
         {
-            let profiles : [ZCRMProfile] = layout.getAccessibleProfiles()!
+            let profiles : [ZCRMProfileDelegate] = layout.accessibleProfiles
             for profile in profiles
             {
-                try formDBHelper.insertLayoutProfiles(layoutId: layout.getId(), profile: profile)
+                try formDBHelper.insertLayoutProfiles(layoutId: layout.layoutId, profile: profile)
             }
         }
     }
     
     private func setFieldDetails(layout : ZCRMLayout, section : ZCRMSection) throws
     {
-        let fields : [ZCRMField] = section.getAllFields()!
+        let fields : [ZCRMField] = section.fields
         for field in fields
         {
-            try formDBHelper.insertField(layoutId: layout.getId(), sectionName: section.getName(), fields: field)
-            try self.setPickListDetails(layoutId: layout.getId(), field: field)
+            try formDBHelper.insertField(layoutId: layout.layoutId, sectionName: section.name, fields: field)
+            try self.setPickListDetails(layoutId: layout.layoutId, field: field)
         }
     }
     
     private func setPickListDetails(layoutId : Int64, field: ZCRMField) throws
     {
-        if(field.getPickListValues() != nil)
+        let pickListValues : [ZCRMPickListValue] = field.pickListValues
+        for pickListValue in pickListValues
         {
-            let pickListValues : [ZCRMPickListValue] = field.getPickListValues()!
-            for pickListValue in pickListValues
-            {
-                try formDBHelper.insertFieldPickListValues(layoutId: layoutId, fieldId: field.getId()!, pickListValue: pickListValue)
-            }
+            try formDBHelper.insertFieldPickListValues(layoutId: layoutId, fieldId: field.id, pickListValue: pickListValue)
         }
     }
     
     private func getLayoutDetailsFromDB(apiName: String, layoutId: Int64) throws -> ZCRMLayout
     {
         let layoutJSON : [String:Any] = try getLayoutDetails(layoutId: layoutId)
-        let module = ZCRMModule(moduleAPIName: apiName)
+        let module = ZCRMModuleDelegate(apiName: apiName)
         return ModuleAPIHandler(module: module).getZCRMLayout(layoutDetails: layoutJSON)
     }
     
@@ -266,13 +263,10 @@ public class ZCRMCachedModuleHandler
     
     private func setCvFieldDetails(moduleAPIname: String, customView: ZCRMCustomView) throws
     {
-        if let fieldNames = customView.getDisplayFieldsAPINames()
-        {
-            for fieldName in fieldNames
+            for fieldName in customView.fields
             {
-                try formDBHelper.insertCustomViewFields(moduleAPIname: moduleAPIName, customViewId: customView.getId(), fieldName: fieldName)
+                try formDBHelper.insertCustomViewFields(moduleAPIname: moduleAPIName, customViewId: customView.cvId, fieldName: fieldName)
             }
-        }
     }
     
     func getCustomView(customViewId: Int64) throws -> ZCRMCustomView
@@ -294,7 +288,7 @@ public class ZCRMCachedModuleHandler
     private func getCvDetailsFromDB(cvId: Int64) throws -> ZCRMCustomView
     {
         let cvJSON : [String:Any] = try getCvDetails(cvId: cvId)
-        let module = ZCRMModule(moduleAPIName: self.moduleAPIName)
+        let module = ZCRMModuleDelegate(apiName: self.moduleAPIName)
         return ModuleAPIHandler(module: module).getZCRMCustomView(cvDetails: cvJSON)
     }
     

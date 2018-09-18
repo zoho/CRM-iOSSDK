@@ -66,42 +66,40 @@ internal class MetaDataAPIHandler : CommonAPIHandler
 	
 	private func getZCRMModule(moduleDetails : [String:Any]) -> ZCRMModule
 	{
-        let module : ZCRMModule = ZCRMModule(moduleAPIName: moduleDetails.getString(key: ResponseJSONKeys.apiName))
-        module.setId(moduleId: moduleDetails.optInt64(key: ResponseJSONKeys.id))
-        module.setSystemName(sysName: moduleDetails.optString(key: ResponseJSONKeys.moduleName))
-        module.setSingularLabel(singularLabel: moduleDetails.optString(key: ResponseJSONKeys.singularLabel))
-        module.setPluralLabel(pluralLabel: moduleDetails.optString(key: ResponseJSONKeys.pluralLabel))
-        module.setGeneratedType(type: moduleDetails.getString(key: ResponseJSONKeys.generatedType))
-        module.setIsCreatable(isCreatable: moduleDetails.optBoolean(key: ResponseJSONKeys.creatable))
-        module.setIsViewable(isViewable: moduleDetails.optBoolean(key: ResponseJSONKeys.viewable))
-        module.setIsConvertible(isConvertible: moduleDetails.optBoolean(key: ResponseJSONKeys.convertable))
-        module.setIsEditable(isEditable: moduleDetails.optBoolean(key: ResponseJSONKeys.editable))
-        module.setIsDeletable(isDeletable: moduleDetails.optBoolean(key: ResponseJSONKeys.deletable))
-        module.setVisibility(visible: moduleDetails.optInt(key: ResponseJSONKeys.visibility))
-        module.setIsGlobalSearchSupported( isSupport : moduleDetails.optBoolean(key: ResponseJSONKeys.globalSearchSupported))
-        module.setIsAPISupported(isSupport: moduleDetails.optBoolean(key: ResponseJSONKeys.apiSupported))
-        module.setIsQuickCreate(isQuick: moduleDetails.optBoolean(key: ResponseJSONKeys.quickCreate))
-        module.setIsScoringSupported(isSupport: moduleDetails.optBoolean(key: ResponseJSONKeys.scoringSupported))
-        module.setSequenceNumber(number: moduleDetails.optInt(key: ResponseJSONKeys.sequenceNumber))
-        module.setBusinessCardFieldLimit(limit: moduleDetails.optInt(key: ResponseJSONKeys.businessCardFieldLimit))
-        module.setWebLink(link: moduleDetails.optString(key: ResponseJSONKeys.webLink))
+        let module : ZCRMModule = ZCRMModule( moduleAPIName : moduleDetails.getString(key: ResponseJSONKeys.apiName), singularLabel: moduleDetails.getString(key: ResponseJSONKeys.singularLabel), pluralLabel: moduleDetails.getString(key: ResponseJSONKeys.pluralLabel))
+        module.id = moduleDetails.getInt64(key: ResponseJSONKeys.id)
+        module.systemName = moduleDetails.getString(key: ResponseJSONKeys.moduleName)
+        module.generatedType = moduleDetails.getString(key: ResponseJSONKeys.generatedType)
+        module.creatable = moduleDetails.getBoolean(key: ResponseJSONKeys.creatable)
+        module.viewable = moduleDetails.getBoolean(key: ResponseJSONKeys.viewable)
+        module.convertible = moduleDetails.getBoolean(key: ResponseJSONKeys.convertable)
+        module.editable = moduleDetails.getBoolean(key: ResponseJSONKeys.editable)
+        module.deletable = moduleDetails.getBoolean(key: ResponseJSONKeys.deletable)
+        module.visibility = moduleDetails.getInt(key: ResponseJSONKeys.visibility)
+        module.globalSearchSupported = moduleDetails.getBoolean(key: ResponseJSONKeys.globalSearchSupported)
+        module.apiSupported = moduleDetails.getBoolean(key: ResponseJSONKeys.apiSupported)
+        module.quickCreate = moduleDetails.getBoolean(key: ResponseJSONKeys.quickCreate)
+        module.scoringSupported = moduleDetails.getBoolean(key: ResponseJSONKeys.scoringSupported)
+        module.sequenceNumber = moduleDetails.getInt(key: ResponseJSONKeys.sequenceNumber)
+        module.businessCardFieldLimit = moduleDetails.getInt(key: ResponseJSONKeys.businessCardFieldLimit)
+        module.webLink = moduleDetails.optString(key: ResponseJSONKeys.webLink)
         if(moduleDetails.hasValue(forKey: ResponseJSONKeys.modifiedBy))
         {
             let modifiedByObj : [String:Any] = moduleDetails.getDictionary(key: ResponseJSONKeys.modifiedBy)
-            let modifiedBy : ZCRMUser = ZCRMUser(userId: modifiedByObj.getInt64(key: ResponseJSONKeys.id), userFullName: modifiedByObj.getString(key: ResponseJSONKeys.name))
-            module.setLastModifiedBy(modifiedByUser: modifiedBy)
-            module.setLastModifiedTime(lastModifiedTime: moduleDetails.getString(key: ResponseJSONKeys.modifiedTime))
+            let modifiedBy : ZCRMUserDelegate = ZCRMUserDelegate(id: modifiedByObj.getInt64(key: ResponseJSONKeys.id), name: modifiedByObj.getString(key: ResponseJSONKeys.name))
+            module.modifiedBy = modifiedBy
+            module.modifiedTime = moduleDetails.getString(key: ResponseJSONKeys.modifiedTime)
         }
         if(moduleDetails.hasValue(forKey: ResponseJSONKeys.profiles))
         {
-            var profiles : [ZCRMProfile] = [ZCRMProfile]()
+            var profiles : [ZCRMProfileDelegate] = [ZCRMProfileDelegate]()
             let profilesDetails : [[String:Any]] = moduleDetails.getArrayOfDictionaries(key: ResponseJSONKeys.profiles)
             for profileDetails in profilesDetails
             {
-                let profile : ZCRMProfile = ZCRMProfile(profileId: profileDetails.getInt64(key: ResponseJSONKeys.id), profileName: profileDetails.getString(key: ResponseJSONKeys.name))
+                let profile : ZCRMProfileDelegate = ZCRMProfileDelegate(profileId: profileDetails.getInt64(key: ResponseJSONKeys.id), profileName: profileDetails.getString(key: ResponseJSONKeys.name))
                 profiles.append(profile)
             }
-            module.setAllowedProfiles(allowedProfiles: profiles)
+            module.allowedProfiles = profiles
         }
         if(moduleDetails.hasValue(forKey : ResponseJSONKeys.relatedLists))
         {
@@ -109,13 +107,13 @@ internal class MetaDataAPIHandler : CommonAPIHandler
             let relatedListsDetails : [[String:Any]] = moduleDetails.getArrayOfDictionaries(key: ResponseJSONKeys.relatedLists)
             for relatedListDetails in relatedListsDetails
             {
-                let relatedList : ZCRMModuleRelation = ZCRMModuleRelation(relatedListAPIName: relatedListDetails.getString(key: ResponseJSONKeys.apiName), parentModuleAPIName: module.getAPIName())
+                let relatedList : ZCRMModuleRelation = ZCRMModuleRelation(relatedListAPIName: relatedListDetails.getString(key: ResponseJSONKeys.apiName), parentModuleAPIName: module.apiName)
                 setRelatedListProperties(relatedList: relatedList, relatedListDetails: relatedListDetails)
                 relatedLists.append(relatedList)
             }
-            module.setRelatedLists(allRelatedLists: relatedLists)
+            module.relatedLists = relatedLists
         }
-        module.setArguments(arguments: moduleDetails.optArrayOfDictionaries(key: ResponseJSONKeys.arguments))
+        module.arguments = moduleDetails.optArrayOfDictionaries(key: ResponseJSONKeys.arguments) ?? Array<Dictionary<String, Any>>()
         if(moduleDetails.hasValue(forKey: ResponseJSONKeys.properties))
         {
             let dollarProperties = moduleDetails.optArray(key: ResponseJSONKeys.properties) as! [String]
@@ -126,44 +124,43 @@ internal class MetaDataAPIHandler : CommonAPIHandler
                 property.removeFirst()
                 properties.append(property)
             }
-            module.setProperties(properties: properties)
+            module.properties = properties
         }
-        module.setDisplayField(displayField: moduleDetails.optString(key: ResponseJSONKeys.displayField))
-        module.setSearchLayoutFields(searchLayoutFields: moduleDetails.optArray(key: ResponseJSONKeys.searchLayoutFields) as? [String])
+        module.displayField = moduleDetails.getString(key: ResponseJSONKeys.displayField)
+        module.searchLayoutFields = moduleDetails.getArray(key: ResponseJSONKeys.searchLayoutFields) as? [String] ?? [ String ]()
         if(moduleDetails.hasValue(forKey: ResponseJSONKeys.parentModule))
         {
             let parentModuleDetails = moduleDetails.getDictionary(key: ResponseJSONKeys.parentModule)
             if parentModuleDetails.hasValue(forKey: ResponseJSONKeys.apiName)
             {
-                let parentModule : ZCRMModule = ZCRMModule(moduleAPIName: parentModuleDetails.getString( key : ResponseJSONKeys.apiName ) )
-                parentModule.setId(moduleId: parentModuleDetails.getInt64(key: ResponseJSONKeys.id))
-                module.setParentModule(parentModule: parentModule)
+                let parentModule : ZCRMModuleDelegate = ZCRMModuleDelegate(apiName: parentModuleDetails.getString( key : ResponseJSONKeys.apiName ) )
+                module.parenModule = parentModule
             }
         }
         if(moduleDetails.hasValue(forKey: ResponseJSONKeys.customView))
         {
-            module.setCustomView(customView: ModuleAPIHandler(module: module).getZCRMCustomView(cvDetails: moduleDetails.getDictionary(key: ResponseJSONKeys.customView)))
+            module.customView = ModuleAPIHandler(module: module).getZCRMCustomView(cvDetails: moduleDetails.getDictionary(key: ResponseJSONKeys.customView))
         }
-        module.setIsKanbanView(isKanbanView: moduleDetails.optBoolean(key: ResponseJSONKeys.kanbanView))
-        module.setFilterStatus(filterStatus: moduleDetails.optBoolean(key: ResponseJSONKeys.filterStatus))
-        module.setIsSubMenuPresent(isSubMenuPresent: moduleDetails.optBoolean(key: ResponseJSONKeys.presenceSubMenu))
-        module.setPerPage(perPage: moduleDetails.optInt(key: ResponseJSONKeys.perPage))
-        module.setIsFilterSupported(isFilterSupported: moduleDetails.optBoolean(key: ResponseJSONKeys.filterSupported))
-        module.setIsFeedsRequired(isFeedsRequired: moduleDetails.optBoolean(key: ResponseJSONKeys.feedsRequired))
+        module.isKanbanView = moduleDetails.optBoolean(key: ResponseJSONKeys.kanbanView) ?? APIConstants.BOOL_MOCK
+        module.filterStatus = moduleDetails.optBoolean(key: ResponseJSONKeys.filterStatus) ?? APIConstants.BOOL_MOCK
+        module.isSubMenuPresent = moduleDetails.optBoolean(key: ResponseJSONKeys.presenceSubMenu) ?? APIConstants.BOOL_MOCK
+        module.perPage = moduleDetails.optInt(key: ResponseJSONKeys.perPage) ?? APIConstants.INT_MOCK
+        module.filterStatus = moduleDetails.optBoolean(key: ResponseJSONKeys.filterSupported) ?? APIConstants.BOOL_MOCK
+        module.isFeedsRequired = moduleDetails.optBoolean(key: ResponseJSONKeys.feedsRequired) ?? APIConstants.BOOL_MOCK
         return module
 	}
 	
 	private func setRelatedListProperties(relatedList : ZCRMModuleRelation, relatedListDetails : [String : Any])
 	{
-		relatedList.setLabel(label: relatedListDetails.optString(key: ResponseJSONKeys.displayLabel))
-		relatedList.setChildModuleAPIName(childModuleAPIName: relatedListDetails.optString(key: ResponseJSONKeys.module))
-		relatedList.setId(relatedListId: relatedListDetails.optInt64(key: ResponseJSONKeys.id))
-		relatedList.setVisibility(isVisible: relatedListDetails.optBoolean(key: ResponseJSONKeys.visible))
-		relatedList.setIsDefaultRelatedList(isDefault : (ResponseJSONKeys.defaultString == relatedListDetails.optString(key: ResponseJSONKeys.type)))
+        relatedList.label = relatedListDetails.optString(key: ResponseJSONKeys.displayLabel) ?? APIConstants.STRING_MOCK
+		relatedList.childModuleAPIName = relatedListDetails.optString(key: ResponseJSONKeys.module) ?? APIConstants.STRING_MOCK
+		relatedList.id = relatedListDetails.optInt64(key: ResponseJSONKeys.id) ?? APIConstants.INT64_MOCK
+		relatedList.visible = relatedListDetails.optBoolean(key: ResponseJSONKeys.visible) ?? APIConstants.BOOL_MOCK
+        relatedList.isDefault = (ResponseJSONKeys.defaultString == relatedListDetails.optString(key: ResponseJSONKeys.type)) 
 	}
     
     internal override func getJSONRootKey() -> String {
-        return MODULES
+        return APIConstants.MODULES
     }
 }
 

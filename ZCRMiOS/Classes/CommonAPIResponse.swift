@@ -66,17 +66,17 @@ public class CommonAPIResponse
     
     internal func setInfo()
     {
-        if( self.responseJSON.hasValue( forKey : INFO ) && self.responseJSON.hasValue( forKey : PRIVATE_FIELDS ) )
+        if( self.responseJSON.hasValue( forKey : APIConstants.INFO ) && self.responseJSON.hasValue( forKey : APIConstants.PRIVATE_FIELDS ) )
         {
-            self.info = ResponseInfo( infoObj : self.responseJSON.getDictionary( key : INFO ), privateFieldsDetails : self.responseJSON.getArrayOfDictionaries( key : PRIVATE_FIELDS ) )
+            self.info = ResponseInfo( infoObj : self.responseJSON.getDictionary( key : APIConstants.INFO ), privateFieldsDetails : self.responseJSON.getArrayOfDictionaries( key : APIConstants.PRIVATE_FIELDS ) )
         }
-        else if( self.responseJSON.hasValue( forKey : INFO ) )
+        else if( self.responseJSON.hasValue( forKey : APIConstants.INFO ) )
         {
-            self.info = ResponseInfo( infoObj : self.responseJSON.getDictionary( key : INFO ) )
+            self.info = ResponseInfo( infoObj : self.responseJSON.getDictionary( key : APIConstants.INFO ) )
         }
-        else if( self.responseJSON.hasValue( forKey : PRIVATE_FIELDS ) )
+        else if( self.responseJSON.hasValue( forKey : APIConstants.PRIVATE_FIELDS ) )
         {
-            self.info = ResponseInfo( privateFields : self.responseJSON.getArrayOfDictionaries( key : PRIVATE_FIELDS ) )
+            self.info = ResponseInfo( privateFields : self.responseJSON.getArrayOfDictionaries( key : APIConstants.PRIVATE_FIELDS ) )
         }
     }
     
@@ -114,9 +114,9 @@ public class ResponseHeaders
     
     init(response : HTTPURLResponse)
     {
-        remainingCountForThisDay = Int( response.allHeaderFields[REMAINING_COUNT_FOR_THIS_DAY] as! String )!
-        remainingCountForThisWindow = Int( response.allHeaderFields[REMAINING_COUNT_FOR_THIS_WINDOW] as! String )!
-        remainingTimeForWindowReset = Int( response.allHeaderFields[REMAINING_TIME_FOR_THIS_WINDOW_RESET] as! String )!
+        remainingCountForThisDay = Int( response.allHeaderFields[APIConstants.REMAINING_COUNT_FOR_THIS_DAY] as! String )!
+        remainingCountForThisWindow = Int( response.allHeaderFields[APIConstants.REMAINING_COUNT_FOR_THIS_WINDOW] as! String )!
+        remainingTimeForWindowReset = Int( response.allHeaderFields[APIConstants.REMAINING_TIME_FOR_THIS_WINDOW_RESET] as! String )!
     }
     
     public func getRemainingAPICountForThisDay() -> Int
@@ -136,7 +136,7 @@ public class ResponseHeaders
     
     public func toString() -> String
     {
-        return "\(REMAINING_COUNT_FOR_THIS_DAY) = \(remainingCountForThisDay) \n \(REMAINING_COUNT_FOR_THIS_WINDOW) = \(remainingCountForThisWindow) \n \(REMAINING_TIME_FOR_THIS_WINDOW_RESET) = \(remainingTimeForWindowReset)"
+        return "\(APIConstants.REMAINING_COUNT_FOR_THIS_DAY) = \(remainingCountForThisDay) \n \(APIConstants.REMAINING_COUNT_FOR_THIS_WINDOW) = \(remainingCountForThisWindow) \n \(APIConstants.REMAINING_TIME_FOR_THIS_WINDOW_RESET) = \(remainingTimeForWindowReset)"
     }
 }
 
@@ -165,21 +165,21 @@ public class ResponseInfo
         {
             for fieldAPIName in infoDetails.keys
             {
-                if( MORE_RECORDS == fieldAPIName )
+                if( APIConstants.MORE_RECORDS == fieldAPIName )
                 {
-                    self.moreRecords = infoDetails.optBoolean( key : MORE_RECORDS )!
+                    self.moreRecords = infoDetails.optBoolean( key : APIConstants.MORE_RECORDS )!
                 }
-                else if( COUNT == fieldAPIName )
+                else if( APIConstants.COUNT == fieldAPIName )
                 {
-                    self.recordCount = infoDetails.optInt( key : COUNT )!
+                    self.recordCount = infoDetails.optInt( key : APIConstants.COUNT )!
                 }
-                else if( PAGE == fieldAPIName )
+                else if( APIConstants.PAGE == fieldAPIName )
                 {
-                    self.pageNo = infoDetails.optInt( key : PAGE )!
+                    self.pageNo = infoDetails.optInt( key : APIConstants.PAGE )!
                 }
-                else if( PER_PAGE == fieldAPIName )
+                else if( APIConstants.PER_PAGE == fieldAPIName )
                 {
-                    self.perPage = infoDetails.optInt( key : PER_PAGE )!
+                    self.perPage = infoDetails.optInt( key : APIConstants.PER_PAGE )!
                 }
                 else
                 {
@@ -199,14 +199,14 @@ public class ResponseInfo
             }
             for privateFieldDetails in privateFieldsDetails!
             {
-                let field : ZCRMField = ZCRMField( fieldAPIName : privateFieldDetails.getString( key : "api_name" ) )
-                field.setId( fieldId : privateFieldDetails.getInt64( key : "id" ) )
+                let field : ZCRMField = ZCRMField( apiName : privateFieldDetails.getString( key : "api_name" ) )
+                field.id = privateFieldDetails.getInt64( key : "id" )
                 if( privateFieldDetails.hasValue( forKey : "private" ) )
                 {
                     let fieldPrivateDetails = privateFieldDetails.getDictionary( key : "private" )
-                    field.setIsSupportExport( exportSupported : fieldPrivateDetails.getBoolean( key : "export" ) )
-                    field.setIsRestricted( isRestricted : fieldPrivateDetails.getBoolean( key : "restricted" ) )
-                    field.setRestrictedType( type : fieldPrivateDetails.getString( key : "type" ) )
+                    field.isSupportExport = fieldPrivateDetails.getBoolean( key : "export" )
+                    field.isRestricted = fieldPrivateDetails.getBoolean( key : "restricted" )
+                    field.type = fieldPrivateDetails.getString( key : "type" )
                 }
                 self.privateFields!.append( field )
             }

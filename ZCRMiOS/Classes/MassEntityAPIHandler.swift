@@ -8,10 +8,10 @@
 
 internal class MassEntityAPIHandler : CommonAPIHandler
 {
-	private var module : ZCRMModule
-    private var trashRecord : ZCRMTrashRecord = ZCRMTrashRecord( type : "" )
+	private var module : ZCRMModuleDelegate
+    private var trashRecord : ZCRMTrashRecord = ZCRMTrashRecord( type : APIConstants.STRING_MOCK, entityId : APIConstants.INT64_MOCK )
 	
-	init(module : ZCRMModule)
+	init(module : ZCRMModuleDelegate)
 	{
 		self.module = module
 	}
@@ -32,7 +32,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
         reqBodyObj[getJSONRootKey()] = dataArray
 		
-		setUrlPath(urlPath :  "/\(self.module.getAPIName())" )
+		setUrlPath(urlPath :  "/\(self.module.apiName)" )
 		setRequestMethod(requestMethod : .POST )
 		setRequestBody(requestBody : reqBodyObj )
 		let request : APIRequest = APIRequest(handler: self )
@@ -45,11 +45,12 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 var updatedRecords : [ZCRMRecord] = [ZCRMRecord]()
                 for entityResponse in responses
                 {
-                    if(CODE_SUCCESS == entityResponse.getStatus())
+                    if(APIConstants.CODE_SUCCESS == entityResponse.getStatus())
                     {
                         let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                        let recordJSON : [String:Any] = entResponseJSON.getDictionary(key: DETAILS)
-                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordJSON.getInt64(key: ResponseJSONKeys.id))
+                        let recordJSON : [String:Any] = entResponseJSON.getDictionary(key: APIConstants.DETAILS)
+                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
+                        record.recordId = recordJSON.getInt64(key: ResponseJSONKeys.id)
                         EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordJSON)
                         updatedRecords.append(record)
                         entityResponse.setData(data: record)
@@ -72,7 +73,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 	{
         setJSONRootKey( key : JSONRootKey.DATA )
 		var records : [ZCRMRecord] = [ZCRMRecord]()
-		setUrlPath(urlPath: "/\(self.module.getAPIName())" )
+		setUrlPath(urlPath: "/\(self.module.apiName)" )
 		setRequestMethod( requestMethod : .GET )
 		if ( fields != nil && !fields!.isEmpty)
 		{
@@ -116,7 +117,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
         if( includePrivateFields == true )
         {
-            addRequestParam( param : "include", value : PRIVATE_FIELDS )
+            addRequestParam( param : "include", value : APIConstants.PRIVATE_FIELDS )
         }
         if( kanbanView.notNilandEmpty )
         {
@@ -136,7 +137,8 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     let recordsDetailsList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     for recordDetails in recordsDetailsList
                     {
-                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordDetails.getInt64(key: ResponseJSONKeys.id))
+                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
+                        record.recordId = recordDetails.getInt64(key: ResponseJSONKeys.id)
                         EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordDetails)
                         records.append(record)
                     }
@@ -182,7 +184,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 	{
         setJSONRootKey( key : JSONRootKey.DATA )
 		var records : [ZCRMRecord] = [ZCRMRecord]()
-		setUrlPath(urlPath : "/\(self.module.getAPIName())/search" )
+		setUrlPath(urlPath : "/\(self.module.apiName)/search" )
 		setRequestMethod(requestMethod : .GET )
 		addRequestParam(param:  searchKey , value: searchValue.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!)
 		addRequestParam(param: "page" , value: String(page) )
@@ -199,7 +201,8 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     let recordsList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     for recordDetails in recordsList
                     {
-                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordDetails.getInt64(key: ResponseJSONKeys.id))
+                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
+                        record.recordId = recordDetails.getInt64( key : ResponseJSONKeys.id )
                         EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordDetails)
                         records.append(record)
                     }
@@ -230,7 +233,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 			dataArray.append(dataJSON)
 		}
 		reqBodyObj[getJSONRootKey()] = dataArray
-        setUrlPath(urlPath : "/\(self.module.getAPIName())")
+        setUrlPath(urlPath : "/\(self.module.apiName)")
 		setRequestMethod(requestMethod : .PUT )
 		setRequestBody(requestBody : reqBodyObj )
 		let request : APIRequest = APIRequest(handler: self )
@@ -243,11 +246,12 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 var updatedRecords : [ZCRMRecord] = [ZCRMRecord]()
                 for entityResponse in responses
                 {
-                    if(CODE_SUCCESS == entityResponse.getStatus())
+                    if(APIConstants.CODE_SUCCESS == entityResponse.getStatus())
                     {
                         let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                        let recordJSON : [String:Any] = entResponseJSON.getDictionary(key: DETAILS)
-                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordJSON.getInt64( key : ResponseJSONKeys.id ) )
+                        let recordJSON : [String:Any] = entResponseJSON.getDictionary(key: APIConstants.DETAILS)
+                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
+                        record.recordId = recordJSON.getInt64( key : ResponseJSONKeys.id )
                         EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordJSON)
                         updatedRecords.append(record)
                         entityResponse.setData(data: record)
@@ -282,7 +286,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
         reqBodyObj[getJSONRootKey()] = dataArray
 		
-		setUrlPath(urlPath:  "/\( self.module.getAPIName() )/upsert")
+		setUrlPath(urlPath:  "/\( self.module.apiName )/upsert")
 		setRequestMethod(requestMethod: .POST )
 		setRequestBody(requestBody: reqBodyObj )
 		let request : APIRequest = APIRequest(handler: self )
@@ -295,11 +299,12 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 var upsertRecords : [ ZCRMRecord ] = [ ZCRMRecord ]()
                 for entityResponse in responses
                 {
-                    if(CODE_SUCCESS == entityResponse.getStatus())
+                    if(APIConstants.CODE_SUCCESS == entityResponse.getStatus())
                     {
                         let entResponseJSON : [ String : Any ] = entityResponse.getResponseJSON()
-                        let recordJSON : [ String : Any ] = entResponseJSON.getDictionary( key : DETAILS)
-                        let record : ZCRMRecord = ZCRMRecord( moduleAPIName : self.module.getAPIName(), recordId : recordJSON.getInt64( key : ResponseJSONKeys.id ) )
+                        let recordJSON : [ String : Any ] = entResponseJSON.getDictionary( key : APIConstants.DETAILS)
+                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
+                        record.recordId = recordJSON.getInt64( key : ResponseJSONKeys.id )
                         EntityAPIHandler( record : record ).setRecordProperties( recordDetails : recordJSON )
                         upsertRecords.append( record )
                         entityResponse.setData( data : record )
@@ -328,7 +333,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         idsStr = idsStr.replacingOccurrences(of: " ", with: "")
         idsStr = idsStr.replacingOccurrences(of: "[", with: "")
         idsStr = idsStr.replacingOccurrences(of: "]", with: "")
-		setUrlPath(urlPath : "/\(self.module.getAPIName())")
+		setUrlPath(urlPath : "/\(self.module.apiName)")
 		setRequestMethod(requestMethod: .DELETE )
 		addRequestParam(param:  "ids" , value: idsStr )
 		let request : APIRequest = APIRequest(handler: self )
@@ -341,8 +346,10 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 for entityResponse in responses
                 {
                     let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                    let recordJSON : [String:Any] = entResponseJSON.getDictionary(key: DETAILS)
-                    let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordJSON.getInt64( key : ResponseJSONKeys.id ) )
+                    let recordJSON : [String:Any] = entResponseJSON.getDictionary(key: APIConstants.DETAILS)
+                    let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
+                    record.recordId = recordJSON.getInt64( key : ResponseJSONKeys.id )
+                    record.recordId = recordJSON.getInt64( key : ResponseJSONKeys.id )
                     entityResponse.setData(data: record)
                 }
                 completion( .success( bulkResponse ) )
@@ -376,7 +383,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 
     private func getDeletedRecords( type : String, modifiedSince : String?, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
     {
-		setUrlPath(urlPath : "/\( self.module.getAPIName() )/deleted")
+		setUrlPath(urlPath : "/\( self.module.apiName )/deleted")
 		setRequestMethod(requestMethod : .GET )
 		addRequestParam(param: RequestParamKeys.type , value: type )
         if ( modifiedSince.notNilandEmpty)
@@ -408,15 +415,12 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             }
         }
     }
-
-    internal func addTags( recordIds : [Int64], tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse >  ) -> () )
+    
+    // TODO : Add response object as List of Records when overwrite false case is fixed
+    internal func addTags( recordIds : [Int64], tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.DATA)
         var addedRecords : [ZCRMRecord] = [ZCRMRecord]()
-        
-        var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
-        let dataArray : [[String:Any]] = [[String:Any]]()
-        reqBodyObj[getJSONRootKey()] = dataArray
         var idString : String = String()
         for index in 0..<recordIds.count
         {
@@ -429,16 +433,17 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         var tagNamesString : String = String()
         for index in 0..<tags.count
         {
-            if let name = tags[index].getName()
+            if tags[index].tagName != APIConstants.STRING_MOCK
             {
-                tagNamesString.append( name )
+                tagNamesString.append( tags[index].tagName )
                 if ( index != ( tags.count - 1 ) )
                 {
                     tagNamesString.append(",")
                 }
             }
         }
-        setUrlPath(urlPath: "/\(module.getAPIName())/actions/add_tags")
+        
+        setUrlPath(urlPath: "/\(self.module.apiName)/actions/add_tags")
         setRequestMethod(requestMethod: .POST)
         addRequestParam(param: RequestParamKeys.ids, value: idString)
         addRequestParam(param: RequestParamKeys.tagNames, value: tagNamesString)
@@ -446,7 +451,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         {
             addRequestParam(param: RequestParamKeys.overWrite, value: String(overWrite!))
         }
-        setRequestBody(requestBody: reqBodyObj)
+
         let request : APIRequest = APIRequest(handler: self)
         print( "Request : \(request.toString())" )
         
@@ -456,12 +461,13 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 let responses : [EntityResponse] = bulkResponse.getEntityResponses()
                 for entityResponse in responses
                 {
-                    if(CODE_SUCCESS == entityResponse.getStatus())
+                    if(APIConstants.CODE_SUCCESS == entityResponse.getStatus())
                     {
                         let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
                         
-                        let recordDetails : [String : Any] = entResponseJSON.getDictionary(key: DETAILS)
-                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.getAPIName(), recordId: recordDetails.getInt64(key: ResponseJSONKeys.id))
+                        let recordDetails : [String : Any] = entResponseJSON.getDictionary(key: APIConstants.DETAILS)
+                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
+                        record.recordId = recordDetails.getInt64(key: ResponseJSONKeys.id)
                         let tagNames : [String] = recordDetails.getArray(key: ResponseJSONKeys.tags) as! [String]
                         for name in tagNames
                         {
@@ -469,8 +475,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                             record.addTag(tag: tag)
                         }
                         entityResponse.setData(data: record)
-                        addedRecords.append(record)
-                        
+                        addedRecords.append(record)  
                     }
                     else
                     {
@@ -478,7 +483,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     }
                 }
                 bulkResponse.setData(data: addedRecords)
-                completion( .success( addedRecords, bulkResponse ) )
+                completion( .success( bulkResponse ) )
             }
             catch{
                 completion( .failure( typeCastToZCRMError( error ) ) )
@@ -489,9 +494,6 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     internal func removeTags( recordIds : [Int64], tags : [ZCRMTag], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.DATA)
-        var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
-        let dataArray : [[String:Any]] = [[String:Any]]()
-        reqBodyObj[getJSONRootKey()] = dataArray
         var idString : String = String()
         for index in 0..<recordIds.count
         {
@@ -504,20 +506,19 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         var tagNamesString : String = String()
         for index in 0..<tags.count
         {
-            if let name = tags[index].getName()
+            if tags[index].tagName != APIConstants.STRING_MOCK
             {
-                tagNamesString.append( name )
+                tagNamesString.append( tags[index].tagName )
                 if ( index != ( tags.count - 1 ) )
                 {
                     tagNamesString.append(",")
                 }
             }
         }
-        setUrlPath(urlPath: "/\(module.getAPIName())/actions/remove_tags")
+        setUrlPath(urlPath: "/\(self.module.apiName))/actions/remove_tags")
         setRequestMethod(requestMethod: .POST)
         addRequestParam(param: RequestParamKeys.ids, value: idString)
         addRequestParam(param: RequestParamKeys.tagNames, value: tagNamesString)
-        setRequestBody(requestBody: reqBodyObj)
         
         let request : APIRequest = APIRequest(handler: self)
         print( "Request : \(request.toString())" )
@@ -541,22 +542,20 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             if( ResponseJSONKeys.createdBy == fieldAPIName )
             {
                 let createdBy : [ String : Any ] = value as! [ String : Any ]
-                let createdByUser : ZCRMUser = ZCRMUser( userId : createdBy.getInt64( key : ResponseJSONKeys.id ), userFullName : createdBy.getString( key : ResponseJSONKeys.name) )
-                self.trashRecord.setCreatedBy( createdBy : createdByUser )
+                self.trashRecord.createdBy = getUserDelegate(userJSON : createdBy)
             }
             else if( ResponseJSONKeys.deletedBy == fieldAPIName )
             {
                 let deletedBy : [ String : Any ] = value as! [ String : Any ]
-                let deletedByUser : ZCRMUser = ZCRMUser( userId : deletedBy.getInt64( key : ResponseJSONKeys.id ), userFullName : deletedBy.getString( key : ResponseJSONKeys.name ) )
-                self.trashRecord.setDeletedBy( deletedBy : deletedByUser )
+                self.trashRecord.deletedBy = getUserDelegate(userJSON : deletedBy)
             }
             else if( ResponseJSONKeys.displayName == fieldAPIName )
             {
-                self.trashRecord.setDisplayName( name : record.getString( key : fieldAPIName ) )
+                self.trashRecord.displayName = record.getString( key : fieldAPIName )
             }
             else if( ResponseJSONKeys.deletedTime == fieldAPIName )
             {
-                self.trashRecord.setDisplayName( name : record.getString( key : fieldAPIName ) )
+                self.trashRecord.deletedTime = record.getString( key : fieldAPIName )
             }
         }
     }
