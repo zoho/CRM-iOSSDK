@@ -509,22 +509,19 @@ internal class UserAPIHandler : CommonAPIHandler
         if( userDict.hasValue( forKey : ResponseJSONKeys.CreatedBy))
         {
             let createdByObj : [String:Any] = userDict.getDictionary(key: ResponseJSONKeys.CreatedBy)
-            let createdBy : ZCRMUserDelegate = ZCRMUserDelegate(id: createdByObj.getInt64( key : ResponseJSONKeys.id ), name: createdByObj.getString( key : ResponseJSONKeys.name ) )
-            user.createdBy = createdBy
+            user.createdBy = getUserDelegate(userJSON : createdByObj)
             user.createdTime = userDict.getString( key : ResponseJSONKeys.CreatedTime)
         }
         if( userDict.hasValue( forKey : ResponseJSONKeys.ModifiedBy ) )
         {
             let modifiedByObj : [ String : Any ] = userDict.getDictionary( key : ResponseJSONKeys.ModifiedBy)
-            let modifiedBy : ZCRMUserDelegate = ZCRMUserDelegate( id : modifiedByObj.getInt64( key : ResponseJSONKeys.id), name : modifiedByObj.getString( key : ResponseJSONKeys.name ) )
-            user.modifiedBy = modifiedBy
+            user.modifiedBy = getUserDelegate(userJSON : modifiedByObj)
             user.modifiedTime = userDict.getString( key : ResponseJSONKeys.ModifiedTime )
         }
         if ( userDict.hasValue( forKey : ResponseJSONKeys.ReportingTo ) )
         {
             let reportingObj : [ String : Any ] = userDict.getDictionary( key : ResponseJSONKeys.ReportingTo )
-            let reportingTo : ZCRMUserDelegate = ZCRMUserDelegate( id : reportingObj.getInt64( key : ResponseJSONKeys.id), name : reportingObj.getString( key : ResponseJSONKeys.name ) )
-            user.reportingTo = reportingTo
+            user.reportingTo = getUserDelegate(userJSON : reportingObj)
         }
 		return user
 	}

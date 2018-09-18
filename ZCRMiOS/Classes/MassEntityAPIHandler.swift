@@ -475,8 +475,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                             record.addTag(tag: tag)
                         }
                         entityResponse.setData(data: record)
-                        addedRecords.append(record)
-                        
+                        addedRecords.append(record)  
                     }
                     else
                     {
@@ -543,14 +542,12 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             if( ResponseJSONKeys.createdBy == fieldAPIName )
             {
                 let createdBy : [ String : Any ] = value as! [ String : Any ]
-                let createdByUser : ZCRMUserDelegate = ZCRMUserDelegate( id : createdBy.getInt64( key : ResponseJSONKeys.id ), name : createdBy.getString( key : ResponseJSONKeys.name) )
-                self.trashRecord.createdBy = createdByUser
+                self.trashRecord.createdBy = getUserDelegate(userJSON : createdBy)
             }
             else if( ResponseJSONKeys.deletedBy == fieldAPIName )
             {
                 let deletedBy : [ String : Any ] = value as! [ String : Any ]
-                let deletedByUser : ZCRMUserDelegate = ZCRMUserDelegate( id : deletedBy.getInt64( key : ResponseJSONKeys.id ), name : deletedBy.getString( key : ResponseJSONKeys.name ) )
-                self.trashRecord.deletedBy = deletedByUser
+                self.trashRecord.deletedBy = getUserDelegate(userJSON : deletedBy)
             }
             else if( ResponseJSONKeys.displayName == fieldAPIName )
             {
