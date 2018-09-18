@@ -555,14 +555,12 @@ internal class UserAPIHandler : CommonAPIHandler
         if ( profileDetails.hasValue( forKey : ResponseJSONKeys.modifiedBy ) )
         {
             let modifiedUserObj : [ String : Any ] = profileDetails.getDictionary( key : ResponseJSONKeys.modifiedBy )
-//            profile.modifiedBy = ZCRMUserDelegate( userId : modifiedUserObj.getInt64( key : ResponseJSONKeys.id ), userFullName : modifiedUserObj.getString( key : ResponseJSONKeys.name ) )
             profile.modifiedBy = getUserDelegate(userJSON : modifiedUserObj)
             profile.modifiedTime = profileDetails.getString( key : ResponseJSONKeys.modifiedTime )
         }
         if ( profileDetails.hasValue( forKey : ResponseJSONKeys.createdBy ) )
         {
             let createdUserObj : [ String : Any ] = profileDetails.getDictionary( key : ResponseJSONKeys.createdBy )
-//            profile.createdBy = ZCRMUserDelegate( userId : createdUserObj.getInt64( key : ResponseJSONKeys.id ), userFullName : createdUserObj.getString( key : ResponseJSONKeys.name ) )
             profile.createdBy = getUserDelegate(userJSON : createdUserObj)
             profile.createdTime = profileDetails.getString( key : ResponseJSONKeys.createdTime )
         }
