@@ -62,7 +62,6 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         let recordsList:[[String:Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                         for recordDetails in recordsList
                         {
-//                            let record : ZCRMRecord = ZCRMRecord(moduleAPIName: relatedList.getAPIName(), recordId: recordDetails.optInt64(key: "id")!)
                             let record : ZCRMRecord = ZCRMRecord(moduleAPIName: relatedList.apiName)
                             EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordDetails)
                             records.append(record)
@@ -438,7 +437,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 	{
         let fileName : String = attachmentDetails.optString( key : ResponseJSONKeys.fileName )!
         let attachment : ZCRMAttachment = ZCRMAttachment(parentRecord: self.parentRecord, fileName: fileName)
-        let fileType = fileName.pathExtension()
+        attachment.fileType = fileName.pathExtension()
         if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.size))
         {
             attachment.fileSize = Int64(attachmentDetails.getInt64(key: ResponseJSONKeys.size))

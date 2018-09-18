@@ -337,16 +337,6 @@ internal class EntityAPIHandler : CommonAPIHandler
         request.getAPIResponse { ( resultType ) in
             do{
                 let response = try resultType.resolve()
-                let responseJSON = response.getResponseJSON()
-                let respDataArray : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
-                let respData : [String:Any] = respDataArray[0]
-                let tagDetails : [String] = respData.getDictionary(key: APIConstants.DETAILS).getArray(key: JSONRootKey.TAGS) as! [String]
-                var tags : [ZCRMTag] = [ZCRMTag]()
-                for tagDetail in tagDetails
-                {
-                    let singleTag : ZCRMTag = ZCRMTag( tagName: tagDetail )
-                    tags.append(singleTag)
-                }
                 completion( .success( response ) )
             }
             catch{
@@ -662,7 +652,6 @@ internal class EntityAPIHandler : CommonAPIHandler
         {
             if(ResponseJSONKeys.id == fieldAPIName)
             {
-//                self.record.setId(recordId: Int64(value as! String)!)
                 self.record.recordId = Int64(value as! String)!
             }
             else if(ResponseJSONKeys.productDetails == fieldAPIName)
