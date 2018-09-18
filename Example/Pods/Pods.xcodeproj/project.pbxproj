@@ -34,9 +34,9 @@
 		6C03FF27215057670049791E /* ZCRMModuleDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C03FF21215054E80049791E /* ZCRMModuleDelegate.swift */; };
 		6C7496C8204755C200AEA505 /* ZohoPortalAuthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 75139B249FFEE7E4FF8A1FF1D424FD03 /* ZohoPortalAuthKit.framework */; };
 		6C7496C92047569500AEA505 /* ZohoAuthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97D9FA7644BEFD4CCB2251C44E35B053 /* ZohoAuthKit.framework */; };
+		6C7703CF215114BC001AB934 /* ZohoCRMSDK.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C7703CD215114B5001AB934 /* ZohoCRMSDK.swift */; };
 		6C99893B48CFB1AB2DB2095717B7F1A6 /* ZCRMLoginHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36C0C3BBCA891C97A5DCE2BD71D6A62C /* ZCRMLoginHandler.swift */; };
 		6CADA4B721510E660000B077 /* ZVCRMLoginHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 410AFEDD129ABC649D3704B606D1509C /* ZVCRMLoginHandler.swift */; };
-		6CADA4B821510E940000B077 /* ZohoCRMSDK.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE4215B5214106E40008925A /* ZohoCRMSDK.swift */; };
 		6CE1C48920C5641F008161CA /* ZCRMDataProcessBasicDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CE1C48720C5640E008161CA /* ZCRMDataProcessBasicDetails.swift */; };
 		702D71307F639A1812B307749824194D /* UserAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49443D907E0A37A6ACBDABB5AEDD1B74 /* UserAPIHandler.swift */; };
 		7713471A3BF00BFF280A3E6AA775B2D4 /* CommonUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D7AD46050C8B40F9963E846D4F2147 /* CommonUtil.swift */; };
@@ -132,6 +132,7 @@
 		6C03FF1D2150401C0049791E /* ZCRMOrganisationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ZCRMOrganisationDelegate.swift; path = ZCRMiOS/Classes/ZCRMOrganisationDelegate.swift; sourceTree = "<group>"; };
 		6C03FF20215054E80049791E /* ZCRMUserDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ZCRMUserDelegate.swift; path = ZCRMiOS/Classes/ZCRMUserDelegate.swift; sourceTree = "<group>"; };
 		6C03FF21215054E80049791E /* ZCRMModuleDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ZCRMModuleDelegate.swift; path = ZCRMiOS/Classes/ZCRMModuleDelegate.swift; sourceTree = "<group>"; };
+		6C7703CD215114B5001AB934 /* ZohoCRMSDK.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ZohoCRMSDK.swift; path = ZCRMiOS/Classes/ZohoCRMSDK.swift; sourceTree = "<group>"; };
 		6CE1C48720C5640E008161CA /* ZCRMDataProcessBasicDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ZCRMDataProcessBasicDetails.swift; path = ZCRMiOS/Classes/ZCRMDataProcessBasicDetails.swift; sourceTree = "<group>"; };
 		714B307EED6AABB200D56746B91B2203 /* ZCRMRole.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ZCRMRole.swift; path = ZCRMiOS/Classes/ZCRMRole.swift; sourceTree = "<group>"; };
 		71F01051B89AB8B22060AB9656565A69 /* ZohoPortalAuthToken.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = ZohoPortalAuthToken.h; path = ZohoPortalAuthKit.framework/Headers/ZohoPortalAuthToken.h; sourceTree = "<group>"; };
@@ -195,7 +196,6 @@
 		F9BFA90C459410F28C836D4FFCE43EF0 /* SQLite.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SQLite.swift; path = ZCRMiOS/Classes/SQLite.swift; sourceTree = "<group>"; };
 		FB62DD92D004BC1474153AF9E23C10F8 /* Pods-ZCRMiOS_Tests-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-ZCRMiOS_Tests-acknowledgements.markdown"; sourceTree = "<group>"; };
 		FB8C5BDE0A125B8C2EE6389374269B0D /* ZohoAuthConstants.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = ZohoAuthConstants.h; sourceTree = "<group>"; };
-		FE4215B5214106E40008925A /* ZohoCRMSDK.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZohoCRMSDK.swift; sourceTree = "<group>"; };
 		FE768EF42088C54100CA492B /* CommonAPIHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CommonAPIHandler.swift; path = ZCRMiOS/Classes/CommonAPIHandler.swift; sourceTree = "<group>"; };
 		FEF21FDE209248D9003CE1BF /* ZCRMSubformRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ZCRMSubformRecord.swift; path = ZCRMiOS/Classes/ZCRMSubformRecord.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -258,6 +258,7 @@
 		510DA46606629697290E50B426DB586A /* ZCRMiOS */ = {
 			isa = PBXGroup;
 			children = (
+				6C7703CD215114B5001AB934 /* ZohoCRMSDK.swift */,
 				FE768EF42088C54100CA492B /* CommonAPIHandler.swift */,
 				7844664BB00399EBCBC2D7B41FDA15D9 /* APIRequest.swift */,
 				D13CBD26668380A6326875084B838702 /* APIResponse.swift */,
@@ -319,7 +320,6 @@
 				233CF6F67EA6D5FEE92D3C0D74226E6E /* ZCRMUser.swift */,
 				6C03FF20215054E80049791E /* ZCRMUserDelegate.swift */,
 				410AFEDD129ABC649D3704B606D1509C /* ZVCRMLoginHandler.swift */,
-				FE4215B5214106E40008925A /* ZohoCRMSDK.swift */,
 				4B59AC45A37B54BE7660E63569AB0428 /* Frameworks */,
 				BE7B866444506A949BEE685A6ACF77BB /* Headers */,
 				52F967DDBB0675EA7AFC51ABAA9ED3E3 /* Pod */,
@@ -582,7 +582,6 @@
 				B1C103EA214107870001A45F /* ZCRMOrgTax.swift in Sources */,
 				6C03FF26215057610049791E /* ZCRMModule.swift in Sources */,
 				1A1D1F902DAE1EF935FB15F329ECA7D2 /* FormDBHelper.swift in Sources */,
-				6CADA4B821510E940000B077 /* ZohoCRMSDK.swift in Sources */,
 				6C03FF1F215040220049791E /* ZCRMOrganisationDelegate.swift in Sources */,
 				83A3B66FE4D6414BAB5A154E5CC89BB3 /* MassEntityAPIHandler.swift in Sources */,
 				6CE1C48920C5641F008161CA /* ZCRMDataProcessBasicDetails.swift in Sources */,
@@ -597,6 +596,7 @@
 				3EC71104CBBAF34E64E7EE9D87A67E56 /* ZCRMAttachment.swift in Sources */,
 				6C03FF27215057670049791E /* ZCRMModuleDelegate.swift in Sources */,
 				E60FB313062CBC5CF13F6FE8CD331520 /* ZCRMCachedModule.swift in Sources */,
+				6C7703CF215114BC001AB934 /* ZohoCRMSDK.swift in Sources */,
 				B1C103EC21410D6E0001A45F /* TaxAPIHandler.swift in Sources */,
 				6CADA4B721510E660000B077 /* ZVCRMLoginHandler.swift in Sources */,
 				96BB809B0D4A83CCE3C51B6132502C85 /* ZCRMCustomView.swift in Sources */,
