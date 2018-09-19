@@ -6,230 +6,73 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
-public class ZCRMNote : ZCRMEntity
+open class ZCRMNote : ZCRMEntity
 {
-	private var id : Int64?
-	private var title : String?
-	private var content : String?
-	private var owner : ZCRMUser?
-	private var createdBy : ZCRMUser?
-	private var createdTime : String?
-	private var modifiedBy : ZCRMUser?
-	private var modifiedTime : String?
-    private var attachments : [ZCRMAttachment]?
-    private var parentRecord : ZCRMRecord?
+    public var id : Int64 = APIConstants.INT64_MOCK
+    public var title : String?
+    public var content : String?
+    public var owner : ZCRMUserDelegate = USER_MOCK
+    public var createdBy : ZCRMUserDelegate = USER_MOCK
+    public var createdTime : String = APIConstants.STRING_MOCK
+    public var modifiedBy : ZCRMUserDelegate = USER_MOCK
+    public var modifiedTime : String = APIConstants.STRING_MOCK
+    public var attachments : [ZCRMAttachment]?
+    var parentRecord : ZCRMRecordDelegate?
 	
     /// Initialize the instance of ZCRMNote with the given content
     ///
     /// - Parameter content: note content
-	public init(content : String)
+    init( content : String )
 	{
-		self.content = content
-	}
-	
-    /// Initialize the instance of ZCRMNote with the given note id and given content.
-    ///
-    /// - Parameters:
-    ///   - noteId: id to get that note's instance
-    ///   - newContent: note content
-	public init(noteId: Int64, newContent: String)
-	{
-		self.id = noteId
-		self.content = newContent
-	}
-	
-    /// Initialize the instance of ZCRMNote with the given note id
-    ///
-    /// - Parameter noteId: id to get that note's instance
-	public init(noteId: Int64)
-	{
-		self.id = noteId
+        self.content = content
 	}
     
-    /// Initialize the instance of ZCRMNote with the given ZCRMRecord and given note id
-    ///
-    /// - Parameters:
-    ///   - parentRecord: ZCRMRecord for which ZCRMNote instance initialized
-    ///   - noteId: id to get that note's instance
-    public init( parentRecord : ZCRMRecord, noteId : Int64 )
-    {
-        self.parentRecord = parentRecord
-        self.id = noteId
-    }
-    
-    /// Initialize the instance of ZCRMNote with the given ZCRMRecord
-    ///
-    /// - Parameter record: ZCRMRecord for which ZCRMNote instance initialized
-    public init( record : ZCRMRecord )
-    {
-        self.parentRecord = record
-    }
-    
-    /// Set the parent record of the note
-    ///
-    /// - Parameter parentRecord: parent record of the note
-    internal func setParentRecord( parentRecord : ZCRMRecord )
-    {
-        self.parentRecord = parentRecord
-    }
-    
-    /// Returns note's ZCRMRecord
-    ///
-    /// - Returns: the parent record of the note
-    public func getParentRecord() -> ZCRMRecord
-    {
-        return self.parentRecord!
-    }
-    
-    /// Add a note content
-    ///
-    /// - Parameter content: note content
-    internal func setContent( content : String? )
+    init( content : String?, title : String )
     {
         self.content = content
+        self.title = title
     }
-	
-    /// Returns the note's content
-    ///
-    /// - Returns: note's content
-	public func getContent() -> String
-	{
-		return self.content!
-	}
-	
-    /// Set the id of the note
-    ///
-    /// - Parameter noteId: id of the note
-	internal func setId(noteId : Int64?)
-	{
-		self.id = noteId
-	}
-	
-    /// Returns the id of the note
-    ///
-    /// - Returns: id of the note
-	public func getId() -> Int64?
-	{
-		return self.id
-	}
-	
-    /// Set the title of the note
-    ///
-    /// - Parameter title: note's title
-	public func setTitle(title : String?)
-	{
-		self.title = title
-	}
-	
-    /// Returns the title of the note
-    ///
-    /// - Returns: note's title
-	public func getTitle() -> String?
-	{
-		return self.title
-	}
-	
-    /// Set the ZCRMUser who adds the note.
-    ///
-    /// - Parameter owner: ZCRMUser who adds the note
-	internal func setOwner(owner : ZCRMUser?)
-	{
-		self.owner = owner
-	}
-	
-    /// Returns ZCRMUser who added the note.
-    ///
-    /// - Returns: ZCRMUser who added the note
-	public func getOwner() -> ZCRMUser?
-	{
-		return self.owner
-	}
-	
-    /// Set ZCRMUser who created the note.
-    ///
-    /// - Parameter createdByUser: ZCRMUser who created the note
-	internal func setCreatedByUser(createdByUser : ZCRMUser?)
-	{
-		self.createdBy = createdByUser
-	}
-	
-    /// Returns ZCRMUser who created the note or nil if the note is not yet created.
-    ///
-    /// - Returns: ZCRMUser who created the note or nil if the note is not yet created
-	public func getCreatedByUser() -> ZCRMUser?
-	{
-		return self.createdBy
-	}
-	
-    /// Set created time of the note.
-    ///
-    /// - Parameter createdTime: the time at which the note is created
-	internal func setCreatedTime(createdTime : String?)
-	{
-		self.createdTime = createdTime
-	}
-	
-    /// Returns created time of the note.
-    ///
-    /// - Returns: the time at which the note is created
-	public func getCreatedTime() -> String?
-	{
-		return self.createdTime
-	}
-	
-    /// Set ZCRMUser who recently modified the note(last modification of the note) or nil if the note is not yet created/modified.
-    ///
-    /// - Parameter modifiedByUser: ZCRMUser who modified the note
-	internal func setModifiedByUser(modifiedByUser : ZCRMUser?)
-	{
-		self.modifiedBy = modifiedByUser
-	}
-	
-    ///  Returns ZCRMUser who recently modified the note(last modification of the note) or nil if the note is not yet created/modified.
-    ///
-    /// - Returns: ZCRMUser who recently modified the note or nil if the note is not yet created/modifie
-	public func getModifiedByUser() -> ZCRMUser?
-	{
-		return self.modifiedBy
-	}
-	
-    /// Set modified time of the note(last modification of the note).
-    ///
-    /// - Parameter modifiedTime: the time at which the note is modified
-	internal func setModifiedTime(modifiedTime : String?)
-	{
-		self.modifiedTime = modifiedTime
-	}
-	
-    /// Returns modified time of the note(last modification of the note) or nil if the note is not yet created.
-    ///
-    /// - Returns: the time at which the note is modified or nil if the note is not yet created
-	public func getModifiedTime() -> String?
-	{
-		return self.modifiedTime
-	}
     
     /// To add attachment to the note(Only for internal use).
     ///
     /// - Parameter attachment: add attachment to the note
-    internal func addAttachment(attachment : ZCRMAttachment)
+    func addAttachment( attachment : ZCRMAttachment )
     {
-        if( self.attachments != nil )
+        if self.attachments == nil
         {
-            self.attachments?.append(attachment)
+            self.attachments = [ ZCRMAttachment ]()
         }
-        else
+        self.attachments?.append( attachment )
+    }
+    
+    public func getAllAttachmentsDetails( page : Int, per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
+    {
+        do
         {
-            self.attachments = [ attachment ]
+            try idMockValueCheck( id : self.id )
+            RelatedListAPIHandler(parentRecord: ZCRMRecordDelegate( recordId : self.id, moduleAPIName : "Notes" ), relatedList: ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: "Attachments")).getAllAttachmentsDetails(page: page, per_page: per_page, modifiedSince: nil) { ( result ) in
+                completion( result )
+            }
+        }
+        catch
+        {
+            completion( .failure( typeCastToZCRMError( error ) ) )
         }
     }
     
-    /// To get list of all attachments of the note.
-    ///
-    /// - Returns: list of all attachments of the note
-    public func getAttachments() -> [ZCRMAttachment]?
+    public func getAllAttachmentsDetails( page : Int, per_page : Int, modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
     {
-        return self.attachments
+        do
+        {
+            try idMockValueCheck( id : self.id )
+            RelatedListAPIHandler(parentRecord: ZCRMRecordDelegate( recordId : self.id, moduleAPIName : "Notes" ), relatedList: ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: "Attachments")).getAllAttachmentsDetails(page: page, per_page: per_page, modifiedSince: modifiedSince) { ( result ) in
+                completion( result )
+            }
+        }
+        catch
+        {
+            completion( .failure( typeCastToZCRMError( error ) ) )
+        }
     }
     
     /// To upload a Attachment to the note.
@@ -237,9 +80,16 @@ public class ZCRMNote : ZCRMEntity
     /// - Parameter filePath: file path of the attachment
     /// - Returns: APIResponse of the attachment upload
     /// - Throws: ZCRMSDKError if failed to upload the attachment
-    public func uploadAttachment( filePath : String, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
+    public func uploadAttachmentWithPath( filePath : String, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
     {
-        ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: "Notes").uploadAttachment(ofParentRecord: ZCRMRecord(moduleAPIName: "Notes", recordId: self.getId()!), filePath: filePath) { ( result ) in
+        ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: "Notes").uploadAttachmentWithPath(ofParentRecord: ZCRMRecordDelegate(recordId: self.id, moduleAPIName: "Notes"), filePath: filePath) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func uploadAttachmentWithData( fileName : String, data : Data, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
+    {
+        ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: "Notes").uploadAttachmentWithData( ofParentRecord: ZCRMRecordDelegate(recordId: self.id, moduleAPIName: "Notes"), fileName : fileName, data : data ) { ( result ) in
             completion( result )
         }
     }
@@ -251,7 +101,7 @@ public class ZCRMNote : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to download the attachment
     public func downloadAttachment(attachmentId : Int64, completion : @escaping( Result.Response< FileAPIResponse > ) -> ())
     {
-        ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: "Notes").downloadAttachment(ofParentRecord: ZCRMRecord(moduleAPIName: "Notes", recordId: self.getId()!), attachmentId: attachmentId) { ( result ) in
+        ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: "Notes").downloadAttachment(ofParentRecord: ZCRMRecordDelegate(recordId: self.id, moduleAPIName: "Notes"), attachmentId: attachmentId) { ( result ) in
             completion( result )
         }
     }
@@ -263,7 +113,7 @@ public class ZCRMNote : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to delete the attachment
     public func deleteAttachment( attachmentId : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        ZCRMModuleRelation( relatedListAPIName : "Attachments", parentModuleAPIName : "Notes" ).deleteAttachment( ofParentRecord : ZCRMRecord( moduleAPIName : "Notes", recordId : self.getId()! ), attachmentId : attachmentId ) { ( result ) in
+        ZCRMModuleRelation( relatedListAPIName : "Attachments", parentModuleAPIName : "Notes" ).deleteAttachment( ofParentRecord : ZCRMRecordDelegate(recordId: self.id, moduleAPIName: "Notes"), attachmentId : attachmentId ) { ( result ) in
             completion( result )
         }
     }

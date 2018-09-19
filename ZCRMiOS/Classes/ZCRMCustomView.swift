@@ -6,218 +6,32 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
-public class ZCRMCustomView : ZCRMEntity
+open class ZCRMCustomView : ZCRMEntity
 {
-    private var moduleAPIName : String
-	private var id : Int64
-	private var sysName : String?
-	private var name : String?
-	private var displayName : String?
-	private var isDefault : Bool = true
-	private var fields : [String]?
-	private var favouriteSequence : Int = -1
-	private var sortByCol : String?
-	private var sortOrder : SortOrder?
-	private var category : String?
+    var moduleAPIName : String
+    public var sysName : String?
+    public var isDefault : Bool = APIConstants.BOOL_MOCK
     
-    private var isOffline : Bool?
-    private var isSystemDefined : Bool?
+    public var cvId : Int64 = APIConstants.INT64_MOCK
+    public var cvName : String
+    public var displayName : String = APIConstants.STRING_MOCK
+    public var fields : [String] = [String]()
+    public var favouriteSequence : Int = APIConstants.INT_MOCK
+    public var sortByCol : String?
+    public var sortOrder : SortOrder?
+    public var category : String = APIConstants.STRING_MOCK
+    public var isOffline : Bool = APIConstants.BOOL_MOCK
+    public var isSystemDefined : Bool = APIConstants.BOOL_MOCK
 	
     /// Initialise the instance of a custom view with the given custom view Id.
     ///
     /// - Parameters:
-    ///   - cvId: custom view Id whose associated custom view is to be initialised
+    ///   - cvName: custom view Name whose associated custom view is to be initialised
     ///   - moduleAPIName: module API name of a custom view is to be initialised
-	public init(cvId: Int64, moduleAPIName: String)
-	{
-		self.id = cvId
-		self.moduleAPIName = moduleAPIName
-	}
-	
-    /// Returns Id of the custom view.
-    ///
-    /// - Returns: Id of the custom view
-	public func getId() -> Int64
-	{
-		return self.id
-	}
-    
-    /// Returns the module API name of the CustomView.
-    ///
-    /// - Returns: the module API name of the CustomView
-    public func getModuleAPIName() -> String
+    init ( cvName : String, moduleAPIName : String )
     {
-        return self.moduleAPIName
-    }
-    
-    /// Set the name of the custom view.
-    ///
-    /// - Parameter name: name of the custom view
-    internal func setName( name : String )
-    {
-        self.name = name
-    }
-	
-    /// Returns the custom view name.
-    ///
-    /// - Returns: the custom view name
-	public func getName() -> String
-	{
-		return self.name!
-	}
-	
-    /// Set the system name of the custom view.
-    ///
-    /// - Parameter systemName: system name of the custom view
-	internal func setSystemName(systemName: String?)
-	{
-		self.sysName = systemName
-	}
-	
-    /// Returns system name of the custom view.
-    ///
-    /// - Returns: system name of the custom view
-	public func getSystemName() -> String?
-	{
-		return self.sysName
-	}
-	
-    /// Set the display name of the custom view.
-    ///
-    /// - Parameter displayName: display name of the custom view
-	internal func setDisplayName(displayName: String)
-	{
-		self.displayName = displayName
-	}
-	
-    /// Set the display name of the custom view.
-    ///
-    /// - Returns: display name of the custom view
-	public func getDisplayName() -> String
-	{
-		return self.displayName!
-	}
-	
-    /// Set true if it is the default custom view.
-    ///
-    /// - Parameter isDefault: true if it is the default custom view
-	internal func setIsDefault(isDefault: Bool)
-	{
-		self.isDefault = isDefault
-	}
-	
-    /// Returns true if it is the default custom view.
-    ///
-    /// - Returns: true if it is the default custom view
-	public func isDefaultCV() -> Bool
-	{
-		return self.isDefault
-	}
-	
-    /// Set category of the custom view(shared_with_me or created_by_me).
-    ///
-    /// - Parameter category: category of the custom view
-	internal func setCategory(category: String)
-	{
-		self.category = category
-	}
-	
-    /// Returns category of the custom view(shared_with_me or created_by_me).
-    ///
-    /// - Returns: category of the custom view
-	public func getCategory() -> String?
-	{
-		return self.category
-	}
-	
-    /// Set 1 if is a favorite custom view otherwise returns nil.
-    ///
-    /// - Parameter favourite: 1 if is a favorite custom view
-	internal func setFavouriteSequence(favourite: Int?)
-	{
-		if(favourite != nil)
-		{
-			self.favouriteSequence = favourite!
-		}
-	}
-	
-    /// Return 1 if is a favorite custom view otherwise returns nil.
-    ///
-    /// - Returns: 1 if is a favorite custom view
-	public func getFavouriteSequence() -> Int
-	{
-		return self.favouriteSequence
-	}
-	
-    /// Set list of fields in the custom view's column.
-    ///
-    /// - Parameter fieldsAPINames: list of fields to be set in custom view's column
-	internal func setDisplayFields(fieldsAPINames: [String]?)
-	{
-		self.fields = fieldsAPINames
-	}
-	
-    /// Returns list of fields in the custom view's column.
-    ///
-    /// - Returns: list of fields in the custom view's column
-	public func getDisplayFieldsAPINames() -> [String]?
-	{
-		return self.fields
-	}
-	
-    /// Set field by which the custom view records get sorted.
-    ///
-    /// - Parameter fieldAPIName: field by which the custom view records get sorted
-	internal func setSortByCol(fieldAPIName: String?)
-	{
-		self.sortByCol = fieldAPIName
-	}
-	
-    /// Returns field by which the custom view records get sorted
-    ///
-    /// - Returns: field by which the custom view records get sorted
-	public func getSortByCol() -> String?
-	{
-		return self.sortByCol
-	}
-	
-    /// Set sort order (asc, desc) to the custom view.
-    ///
-    /// - Parameter sortOrder: sort order (asc, desc)
-	internal func setSortOrder(sortOrder: String?)
-	{
-		if(sortOrder != nil)
-		{
-			self.sortOrder = SortOrder(rawValue: sortOrder!)
-		}
-	}
-	
-    /// Returns sort order (asc, desc) of the custom view.
-    ///
-    /// - Returns: sort order (asc, desc) of the custom view.
-	public func getSortOrder() -> SortOrder?
-	{
-		return self.sortOrder
-	}
-    
-    internal func setIsOffline( isOffline : Bool? )
-    {
-        self.isOffline = isOffline
-    }
-    
-    public func getIsOffline() -> Bool?
-    {
-        return self.isOffline
-    }
-    
-    internal func setIsSystemDefined( isSystemDefined : Bool? )
-    {
-        self.isSystemDefined = isSystemDefined
-    }
-    
-    public func getIsSystemDefined() -> Bool?
-    {
-        return self.isSystemDefined
+        self.cvName = cvName
+        self.moduleAPIName = moduleAPIName
     }
     
     /// Returns List of all records of the CustomView(BulkAPIResponse).
@@ -226,14 +40,14 @@ public class ZCRMCustomView : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to get the records
     public func getRecords( includePrivateFields : Bool, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( page : 1, per_page : 200 ){ ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecords( page : 1, per_page : 200 ){ ( result ) in
             completion( result )
         }
     }
     
     public func getRecordsWithPrivateFields( completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecordsWithPrivateFields( page : 1, per_page : 200 ){ ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecordsWithPrivateFields( page : 1, per_page : 200 ){ ( result ) in
             completion( result )
         }
     }
@@ -247,14 +61,14 @@ public class ZCRMCustomView : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to get the records
     public func getRecords( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( page : page, per_page : perPage ){ ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecords( page : page, per_page : perPage ){ ( result ) in
             completion( result )
         }
     }
     
     public func getRecordsWithPrivateFields( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecordsWithPrivateFields( page : page, per_page : perPage ){ ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecordsWithPrivateFields( page : page, per_page : perPage ){ ( result ) in
             completion( result )
         }
     }
@@ -268,14 +82,14 @@ public class ZCRMCustomView : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to get the records
     public func getRecords( sortByField : String, sortOrder : SortOrder, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( cvId : self.id, sortByField : sortByField, sortOrder : sortOrder) { ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecords( cvId : self.cvId, sortByField : sortByField, sortOrder : sortOrder) { ( result ) in
             completion( result )
         }
     }
     
     public func getRecordsWithPrivateFields( sortByField : String, sortOrder : SortOrder, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecordsWithPrivateFields( cvId : self.id, sortByField : sortByField, sortOrder : sortOrder) { ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecordsWithPrivateFields( cvId : self.cvId, sortByField : sortByField, sortOrder : sortOrder) { ( result ) in
             completion( result )
         }
     }
@@ -292,30 +106,29 @@ public class ZCRMCustomView : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to get the records
     public func getRecords( sortByField : String, sortOrder : SortOrder, startIndex : Int, endIndex : Int, modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( cvId : self.id, sortByField : sortByField, sortOrder : sortOrder, page: startIndex, per_page: endIndex, modifiedSince : modifiedSince ){ ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecords( cvId : self.cvId, sortByField : sortByField, sortOrder : sortOrder, page: startIndex, per_page: endIndex, modifiedSince : modifiedSince ){ ( result ) in
             completion( result )
         }
     }
     
     public func getRecordsWithPrivateFields( sortByField : String, sortOrder : SortOrder, startIndex : Int, endIndex : Int, modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( cvId : self.id, sortByField : sortByField, sortOrder : sortOrder, page: startIndex, per_page: endIndex, modifiedSince : modifiedSince ){ ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecords( cvId : self.cvId, sortByField : sortByField, sortOrder : sortOrder, page: startIndex, per_page: endIndex, modifiedSince : modifiedSince ){ ( result ) in
             completion( result )
         }
     }
     
     public func getRecords( kanbanView : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords(cvId: self.id, kanbanView: kanbanView) { ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecords(cvId: self.cvId, kanbanView: kanbanView) { ( result ) in
             completion( result )
         }
     }
     
     public func getRecords ( sortByField : String, sortOrder : SortOrder, kanbanView : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModule( moduleAPIName : self.moduleAPIName ).getRecords( cvId : self.id, sortByField : sortByField, sortOrder : sortOrder, kanbanView : kanbanView ) { ( result ) in
+        ZCRMModuleDelegate( apiName : self.moduleAPIName ).getRecords( cvId : self.cvId, sortByField : sortByField, sortOrder : sortOrder, kanbanView : kanbanView ) { ( result ) in
             completion( result )
         }
     }
-	
 }

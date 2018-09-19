@@ -6,416 +6,70 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
-public class ZCRMUser : ZCRMEntity
+public class ZCRMUser : ZCRMUserDelegate
 {
-    private var id : Int64?
-    private var zuId : Int64?
+    public var lastName : String
+    public var emailId : String
+    public var role : ZCRMRoleDelegate
+    public var profile : ZCRMProfileDelegate
+    public var zuId : Int64?
     
-    private var fullName : String?
-    private var firstName : String?
-    private var lastName : String?
-    private var alias : String?
-    private var dateOfBirth : String?
+    public var fullName : String = APIConstants.STRING_MOCK
+    public var firstName : String?
+    public var alias : String?
+    public var dateOfBirth : String?
     
-    private var mobile : String?
-    private var emailId : String?
-    private var phone : String?
-    private var fax : String?
+    public var mobile : String?
+    public var phone : String?
+    public var fax : String?
     
-    private var language : String?
-    private var street : String?
-    private var city : String?
-    private var state : String?
-    private var zip : Int64?
-    private var country : String?
-    private var locale : String?
-    private var countryLocale : String?
+    public var language : String = APIConstants.STRING_MOCK
+    public var street : String?
+    public var city : String?
+    public var state : String?
+    public var zip : Int64?
+    public var country : String = APIConstants.STRING_MOCK
+    public var locale : String = APIConstants.STRING_MOCK
+    public var countryLocale : String = APIConstants.STRING_MOCK
     
-    private var nameFormat : String?
-    private var dateFormat : String?
-    private var timeFormat : String?
+    public var nameFormat : String = APIConstants.STRING_MOCK
+    public var dateFormat : String = APIConstants.STRING_MOCK
+    public var timeFormat : String = APIConstants.STRING_MOCK
     
-    private var timeZone : String?
-    private var website : String?
-    private var confirm : Bool?
-    private var status : String?
-    private var role : ZCRMRole?
-    private var profile : ZCRMProfile?
+    public var timeZone : String = APIConstants.STRING_MOCK
+    public var website : String?
+    public var confirm : Bool = APIConstants.BOOL_MOCK
+    public var status : String = APIConstants.STRING_MOCK
     
-    private var createdBy : ZCRMUser?
-    private var createdTime : String?
-    private var modifiedBy : ZCRMUser?
-    private var modifiedTime : String?
-    private var reportingTo : ZCRMUser?
+    public var createdBy : ZCRMUserDelegate?
+    public var createdTime : String?
+    public var modifiedBy : ZCRMUserDelegate?
+    public var modifiedTime : String?
+    public var reportingTo : ZCRMUserDelegate = USER_MOCK
     
-    private var fieldNameVsValue : [ String : Any ]?
+    public var fieldNameVsValue : [ String : Any ] = [ String : Any ]()
     
-    public init( userId : Int64 )
+    internal init( lastName : String, emailId : String, role : ZCRMRoleDelegate, profile : ZCRMProfileDelegate )
     {
-        self.id = userId
-    }
-    
-    public init(userId : Int64, userFullName : String) {
-        self.id = userId
-        self.fullName = userFullName
-    }
-    
-    public init(){}
-    
-    public init( lastName : String, email : String, role : ZCRMRole, profile : ZCRMProfile )
-    {
-        self.role = role
-        self.emailId = email
         self.lastName = lastName
-        self.profile = profile
-    }
-    
-    internal func setId( id : Int64 )
-    {
-        self.id = id
-    }
-    
-    public func getId() -> Int64?
-    {
-        return self.id
-    }
-    
-    internal func setFullName( name : String )
-    {
-        self.fullName = name
-    }
-    
-    public func getFullName() -> String?
-    {
-        return self.fullName
-    }
-    
-    internal func setZuId(zuId : Int64?)
-    {
-        self.zuId = zuId
-    }
-    
-    public func getZuId() -> Int64?
-    {
-        return self.zuId
-    }
-    
-    internal func setFirstName(fName : String?)
-    {
-        self.firstName = fName
-    }
-    
-    public func getFirstName() -> String?
-    {
-        return self.firstName
-    }
-    
-    internal func setLastName(lName : String)
-    {
-        self.lastName = lName
-    }
-    
-    public func getLastName() -> String?
-    {
-        return self.lastName
-    }
-    
-    internal func setLanguage(language : String?)
-    {
-        self.language = language
-    }
-    
-    public func getLanguage() -> String?
-    {
-        return self.language
-    }
-    
-    internal func setMobile(mobile : String?)
-    {
-        self.mobile = mobile
-    }
-    
-    public func getMobile() -> String?
-    {
-        return self.mobile
-    }
-    
-    internal func setEmailId(email : String)
-    {
-        self.emailId = email
-    }
-    
-    public func getEmailId() -> String?
-    {
-        return self.emailId
-    }
-    
-    internal func setStatus(status : String?)
-    {
-        self.status = status
-    }
-    
-    public func getStatus() -> String?
-    {
-        return self.status
-    }
-    
-    internal func setRole(role : ZCRMRole)
-    {
+        self.emailId = emailId
         self.role = role
-    }
-    
-    public func getRole() -> ZCRMRole?
-    {
-        return self.role
-    }
-    
-    internal func setProfile(profile : ZCRMProfile)
-    {
         self.profile = profile
-    }
-    
-    public func getProfile() -> ZCRMProfile?
-    {
-        return self.profile
-    }
-    
-    internal func setTimeZone( timeZone : String? )
-    {
-        self.timeZone = timeZone
-    }
-    
-    public func getTimeZone() -> String?
-    {
-        return self.timeZone
-    }
-    
-    internal func setStreet( street : String? )
-    {
-        self.street = street
-    }
-    
-    public func getStreet() -> String?
-    {
-        return self.street
-    }
-    
-    internal func setZip( zip : Int64? )
-    {
-        self.zip = zip
-    }
-    
-    public func getZip() -> Int64?
-    {
-        return self.zip
-    }
-    
-    internal func setCity( city : String? )
-    {
-        self.city = city
-    }
-    
-    public func getCity() -> String?
-    {
-        return self.city
-    }
-    
-    internal func setState( state : String? )
-    {
-        self.state = state
-    }
-    
-    public func getState() -> String?
-    {
-        return self.state
-    }
-    
-    internal func setCountry( country : String? )
-    {
-        self.country = country
-    }
-    
-    public func getCountry() -> String?
-    {
-        return self.country
-    }
-    
-    internal func setLocale( locale : String? )
-    {
-        self.locale = locale
-    }
-    
-    public func getLocale() -> String?
-    {
-        return self.locale
-    }
-    
-    internal func setCountryLocale( countryLocale : String? )
-    {
-        self.countryLocale = countryLocale
-    }
-    
-    public func getCountryLocale() -> String?
-    {
-        return self.countryLocale
-    }
-    
-    internal func setWebsite( website : String? )
-    {
-        self.website = website
-    }
-    
-    public func getWebsite() -> String?
-    {
-        return self.website
-    }
-    
-    internal func setFax( fax : String? )
-    {
-        self.fax = fax
-    }
-    
-    public func getFax() -> String?
-    {
-        return self.fax
-    }
-    
-    internal func setPhone( phone : String? )
-    {
-        self.phone = phone
-    }
-    
-    public func getPhone() -> String?
-    {
-        return self.phone
-    }
-    
-    internal func setNameFormat( format : String? )
-    {
-        self.nameFormat = format
-    }
-    
-    public func getNameFormat() -> String?
-    {
-        return self.nameFormat
-    }
-    
-    internal func setDateFormat( format : String? )
-    {
-        self.dateFormat = format
-    }
-    
-    public func getDateFormat() -> String?
-    {
-        return self.dateFormat
-    }
-    
-    internal func setTimeFormat( format : String? )
-    {
-        self.timeFormat = format
-    }
-    
-    public func getTimeFormat() -> String?
-    {
-        return self.timeFormat
-    }
-    
-    internal func setDateOfBirth( dateOfBirth : String? )
-    {
-        self.dateOfBirth = dateOfBirth
-    }
-    
-    public func getDateOfBirth() -> String?
-    {
-        return self.dateOfBirth
-    }
-    
-    internal func setAlias( alias : String? )
-    {
-        self.alias = alias
-    }
-    
-    public func getAlias() -> String?
-    {
-        return self.alias
-    }
-    
-    internal func setIsConfirmed( confirm : Bool? )
-    {
-        self.confirm = confirm
-    }
-    
-    public func isConfirmedUser() -> Bool?
-    {
-        return self.confirm
-    }
-    
-    public func setReportingTo( reportingTo : ZCRMUser? )
-    {
-        self.reportingTo = reportingTo
-    }
-    
-    public func getReportingTo() -> ZCRMUser?
-    {
-        return self.reportingTo
-    }
-    
-    internal func setCreatedBy( createdBy : ZCRMUser )
-    {
-        self.createdBy = createdBy
-    }
-    
-    public func getCreatedBy() -> ZCRMUser?
-    {
-        return self.createdBy
-    }
-    
-    internal func setCreatedTime( createdTime : String )
-    {
-        self.createdTime = createdTime
-    }
-    
-    public func getCreatedTime() -> String?
-    {
-        return self.createdTime
-    }
-    
-    internal func setModifiedBy( modifiedBy : ZCRMUser )
-    {
-        self.modifiedBy = modifiedBy
-    }
-    
-    public func getModifiedBy() -> ZCRMUser?
-    {
-        return self.modifiedBy
-    }
-    
-    internal func setModifiedTime( modifiedTime : String )
-    {
-        self.modifiedTime = modifiedTime
-    }
-    
-    public func getModifiedTime() -> String?
-    {
-        return self.modifiedTime
+        super.init( id : APIConstants.INT64_MOCK, name : self.lastName )
     }
     
     public func setFieldValue( fieldAPIName : String, value : Any )
     {
-        if self.fieldNameVsValue == nil
-        {
-            self.fieldNameVsValue = [ String : Any ]()
-        }
-        self.fieldNameVsValue![ fieldAPIName ] = value
+        self.fieldNameVsValue[ fieldAPIName ] = value
     }
     
     public func getFieldValue( fieldAPIName : String ) throws -> Any?
     {
-        if (self.fieldNameVsValue?.hasKey( forKey : fieldAPIName ))!
+        if (self.fieldNameVsValue.hasKey( forKey : fieldAPIName ))
         {
-            if( self.fieldNameVsValue?.hasValue( forKey : fieldAPIName ) )!
+            if( self.fieldNameVsValue.hasValue( forKey : fieldAPIName ) )
             {
-                return self.fieldNameVsValue?.optValue( key : fieldAPIName )
+                return self.fieldNameVsValue.optValue( key : fieldAPIName )
             }
             else
             {
@@ -428,7 +82,7 @@ public class ZCRMUser : ZCRMEntity
         }
     }
     
-    public func getData() -> [ String : Any ]?
+    public func getData() -> [ String : Any ]
     {
         return self.fieldNameVsValue
     }
@@ -447,23 +101,30 @@ public class ZCRMUser : ZCRMEntity
         }
     }
     
-    public func delete( completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func uploadProfilePhotoWithPath( filePath : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        UserAPIHandler().deleteUser( userId : self.getId()! ) { ( result ) in
+        UserAPIHandler(user: self).uploadPhotoWithPath(photoViewPermission: XPhotoViewPermission.zero, filePath: filePath) { ( result ) in
             completion( result )
         }
     }
     
-    public func downloadProfilePhoto( completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
+    public func uploadProfilePhotoWithData( fileName : String, data : Data, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        UserAPIHandler().downloadPhoto( size : PhotoSize.ORIGINAL ) { ( result ) in
+        UserAPIHandler(user: self).uploadPhotoWithData( photoViewPermission: XPhotoViewPermission.zero, fileName: fileName, data : data ) { ( result ) in
             completion( result )
         }
     }
     
-    public func downloadProfilePhoto( size : PhotoSize, completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
+    public func uploadProfilePhotoWithPath( photoViewPermission : XPhotoViewPermission, filePath : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        UserAPIHandler().downloadPhoto( size : size ) { ( result ) in
+        UserAPIHandler(user: self).uploadPhotoWithPath(photoViewPermission: photoViewPermission, filePath: filePath) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func uploadProfilePhotoWithData( photoViewPermission : XPhotoViewPermission, fileName : String, data : Data, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    {
+        UserAPIHandler(user: self).uploadPhotoWithData( photoViewPermission: photoViewPermission, fileName: fileName, data : data ) { ( result ) in
             completion( result )
         }
     }

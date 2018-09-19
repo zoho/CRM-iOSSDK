@@ -7,56 +7,29 @@
 
 public class ZCRMSubformRecord : ZCRMEntity
 {
-	private var id : Int64?
-	private var apiName : String?
-	private var owner : ZCRMUser?
-	private var modifiedTime : String?
-	private var createdTime : String?
-	private var fieldNameVsValue : [String:Any?] = [String:Any?]()
+	public var id : Int64
+	var apiName : String
+	public var owner : ZCRMUserDelegate = USER_MOCK
+	public var modifiedTime : String = APIConstants.STRING_MOCK
+	public var createdTime : String = APIConstants.STRING_MOCK
+    var layout : ZCRMLayout?
+	public var fieldNameVsValue : [String:Any?] = [String:Any?]()
 	
-	init( apiName : String , id : Int64 )
+	internal init( apiName : String , id : Int64 )
 	{
 		self.apiName = apiName
 		self.id = id
 	}
 	
-	init(){
-		
+    internal init( apiName : String )
+    {
+		self.apiName = apiName
+        self.id = APIConstants.INT64_MOCK
 	}
 	
 	public func getID() -> Int64?
 	{
 		return self.id
-	}
-	
-	internal func setOwner( owner : ZCRMUser? )
-	{
-		self.owner = owner
-	}
-	
-	public func getOwner() -> ZCRMUser?
-	{
-		return self.owner
-	}
-	
-	internal func setModifiedTime( modifiedTime : String)
-	{
-		self.modifiedTime = modifiedTime
-	}
-	
-	public func getModifiedTime() -> String?
-	{
-		return self.modifiedTime
-	}
-	
-	internal func setCreatedTime( createdTime : String)
-	{
-		self.createdTime = createdTime
-	}
-	
-	public func getCreatedTime() -> String?
-	{
-		return self.createdTime
 	}
 	
 	public func setValue(forField : String, value : Any?)
@@ -77,11 +50,6 @@ public class ZCRMSubformRecord : ZCRMEntity
 		{
 			throw ZCRMError.ProcessingError( code : ErrorCode.FIELD_NOT_FOUND, message : "The given field is not present in the record.")
 		}
-	}
-	
-	internal func getAllValues() -> [ String : Any? ]
-	{
-		return self.fieldNameVsValue
 	}
 	
 }

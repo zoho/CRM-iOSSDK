@@ -279,7 +279,7 @@ internal enum RequestMethod : String
 
     internal func uploadLink( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        let boundary = BOUNDARY
+        let boundary = APIConstants.BOUNDARY
         self.createMultipartRequest( bodyData : Data(), boundary : boundary )
         self.makeRequest { ( urlResp, responseData, error ) in
             if let err = error
@@ -309,8 +309,8 @@ internal enum RequestMethod : String
     internal func uploadFile( filePath : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         let fileURL = URL( fileURLWithPath : filePath )
-        let boundary = BOUNDARY
-        let httpBodyData = getFilePart( fileURL : fileURL, boundary : boundary )
+        let boundary = APIConstants.BOUNDARY
+        let httpBodyData = getFilePart( fileURL : fileURL, data : nil, fileName: nil, boundary : boundary )
         createMultipartRequest( bodyData : httpBodyData, boundary : boundary )
         self.makeRequest { ( urlResponse, responseData, error ) in
             if let err = error
@@ -326,12 +326,43 @@ internal enum RequestMethod : String
                     completion( .success( response ) )
                 }
                 catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+            else
+            {
+                completion( .failure( ZCRMError.SDKError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG ) ) )
+            }
+        }
+    }
+    
+    internal func uploadFileWithData( fileName : String, data : Data, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    {
+        let boundary = APIConstants.BOUNDARY
+        let httpBodyData = getFilePart( fileURL : nil, data : data, fileName : fileName, boundary : boundary )
+        createMultipartRequest(bodyData: httpBodyData, boundary: boundary)
+        self.makeRequest { ( urlResponse, responseData, error) in
+            if let err = error
+            {
+                completion( .failure( typeCastToZCRMError( err ) ) )
+                return
+            }
+            else if let urlResp = urlResponse
+            {
+                do
+                {
+                    let response = try APIResponse( response : urlResp, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+                    completion( .success( response ) )
+                }
+                catch
+                {
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             else
             {
                 completion( .failure( ZCRMError.SDKError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG ) ) )
+                
             }
         }
     }
@@ -381,13 +412,22 @@ internal enum RequestMethod : String
         }
     }
     
-    private func getFilePart( fileURL : URL, boundary : String ) -> Data
+    private func getFilePart( fileURL : URL?, data : Data?, fileName : String?, boundary : String ) -> Data
     {
         var filePartData : Data = Data()
         filePartData.append( "\r\n--\(boundary)\r\n".data( using : String.Encoding.utf8 )! )
-        filePartData.append( "Content-Disposition: form-data; name=\"file\"; filename=\"\(fileURL.lastPathComponent)\"\r\n".data( using : String.Encoding.utf8 )! )
-        filePartData.append( "Content-Type: \(getMimeTypeFor( fileURL : fileURL ))\r\n\r\n".data( using : String.Encoding.utf8 )! )
-        filePartData.append( try! Data( contentsOf : fileURL ) )
+        if let url = fileURL
+        {
+            filePartData.append( "Content-Disposition: form-data; name=\"file\"; filename=\"\(url.lastPathComponent)\"\r\n".data( using : String.Encoding.utf8 )! )
+            filePartData.append( "Content-Type: \(getMimeTypeFor( fileURL : url ))\r\n\r\n".data( using : String.Encoding.utf8 )! )
+            filePartData.append( try! Data( contentsOf : url ) )
+        }
+        if let fileData = data, let name = fileName
+        {
+            filePartData.append( "Content-Disposition: form-data; name=\"file\"; filename=\"\( name )\"\r\n".data( using : String.Encoding.utf8 )! )
+            filePartData.append( "Content-Type: \(getMimeTypeFor( fileURL : URL(string : name)! ))\r\n\r\n".data( using : String.Encoding.utf8 )! )
+            filePartData.append( fileData )
+        }
         return filePartData
     }
     

@@ -19,25 +19,6 @@ public enum ZCRMError : Error
     case FileSizeExceeded( code : String, message : String )
     case ProcessingError( code : String, message : String )
     case SDKError( code : String, message : String )
-    
-    var details : ( code : String, description : String )
-    {
-        switch self
-        {
-            case .UnAuthenticatedError( let code, let desc ):
-                return ( code, desc )
-            case .InValidError( let code, let desc ):
-                return ( code, desc )
-            case .MaxRecordCountExceeded( let code, let desc ):
-                return ( code, desc )
-            case .FileSizeExceeded( let code, let desc ):
-                return ( code, desc )
-            case .ProcessingError( let code, let desc ):
-                return ( code, desc )
-            case .SDKError( let code, let desc ):
-                return ( code, desc )
-        }
-    }
 }
 
 public struct ErrorCode
@@ -45,6 +26,7 @@ public struct ErrorCode
     static var INVALID_DATA = "INVALID_DATA"
     static var INTERNAL_ERROR = "INTERNAL_ERROR"
     static var RESPONSE_NIL = "RESPONSE_NIL"
+    static var VALUE_NIL = "VALUE_NIL"
     static var MANDATORY_NOT_FOUND = "MANDATORY_NOT_FOUND"
     static var RESPONSE_ROOT_KEY_NIL = "RESPONSE_ROOT_KEY_NIL"
     static var FILE_SIZE_EXCEEDED = "FILE_SIZE_EXCEEDED"
@@ -68,6 +50,41 @@ struct ErrorMessage
     static var INVALID_FILE_TYPE_MSG = "The file you have chosen is not supported. Please choose a PNG, JPG, BMP, or GIF file type."
 }
 
+public extension Error
+{
+    var code : Int
+    {
+        return ( self as NSError ).code
+    }
+    
+    var description : String
+    {
+        return ( self as NSError ).localizedDescription
+    }
+    
+    var ZCRMErrordetails : ( code : String, description : String )?
+    {
+        guard let error = self as? ZCRMError else {
+            return nil
+        }
+        switch error
+        {
+            case .UnAuthenticatedError( let code, let desc ):
+                return ( code, desc )
+            case .InValidError( let code, let desc ):
+                return ( code, desc )
+            case .MaxRecordCountExceeded( let code, let desc ):
+                return ( code, desc )
+            case .FileSizeExceeded( let code, let desc ):
+                return ( code, desc )
+            case .ProcessingError( let code, let desc ):
+                return ( code, desc )
+            case .SDKError( let code, let desc ):
+                return ( code, desc )
+        }
+    }
+}
+
 public enum SortOrder : String
 {
     case ASCENDING = "asc"
@@ -88,6 +105,15 @@ public enum PhotoSize : String
     case ORIGINAL = "original"
     case FAVICON = "favicon"
     case MEDIUM = "medium"
+}
+
+public enum XPhotoViewPermission  : Int
+{
+    case zero = 0
+    case one = 1
+    case two = 2
+    case three = 3
+    case four = 4
 }
 
 public enum ConsentProcessThrough : String
@@ -345,21 +371,6 @@ public extension String
     }
 }
 
-extension Error
-{
-    var code : Int
-    {
-        return ( self as NSError ).code
-    }
-    
-    var description : String
-    {
-        return ( self as NSError ).localizedDescription
-    }
-    
-    
-}
-
 extension Formatter
 {
     static let iso8601 : DateFormatter = {
@@ -522,45 +533,54 @@ internal func getFileSize( filePath : String ) -> Int64
     return 0
 }
 
+internal struct APIConstants
+{
+    static let BOUNDARY = String( format : "unique-consistent-string-%@", UUID.init().uuidString )
+    static let LEADS : String = "Leads"
+    static let ACCOUNTS : String = "Accounts"
+    static let CONTACTS : String = "Contacts"
+    static let DEALS : String = "Deals"
+    static let QUOTES : String = "Quotes"
+    static let SALESORDERS : String = "SalesOrders"
+    static let INVOICES : String = "Invoices"
+    static let PURCHASEORDERS : String = "PurchaseOrders"
+    
+    static let ACTION : String = "action"
+    static let DUPLICATE_FIELD : String = "duplicate_field"
+    
+    static let MESSAGE : String = "message"
+    static let STATUS : String = "status"
+    static let CODE : String = "code"
+    static let CODE_ERROR : String = "error"
+    static let CODE_SUCCESS : String = "success"
+    static let INFO : String = "info"
+    static let DETAILS : String = "details"
+    
+    static let MODULES : String = "modules"
+    static let PRIVATE_FIELDS = "private_fields"
+    static let PER_PAGE : String = "per_page"
+    static let PAGE : String = "page"
+    static let COUNT : String = "count"
+    static let MORE_RECORDS : String = "more_records"
+    
+    static let REMAINING_COUNT_FOR_THIS_DAY : String = "X-RATELIMIT-LIMIT"
+    static let REMAINING_COUNT_FOR_THIS_WINDOW : String = "X-RATELIMIT-REMAINING"
+    static let REMAINING_TIME_FOR_THIS_WINDOW_RESET : String = "X-RATELIMIT-RESET"
+    
+    static let STRING_MOCK : String = "SDK_NIL"
+    static let INT_MOCK : Int = -555
+    static let INT64_MOCK : Int64 = -555
+    static let DOUBLE_MOCK : Double = -55.5555555555555555
+    static let BOOL_MOCK : Bool = false
+    
+    static let MAX_ALLOWED_FILE_SIZE_IN_MB : Int = 20
+}
+
 var APPTYPE : String = "ZCRM"
 var APIBASEURL : String = String()
 var ACCOUNTSURL : String = String()
 var APIVERSION : String = String()
 var COUNTRYDOMAIN : String = "com"
-let PHOTOURL : URL = URL( string : "https://profile.zoho.com/api/v1/user/self/photo" )!
-
-let BOUNDARY = String( format : "unique-consistent-string-%@", UUID.init().uuidString )
-let LEADS : String = "Leads"
-let ACCOUNTS : String = "Accounts"
-let CONTACTS : String = "Contacts"
-let DEALS : String = "Deals"
-let QUOTES : String = "Quotes"
-let SALESORDERS : String = "SalesOrders"
-let INVOICES : String = "Invoices"
-let PURCHASEORDERS : String = "PurchaseOrders"
-
-let ACTION : String = "action"
-let DUPLICATE_FIELD : String = "duplicate_field"
-
-let MESSAGE : String = "message"
-let STATUS : String = "status"
-let CODE : String = "code"
-let CODE_ERROR : String = "error"
-let CODE_SUCCESS : String = "success"
-let INFO : String = "info"
-let DETAILS : String = "details"
-
-let MODULES : String = "modules"
-let PRIVATE_FIELDS = "private_fields"
-let PER_PAGE : String = "per_page"
-let PAGE : String = "page"
-let COUNT : String = "count"
-let MORE_RECORDS : String = "more_records"
-
-let REMAINING_COUNT_FOR_THIS_DAY : String = "X-RATELIMIT-LIMIT"
-let REMAINING_COUNT_FOR_THIS_WINDOW : String = "X-RATELIMIT-REMAINING"
-let REMAINING_TIME_FOR_THIS_WINDOW_RESET : String = "X-RATELIMIT-RESET"
-
 
 struct JSONRootKey {
     static let DATA : String = "data"
@@ -576,6 +596,7 @@ struct JSONRootKey {
     static let ROLES : String = "roles"
     static let ANALYTICS : String = "Analytics"
     static let STAGES : String = "stages"
+    static let TAXES : String = "taxes"
 }
 
 //MARK:- RESULT TYPES
@@ -627,8 +648,6 @@ public struct Result {
             } // switch
         } // func ends
     }
-    
-    
 } // struct ends ..
 
 func typeCastToZCRMError(_ error:Error) -> ZCRMError {
@@ -638,4 +657,24 @@ func typeCastToZCRMError(_ error:Error) -> ZCRMError {
     return typecastedError
 }
 
+func getUserDelegate( userJSON : [ String : Any ] ) -> ZCRMUserDelegate
+{
+    let user : ZCRMUserDelegate = ZCRMUserDelegate( id : userJSON.getInt64( key : "id" ), name : userJSON.getString( key : "name" ) )
+    return user
+}
 
+func setUserDelegate( userObj : ZCRMUserDelegate ) -> [ String : Any ]
+{
+    var userJSON : [String:Any] = [String:Any]()
+    userJSON[ "id" ] = userObj.id
+    userJSON[ "name" ] = userObj.name
+    return userJSON
+}
+
+func idMockValueCheck( id : Int64 ) throws
+{
+    if id == APIConstants.INT64_MOCK
+    {
+        throw ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : ErrorMessage.INVALID_ID_MSG )
+    }
+}

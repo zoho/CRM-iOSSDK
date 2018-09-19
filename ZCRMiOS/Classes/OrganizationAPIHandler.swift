@@ -43,103 +43,103 @@ internal class OrganizationAPIHandler : CommonAPIHandler
         let organization : ZCRMOrganisation = ZCRMOrganisation()
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.id ) )
         {
-            organization.setOrgId( orgId : orgDetails.getInt64( key : ResponseJSONKeys.id ) )
+            organization.orgId = orgDetails.getInt64( key : ResponseJSONKeys.id )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.fax ) )
         {
-            organization.setFax( fax : orgDetails.getString( key : ResponseJSONKeys.fax ) )
+            organization.fax = orgDetails.getString( key : ResponseJSONKeys.fax )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.companyName ) )
         {
-            organization.setCompanyName( companyName : orgDetails.getString( key : ResponseJSONKeys.companyName ) )
+            organization.orgName = orgDetails.getString( key : ResponseJSONKeys.companyName )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.alias ) )
         {
-            organization.setAlias( alias : orgDetails.getString( key : ResponseJSONKeys.alias) )
+            organization.alias = orgDetails.getString( key : ResponseJSONKeys.alias)
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.primaryZUID ) )
         {
-            organization.setPrimaryZuid( zuid : orgDetails.getInt64( key : ResponseJSONKeys.primaryZUID ) )
+            organization.primary_zuid = orgDetails.getInt64( key : ResponseJSONKeys.primaryZUID )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.ZGID ) )
         {
-            organization.setZgid( zgid : orgDetails.getInt64( key : ResponseJSONKeys.ZGID ) )
+            organization.zgid = orgDetails.getInt64( key : ResponseJSONKeys.ZGID )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.phone ) )
         {
-            organization.setPhone( phone : orgDetails.getString( key : ResponseJSONKeys.phone ) )
+            organization.phone = orgDetails.getString( key : ResponseJSONKeys.phone )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.mobile ) )
         {
-            organization.setMobile( mobile : orgDetails.getString( key : ResponseJSONKeys.mobile ) )
+            organization.mobile = orgDetails.getString( key : ResponseJSONKeys.mobile )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.website ) )
         {
-            organization.setWebsite( website : orgDetails.getString( key : ResponseJSONKeys.website ) )
+            organization.website = orgDetails.getString( key : ResponseJSONKeys.website )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.primaryEmail ) )
         {
-            organization.setPrimaryEmail( email : orgDetails.getString( key : ResponseJSONKeys.primaryEmail ) )
+            organization.primary_email = orgDetails.getString( key : ResponseJSONKeys.primaryEmail )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.employeeCount ) )
         {
-            organization.setEmployeeCount( count : orgDetails.getString( key : ResponseJSONKeys.employeeCount ) )
+            organization.employee_count = orgDetails.getString( key : ResponseJSONKeys.employeeCount )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.description ) )
         {
-            organization.setDescription( description : orgDetails.getString( key : ResponseJSONKeys.description ) )
+            organization.description = orgDetails.getString( key : ResponseJSONKeys.description )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.timeZone ) )
         {
-            organization.setTimeZone( timeZone : orgDetails.getString( key : ResponseJSONKeys.timeZone ) )
+            organization.time_zone = orgDetails.getString( key : ResponseJSONKeys.timeZone )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.ISOCode ) )
         {
-            organization.setIsoCode( isoCode : orgDetails.getString( key : ResponseJSONKeys.ISOCode ) )
+            organization.iso_code = orgDetails.getString( key : ResponseJSONKeys.ISOCode )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.currencyLocale ) )
         {
-            organization.setCurrencyLocale( currencyLocale : orgDetails.getString( key : ResponseJSONKeys.currencyLocale ) )
+            organization.currency_locale = orgDetails.getString( key : ResponseJSONKeys.currencyLocale )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.currencySymbol ) )
         {
-            organization.setCurrencySymbol( currencySymbol : orgDetails.getString( key : ResponseJSONKeys.currencySymbol ) )
+            organization.currency_symbol = orgDetails.getString( key : ResponseJSONKeys.currencySymbol )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.street ) )
         {
-            organization.setStreet( street : orgDetails.getString( key : ResponseJSONKeys.street ) )
+            organization.street = orgDetails.getString( key : ResponseJSONKeys.street )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.city ) )
         {
-            organization.setCity( city : orgDetails.getString( key : ResponseJSONKeys.city ) )
+            organization.city = orgDetails.getString( key : ResponseJSONKeys.city )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.state ) )
         {
-            organization.setState( state : orgDetails.getString( key : ResponseJSONKeys.state ) )
+            organization.state = orgDetails.getString( key : ResponseJSONKeys.state )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.country ) )
         {
-            organization.setCountry( country : orgDetails.getString( key : ResponseJSONKeys.country ) )
+            organization.country = orgDetails.getString( key : ResponseJSONKeys.country )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.countryCode ) )
         {
-            organization.setCountryCode( countryCode : orgDetails.getString( key : ResponseJSONKeys.countryCode ) )
+            organization.country_code = orgDetails.getString( key : ResponseJSONKeys.countryCode )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.zip ) )
         {
-            organization.setZipCode( zipCode : orgDetails.getString( key : ResponseJSONKeys.zip ) )
+            organization.zipcode = orgDetails.getString( key : ResponseJSONKeys.zip )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.mcStatus ) )
         {
-            organization.setMcStatus( mcStatus : orgDetails.getBoolean( key : ResponseJSONKeys.mcStatus ) )
+            organization.mc_status = orgDetails.getBoolean( key : ResponseJSONKeys.mcStatus )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.gappsEnabled ) )
         {
-            organization.setGappsEnabled( gappsEnabled : orgDetails.getBoolean( key : ResponseJSONKeys.gappsEnabled ) )
+            organization.gapps_enabled = orgDetails.getBoolean( key : ResponseJSONKeys.gappsEnabled )
         }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.privacySettings ) )
         {
-            organization.setPrivacySettingsEnabled( privacyEnabled : orgDetails.getBoolean( key : ResponseJSONKeys.privacySettings ) )
+            organization.privacySettingsEnable = orgDetails.getBoolean( key : ResponseJSONKeys.privacySettings )
         }
         return organization
     }
