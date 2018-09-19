@@ -8,16 +8,16 @@
 
 public class ZCRMModuleRelation : ZCRMEntity
 {
-	var apiName : String = APIConstants.STRING_MOCK
+	public var apiName : String = APIConstants.STRING_MOCK
 	var parentModuleAPIName : String = APIConstants.STRING_MOCK
-	var childModuleAPIName : String = APIConstants.STRING_MOCK
-	var label : String = APIConstants.STRING_MOCK
-	var id : Int64 = APIConstants.INT64_MOCK
-	var visible : Bool = APIConstants.BOOL_MOCK
-	var isDefault : Bool = APIConstants.BOOL_MOCK
-    var name : String = APIConstants.STRING_MOCK
-    var type : String = APIConstants.STRING_MOCK
-    var module : String = APIConstants.STRING_MOCK
+	public var childModuleAPIName : String = APIConstants.STRING_MOCK
+	public var label : String = APIConstants.STRING_MOCK
+	public var id : Int64 = APIConstants.INT64_MOCK
+	public var visible : Bool = APIConstants.BOOL_MOCK
+	public var isDefault : Bool = APIConstants.BOOL_MOCK
+    public var name : String = APIConstants.STRING_MOCK
+    public var type : String = APIConstants.STRING_MOCK
+    public var module : String = APIConstants.STRING_MOCK
 
     
     /// Initialize the instance of a ZCRMModuleRelation with the given module and related list
@@ -25,13 +25,13 @@ public class ZCRMModuleRelation : ZCRMEntity
     /// - Parameters:
     ///   - relatedListAPIName: relatedListAPIName whose instance to be initialized
     ///   - parentModuleAPIName: parentModuleAPIName to get that module's relation
-    public init( relatedListAPIName : String, parentModuleAPIName : String )
+    internal init( relatedListAPIName : String, parentModuleAPIName : String )
     {
         self.apiName = relatedListAPIName
         self.parentModuleAPIName = parentModuleAPIName
     }
     
-    public init( parentModuleAPIName : String, relatedListId : Int64 )
+    internal init( parentModuleAPIName : String, relatedListId : Int64 )
     {
         self.parentModuleAPIName = parentModuleAPIName
         self.id = relatedListId

@@ -15,14 +15,15 @@ open class ZCRMDataProcessBasicDetails
     var modifiedBy : ZCRMUserDelegate = USER_MOCK
     var createdTime : String = APIConstants.STRING_MOCK
     var createdBy : ZCRMUserDelegate = USER_MOCK
-    var lawfulReason : String?
     var mailSentTime : String?
-    var consentDate : String
-    var id : Int64 = APIConstants.INT64_MOCK
-    var consentRemarks : String?
-    var consentEndsOn : String?
-    var consentThrough : String
     var dataProcessingBasis : String // Consent - obtained use enum for consent type
+    var id : Int64 = APIConstants.INT64_MOCK
+    
+    public var lawfulReason : String?
+    public var consentDate : String?
+    public var consentRemarks : String?
+    public var consentEndsOn : String?
+    public var consentThrough : String?
     
     init( dataProcessingBasis : String, consentThrough : String, consentDate : String, consentProcessThroughList : [ String ] ) {
         self.dataProcessingBasis = dataProcessingBasis

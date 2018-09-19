@@ -405,15 +405,15 @@ internal class EntityAPIHandler : CommonAPIHandler
     }
     
     
-    internal func getZCRMRecordAsJSON() -> [String:Any?]
+    internal func getZCRMRecordAsJSON() -> [String:Any]
     {
-        var recordJSON : [ String : Any? ] = [ String : Any? ]()
-        let recordData : [ String : Any? ] = self.record.getData()
+        var recordJSON : [ String : Any ] = [ String : Any ]()
+        let recordData : [ String : Any ] = self.record.getData()
         if ( self.record.owner.id != APIConstants.INT64_MOCK )
         {
             recordJSON[ ResponseJSONKeys.owner ] = self.record.owner.id
         }
-        if ( self.record.layout.layoutId != LAYOUT_NIL.layoutId )
+        if ( self.record.layout.layoutId != LAYOUT_MOCK.layoutId )
         {
             recordJSON[ ResponseJSONKeys.layout ] = self.record.layout.layoutId
         }
@@ -904,8 +904,16 @@ internal class EntityAPIHandler : CommonAPIHandler
         let id : Int64 = participantDetails.getInt64( key : ResponseJSONKeys.participant )
         let type : String = participantDetails.getString( key : ResponseJSONKeys.type )
         let participant : ZCRMEventParticipant = ZCRMEventParticipant(type : type, id : id )
+        if type == "email"
+        {
+            participant.email =  participantDetails.getString( key : ResponseJSONKeys.participant )
+        }
+        else
+        {
+            participant.entity = ZCRMRecordDelegate( recordId : Int64( participantDetails.getString( key : ResponseJSONKeys.participant ) ) ?? APIConstants.INT64_MOCK, moduleAPIName : type )
+            participant.email =  participantDetails.getString( key : ConsentProcessThrough.EMAIL.rawValue )
+        }
         participant.name = participantDetails.getString( key : ResponseJSONKeys.name )
-        participant.email =  participantDetails.getString( key : ConsentProcessThrough.EMAIL.rawValue )
         participant.status = participantDetails.getString( key : ResponseJSONKeys.status )
         participant.isInvited = participantDetails.getBoolean( key : ResponseJSONKeys.invited ) 
         return participant
@@ -921,7 +929,7 @@ fileprivate extension EntityAPIHandler
         static let tagNames = "tag_names"
         static let overWrite = "over_write"
     }
-    struct  ResponseJSONKeys
+    struct ResponseJSONKeys
     {
         static let id = "id"
         static let name = "name"

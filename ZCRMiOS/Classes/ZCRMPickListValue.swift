@@ -12,10 +12,10 @@ open class ZCRMPickListValue
 {
     public var displayName : String
     public var actualName : String
-    public var sequenceNumber : Int = APIConstants.INT_MOCK
+    var sequenceNumber : Int = APIConstants.INT_MOCK
     public var maps : Array< Dictionary < String, Any > > = Array< Dictionary < String, Any > >()
     
-    init( displayName : String, actualName : String )
+    internal init( displayName : String, actualName : String )
     {
         self.displayName = displayName
         self.actualName = actualName

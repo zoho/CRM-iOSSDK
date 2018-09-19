@@ -8,7 +8,6 @@
 
 open class ZCRMModule : ZCRMModuleDelegate
 {
-    var moduleAPIName : String
     var singularLabel : String
     var pluralLabel : String
     var id : Int64 = APIConstants.INT64_MOCK
@@ -20,8 +19,8 @@ open class ZCRMModule : ZCRMModuleDelegate
     public var editable : Bool = APIConstants.BOOL_MOCK
     public var deletable : Bool = APIConstants.BOOL_MOCK
     
-    public var modifiedBy : ZCRMUserDelegate = USER_MOCK
-    public var modifiedTime : String = APIConstants.STRING_MOCK
+    var modifiedBy : ZCRMUserDelegate = USER_MOCK
+    var modifiedTime : String = APIConstants.STRING_MOCK
     
     public var allowedProfiles : [ZCRMProfileDelegate]?
     public var relatedLists : [ZCRMModuleRelation]?
@@ -32,33 +31,32 @@ open class ZCRMModule : ZCRMModuleDelegate
     public var apiSupported : Bool = APIConstants.BOOL_MOCK
     public var quickCreate : Bool = APIConstants.BOOL_MOCK
     public var scoringSupported : Bool = APIConstants.BOOL_MOCK
-    public var sequenceNumber : Int = APIConstants.INT_MOCK
+    public var sequenceNumber : Int?
     public var generatedType : String = APIConstants.STRING_MOCK
-    public var businessCardFieldLimit : Int = APIConstants.INT_MOCK
+    public var businessCardFieldLimit : Int?
     public var webLink : String?
     
-    public var arguments : [ [ String : Any ] ] = [ [ String : Any ] ]()
+    public var arguments : [ [ String : Any ] ]?
     public var properties : [ String ] = [ APIConstants.STRING_MOCK ]
     
-    public var displayField : String = APIConstants.STRING_MOCK
-    public var searchLayoutFields : [ String ] = [ String ]()
+    public var displayField : String?
+    public var searchLayoutFields : [ String ]?
     public var parentModule : ZCRMModule?
     public var customView : ZCRMCustomView?
     
     public var isKanbanView : Bool = APIConstants.BOOL_MOCK
     public var filterStatus : Bool = APIConstants.BOOL_MOCK
     public var isSubMenuPresent : Bool = APIConstants.BOOL_MOCK
-    public var perPage : Int = APIConstants.INT_MOCK
+    public var perPage : Int?
     public var isFilterSupported : Bool = APIConstants.BOOL_MOCK
     public var isFeedsRequired : Bool = APIConstants.BOOL_MOCK
-    public var parenModule : ZCRMModuleDelegate?
+    var parenModule : ZCRMModuleDelegate?
     
-    public init( moduleAPIName : String, singularLabel : String, pluralLabel : String )
+    public init( apiName : String, singularLabel : String, pluralLabel : String )
     {
-		self.moduleAPIName = moduleAPIName
         self.singularLabel = singularLabel
         self.pluralLabel = pluralLabel
-        super.init( apiName : moduleAPIName )
+        super.init( apiName : apiName )
 	}
     
     func addAllowdProfile( profile : ZCRMProfileDelegate )

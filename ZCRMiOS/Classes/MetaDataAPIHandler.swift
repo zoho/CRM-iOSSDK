@@ -66,7 +66,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
 	
 	private func getZCRMModule(moduleDetails : [String:Any]) -> ZCRMModule
 	{
-        let module : ZCRMModule = ZCRMModule( moduleAPIName : moduleDetails.getString(key: ResponseJSONKeys.apiName), singularLabel: moduleDetails.getString(key: ResponseJSONKeys.singularLabel), pluralLabel: moduleDetails.getString(key: ResponseJSONKeys.pluralLabel))
+        let module : ZCRMModule = ZCRMModule( apiName : moduleDetails.getString(key: ResponseJSONKeys.apiName), singularLabel: moduleDetails.getString(key: ResponseJSONKeys.singularLabel), pluralLabel: moduleDetails.getString(key: ResponseJSONKeys.pluralLabel))
         module.id = moduleDetails.getInt64(key: ResponseJSONKeys.id)
         module.systemName = moduleDetails.getString(key: ResponseJSONKeys.moduleName)
         module.generatedType = moduleDetails.getString(key: ResponseJSONKeys.generatedType)

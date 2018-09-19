@@ -15,19 +15,19 @@ public class ZCRMUser : ZCRMUserDelegate
     var zuId : Int64 = APIConstants.INT64_MOCK
     
     public var fullName : String = APIConstants.STRING_MOCK
-    public var firstName : String = APIConstants.STRING_MOCK
-    public var alias : String = APIConstants.STRING_MOCK
-    public var dateOfBirth : String = APIConstants.STRING_MOCK
+    public var firstName : String?
+    public var alias : String?
+    public var dateOfBirth : String?
     
-    public var mobile : String = APIConstants.STRING_MOCK
-    public var phone : String = APIConstants.STRING_MOCK
-    public var fax : String = APIConstants.STRING_MOCK
+    public var mobile : String?
+    public var phone : String?
+    public var fax : String?
     
     public var language : String = APIConstants.STRING_MOCK
-    public var street : String = APIConstants.STRING_MOCK
-    public var city : String = APIConstants.STRING_MOCK
-    public var state : String = APIConstants.STRING_MOCK
-    public var zip : Int64 = APIConstants.INT64_MOCK
+    public var street : String?
+    public var city : String?
+    public var state : String?
+    public var zip : Int64?
     public var country : String = APIConstants.STRING_MOCK
     public var locale : String = APIConstants.STRING_MOCK
     public var countryLocale : String = APIConstants.STRING_MOCK
@@ -37,19 +37,19 @@ public class ZCRMUser : ZCRMUserDelegate
     public var timeFormat : String = APIConstants.STRING_MOCK
     
     public var timeZone : String = APIConstants.STRING_MOCK
-    public var website : String = APIConstants.STRING_MOCK
-    public var confirm : Bool = APIConstants.BOOL_MOCK
+    public var website : String?
+    var confirm : Bool = APIConstants.BOOL_MOCK
     public var status : String = APIConstants.STRING_MOCK
     
-    public var createdBy : ZCRMUserDelegate = USER_MOCK
-    public var createdTime : String = APIConstants.STRING_MOCK
-    public var modifiedBy : ZCRMUserDelegate = USER_MOCK
-    public var modifiedTime : String = APIConstants.STRING_MOCK
+    var createdBy : ZCRMUserDelegate?
+    var createdTime : String?
+    var modifiedBy : ZCRMUserDelegate?
+    var modifiedTime : String?
     public var reportingTo : ZCRMUserDelegate = USER_MOCK
     
     public var fieldNameVsValue : [ String : Any ] = [ String : Any ]()
     
-    init( lastName : String, emailId : String, role : ZCRMRoleDelegate, profile : ZCRMProfileDelegate )
+    internal init( lastName : String, emailId : String, role : ZCRMRoleDelegate, profile : ZCRMProfileDelegate )
     {
         self.lastName = lastName
         self.emailId = emailId

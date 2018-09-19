@@ -15,7 +15,7 @@ open class ZCRMOrgTax : ZCRMEntity
     private var value : Double = APIConstants.DOUBLE_MOCK
     private var sequenceNumber : Int = APIConstants.INT_MOCK
     
-    public init( id : Int64, taxName : String )
+    internal init( id : Int64, taxName : String )
     {
         self.id = id
         self.name = taxName

@@ -10,14 +10,14 @@ import Foundation
 
 open class ZCRMTrashRecord : ZCRMEntity
 {
-    public var entityId : Int64
+    var entityId : Int64
     public var type : String
     public var displayName : String = APIConstants.STRING_MOCK
-    public var deletedTime : String = APIConstants.STRING_MOCK
-    public var deletedBy : ZCRMUserDelegate = USER_MOCK
-    public var createdBy : ZCRMUserDelegate = USER_MOCK
+    var deletedTime : String = APIConstants.STRING_MOCK
+    var deletedBy : ZCRMUserDelegate = USER_MOCK
+    var createdBy : ZCRMUserDelegate = USER_MOCK
     
-    public init( type : String, entityId : Int64 )
+    internal init( type : String, entityId : Int64 )
     {
         self.entityId = entityId
         self.type = type

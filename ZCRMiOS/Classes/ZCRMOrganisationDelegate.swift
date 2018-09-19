@@ -7,6 +7,8 @@
 
 open class ZCRMOrganisationDelegate : ZCRMEntity
 {
+    internal init() {}
+    
     func createNewUser( lastName : String, email : String, role : ZCRMRoleDelegate, profile : ZCRMProfileDelegate ) -> ZCRMUser
     {
         return ZCRMUser( lastName : lastName, emailId : email, role : role, profile : profile )

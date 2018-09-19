@@ -668,3 +668,11 @@ func setUserDelegate( userObj : ZCRMUserDelegate ) -> [ String : Any ]
     userJSON[ "name" ] = userObj.name
     return userJSON
 }
+
+func idMockValueCheck( id : Int64 ) throws
+{
+    if id == APIConstants.INT64_MOCK
+    {
+        throw ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : ErrorMessage.INVALID_ID_MSG )
+    }
+}

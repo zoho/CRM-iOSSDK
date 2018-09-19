@@ -15,7 +15,7 @@ open class ZCRMPriceBookPricing
     public var discount : Double = APIConstants.DOUBLE_MOCK
     
     /// Initialise the instance of the ZCRMPriceBookePricing.
-    public init( id : Int64 )
+    internal init( id : Int64 )
     {
         self.id = id
     }

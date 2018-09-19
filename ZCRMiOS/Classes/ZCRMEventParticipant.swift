@@ -16,7 +16,8 @@ open class ZCRMEventParticipant
     public var type : String
     public var isInvited : Bool = APIConstants.BOOL_MOCK
     public var status : String = APIConstants.STRING_MOCK
-    
+    public var entity : ZCRMRecordDelegate?
+
     /// Initialise the ZCRMEventParticipant
     ///
     /// - Parameters:
@@ -26,5 +27,11 @@ open class ZCRMEventParticipant
     {
         self.type = type
         self.id = id
+    }
+    
+    public init( type : String )
+    {
+        self.type = type
+        self.id = APIConstants.INT64_MOCK
     }
 }

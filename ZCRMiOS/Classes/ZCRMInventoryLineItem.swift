@@ -9,7 +9,7 @@
 public class ZCRMInventoryLineItem
 {
 	public var product : ZCRMRecordDelegate = RECORD_MOCK
-	public var id : Int64 = APIConstants.INT64_MOCK
+	var id : Int64 = APIConstants.INT64_MOCK
 	public var listPrice : Double = APIConstants.DOUBLE_MOCK
 	public var quantity : Double = APIConstants.DOUBLE_MOCK
 	public var description : String?
@@ -18,7 +18,7 @@ public class ZCRMInventoryLineItem
 	public var discountPercentage : Double = APIConstants.DOUBLE_MOCK
 	public var totalAfterDiscount : Double = APIConstants.DOUBLE_MOCK
 	public var tax : Double = APIConstants.DOUBLE_MOCK
-	public var lineTaxes : [ZCRMTax] = [ZCRMTax]()
+	public var lineTaxes : [ZCRMTax] = [ ZCRMTax ]()
 	public var netTotal : Double = APIConstants.DOUBLE_MOCK
 	public var deleteFlag : Bool = APIConstants.BOOL_MOCK
 	
@@ -34,7 +34,7 @@ public class ZCRMInventoryLineItem
     ///
     /// - Parameters:
     ///   - lineItemId: Id to get that ZCRMInventoryLineItem instance
-	public init(lineItemId : Int64)
+	internal init(lineItemId : Int64)
 	{
 		self.id = lineItemId
 	}

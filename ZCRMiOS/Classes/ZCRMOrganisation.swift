@@ -38,8 +38,6 @@ public class ZCRMOrganisation : ZCRMEntity
     public var mc_status : Bool = APIConstants.BOOL_MOCK
     public var gapps_enabled : Bool = APIConstants.BOOL_MOCK
     public var privacySettingsEnable : Bool = APIConstants.BOOL_MOCK
-    
-    public init() {}
 }
 
 

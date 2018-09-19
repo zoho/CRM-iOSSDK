@@ -367,13 +367,13 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 	{
         if let relatedList = self.relatedList
         {
-            if note.noteId == APIConstants.INT64_MOCK
+            if note.id == APIConstants.INT64_MOCK
             {
                 completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Note ID MUST NOT be nil" ) ) )
             }
             else
             {
-                let noteId : String = String( note.noteId )
+                let noteId : String = String( note.id )
                 var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
                 var dataArray : [[String:Any]] = [[String:Any]]()
                 dataArray.append(self.getZCRMNoteAsJSON(note: note))
@@ -435,9 +435,12 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 	
 	private func getZCRMAttachment(attachmentDetails : [String:Any?]) -> ZCRMAttachment
 	{
-        let fileName : String = attachmentDetails.optString( key : ResponseJSONKeys.fileName )!
-        let attachment : ZCRMAttachment = ZCRMAttachment(parentRecord: self.parentRecord, fileName: fileName)
-        attachment.fileType = fileName.pathExtension()
+        let attachment : ZCRMAttachment = ZCRMAttachment( parentRecord : self.parentRecord )
+        if let fileName : String = attachmentDetails.optString( key : ResponseJSONKeys.fileName )
+        {
+            attachment.fileName = fileName
+            attachment.fileExtension = fileName.pathExtension()
+        }
         if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.size))
         {
             attachment.fileSize = Int64(attachmentDetails.getInt64(key: ResponseJSONKeys.size))
@@ -480,7 +483,8 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 	
     private func getZCRMNote(noteDetails : [String:Any?]) -> ZCRMNote
 	{
-        let note : ZCRMNote = ZCRMNote(content: noteDetails.getString( key : ResponseJSONKeys.noteContent ), parentRecord: self.parentRecord)
+        let note : ZCRMNote = ZCRMNote( content : noteDetails.getString( key : ResponseJSONKeys.noteContent ) )
+        note.parentRecord = self.parentRecord
         note.title = noteDetails.optString( key : ResponseJSONKeys.noteTitle )
         if ( noteDetails.hasValue( forKey : ResponseJSONKeys.createdBy ) )
         {
@@ -540,9 +544,9 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         {
             var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
             var dataArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
-            if( junctionRecord.relatedDetails.isEmpty == false )
+            if let junctionRecordRelateDetails = junctionRecord.relatedDetails
             {
-                dataArray.append( self.getRelationDetailsAsJSON( releatedDetails : junctionRecord.relatedDetails ) as Any as! [ String : Any ] )
+                dataArray.append( self.getRelationDetailsAsJSON( releatedDetails : junctionRecordRelateDetails ) as Any as! [ String : Any ] )
             }
             else
             {

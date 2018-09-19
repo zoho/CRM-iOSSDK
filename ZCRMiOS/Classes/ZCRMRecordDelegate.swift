@@ -7,7 +7,7 @@
 
 open class ZCRMRecordDelegate : ZCRMEntity
 {
-    var recordId : Int64
+    public var recordId : Int64
     var moduleAPIName : String
     
     init ( recordId : Int64, moduleAPIName : String )
@@ -170,7 +170,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if Note id is not nil
     public func addNote(note: ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
     {
-        if( note.noteId != APIConstants.INT64_MOCK )
+        if( note.id != APIConstants.INT64_MOCK )
         {
             completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Note ID must be nil for create operation." ) ) )
         }
@@ -189,7 +189,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if Note id is nil
     public func updateNote(note: ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> ())
     {
-        if( note.noteId != APIConstants.INT64_MOCK )
+        if( note.id != APIConstants.INT64_MOCK )
         {
             completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Note ID must not be nil for update operation." ) ) )
         }

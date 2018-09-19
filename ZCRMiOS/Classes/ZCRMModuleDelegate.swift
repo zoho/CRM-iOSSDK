@@ -9,7 +9,7 @@ import Foundation
 
 open class ZCRMModuleDelegate : ZCRMEntity
 {
-    var apiName : String
+    public var apiName : String
     
     init( apiName : String )
     {
@@ -676,6 +676,14 @@ open class ZCRMModuleDelegate : ZCRMEntity
     
     public func createTags( tags : [ZCRMTag], completion : @escaping ( Result.DataResponse< [ ZCRMTag ], BulkAPIResponse > ) -> () )
     {
+        for tag in tags
+        {
+            if tag.tagId != APIConstants.INT64_MOCK
+            {
+                completion( .failure( ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : "tag Id should be nil" ) ) )
+                return
+            }
+        }
         TagAPIHandler(module: self).createTags(tags: tags, completion: { ( result ) in
             completion( result )
         } )
@@ -683,6 +691,19 @@ open class ZCRMModuleDelegate : ZCRMEntity
     
     public func updateTags(tags : [ZCRMTag], completion : @escaping ( Result.DataResponse< [ ZCRMTag ], BulkAPIResponse > ) -> () )
     {
+        for tag in tags
+        {
+            if tag.tagId == APIConstants.INT64_MOCK
+            {
+                completion( .failure( ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : ErrorMessage.INVALID_ID_MSG ) ) )
+                return
+            }
+            if tag.tagName == APIConstants.STRING_MOCK
+            {
+                completion( .failure( ZCRMError.InValidError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "tag name must not be nil" ) ) )
+                return
+            }
+        }
         TagAPIHandler(module: self).updateTags(tags: tags, completion: { ( result ) in
             completion( result )
         } )

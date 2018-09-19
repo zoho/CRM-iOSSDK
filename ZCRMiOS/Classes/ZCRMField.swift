@@ -16,16 +16,16 @@ open class ZCRMField : ZCRMEntity
 	public var visible : Bool = APIConstants.BOOL_MOCK
 	public var mandatory : Bool = APIConstants.BOOL_MOCK
 	public var customField : Bool = APIConstants.BOOL_MOCK
-	public var defaultValue : Any = APIConstants.BOOL_MOCK
+	public var defaultValue : Any?
 	public var maxLength : Int = APIConstants.INT_MOCK
-	public var precision : Int = APIConstants.INT_MOCK
-	public var sequenceNo : Int = APIConstants.INT_MOCK
-	public var subLayoutsPresent : [String] = [String]()
-	public var pickListValues : [ ZCRMPickListValue ] = [ ZCRMPickListValue ]()
+	public var precision : Int?
+	public var sequenceNo : Int?
+	public var subLayoutsPresent : [String]?
+	public var pickListValues : [ ZCRMPickListValue ]?
 	public var formulaReturnType : String?
 	public var formulaExpression : String?
     
-    public var tooltip : String = APIConstants.STRING_MOCK
+    public var tooltip : String?
     public var webhook : Bool = APIConstants.BOOL_MOCK
     public var isRestricted : Bool?
     public var restrictedType : String?
@@ -34,11 +34,11 @@ open class ZCRMField : ZCRMEntity
     public var bussinessCardSupported : Bool?
     
     public var roundingOption : CurrencyRoundingOption?
-    public var decimalPlace : Int = APIConstants.INT_MOCK
-    public var lookup : [String : Any] = [ String : Any ]()
-    public var multiSelectLookup : [String : Any] = [ String : Any ]()
+    public var decimalPlace : Int?
+    public var lookup : [String : Any]?
+    public var multiSelectLookup : [String : Any]?
     public var subFormTabId : Int64?
-    public var subForm : [String : Any] = [ String : Any ]()
+    public var subForm : [String : Any]?
     
     init( apiName : String )
     {
@@ -50,7 +50,11 @@ open class ZCRMField : ZCRMEntity
     /// - Parameter pickListValue: value to be added
     internal func addPickListValue( pickListValue : ZCRMPickListValue )
     {
-        self.pickListValues.append( pickListValue )
+        if self.pickListValues == nil
+        {
+            self.pickListValues = [ ZCRMPickListValue ]()
+        }
+        self.pickListValues?.append( pickListValue )
     }
 	
     /// Returns true if view type includes "create".
@@ -58,7 +62,7 @@ open class ZCRMField : ZCRMEntity
     /// - Returns: true if view type includes "create"
 	public func isPresentInCreateLayout() -> Bool?
 	{
-		return self.subLayoutsPresent.contains("CREATE")
+		return self.subLayoutsPresent?.contains("CREATE")
 	}
 	
     /// Returns true if view type includes "view".
@@ -66,7 +70,7 @@ open class ZCRMField : ZCRMEntity
     /// - Returns: true if view type includes "view"
 	public func isPresentInViewLayout() -> Bool?
 	{
-		return self.subLayoutsPresent.contains("VIEW")
+		return self.subLayoutsPresent?.contains("VIEW")
 	}
 	
     /// Returns true if view type includes "quick create".
@@ -74,7 +78,7 @@ open class ZCRMField : ZCRMEntity
     /// - Returns: true if view type includes "quick create"
 	public func isPresentInQuickCreateLayout() -> Bool?
 	{
-		return self.subLayoutsPresent.contains("QUICK_CREATE")
+		return self.subLayoutsPresent?.contains("QUICK_CREATE")
 	}
     
     /// Returns true if view type includes "edit".
@@ -82,6 +86,6 @@ open class ZCRMField : ZCRMEntity
     /// - Returns: true if view type includes "edit"
     public func isPresentInEditLayout() -> Bool?
     {
-        return self.subLayoutsPresent.contains("EDIT")
+        return self.subLayoutsPresent?.contains("EDIT")
     }
 }

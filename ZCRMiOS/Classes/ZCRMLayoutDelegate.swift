@@ -7,7 +7,7 @@
 
 open class ZCRMLayoutDelegate : ZCRMEntity
 {
-    var layoutId : Int64
+    public var layoutId : Int64
     var layoutName : String
     
     public init( layoutId : Int64, layoutName : String )
@@ -17,4 +17,4 @@ open class ZCRMLayoutDelegate : ZCRMEntity
     }
 }
 
-var LAYOUT_NIL : ZCRMLayoutDelegate = ZCRMLayoutDelegate(layoutId: APIConstants.INT64_MOCK, layoutName: APIConstants.STRING_MOCK)
+let LAYOUT_MOCK : ZCRMLayoutDelegate = ZCRMLayoutDelegate( layoutId : APIConstants.INT64_MOCK, layoutName : APIConstants.STRING_MOCK )

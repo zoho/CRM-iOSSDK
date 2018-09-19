@@ -68,19 +68,21 @@ public class ZCRMCachedModuleHandler
     
     private func setSectionDetails(layout : ZCRMLayout) throws
     {
-        let sections : [ZCRMSection] = layout.sections
-        for section in sections
+        if let sections = layout.sections
         {
-            try formDBHelper.insertSection(layoutId: layout.layoutId, section: section)
-            try self.setFieldDetails(layout: layout, section: section)
+            for section in sections
+            {
+                try formDBHelper.insertSection(layoutId: layout.layoutId, section: section)
+                try self.setFieldDetails(layout: layout, section: section)
+            }
         }
     }
     
     private func setProfileDetails(layout : ZCRMLayout) throws
     {
-        if(layout.accessibleProfiles.count > 0)
+        if(layout.accessibleProfiles != nil)
         {
-            let profiles : [ZCRMProfileDelegate] = layout.accessibleProfiles
+            let profiles : [ZCRMProfileDelegate] = layout.accessibleProfiles!
             for profile in profiles
             {
                 try formDBHelper.insertLayoutProfiles(layoutId: layout.layoutId, profile: profile)
@@ -90,20 +92,24 @@ public class ZCRMCachedModuleHandler
     
     private func setFieldDetails(layout : ZCRMLayout, section : ZCRMSection) throws
     {
-        let fields : [ZCRMField] = section.fields
-        for field in fields
+        if let fields = section.fields
         {
-            try formDBHelper.insertField(layoutId: layout.layoutId, sectionName: section.name, fields: field)
-            try self.setPickListDetails(layoutId: layout.layoutId, field: field)
+            for field in fields
+            {
+                try formDBHelper.insertField(layoutId: layout.layoutId, sectionName: section.name, fields: field)
+                try self.setPickListDetails(layoutId: layout.layoutId, field: field)
+            }
         }
     }
     
     private func setPickListDetails(layoutId : Int64, field: ZCRMField) throws
     {
-        let pickListValues : [ZCRMPickListValue] = field.pickListValues
-        for pickListValue in pickListValues
+        if let pickListValues = field.pickListValues
         {
-            try formDBHelper.insertFieldPickListValues(layoutId: layoutId, fieldId: field.id, pickListValue: pickListValue)
+            for pickListValue in pickListValues
+            {
+                try formDBHelper.insertFieldPickListValues(layoutId: layoutId, fieldId: field.id, pickListValue: pickListValue)
+            }
         }
     }
     

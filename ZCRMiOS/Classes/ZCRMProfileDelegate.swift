@@ -9,16 +9,16 @@ open class ZCRMProfileDelegate : ZCRMEntity
 {
     var profileId : Int64
     var profileName : String
-    var isDefault : Bool = APIConstants.BOOL_MOCK
+    public var isDefault : Bool = APIConstants.BOOL_MOCK
     
-    init( profileId : Int64, profileName : String, isDefault : Bool )
+    internal init( profileId : Int64, profileName : String, isDefault : Bool )
     {
         self.profileId = profileId
         self.profileName = profileName
         self.isDefault = isDefault
     }
     
-    init( profileId : Int64, profileName : String )
+    internal init( profileId : Int64, profileName : String )
     {
         self.profileId = profileId
         self.profileName = profileName

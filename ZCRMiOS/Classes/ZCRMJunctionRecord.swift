@@ -10,16 +10,16 @@ import Foundation
 
 open class ZCRMJunctionRecord
 {
-    public var apiName : String
+    var apiName : String
     public var id : Int64
-    public var relatedDetails : [ String : Any ] = [ String : Any ]()
+    public var relatedDetails : [ String : Any ]?
 
     /// Initialize the instance of a relation with the given record and related record.
     ///
     /// - Parameters:
     ///   - apiName: apiName whose instance to be initialized
     ///   - id: related record id
-    public init( apiName : String, id : Int64 )
+    internal init( apiName : String, id : Int64 )
     {
         self.apiName = apiName
         self.id = id
@@ -30,8 +30,12 @@ open class ZCRMJunctionRecord
     /// - Parameters:
     ///   - fieldAPIName: fieldAPIName to which the field value is mapped
     ///   - value: the field value to be mapped
-    public func setRelatedData( fieldAPIName : String, value : Any )
+    public func setField( fieldAPIName : String, value : Any )
     {
-        self.relatedDetails[fieldAPIName] = value
+        if self.relatedDetails == nil
+        {
+            self.relatedDetails = [ String : Any ]()
+        }
+        self.relatedDetails?[fieldAPIName] = value
     }
 }

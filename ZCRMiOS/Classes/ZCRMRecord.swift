@@ -13,21 +13,22 @@ public protocol ZCRMEntity
 
 open class ZCRMRecord : ZCRMRecordDelegate
 {
-    var fieldNameVsValue : [String:Any?] = [String:Any?]()
-    var properties : [String:Any?] = [ String : Any? ]()
-    var lookupLabel : String?
-    var lineItems : [ZCRMInventoryLineItem] = [ZCRMInventoryLineItem]()
-    var priceDetails : [ ZCRMPriceBookPricing ] = [ ZCRMPriceBookPricing ]()
-    var participants : [ ZCRMEventParticipant ] = [ ZCRMEventParticipant ]()
-    var tax : [ ZCRMTax ] = [ ZCRMTax ]()
+    public var fieldNameVsValue : [String:Any] = [ String : Any ]()
+    public var properties : [String:Any] = [ String : Any ]()
+    public var lookupLabel : String?
+    public var lineItems : [ZCRMInventoryLineItem] = [ZCRMInventoryLineItem]()
+    public var priceDetails : [ ZCRMPriceBookPricing ] = [ ZCRMPriceBookPricing ]()
+    public var participants : [ ZCRMEventParticipant ] = [ ZCRMEventParticipant ]()
+    public var tax : [ ZCRMTax ] = [ ZCRMTax ]()
+    public var tags : [ZCRMTag]?
+    public var dataProcessingBasicDetails : ZCRMDataProcessBasicDetails?
+    public var layout : ZCRMLayoutDelegate = LAYOUT_MOCK
+    
     var owner : ZCRMUserDelegate = USER_MOCK
     var createdBy : ZCRMUserDelegate = USER_MOCK
     var modifiedBy : ZCRMUserDelegate = USER_MOCK
-    var createdTime : String  = APIConstants.STRING_MOCK
-    var modifiedTime : String  = APIConstants.STRING_MOCK
-    var layout : ZCRMLayoutDelegate = LAYOUT_NIL
-    var tags : [ZCRMTag] = [ZCRMTag]()
-    var dataProcessingBasicDetails : ZCRMDataProcessBasicDetails?
+    var createdTime : String = APIConstants.STRING_MOCK
+    var modifiedTime : String = APIConstants.STRING_MOCK
     
     /// Initialize the ZCRMRecord with the given module.
     ///
@@ -74,7 +75,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     /// Returns the ZCRMRecord's fieldAPIName vs field value dictionary.
     ///
     /// - Returns: ZCRMRecord's fieldAPIName vs field value dictionary
-    public func getData() -> [String:Any?]
+    public func getData() -> [String:Any]
     {
         return self.fieldNameVsValue
     }
@@ -82,7 +83,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     /// Set the properties of the ZCRMRecord.
     ///
     /// - Parameter properties: properties of the ZCRMRecord
-    internal func setProperties( properties : [ String : Any? ] )
+    internal func setProperties( properties : [ String : Any ] )
     {
         self.properties = properties
     }
@@ -94,7 +95,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     ///   - value: value of the ZCRMRecord's property
     internal func setValue(ofProperty : String, value : Any?)
     {
-        self.properties[ofProperty] = value
+        self.properties[ ofProperty ] = value
     }
     
     /// Add ZCRMInventoryLineItem to the ZCRMRecord
@@ -107,7 +108,11 @@ open class ZCRMRecord : ZCRMRecordDelegate
     
     internal func addTag( tag : ZCRMTag )
     {
-        self.tags.append(tag)
+        if self.tags == nil
+        {
+            self.tags = [ ZCRMTag ]()
+        }
+        self.tags?.append(tag)
     }
     
     /// Add ZCRMPriceBookPricing to the ZCRMRecord.
@@ -143,7 +148,12 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         let cloneRecord = self
         cloneRecord.recordId = APIConstants.INT64_MOCK
-        cloneRecord.setProperties( properties : [ String : Any? ]() )
+        cloneRecord.createdBy = USER_MOCK
+        cloneRecord.modifiedBy = USER_MOCK
+        cloneRecord.owner = USER_MOCK
+        cloneRecord.createdTime = APIConstants.STRING_MOCK
+        cloneRecord.modifiedTime = APIConstants.STRING_MOCK
+        cloneRecord.setProperties( properties : [ String : Any ]() )
         return cloneRecord
     }
     

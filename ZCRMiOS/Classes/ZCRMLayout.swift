@@ -9,14 +9,14 @@
 open class ZCRMLayout : ZCRMLayoutDelegate
 {
     public var name : String
-    public var createdBy : ZCRMUserDelegate = USER_MOCK
-    public var createdTime : String = APIConstants.STRING_MOCK
-    public var modifiedBy : ZCRMUserDelegate = USER_MOCK
-    public var modifiedTime : String = APIConstants.STRING_MOCK
+    var createdBy : ZCRMUserDelegate = USER_MOCK
+    var createdTime : String = APIConstants.STRING_MOCK
+    var modifiedBy : ZCRMUserDelegate = USER_MOCK
+    var modifiedTime : String = APIConstants.STRING_MOCK
     public var visible : Bool = APIConstants.BOOL_MOCK
     public var status : Int = APIConstants.INT_MOCK
-    public var sections : [ZCRMSection] = [ZCRMSection]()
-    public var accessibleProfiles : [ZCRMProfileDelegate] = [ZCRMProfileDelegate]()
+    public var sections : [ZCRMSection]?
+    public var accessibleProfiles : [ZCRMProfileDelegate]?
 	
     init( name : String )
     {
@@ -29,14 +29,11 @@ open class ZCRMLayout : ZCRMLayoutDelegate
     /// - Parameter section: ZCRMSection to be added
 	internal func addSection(section : ZCRMSection)
 	{
-        if( self.sections.isEmpty == false )
+        if self.sections == nil
         {
-            self.sections.append(section)
+            self.sections = [ ZCRMSection ]()
         }
-        else
-        {
-            self.sections = [ section ]
-        }
+        self.sections?.append(section)
 	}
 	
     /// Set list ZCRMSections of the ZCRMLayout
@@ -52,13 +49,10 @@ open class ZCRMLayout : ZCRMLayoutDelegate
     /// - Parameter profile: ZCRMProfile to be added
 	internal func addAccessibleProfile(profile : ZCRMProfileDelegate)
 	{
-        if self.accessibleProfiles.isEmpty == false
+        if self.accessibleProfiles == nil
         {
-            self.accessibleProfiles.append(profile)
+            self.accessibleProfiles = [ ZCRMProfileDelegate ]()
         }
-        else
-        {
-            self.accessibleProfiles = [ profile ]
-        }
+        self.accessibleProfiles?.append(profile)
 	}
 }

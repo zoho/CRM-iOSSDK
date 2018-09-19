@@ -10,15 +10,15 @@ public class ZCRMSection : ZCRMEntity
 {
 	public var name : String
 	public var displayName : String = APIConstants.STRING_MOCK
-	public var columnCount : Int = APIConstants.INT_MOCK
-	public var sequence : Int = APIConstants.INT_MOCK
-	public var fields : [ZCRMField] = [ ZCRMField ]()
-    public var isSubformSection : Bool = APIConstants.BOOL_MOCK
+	var columnCount : Int = APIConstants.INT_MOCK
+	var sequence : Int = APIConstants.INT_MOCK
+	public var fields : [ZCRMField]?
+    var isSubformSection : Bool = APIConstants.BOOL_MOCK
 	
     /// Initialise the instance of a section with the given section name.
     ///
     /// - Parameter sectionName: section name whose associated section is to be initialised
-	init(sectionName : String)
+	internal init(sectionName : String)
 	{
 		self.name = sectionName
 	}
@@ -36,7 +36,11 @@ public class ZCRMSection : ZCRMEntity
     /// - Parameter field: ZCRMField to be added
 	internal func addField(field : ZCRMField)
 	{
-        self.fields.append( field )
+        if self.fields == nil
+        {
+            self.fields = [ ZCRMField ]()
+        }
+        self.fields?.append( field )
 	}
 	
     /// Add given list of fields to the section.

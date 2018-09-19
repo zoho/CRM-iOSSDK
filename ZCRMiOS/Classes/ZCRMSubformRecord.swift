@@ -7,20 +7,21 @@
 
 public class ZCRMSubformRecord : ZCRMEntity
 {
-	public var id : Int64
-	public var apiName : String
-	public var owner : ZCRMUserDelegate = USER_MOCK
-	public var modifiedTime : String = APIConstants.STRING_MOCK
-	public var createdTime : String = APIConstants.STRING_MOCK
+	var id : Int64
+	var apiName : String
+	var owner : ZCRMUserDelegate = USER_MOCK
+	var modifiedTime : String = APIConstants.STRING_MOCK
+	var createdTime : String = APIConstants.STRING_MOCK
+    var layout : ZCRMLayout?
 	public var fieldNameVsValue : [String:Any?] = [String:Any?]()
 	
-	init( apiName : String , id : Int64 )
+	internal init( apiName : String , id : Int64 )
 	{
 		self.apiName = apiName
 		self.id = id
 	}
 	
-    init( apiName : String )
+    internal init( apiName : String )
     {
 		self.apiName = apiName
         self.id = APIConstants.INT64_MOCK
