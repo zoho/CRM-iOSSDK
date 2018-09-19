@@ -29,7 +29,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
                     let modulesList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     for module in modulesList
                     {
-                        allModules.append(self.getZCRMModule(moduleDetails: module))
+                        allModules.append(try self.getZCRMModule(moduleDetails: module))
                     }
                     bulkResponse.setData(data: allModules)
                 }
@@ -54,7 +54,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
                 let responseJSON = response.getResponseJSON()
                 let modulesList:[[String : Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                 let moduleDetails : [String : Any] = modulesList[0]
-                let module = self.getZCRMModule( moduleDetails : moduleDetails )
+                let module = try self.getZCRMModule( moduleDetails : moduleDetails )
                 response.setData( data : module )
                 completion( .success( module, response ) )
             }
@@ -64,7 +64,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         }
     }
 	
-	private func getZCRMModule(moduleDetails : [String:Any]) -> ZCRMModule
+	private func getZCRMModule(moduleDetails : [String:Any]) throws -> ZCRMModule
 	{
         let module : ZCRMModule = ZCRMModule( apiName : moduleDetails.getString(key: ResponseJSONKeys.apiName), singularLabel: moduleDetails.getString(key: ResponseJSONKeys.singularLabel), pluralLabel: moduleDetails.getString(key: ResponseJSONKeys.pluralLabel))
         module.id = moduleDetails.getInt64(key: ResponseJSONKeys.id)
@@ -108,12 +108,12 @@ internal class MetaDataAPIHandler : CommonAPIHandler
             for relatedListDetails in relatedListsDetails
             {
                 let relatedList : ZCRMModuleRelation = ZCRMModuleRelation(relatedListAPIName: relatedListDetails.getString(key: ResponseJSONKeys.apiName), parentModuleAPIName: module.apiName)
-                setRelatedListProperties(relatedList: relatedList, relatedListDetails: relatedListDetails)
+                try setRelatedListProperties(relatedList: relatedList, relatedListDetails: relatedListDetails)
                 relatedLists.append(relatedList)
             }
             module.relatedLists = relatedLists
         }
-        module.arguments = moduleDetails.optArrayOfDictionaries(key: ResponseJSONKeys.arguments) ?? Array<Dictionary<String, Any>>()
+        module.arguments = moduleDetails.optArrayOfDictionaries(key: ResponseJSONKeys.arguments)
         if(moduleDetails.hasValue(forKey: ResponseJSONKeys.properties))
         {
             let dollarProperties = moduleDetails.optArray(key: ResponseJSONKeys.properties) as! [String]
@@ -127,7 +127,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
             module.properties = properties
         }
         module.displayField = moduleDetails.getString(key: ResponseJSONKeys.displayField)
-        module.searchLayoutFields = moduleDetails.getArray(key: ResponseJSONKeys.searchLayoutFields) as? [String] ?? [ String ]()
+        module.searchLayoutFields = moduleDetails.getArray(key: ResponseJSONKeys.searchLayoutFields) as? [String]
         if(moduleDetails.hasValue(forKey: ResponseJSONKeys.parentModule))
         {
             let parentModuleDetails = moduleDetails.getDictionary(key: ResponseJSONKeys.parentModule)
@@ -141,21 +141,60 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         {
             module.customView = ModuleAPIHandler(module: module).getZCRMCustomView(cvDetails: moduleDetails.getDictionary(key: ResponseJSONKeys.customView))
         }
-        module.isKanbanView = moduleDetails.optBoolean(key: ResponseJSONKeys.kanbanView) ?? APIConstants.BOOL_MOCK
-        module.filterStatus = moduleDetails.optBoolean(key: ResponseJSONKeys.filterStatus) ?? APIConstants.BOOL_MOCK
-        module.isSubMenuPresent = moduleDetails.optBoolean(key: ResponseJSONKeys.presenceSubMenu) ?? APIConstants.BOOL_MOCK
-        module.perPage = moduleDetails.optInt(key: ResponseJSONKeys.perPage) ?? APIConstants.INT_MOCK
-        module.filterStatus = moduleDetails.optBoolean(key: ResponseJSONKeys.filterSupported) ?? APIConstants.BOOL_MOCK
-        module.isFeedsRequired = moduleDetails.optBoolean(key: ResponseJSONKeys.feedsRequired) ?? APIConstants.BOOL_MOCK
+        if moduleDetails.hasValue( forKey : ResponseJSONKeys.kanbanView ) == false
+        {
+            module.isKanbanView = moduleDetails.getBoolean(key: ResponseJSONKeys.kanbanView)
+        }
+        if moduleDetails.hasValue( forKey : ResponseJSONKeys.filterStatus ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.filterStatus ) is must not be nil" )
+        }
+        module.filterStatus = moduleDetails.getBoolean(key: ResponseJSONKeys.filterStatus)
+        if moduleDetails.hasValue( forKey : ResponseJSONKeys.presenceSubMenu ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.presenceSubMenu ) is must not be nil" )
+        }
+        module.isSubMenuPresent = moduleDetails.getBoolean(key: ResponseJSONKeys.presenceSubMenu)
+        if moduleDetails.hasValue( forKey : ResponseJSONKeys.perPage ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.perPage ) is must not be nil" )
+        }
+        module.perPage = moduleDetails.getInt(key: ResponseJSONKeys.perPage)
+        if moduleDetails.hasValue( forKey : ResponseJSONKeys.filterSupported ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.filterSupported ) is must not be nil" )
+        }
+        module.filterStatus = moduleDetails.getBoolean(key: ResponseJSONKeys.filterSupported)
+        if moduleDetails.hasValue( forKey : ResponseJSONKeys.feedsRequired ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.feedsRequired ) is must not be nil" )
+        }
+        module.isFeedsRequired = moduleDetails.getBoolean(key: ResponseJSONKeys.feedsRequired)
         return module
 	}
 	
-	private func setRelatedListProperties(relatedList : ZCRMModuleRelation, relatedListDetails : [String : Any])
+	private func setRelatedListProperties(relatedList : ZCRMModuleRelation, relatedListDetails : [String : Any]) throws
 	{
-        relatedList.label = relatedListDetails.optString(key: ResponseJSONKeys.displayLabel) ?? APIConstants.STRING_MOCK
-		relatedList.childModuleAPIName = relatedListDetails.optString(key: ResponseJSONKeys.module) ?? APIConstants.STRING_MOCK
-		relatedList.id = relatedListDetails.optInt64(key: ResponseJSONKeys.id) ?? APIConstants.INT64_MOCK
-		relatedList.visible = relatedListDetails.optBoolean(key: ResponseJSONKeys.visible) ?? APIConstants.BOOL_MOCK
+        if relatedListDetails.hasValue( forKey : ResponseJSONKeys.displayLabel ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.displayLabel ) is must not be nil" )
+        }
+        relatedList.label = relatedListDetails.getString(key: ResponseJSONKeys.displayLabel)
+        if relatedListDetails.hasValue( forKey : ResponseJSONKeys.module ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.module ) is must not be nil" )
+        }
+		relatedList.childModuleAPIName = relatedListDetails.getString(key: ResponseJSONKeys.module)
+        if relatedListDetails.hasValue( forKey : ResponseJSONKeys.id ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.id ) is must not be nil" )
+        }
+		relatedList.id = relatedListDetails.getInt64(key: ResponseJSONKeys.id)
+        if relatedListDetails.hasValue( forKey : ResponseJSONKeys.visible ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.visible ) is must not be nil" )
+        }
+		relatedList.visible = relatedListDetails.getBoolean(key: ResponseJSONKeys.visible)
         relatedList.isDefault = (ResponseJSONKeys.defaultString == relatedListDetails.optString(key: ResponseJSONKeys.type)) 
 	}
     

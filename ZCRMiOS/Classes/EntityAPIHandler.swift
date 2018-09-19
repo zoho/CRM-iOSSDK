@@ -44,7 +44,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 let response = try resultType.resolve()
                 let responseJSON : [String:Any] = response.getResponseJSON()
                 let responseDataArray : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
-                self.setRecordProperties(recordDetails: responseDataArray[0])
+                try self.setRecordProperties(recordDetails: responseDataArray[0])
                 response.setData(data: self.record)
                 completion( .success( self.record, response ))
             }
@@ -77,7 +77,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 let respDataArr : [[String:Any?]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                 let respData : [String:Any?] = respDataArr[0]
                 let recordDetails : [String:Any] = respData.getDictionary(key: APIConstants.DETAILS)
-                self.setRecordProperties(recordDetails: recordDetails)
+                try self.setRecordProperties(recordDetails: recordDetails)
                 response.setData(data: self.record)
                 completion( .success( self.record, response ) )
             }
@@ -109,7 +109,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 let respDataArr : [[String:Any?]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                 let respData : [String:Any?] = respDataArr[0]
                 let recordDetails : [String:Any] = respData.getDictionary(key: APIConstants.DETAILS)
-                self.setRecordProperties(recordDetails: recordDetails)
+                try self.setRecordProperties(recordDetails: recordDetails)
                 response.setData(data: self.record)
                 completion( .success( self.record, response ) )
             }
@@ -646,7 +646,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         return lineItem
     }
     
-    internal func setRecordProperties(recordDetails : [String:Any])
+    internal func setRecordProperties(recordDetails : [String:Any]) throws
     {
         for (fieldAPIName, value) in recordDetails
         {
@@ -656,7 +656,7 @@ internal class EntityAPIHandler : CommonAPIHandler
             }
             else if(ResponseJSONKeys.productDetails == fieldAPIName)
             {
-                self.setInventoryLineItems(lineItems: value as! [[String:Any]])
+                try self.setInventoryLineItems(lineItems: value as! [[String:Any]])
             }
             else if( ResponseJSONKeys.pricingDetails == fieldAPIName )
             {
@@ -796,8 +796,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         if subformDetails.hasValue( forKey : ResponseJSONKeys.owner )
         {
             let ownerDict = subformDetails.getDictionary( key : ResponseJSONKeys.owner )
-            let owner : ZCRMUserDelegate = ZCRMUserDelegate(id: ownerDict.getInt64(key: ResponseJSONKeys.id),
-                                            name: ownerDict.getString(key: ResponseJSONKeys.name))
+            let owner : ZCRMUserDelegate = ZCRMUserDelegate( id : ownerDict.getInt64(key: ResponseJSONKeys.id), name: ownerDict.getString(key: ResponseJSONKeys.name))
             zcrmSubform.owner = owner
         }
         
@@ -852,15 +851,15 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
     }
     
-    private func setInventoryLineItems(lineItems : [[String:Any]])
+    private func setInventoryLineItems(lineItems : [[String:Any]]) throws
     {
         for lineItem in lineItems
         {
-            self.record.addLineItem(newLineItem: getZCRMInventoryLineItem(lineItemDetails: lineItem))
+            try self.record.addLineItem(newLineItem: getZCRMInventoryLineItem(lineItemDetails: lineItem))
         }
     }
     
-    private func getZCRMInventoryLineItem(lineItemDetails : [String:Any]) -> ZCRMInventoryLineItem
+    private func getZCRMInventoryLineItem(lineItemDetails : [String:Any]) throws -> ZCRMInventoryLineItem
     {
         let productDetails : [String:Any] = lineItemDetails.getDictionary(key: ResponseJSONKeys.product)
         let product : ZCRMRecord = ZCRMRecord(moduleAPIName: ResponseJSONKeys.products)
@@ -869,18 +868,46 @@ internal class EntityAPIHandler : CommonAPIHandler
         let lineItem : ZCRMInventoryLineItem = ZCRMInventoryLineItem(lineItemId: lineItemDetails.getInt64(key: ResponseJSONKeys.id) )
         lineItem.product = product
         lineItem.description = lineItemDetails.optString(key: ResponseJSONKeys.productDescription)
-        lineItem.quantity = lineItemDetails.optDouble(key: ResponseJSONKeys.quantity) ?? APIConstants.DOUBLE_MOCK
-        lineItem.listPrice = lineItemDetails.optDouble(key: ResponseJSONKeys.listPrice) ?? APIConstants.DOUBLE_MOCK
-        lineItem.total = lineItemDetails.optDouble(key: ResponseJSONKeys.total) ?? APIConstants.DOUBLE_MOCK
-        lineItem.discount = lineItemDetails.optDouble(key: ResponseJSONKeys.Discount) ?? APIConstants.DOUBLE_MOCK
-        lineItem.totalAfterDiscount = lineItemDetails.optDouble(key: ResponseJSONKeys.totalAfterDiscount) ?? APIConstants.DOUBLE_MOCK
-        lineItem.tax = lineItemDetails.optDouble(key: ResponseJSONKeys.tax) ?? APIConstants.DOUBLE_MOCK
+        if lineItemDetails.hasValue( forKey : ResponseJSONKeys.quantity ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.quantity ) is must not be nil" )
+        }
+        lineItem.quantity = lineItemDetails.getDouble(key: ResponseJSONKeys.quantity)
+        if lineItemDetails.hasValue( forKey : ResponseJSONKeys.listPrice ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.listPrice ) is must not be nil" )
+        }
+        lineItem.listPrice = lineItemDetails.getDouble(key: ResponseJSONKeys.listPrice)
+        if lineItemDetails.hasValue( forKey : ResponseJSONKeys.total ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.total ) is must not be nil" )
+        }
+        lineItem.total = lineItemDetails.getDouble(key: ResponseJSONKeys.total)
+        if lineItemDetails.hasValue( forKey : ResponseJSONKeys.Discount ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.Discount ) is must not be nil" )
+        }
+        lineItem.discount = lineItemDetails.getDouble(key: ResponseJSONKeys.Discount)
+        if lineItemDetails.hasValue( forKey : ResponseJSONKeys.totalAfterDiscount ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.totalAfterDiscount ) is must not be nil" )
+        }
+        lineItem.totalAfterDiscount = lineItemDetails.getDouble(key: ResponseJSONKeys.totalAfterDiscount)
+        if lineItemDetails.hasValue( forKey : ResponseJSONKeys.tax ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.tax ) is must not be nil" )
+        }
+        lineItem.tax = lineItemDetails.getDouble(key: ResponseJSONKeys.tax)
         let allLineTaxes : [[String:Any]] = lineItemDetails.optArrayOfDictionaries(key: ResponseJSONKeys.lineTax)!
         for lineTaxDetails in allLineTaxes
         {
             lineItem.addLineTax(tax: self.getZCRMTax(taxDetails: lineTaxDetails))
         }
-        lineItem.netTotal = lineItemDetails.optDouble(key: ResponseJSONKeys.netTotal) ?? APIConstants.DOUBLE_MOCK
+        if lineItemDetails.hasValue( forKey : ResponseJSONKeys.netTotal ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.netTotal ) is must not be nil" )
+        }
+        lineItem.netTotal = lineItemDetails.getDouble(key: ResponseJSONKeys.netTotal)
         return lineItem
     }
     
@@ -908,9 +935,9 @@ internal class EntityAPIHandler : CommonAPIHandler
         {
             participant.email =  participantDetails.getString( key : ResponseJSONKeys.participant )
         }
-        else
+        else if let id = Int64( participantDetails.getString( key : ResponseJSONKeys.participant ) )
         {
-            participant.entity = ZCRMRecordDelegate( recordId : Int64( participantDetails.getString( key : ResponseJSONKeys.participant ) ) ?? APIConstants.INT64_MOCK, moduleAPIName : type )
+            participant.entity = ZCRMRecordDelegate( recordId : id, moduleAPIName : type )
             participant.email =  participantDetails.getString( key : ConsentProcessThrough.EMAIL.rawValue )
         }
         participant.name = participantDetails.getString( key : ResponseJSONKeys.name )

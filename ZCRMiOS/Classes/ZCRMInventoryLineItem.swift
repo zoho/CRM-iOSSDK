@@ -9,7 +9,7 @@
 public class ZCRMInventoryLineItem
 {
 	public var product : ZCRMRecordDelegate = RECORD_MOCK
-	var id : Int64 = APIConstants.INT64_MOCK
+	public var id : Int64 = APIConstants.INT64_MOCK
 	public var listPrice : Double = APIConstants.DOUBLE_MOCK
 	public var quantity : Double = APIConstants.DOUBLE_MOCK
 	public var description : String?

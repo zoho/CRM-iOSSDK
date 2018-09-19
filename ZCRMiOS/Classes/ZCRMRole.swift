@@ -8,7 +8,7 @@
 
 open class ZCRMRole : ZCRMRoleDelegate
 {
-    var reportingTo : ZCRMRoleDelegate = ROLE_MOCK
+    public var reportingTo : ZCRMRoleDelegate = ROLE_MOCK
     public var isAdminUser : Bool = APIConstants.BOOL_MOCK
     public var label : String = APIConstants.STRING_MOCK
 	

@@ -9,8 +9,8 @@
 open class ZCRMCustomView : ZCRMEntity
 {
     var moduleAPIName : String
-    var sysName : String?
-    var isDefault : Bool = APIConstants.BOOL_MOCK
+    public var sysName : String?
+    public var isDefault : Bool = APIConstants.BOOL_MOCK
     
     public var cvId : Int64 = APIConstants.INT64_MOCK
     public var cvName : String

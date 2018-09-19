@@ -9,10 +9,10 @@
 open class ZCRMLayout : ZCRMLayoutDelegate
 {
     public var name : String
-    var createdBy : ZCRMUserDelegate = USER_MOCK
-    var createdTime : String = APIConstants.STRING_MOCK
-    var modifiedBy : ZCRMUserDelegate = USER_MOCK
-    var modifiedTime : String = APIConstants.STRING_MOCK
+    public var createdBy : ZCRMUserDelegate = USER_MOCK
+    public var createdTime : String = APIConstants.STRING_MOCK
+    public var modifiedBy : ZCRMUserDelegate = USER_MOCK
+    public var modifiedTime : String = APIConstants.STRING_MOCK
     public var visible : Bool = APIConstants.BOOL_MOCK
     public var status : Int = APIConstants.INT_MOCK
     public var sections : [ZCRMSection]?

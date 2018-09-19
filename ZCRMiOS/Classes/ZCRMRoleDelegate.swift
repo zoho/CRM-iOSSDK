@@ -6,8 +6,8 @@
 //
 open class ZCRMRoleDelegate : ZCRMEntity
 {
-    var roleId : Int64
-    var roleName : String
+    public var roleId : Int64
+    public var roleName : String
     
     internal init( roleId : Int64, roleName : String )
     {

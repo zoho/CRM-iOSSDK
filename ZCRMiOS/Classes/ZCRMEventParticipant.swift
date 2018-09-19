@@ -23,7 +23,7 @@ open class ZCRMEventParticipant
     /// - Parameters:
     ///   - type: type of the ZCRMEventParticipant is to be initialised
     ///   - id: id of the ZCRMEventParticipant is to be initialised
-    public init( type : String, id : Int64 )
+    internal init( type : String, id : Int64 )
     {
         self.type = type
         self.id = id

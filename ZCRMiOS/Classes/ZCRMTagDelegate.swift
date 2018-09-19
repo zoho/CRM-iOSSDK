@@ -7,14 +7,9 @@
 
 open class ZCRMTagDelegate : ZCRMEntity
 {
-    var tagId : Int64
-    var tagName : String  = APIConstants.STRING_MOCK
+    public var tagId : Int64
+    public var tagName : String  = APIConstants.STRING_MOCK
     var moduleAPIName : String  = APIConstants.STRING_MOCK
-    
-    init( tagId : Int64 )
-    {
-        self.tagId = tagId
-    }
     
     init( tagId : Int64, moduleAPIName : String )
     {

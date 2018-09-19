@@ -8,16 +8,16 @@
 
 open class ZCRMNote : ZCRMEntity
 {
-    var id : Int64 = APIConstants.INT64_MOCK
+    public var id : Int64 = APIConstants.INT64_MOCK
     public var title : String?
     public var content : String?
-    var owner : ZCRMUserDelegate = USER_MOCK
-    var createdBy : ZCRMUserDelegate = USER_MOCK
-    var createdTime : String = APIConstants.STRING_MOCK
-    var modifiedBy : ZCRMUserDelegate = USER_MOCK
-    var modifiedTime : String = APIConstants.STRING_MOCK
+    public var owner : ZCRMUserDelegate = USER_MOCK
+    public var createdBy : ZCRMUserDelegate = USER_MOCK
+    public var createdTime : String = APIConstants.STRING_MOCK
+    public var modifiedBy : ZCRMUserDelegate = USER_MOCK
+    public var modifiedTime : String = APIConstants.STRING_MOCK
     public var attachments : [ZCRMAttachment]?
-    public var parentRecord : ZCRMRecordDelegate?
+    var parentRecord : ZCRMRecordDelegate?
 	
     /// Initialize the instance of ZCRMNote with the given content
     ///

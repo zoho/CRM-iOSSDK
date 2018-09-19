@@ -9,9 +9,14 @@ open class ZCRMOrganisationDelegate : ZCRMEntity
 {
     internal init() {}
     
-    func createNewUser( lastName : String, email : String, role : ZCRMRoleDelegate, profile : ZCRMProfileDelegate ) -> ZCRMUser
+    public func createNewUser( lastName : String, email : String, role : ZCRMRoleDelegate, profile : ZCRMProfileDelegate ) -> ZCRMUser
     {
         return ZCRMUser( lastName : lastName, emailId : email, role : role, profile : profile )
+    }
+    
+    public func getUserDelegate( id : Int64, name : String ) -> ZCRMUserDelegate
+    {
+        return ZCRMUserDelegate(id: id, name: name)
     }
     
     public func getAllUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )

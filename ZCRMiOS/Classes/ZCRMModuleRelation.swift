@@ -37,7 +37,7 @@ public class ZCRMModuleRelation : ZCRMEntity
         self.id = relatedListId
     }
     
-    func getJunctionRecord() throws -> ZCRMJunctionRecord
+    public func getJunctionRecord() throws -> ZCRMJunctionRecord
     {
         if( apiName == APIConstants.STRING_MOCK || id != APIConstants.INT64_MOCK )
         {

@@ -63,7 +63,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         for recordDetails in recordsList
                         {
                             let record : ZCRMRecord = ZCRMRecord(moduleAPIName: relatedList.apiName)
-                            EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordDetails)
+                            try EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordDetails)
                             records.append(record)
                         }
                         bulkResponse.setData(data: records)

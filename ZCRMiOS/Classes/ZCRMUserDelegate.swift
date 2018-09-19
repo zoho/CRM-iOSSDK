@@ -7,8 +7,8 @@
 
 open class ZCRMUserDelegate : ZCRMEntity
 {
-    var id : Int64
-    var name : String
+    public var id : Int64
+    public var name : String
     
     internal init( id : Int64, name : String )
     {
@@ -39,5 +39,3 @@ open class ZCRMUserDelegate : ZCRMEntity
 }
 
 let USER_MOCK : ZCRMUserDelegate = ZCRMUserDelegate( id : APIConstants.INT64_MOCK, name : APIConstants.STRING_MOCK )
-
-

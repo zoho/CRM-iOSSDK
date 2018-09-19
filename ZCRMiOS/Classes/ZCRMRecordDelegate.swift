@@ -431,6 +431,36 @@ open class ZCRMRecordDelegate : ZCRMEntity
             completion( result )
         }
     }
+    
+    public func newAttachment() -> ZCRMAttachment
+    {
+        return ZCRMAttachment(parentRecord: self)
+    }
+    
+    public func newNote( content : String ) -> ZCRMNote
+    {
+        return ZCRMNote( content : content )
+    }
+    
+    public func newNote( content : String?, title : String ) -> ZCRMNote
+    {
+        return ZCRMNote(content : content, title : title)
+    }
+    
+    public func newTag( tagName : String ) -> ZCRMTag
+    {
+        return ZCRMTag(tagName: tagName)
+    }
+    
+    public func getTagDelegate(tagId : Int64) -> ZCRMTagDelegate
+    {
+        return ZCRMTagDelegate(tagId: tagId, moduleAPIName: self.moduleAPIName)
+    }
+    
+    public func getTagDelegate(tagId : Int64, tagName : String) -> ZCRMTagDelegate
+    {
+        return ZCRMTagDelegate(tagId: tagId, tagName: tagName, moduleAPIName: self.moduleAPIName)
+    }
 }
 
 let RECORD_MOCK : ZCRMRecordDelegate = ZCRMRecordDelegate( recordId : APIConstants.INT64_MOCK, moduleAPIName : APIConstants.STRING_MOCK )

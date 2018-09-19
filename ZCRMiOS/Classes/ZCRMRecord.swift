@@ -24,11 +24,11 @@ open class ZCRMRecord : ZCRMRecordDelegate
     public var dataProcessingBasicDetails : ZCRMDataProcessBasicDetails?
     public var layout : ZCRMLayoutDelegate = LAYOUT_MOCK
     
-    var owner : ZCRMUserDelegate = USER_MOCK
-    var createdBy : ZCRMUserDelegate = USER_MOCK
-    var modifiedBy : ZCRMUserDelegate = USER_MOCK
-    var createdTime : String = APIConstants.STRING_MOCK
-    var modifiedTime : String = APIConstants.STRING_MOCK
+    public var owner : ZCRMUserDelegate = USER_MOCK
+    public var createdBy : ZCRMUserDelegate = USER_MOCK
+    public var modifiedBy : ZCRMUserDelegate = USER_MOCK
+    public var createdTime : String = APIConstants.STRING_MOCK
+    public var modifiedTime : String = APIConstants.STRING_MOCK
     
     /// Initialize the ZCRMRecord with the given module.
     ///

@@ -16,19 +16,34 @@ open class ZCRMModuleDelegate : ZCRMEntity
         self.apiName = apiName
     }
     
-    func newRecord() -> ZCRMRecord
+    public func newRecord() -> ZCRMRecord
     {
         return ZCRMRecord( moduleAPIName : apiName )
     }
     
-    func getRecordDelegate( id : Int64 ) -> ZCRMRecordDelegate
+    public func getRecordDelegate( id : Int64 ) -> ZCRMRecordDelegate
     {
         return ZCRMRecordDelegate( recordId : id, moduleAPIName : apiName )
     }
     
-    func newSubFormRecord( subFormName : String ) -> ZCRMSubformRecord
+    public func newSubFormRecord( subFormName : String ) -> ZCRMSubformRecord
     {
         return ZCRMSubformRecord( apiName : subFormName )
+    }
+    
+    public func newTag( tagName : String ) -> ZCRMTag
+    {
+        return ZCRMTag(tagName: tagName)
+    }
+    
+    public func getTagDelegate( tagId : Int64 ) -> ZCRMTagDelegate
+    {
+        return ZCRMTagDelegate(tagId: tagId, moduleAPIName: self.apiName)
+    }
+    
+    public func getTagDelegate( tagId : Int64, tagName : String ) -> ZCRMTagDelegate
+    {
+        return ZCRMTagDelegate(tagId: tagId, tagName: tagName, moduleAPIName: self.apiName)
     }
     
     /// Returns related list to the module.

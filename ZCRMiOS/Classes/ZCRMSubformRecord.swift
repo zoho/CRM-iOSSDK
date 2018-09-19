@@ -7,11 +7,11 @@
 
 public class ZCRMSubformRecord : ZCRMEntity
 {
-	var id : Int64
+	public var id : Int64
 	var apiName : String
-	var owner : ZCRMUserDelegate = USER_MOCK
-	var modifiedTime : String = APIConstants.STRING_MOCK
-	var createdTime : String = APIConstants.STRING_MOCK
+	public var owner : ZCRMUserDelegate = USER_MOCK
+	public var modifiedTime : String = APIConstants.STRING_MOCK
+	public var createdTime : String = APIConstants.STRING_MOCK
     var layout : ZCRMLayout?
 	public var fieldNameVsValue : [String:Any?] = [String:Any?]()
 	

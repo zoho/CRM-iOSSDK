@@ -10,10 +10,10 @@ public class ZCRMSection : ZCRMEntity
 {
 	public var name : String
 	public var displayName : String = APIConstants.STRING_MOCK
-	var columnCount : Int = APIConstants.INT_MOCK
-	var sequence : Int = APIConstants.INT_MOCK
+	public var columnCount : Int = APIConstants.INT_MOCK
+	public var sequence : Int = APIConstants.INT_MOCK
 	public var fields : [ZCRMField]?
-    var isSubformSection : Bool = APIConstants.BOOL_MOCK
+    public var isSubformSection : Bool = APIConstants.BOOL_MOCK
 	
     /// Initialise the instance of a section with the given section name.
     ///
@@ -21,14 +21,6 @@ public class ZCRMSection : ZCRMEntity
 	internal init(sectionName : String)
 	{
 		self.name = sectionName
-	}
-	
-    /// Returns sequence number of the section.
-    ///
-    /// - Returns: sequence number of the section
-	public func getSequence() -> Int?
-	{
-		return self.sequence
 	}
 	
     /// Add given ZCRMFields to the sections.

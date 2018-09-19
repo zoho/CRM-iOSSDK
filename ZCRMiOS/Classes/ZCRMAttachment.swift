@@ -9,14 +9,14 @@
 open class ZCRMAttachment : ZCRMEntity
 {
     var parentRecord : ZCRMRecordDelegate
-    var fileExtension : String?
-    var fileSize : Int64 = APIConstants.INT64_MOCK
-    var owner : ZCRMUserDelegate = USER_MOCK
-    var createdBy : ZCRMUserDelegate = USER_MOCK
-    var createdTime : String = APIConstants.STRING_MOCK
-    var modifiedBy : ZCRMUserDelegate = USER_MOCK
-    var modifiedTime : String  = APIConstants.STRING_MOCK
-    var type : String = APIConstants.STRING_MOCK
+    public var fileExtension : String?
+    public var fileSize : Int64 = APIConstants.INT64_MOCK
+    public var owner : ZCRMUserDelegate = USER_MOCK
+    public var createdBy : ZCRMUserDelegate = USER_MOCK
+    public var createdTime : String = APIConstants.STRING_MOCK
+    public var modifiedBy : ZCRMUserDelegate = USER_MOCK
+    public var modifiedTime : String  = APIConstants.STRING_MOCK
+    public var type : String = APIConstants.STRING_MOCK
     
     public var isEditable : Bool = APIConstants.BOOL_MOCK
     public var linkURL : String = APIConstants.STRING_MOCK

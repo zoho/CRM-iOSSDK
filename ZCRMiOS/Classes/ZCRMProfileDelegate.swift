@@ -7,8 +7,8 @@
 
 open class ZCRMProfileDelegate : ZCRMEntity
 {
-    var profileId : Int64
-    var profileName : String
+    public var profileId : Int64
+    public var profileName : String
     public var isDefault : Bool = APIConstants.BOOL_MOCK
     
     internal init( profileId : Int64, profileName : String, isDefault : Bool )

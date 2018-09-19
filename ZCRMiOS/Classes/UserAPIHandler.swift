@@ -46,7 +46,7 @@ internal class UserAPIHandler : CommonAPIHandler
                     let usersList:[[String:Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     for user in usersList
                     {
-                        allUsers.append(self.getZCRMUser(userDict: user))
+                        allUsers.append(try self.getZCRMUser(userDict: user))
                     }
                     bulkResponse.setData(data: allUsers)
                     completion( .success( allUsers, bulkResponse ) )
@@ -151,7 +151,7 @@ internal class UserAPIHandler : CommonAPIHandler
                 let response = try resultType.resolve()
                 let responseJSON = response.getResponseJSON()
                 let usersList:[[String : Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
-                let user = self.getZCRMUser(userDict: usersList[0])
+                let user = try self.getZCRMUser(userDict: usersList[0])
                 response.setData(data: user )
                 completion( .success( user, response ) )
             }
@@ -216,9 +216,11 @@ internal class UserAPIHandler : CommonAPIHandler
 
     internal func deleteUser( userId : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
+        setJSONRootKey( key : JSONRootKey.USERS )
         setRequestMethod( requestMethod : .DELETE )
         setUrlPath( urlPath : "/users/\( userId )" )
         let request = APIRequest( handler : self )
+        print( "Request : \( request.toString() )" )
         
         request.getAPIResponse { ( resultType ) in
             do{
@@ -250,7 +252,7 @@ internal class UserAPIHandler : CommonAPIHandler
                     let userDetailsList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     for userDetail in userDetailsList
                     {
-                        let user : ZCRMUser = self.getZCRMUser( userDict : userDetail )
+                        let user : ZCRMUser = try self.getZCRMUser( userDict : userDetail )
                         userList.append( user )
                     }
                     bulkResponse.setData( data : userList )
@@ -464,10 +466,10 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
 	
-	private func getZCRMUser(userDict : [String : Any]) -> ZCRMUser
+	private func getZCRMUser(userDict : [String : Any]) throws -> ZCRMUser
 	{
         let fullName : String = userDict.getString( key : ResponseJSONKeys.fullName )
-        let userId : Int64? = userDict.getInt64( key : ResponseJSONKeys.id )
+        let userId : Int64 = userDict.getInt64( key : ResponseJSONKeys.id )
         var role : ZCRMRoleDelegate = ROLE_MOCK
         var profile : ZCRMProfileDelegate = PROFILE_MOCK
         let lastName = userDict.getString(key: ResponseJSONKeys.lastName)
@@ -483,29 +485,65 @@ internal class UserAPIHandler : CommonAPIHandler
             role = ZCRMRoleDelegate(roleId: roleObj.getInt64( key : ResponseJSONKeys.id ), roleName: roleObj.getString( key : ResponseJSONKeys.name ))
         }
         let user = ZCRMUser(lastName: lastName, emailId: email, role: role, profile: profile)
-        user.id = userId ?? APIConstants.INT64_MOCK
+        user.id = userId
         user.fullName = fullName
-        user.firstName = userDict.optString(key: ResponseJSONKeys.firstName) ?? APIConstants.STRING_MOCK
-        user.mobile = userDict.optString(key: ResponseJSONKeys.mobile) ?? APIConstants.STRING_MOCK
-        user.language = userDict.optString(key: ResponseJSONKeys.language) ?? APIConstants.STRING_MOCK
-        user.status = userDict.optString(key: ResponseJSONKeys.status) ?? APIConstants.STRING_MOCK
-        user.zuId = userDict.optInt64(key: ResponseJSONKeys.ZUID) ?? APIConstants.INT64_MOCK
+        user.firstName = userDict.optString(key: ResponseJSONKeys.firstName)
+        user.mobile = userDict.optString(key: ResponseJSONKeys.mobile)
+        if userDict.hasValue( forKey : ResponseJSONKeys.language ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.language ) is must not be nil" )
+        }
+        user.language = userDict.getString(key: ResponseJSONKeys.language)
+        if userDict.hasValue( forKey : ResponseJSONKeys.status ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.status ) is must not be nil" )
+        }
+        user.status = userDict.getString(key: ResponseJSONKeys.status)
+        user.zuId = userDict.optInt64(key: ResponseJSONKeys.ZUID)
         
-        user.alias = userDict.optString( key : ResponseJSONKeys.alias ) ?? APIConstants.STRING_MOCK
-        user.city = userDict.optString( key : ResponseJSONKeys.city ) ?? APIConstants.STRING_MOCK
-        user.confirm = userDict.optBoolean( key : ResponseJSONKeys.confirm ) ?? APIConstants.BOOL_MOCK
-        user.countryLocale = userDict.optString(key : ResponseJSONKeys.countryLocale ) ?? APIConstants.STRING_MOCK
-        user.dateFormat = userDict.optString( key : ResponseJSONKeys.dateFormat ) ?? APIConstants.STRING_MOCK
-        user.dateOfBirth = userDict.optString( key : ResponseJSONKeys.dob ) ?? APIConstants.STRING_MOCK
-        user.country = userDict.optString( key : ResponseJSONKeys.country ) ?? APIConstants.STRING_MOCK
-        user.fax = userDict.optString( key : ResponseJSONKeys.fax ) ?? APIConstants.STRING_MOCK
-        user.locale = userDict.optString( key : ResponseJSONKeys.locale ) ?? APIConstants.STRING_MOCK
-        user.nameFormat = userDict.optString( key : ResponseJSONKeys.nameFormat ) ?? APIConstants.STRING_MOCK
-        user.phone = userDict.optString( key : ResponseJSONKeys.phone ) ?? APIConstants.STRING_MOCK
-        user.website = userDict.optString( key : ResponseJSONKeys.website ) ?? APIConstants.STRING_MOCK
-        user.street = userDict.optString( key : ResponseJSONKeys.street ) ?? APIConstants.STRING_MOCK
-        user.timeZone = userDict.optString( key : ResponseJSONKeys.timeZone ) ?? APIConstants.STRING_MOCK
-        user.state = userDict.optString( key : ResponseJSONKeys.state) ?? APIConstants.STRING_MOCK
+        user.alias = userDict.optString( key : ResponseJSONKeys.alias )
+        user.city = userDict.optString( key : ResponseJSONKeys.city )
+        if userDict.hasValue( forKey : ResponseJSONKeys.confirm ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.confirm ) is must not be nil" )
+        }
+        user.confirm = userDict.getBoolean( key : ResponseJSONKeys.confirm )
+        if userDict.hasValue( forKey : ResponseJSONKeys.countryLocale ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.countryLocale ) is must not be nil" )
+        }
+        user.countryLocale = userDict.getString(key : ResponseJSONKeys.countryLocale )
+        if userDict.hasValue( forKey : ResponseJSONKeys.dateFormat ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.dateFormat ) is must not be nil" )
+        }
+        user.dateFormat = userDict.getString( key : ResponseJSONKeys.dateFormat )
+        user.dateOfBirth = userDict.optString( key : ResponseJSONKeys.dob )
+        if userDict.hasValue( forKey : ResponseJSONKeys.country ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.country ) is must not be nil" )
+        }
+        user.country = userDict.getString( key : ResponseJSONKeys.country )
+        user.fax = userDict.optString( key : ResponseJSONKeys.fax )
+        if userDict.hasValue( forKey : ResponseJSONKeys.locale ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.locale ) is must not be nil" )
+        }
+        user.locale = userDict.getString( key : ResponseJSONKeys.locale )
+        if userDict.hasValue( forKey : ResponseJSONKeys.nameFormat ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.nameFormat ) is must not be nil" )
+        }
+        user.nameFormat = userDict.getString( key : ResponseJSONKeys.nameFormat )
+        user.phone = userDict.optString( key : ResponseJSONKeys.phone )
+        user.website = userDict.optString( key : ResponseJSONKeys.website )
+        user.street = userDict.optString( key : ResponseJSONKeys.street )
+        if userDict.hasValue( forKey : ResponseJSONKeys.timeZone ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.timeZone ) is must not be nil" )
+        }
+        user.timeZone = userDict.getString( key : ResponseJSONKeys.timeZone )
+        user.state = userDict.optString( key : ResponseJSONKeys.state)
         if( userDict.hasValue( forKey : ResponseJSONKeys.CreatedBy))
         {
             let createdByObj : [String:Any] = userDict.getDictionary(key: ResponseJSONKeys.CreatedBy)

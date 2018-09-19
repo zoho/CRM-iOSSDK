@@ -8,11 +8,11 @@
 
 public class ZCRMUser : ZCRMUserDelegate
 {
-    var lastName : String
-    var emailId : String
-    var role : ZCRMRoleDelegate
-    var profile : ZCRMProfileDelegate
-    var zuId : Int64 = APIConstants.INT64_MOCK
+    public var lastName : String
+    public var emailId : String
+    public var role : ZCRMRoleDelegate
+    public var profile : ZCRMProfileDelegate
+    public var zuId : Int64?
     
     public var fullName : String = APIConstants.STRING_MOCK
     public var firstName : String?
@@ -38,13 +38,13 @@ public class ZCRMUser : ZCRMUserDelegate
     
     public var timeZone : String = APIConstants.STRING_MOCK
     public var website : String?
-    var confirm : Bool = APIConstants.BOOL_MOCK
+    public var confirm : Bool = APIConstants.BOOL_MOCK
     public var status : String = APIConstants.STRING_MOCK
     
-    var createdBy : ZCRMUserDelegate?
-    var createdTime : String?
-    var modifiedBy : ZCRMUserDelegate?
-    var modifiedTime : String?
+    public var createdBy : ZCRMUserDelegate?
+    public var createdTime : String?
+    public var modifiedBy : ZCRMUserDelegate?
+    public var modifiedTime : String?
     public var reportingTo : ZCRMUserDelegate = USER_MOCK
     
     public var fieldNameVsValue : [ String : Any ] = [ String : Any ]()

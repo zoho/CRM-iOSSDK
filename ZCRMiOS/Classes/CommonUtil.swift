@@ -26,6 +26,7 @@ public struct ErrorCode
     static var INVALID_DATA = "INVALID_DATA"
     static var INTERNAL_ERROR = "INTERNAL_ERROR"
     static var RESPONSE_NIL = "RESPONSE_NIL"
+    static var VALUE_NIL = "VALUE_NIL"
     static var MANDATORY_NOT_FOUND = "MANDATORY_NOT_FOUND"
     static var RESPONSE_ROOT_KEY_NIL = "RESPONSE_ROOT_KEY_NIL"
     static var FILE_SIZE_EXCEEDED = "FILE_SIZE_EXCEEDED"

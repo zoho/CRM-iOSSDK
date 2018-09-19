@@ -12,6 +12,16 @@ public class ZCRMRestClient
 {
     public init() {}
     
+    public func getModuleDelegate( apiName : String ) -> ZCRMModuleDelegate
+    {
+        return ZCRMModuleDelegate(apiName: apiName)
+    }
+    
+    public func getOrganisationDelegate() -> ZCRMOrganisationDelegate
+    {
+        return ZCRMOrganisationDelegate()
+    }
+    
     public func getOrganisationDetails( completion : @escaping( Result.DataResponse< ZCRMOrganisation, APIResponse > ) -> () )
     {
         OrganizationAPIHandler().getOrganizationDetails() { ( result ) in

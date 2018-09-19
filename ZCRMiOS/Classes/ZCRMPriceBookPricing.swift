@@ -9,7 +9,7 @@
 
 open class ZCRMPriceBookPricing
 {
-    var id : Int64
+    public var id : Int64
     public var toRange : Double = APIConstants.DOUBLE_MOCK
     public var fromRange : Double = APIConstants.DOUBLE_MOCK
     public var discount : Double = APIConstants.DOUBLE_MOCK

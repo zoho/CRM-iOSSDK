@@ -8,9 +8,9 @@
 
 open class ZCRMModule : ZCRMModuleDelegate
 {
-    var singularLabel : String
-    var pluralLabel : String
-    var id : Int64 = APIConstants.INT64_MOCK
+    public var singularLabel : String
+    public var pluralLabel : String
+    public var id : Int64 = APIConstants.INT64_MOCK
     public var systemName : String = APIConstants.STRING_MOCK
     
     public var creatable : Bool = APIConstants.BOOL_MOCK
@@ -19,8 +19,8 @@ open class ZCRMModule : ZCRMModuleDelegate
     public var editable : Bool = APIConstants.BOOL_MOCK
     public var deletable : Bool = APIConstants.BOOL_MOCK
     
-    var modifiedBy : ZCRMUserDelegate = USER_MOCK
-    var modifiedTime : String = APIConstants.STRING_MOCK
+    public var modifiedBy : ZCRMUserDelegate = USER_MOCK
+    public var modifiedTime : String = APIConstants.STRING_MOCK
     
     public var allowedProfiles : [ZCRMProfileDelegate]?
     public var relatedLists : [ZCRMModuleRelation]?
@@ -50,16 +50,16 @@ open class ZCRMModule : ZCRMModuleDelegate
     public var perPage : Int?
     public var isFilterSupported : Bool = APIConstants.BOOL_MOCK
     public var isFeedsRequired : Bool = APIConstants.BOOL_MOCK
-    var parenModule : ZCRMModuleDelegate?
+    public var parenModule : ZCRMModuleDelegate?
     
-    public init( apiName : String, singularLabel : String, pluralLabel : String )
+    internal init( apiName : String, singularLabel : String, pluralLabel : String )
     {
         self.singularLabel = singularLabel
         self.pluralLabel = pluralLabel
         super.init( apiName : apiName )
 	}
     
-    func addAllowdProfile( profile : ZCRMProfileDelegate )
+    func addAllowedProfile( profile : ZCRMProfileDelegate )
     {
         self.allowedProfiles?.append( profile )
     }

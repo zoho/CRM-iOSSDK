@@ -8,7 +8,7 @@
 open class ZCRMLayoutDelegate : ZCRMEntity
 {
     public var layoutId : Int64
-    var layoutName : String
+    public var layoutName : String
     
     public init( layoutId : Int64, layoutName : String )
     {

@@ -10,10 +10,10 @@ open class ZCRMProfile : ZCRMProfileDelegate
 {
     public var category : Bool = APIConstants.BOOL_MOCK
     public var description : String?
-    var modifiedBy : ZCRMUserDelegate?
-    var createdBy : ZCRMUserDelegate?
-    var modifiedTime : String?
-    var createdTime : String?
+    public var modifiedBy : ZCRMUserDelegate?
+    public var createdBy : ZCRMUserDelegate?
+    public var modifiedTime : String?
+    public var createdTime : String?
 	
 	internal init( name : String )
 	{

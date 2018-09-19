@@ -95,7 +95,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 let responseJSON = bulkResponse.getResponseJSON()
                 if responseJSON.isEmpty == false
                 {
-                    let fields = self.getAllFields( allFieldsDetails : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )
+                    let fields = try self.getAllFields( allFieldsDetails : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )
                     bulkResponse.setData( data : fields )
                     completion( .success( fields, bulkResponse ) )
                 }
@@ -124,7 +124,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 let response = try resultType.resolve()
                 let responseJSON = response.getResponseJSON()
                 let fieldsList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
-                let field = self.getZCRMField( fieldDetails : fieldsList[ 0 ] )
+                let field = try self.getZCRMField( fieldDetails : fieldsList[ 0 ] )
                 response.setData( data : field )
                 completion( .success( field, response ) )
             }
@@ -179,7 +179,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
             do{
                 let response = try resultType.resolve()
                 let responseJSON = response.responseJSON
-                let relatedList = self.getAllRelatedLists( relatedListsDetails : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )[ 0 ]
+                let relatedList = try self.getAllRelatedLists( relatedListsDetails : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )[ 0 ]
                 response.setData( data : relatedList )
                 completion( .success( relatedList, response ) )
             }
@@ -202,7 +202,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
             do{
                 let bulkResponse = try resultType.resolve()
                 let responseJSON = bulkResponse.getResponseJSON()
-                let relatedLists = self.getAllRelatedLists( relatedListsDetails : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )
+                let relatedLists = try self.getAllRelatedLists( relatedListsDetails : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )
                 bulkResponse.setData( data : relatedLists )
                 completion( .success( relatedLists, bulkResponse ) )
             }
@@ -271,12 +271,12 @@ internal class ModuleAPIHandler : CommonAPIHandler
     }
 	
 	// MARK: - Utility functions
-    private func getAllRelatedLists( relatedListsDetails : [ [ String : Any ] ] ) -> [ ZCRMModuleRelation ]
+    private func getAllRelatedLists( relatedListsDetails : [ [ String : Any ] ] ) throws -> [ ZCRMModuleRelation ]
     {
         var relatedLists : [ ZCRMModuleRelation ] = [ ZCRMModuleRelation ]()
         for relatedListDetials in relatedListsDetails
         {
-            relatedLists.append( self.getZCRMModuleRelation( relationListDetails : relatedListDetials ) )
+            relatedLists.append( try self.getZCRMModuleRelation( relationListDetails : relatedListDetials ) )
         }
         return relatedLists
     }
@@ -380,62 +380,110 @@ internal class ModuleAPIHandler : CommonAPIHandler
         return layout
     }
     
-    internal func getAllSectionsOfLayout(allSectionsDetails : [[String:Any]]) -> [ZCRMSection]
+    internal func getAllSectionsOfLayout(allSectionsDetails : [[String:Any]]) throws -> [ZCRMSection]
     {
         var allSections : [ZCRMSection] = [ZCRMSection]()
         for sectionDetails in allSectionsDetails
         {
-            allSections.append(self.getZCRMSection(sectionDetails: sectionDetails))
+            allSections.append( try self.getZCRMSection(sectionDetails: sectionDetails))
         }
         return allSections
     }
     
-    internal func getZCRMSection(sectionDetails : [String:Any]) -> ZCRMSection
+    internal func getZCRMSection(sectionDetails : [String:Any]) throws -> ZCRMSection
     {
         let section : ZCRMSection = ZCRMSection(sectionName: sectionDetails.getString(key: ResponseJSONKeys.name))
-        section.displayName = sectionDetails.optString(key: ResponseJSONKeys.displayLabel) ?? APIConstants.STRING_MOCK
-        section.columnCount = sectionDetails.optInt(key: ResponseJSONKeys.columnCount) ?? APIConstants.INT_MOCK
-        section.sequence = sectionDetails.optInt(key: ResponseJSONKeys.sequenceNumber) ?? APIConstants.INT_MOCK
-        section.addFields(allFields: self.getAllFields(allFieldsDetails: sectionDetails.getArrayOfDictionaries(key: ResponseJSONKeys.fields) ))
+        if sectionDetails.hasValue( forKey : ResponseJSONKeys.displayLabel ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.displayLabel ) is must not be nil" )
+        }
+        section.displayName = sectionDetails.getString(key: ResponseJSONKeys.displayLabel)
+        if sectionDetails.hasValue( forKey : ResponseJSONKeys.columnCount ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.columnCount ) is must not be nil" )
+        }
+        section.columnCount = sectionDetails.getInt(key: ResponseJSONKeys.columnCount)
+        if sectionDetails.hasValue( forKey : ResponseJSONKeys.sequenceNumber ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.sequenceNumber ) is must not be nil" )
+        }
+        section.sequence = sectionDetails.getInt(key: ResponseJSONKeys.sequenceNumber)
+        section.addFields(allFields: try self.getAllFields(allFieldsDetails: sectionDetails.getArrayOfDictionaries(key: ResponseJSONKeys.fields) ))
         section.isSubformSection = sectionDetails.getBoolean( key : ResponseJSONKeys.isSubformSection )
         return section
     }
     
-    internal func getAllFields(allFieldsDetails : [[String : Any]]) -> [ZCRMField]
+    internal func getAllFields(allFieldsDetails : [[String : Any]]) throws -> [ZCRMField]
     {
         var allFields : [ZCRMField] = [ZCRMField]()
         for fieldDetails in allFieldsDetails
         {
-            allFields.append(self.getZCRMField(fieldDetails: fieldDetails))
+            allFields.append(try self.getZCRMField(fieldDetails: fieldDetails))
         }
         return allFields
     }
     
-    internal func getZCRMField(fieldDetails : [String:Any]) -> ZCRMField
+    internal func getZCRMField(fieldDetails : [String:Any]) throws -> ZCRMField
     {
         let field : ZCRMField = ZCRMField(apiName: fieldDetails.getString(key: ResponseJSONKeys.apiName))
-        field.id = fieldDetails.optInt64(key: ResponseJSONKeys.id) ?? APIConstants.INT64_MOCK
-        field.displayLabel = fieldDetails.optString(key: ResponseJSONKeys.fieldLabel) ?? APIConstants.STRING_MOCK
-        field.maxLength = fieldDetails.optInt(key: ResponseJSONKeys.length) ?? APIConstants.INT_MOCK
-        field.type = fieldDetails.optString(key: ResponseJSONKeys.dataType) ?? APIConstants.STRING_MOCK
-        field.visible = fieldDetails.optBoolean(key: ResponseJSONKeys.visible) ?? APIConstants.BOOL_MOCK
-        field.decimalPlace = fieldDetails.optInt(key: ResponseJSONKeys.decimalPlace) ?? APIConstants.INT_MOCK
-        field.readOnly = fieldDetails.optBoolean(key: ResponseJSONKeys.readOnly) ?? APIConstants.BOOL_MOCK
-        field.customField = fieldDetails.optBoolean(key: ResponseJSONKeys.customField) ?? APIConstants.BOOL_MOCK
-        field.defaultValue = fieldDetails.optValue(key: ResponseJSONKeys.defaultValue) ?? APIConstants.BOOL_MOCK
-        field.mandatory = fieldDetails.optBoolean(key: ResponseJSONKeys.required) ?? APIConstants.BOOL_MOCK
-        field.sequenceNo = fieldDetails.optInt(key: ResponseJSONKeys.sequenceNumber) ?? APIConstants.INT_MOCK
-        field.tooltip = fieldDetails.optString(key: ResponseJSONKeys.toolTip) ?? APIConstants.STRING_MOCK
-        field.webhook = fieldDetails.optBoolean(key: ResponseJSONKeys.webhook) ?? APIConstants.BOOL_MOCK
+        if fieldDetails.hasValue( forKey : ResponseJSONKeys.id ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.id ) is must not be nil" )
+        }
+        field.id = fieldDetails.getInt64(key: ResponseJSONKeys.id)
+        if fieldDetails.hasValue( forKey : ResponseJSONKeys.fieldLabel ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.fieldLabel ) is must not be nil" )
+        }
+        field.displayLabel = fieldDetails.getString(key: ResponseJSONKeys.fieldLabel)
+        if fieldDetails.hasValue( forKey : ResponseJSONKeys.length ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.length ) is must not be nil" )
+        }
+        field.maxLength = fieldDetails.getInt(key: ResponseJSONKeys.length)
+        if fieldDetails.hasValue( forKey : ResponseJSONKeys.dataType ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.dataType ) is must not be nil" )
+        }
+        field.type = fieldDetails.getString(key: ResponseJSONKeys.dataType)
+        if fieldDetails.hasValue( forKey : ResponseJSONKeys.visible ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.visible ) is must not be nil" )
+        }
+        field.visible = fieldDetails.getBoolean(key: ResponseJSONKeys.visible)
+        field.decimalPlace = fieldDetails.optInt(key: ResponseJSONKeys.decimalPlace)
+        if fieldDetails.hasValue( forKey : ResponseJSONKeys.readOnly ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.readOnly ) is must not be nil" )
+        }
+        field.readOnly = fieldDetails.getBoolean(key: ResponseJSONKeys.readOnly)
+        if fieldDetails.hasValue( forKey : ResponseJSONKeys.customField ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.customField ) is must not be nil" )
+        }
+        field.customField = fieldDetails.getBoolean(key: ResponseJSONKeys.customField)
+        field.defaultValue = fieldDetails.optValue(key: ResponseJSONKeys.defaultValue)
+        if fieldDetails.hasValue( forKey : ResponseJSONKeys.required ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.required ) is must not be nil" )
+        }
+        field.mandatory = fieldDetails.getBoolean(key: ResponseJSONKeys.required)
+        field.sequenceNo = fieldDetails.optInt(key: ResponseJSONKeys.sequenceNumber)
+        field.tooltip = fieldDetails.optString(key: ResponseJSONKeys.toolTip)
+        if fieldDetails.hasValue( forKey : ResponseJSONKeys.webhook ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.webhook ) is must not be nil" )
+        }
+        field.webhook = fieldDetails.getBoolean(key: ResponseJSONKeys.webhook)
         field.createdSource = fieldDetails.getString(key: ResponseJSONKeys.createdSource)
-        field.lookup = fieldDetails.optDictionary(key: ResponseJSONKeys.lookup) ?? [ String : Any ]()
-        field.multiSelectLookup = fieldDetails.optDictionary(key: ResponseJSONKeys.multiSelectLookup) ?? [ String : Any ]()
+        field.lookup = fieldDetails.optDictionary(key: ResponseJSONKeys.lookup)
+        field.multiSelectLookup = fieldDetails.optDictionary(key: ResponseJSONKeys.multiSelectLookup)
         field.subFormTabId = fieldDetails.optInt64(key: ResponseJSONKeys.subformTabId)
-        field.subForm = fieldDetails.optDictionary(key: ResponseJSONKeys.subform) ?? [ String : Any ]()
+        field.subForm = fieldDetails.optDictionary(key: ResponseJSONKeys.subform)
         if(fieldDetails.hasValue(forKey: ResponseJSONKeys.currency))
         {
             let currencyDetails : [String:Any] = fieldDetails.getDictionary(key: ResponseJSONKeys.currency)
-            field.precision = currencyDetails.optInt(key: ResponseJSONKeys.precision) ?? APIConstants.INT_MOCK
+            field.precision = currencyDetails.optInt(key: ResponseJSONKeys.precision)
             if (currencyDetails.optString(key: ResponseJSONKeys.roundingOption) == CurrencyRoundingOption.RoundOff.rawValue)
             {
                 field.roundingOption = CurrencyRoundingOption.RoundOff
@@ -454,17 +502,24 @@ internal class ModuleAPIHandler : CommonAPIHandler
             }
         }
         
-        field.bussinessCardSupported = fieldDetails.optBoolean(key: ResponseJSONKeys.businessCardSupported) ?? APIConstants.BOOL_MOCK
+        field.bussinessCardSupported = fieldDetails.optBoolean(key: ResponseJSONKeys.businessCardSupported)
         if ( fieldDetails.hasValue( forKey : ResponseJSONKeys.pickListValues ) )
         {
             let pickListValues = fieldDetails.getArrayOfDictionaries( key : ResponseJSONKeys.pickListValues )
             for pickListValueDict in pickListValues
             {
-                let pickListValue = ZCRMPickListValue(displayName: pickListValueDict.optString( key : ResponseJSONKeys.displayValue ) ?? APIConstants.STRING_MOCK, actualName: pickListValueDict.optString( key : ResponseJSONKeys.actualValue ) ?? APIConstants.STRING_MOCK )
-                print( "pickListValueDict : \( pickListValueDict)" )
-                pickListValue.maps = pickListValueDict.optArrayOfDictionaries( key : ResponseJSONKeys.maps ) ?? Array< [ String : Any ] >()
-                pickListValue.sequenceNumber = pickListValueDict.optInt(key : ResponseJSONKeys.sequenceNumber ) ?? APIConstants.INT_MOCK
-                field.addPickListValue( pickListValue : pickListValue )
+                if let displayValue = pickListValueDict.optString( key : ResponseJSONKeys.displayValue ), let actualValue = pickListValueDict.optString( key : ResponseJSONKeys.actualValue )
+                {
+                    let pickListValue = ZCRMPickListValue(displayName: displayValue, actualName: actualValue  )
+                    print( "pickListValueDict : \( pickListValueDict)" )
+                    pickListValue.maps = pickListValueDict.optArrayOfDictionaries( key : ResponseJSONKeys.maps ) ?? Array<Dictionary<String, Any>>()
+                    if pickListValueDict.hasValue( forKey : ResponseJSONKeys.sequenceNumber ) == false
+                    {
+                        throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.sequenceNumber ) is must not be nil" )
+                    }
+                    pickListValue.sequenceNumber = pickListValueDict.getInt(key : ResponseJSONKeys.sequenceNumber )
+                    field.addPickListValue( pickListValue : pickListValue )
+                }
             }
         }
         if(fieldDetails.hasValue(forKey: ResponseJSONKeys.formula))
@@ -476,7 +531,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         if(fieldDetails.hasValue(forKey: ResponseJSONKeys.currency))
         {
             let currencyDetails : [String:Any] = fieldDetails.getDictionary(key: ResponseJSONKeys.currency)
-            field.precision = currencyDetails.optInt(key: ResponseJSONKeys.precision) ?? APIConstants.INT_MOCK
+            field.precision = currencyDetails.optInt(key: ResponseJSONKeys.precision)
         }
         if(fieldDetails.hasValue(forKey: ResponseJSONKeys.viewType))
         {
@@ -510,14 +565,34 @@ internal class ModuleAPIHandler : CommonAPIHandler
         return field
     }
     
-    internal func getZCRMModuleRelation( relationListDetails : [ String : Any ] ) -> ZCRMModuleRelation
+    internal func getZCRMModuleRelation( relationListDetails : [ String : Any ] ) throws -> ZCRMModuleRelation
     {
         let moduleRelation : ZCRMModuleRelation = ZCRMModuleRelation( parentModuleAPIName : module.apiName, relatedListId : relationListDetails.getInt64( key : ResponseJSONKeys.id ) )
-        moduleRelation.apiName = relationListDetails.optString( key : ResponseJSONKeys.apiName ) ?? APIConstants.STRING_MOCK
-        moduleRelation.label = relationListDetails.optString( key : ResponseJSONKeys.displayLabel ) ?? APIConstants.STRING_MOCK
-        moduleRelation.module = relationListDetails.optString( key : ResponseJSONKeys.module ) ?? APIConstants.STRING_MOCK
-        moduleRelation.name = relationListDetails.optString( key : ResponseJSONKeys.name) ?? APIConstants.STRING_MOCK
-        moduleRelation.type = relationListDetails.optString( key : ResponseJSONKeys.type ) ?? APIConstants.STRING_MOCK
+        if relationListDetails.hasValue( forKey : ResponseJSONKeys.apiName ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.apiName ) is must not be nil" )
+        }
+        moduleRelation.apiName = relationListDetails.getString( key : ResponseJSONKeys.apiName )
+        if relationListDetails.hasValue( forKey : ResponseJSONKeys.displayLabel ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.displayLabel ) is must not be nil" )
+        }
+        moduleRelation.label = relationListDetails.getString( key : ResponseJSONKeys.displayLabel )
+        if relationListDetails.hasValue( forKey : ResponseJSONKeys.module ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.module ) is must not be nil" )
+        }
+        moduleRelation.module = relationListDetails.getString( key : ResponseJSONKeys.module )
+        if relationListDetails.hasValue( forKey : ResponseJSONKeys.name ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.name ) is must not be nil" )
+        }
+        moduleRelation.name = relationListDetails.getString( key : ResponseJSONKeys.name)
+        if relationListDetails.hasValue( forKey : ResponseJSONKeys.type ) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.type ) is must not be nil" )
+        }
+        moduleRelation.type = relationListDetails.getString( key : ResponseJSONKeys.type )
         return moduleRelation
     }
     
