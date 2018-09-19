@@ -19,25 +19,6 @@ public enum ZCRMError : Error
     case FileSizeExceeded( code : String, message : String )
     case ProcessingError( code : String, message : String )
     case SDKError( code : String, message : String )
-    
-    var details : ( code : String, description : String )
-    {
-        switch self
-        {
-            case .UnAuthenticatedError( let code, let desc ):
-                return ( code, desc )
-            case .InValidError( let code, let desc ):
-                return ( code, desc )
-            case .MaxRecordCountExceeded( let code, let desc ):
-                return ( code, desc )
-            case .FileSizeExceeded( let code, let desc ):
-                return ( code, desc )
-            case .ProcessingError( let code, let desc ):
-                return ( code, desc )
-            case .SDKError( let code, let desc ):
-                return ( code, desc )
-        }
-    }
 }
 
 public struct ErrorCode
@@ -66,6 +47,41 @@ struct ErrorMessage
     static var OAUTH_FETCH_ERROR_MSG = "There was an error in fetching oauth Token"
     static var UNABLE_TO_CONSTRUCT_URL_MSG = "There was a problem constructing the URL"
     static var INVALID_FILE_TYPE_MSG = "The file you have chosen is not supported. Please choose a PNG, JPG, BMP, or GIF file type."
+}
+
+public extension Error
+{
+    var code : Int
+    {
+        return ( self as NSError ).code
+    }
+    
+    var description : String
+    {
+        return ( self as NSError ).localizedDescription
+    }
+    
+    var ZCRMErrordetails : ( code : String, description : String )?
+    {
+        guard let error = self as? ZCRMError else {
+            return nil
+        }
+        switch error
+        {
+            case .UnAuthenticatedError( let code, let desc ):
+                return ( code, desc )
+            case .InValidError( let code, let desc ):
+                return ( code, desc )
+            case .MaxRecordCountExceeded( let code, let desc ):
+                return ( code, desc )
+            case .FileSizeExceeded( let code, let desc ):
+                return ( code, desc )
+            case .ProcessingError( let code, let desc ):
+                return ( code, desc )
+            case .SDKError( let code, let desc ):
+                return ( code, desc )
+        }
+    }
 }
 
 public enum SortOrder : String
@@ -352,21 +368,6 @@ public extension String
         }
         return nsarray
     }
-}
-
-extension Error
-{
-    var code : Int
-    {
-        return ( self as NSError ).code
-    }
-    
-    var description : String
-    {
-        return ( self as NSError ).localizedDescription
-    }
-    
-    
 }
 
 extension Formatter

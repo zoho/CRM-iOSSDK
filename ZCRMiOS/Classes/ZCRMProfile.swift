@@ -8,7 +8,6 @@
 
 open class ZCRMProfile : ZCRMProfileDelegate
 {
-    var name : String
     public var category : Bool = APIConstants.BOOL_MOCK
     public var description : String?
     var modifiedBy : ZCRMUserDelegate?
@@ -18,7 +17,6 @@ open class ZCRMProfile : ZCRMProfileDelegate
 	
 	internal init( name : String )
 	{
-        self.name = name
-		super.init( profileId : APIConstants.INT64_MOCK, profileName : self.name )
+		super.init( profileId : APIConstants.INT64_MOCK, profileName : name )
 	}
 }

@@ -9,7 +9,7 @@ open class ZCRMRoleDelegate : ZCRMEntity
     var roleId : Int64
     var roleName : String
     
-    init( roleId : Int64, roleName : String )
+    internal init( roleId : Int64, roleName : String )
     {
         self.roleId = roleId
         self.roleName = roleName

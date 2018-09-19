@@ -33,7 +33,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     /// Initialize the ZCRMRecord with the given module.
     ///
     /// - Parameter moduleAPIName: module whose associated ZCRMRecord to be initialized
-    public init(moduleAPIName : String)
+    internal init(moduleAPIName : String)
     {
         super.init( recordId : APIConstants.INT64_MOCK, moduleAPIName : moduleAPIName )
     }
