@@ -65,7 +65,6 @@
 		C80496581934AB35B5F1AB1CB2F370CB /* ZCRMTrashRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D3CACEFC1F613D27D57F9A5B1ADD4BB /* ZCRMTrashRecord.swift */; };
 		CA9ED4A8F3A5CF919283B5239EDB9DB0 /* ModuleAPIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0D1DFA5EA14FF94F86B8C3946C3F9C /* ModuleAPIHandler.swift */; };
 		CB0DAF2E25080A60E1D3CA9582662185 /* ZCRMOrganisation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D64FB2F83828F0CC4DC305B9CB88CA25 /* ZCRMOrganisation.swift */; };
-		CEE9AA21D0395320D32F52304A2D2286 /* ZCRMMetaData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 593920B4F152D9F4281B769C42340B80 /* ZCRMMetaData.swift */; };
 		D80AC4A1674A14D8283F7D672B10B783 /* Bridge-Header.h in Headers */ = {isa = PBXBuildFile; fileRef = B20DEB589C9EBAFC7A3A0265038F8E81 /* Bridge-Header.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D9DC49ED1ADD8FC60F542E0350CD0167 /* ZCRMJunctionRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 623A4F2486FD5C487A02931DF48BD43D /* ZCRMJunctionRecord.swift */; };
 		DABBE25E0A901DDA7A6B658C40D4505F /* ZCRMUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 233CF6F67EA6D5FEE92D3C0D74226E6E /* ZCRMUser.swift */; };
@@ -119,7 +118,6 @@
 		4F1F7187EBA81AD9C4E55CC409F4B5EB /* ZohoPortalAuth.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = ZohoPortalAuth.h; path = ZohoPortalAuthKit.framework/Headers/ZohoPortalAuth.h; sourceTree = "<group>"; };
 		56C95997D0D1C174BDF37B6F7BC65205 /* ZCRMiOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ZCRMiOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		58D7F1E5D6765C104CDFE2127EB4C34C /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		593920B4F152D9F4281B769C42340B80 /* ZCRMMetaData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ZCRMMetaData.swift; path = ZCRMiOS/Classes/ZCRMMetaData.swift; sourceTree = "<group>"; };
 		5F3C2378AFADA8100EA1EEE1A4A9B514 /* Pods-ZCRMiOS_Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-ZCRMiOS_Tests.debug.xcconfig"; sourceTree = "<group>"; };
 		5F8E4CCEC7EC492F2A0DC736E9B44AB8 /* ZCRMModule.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ZCRMModule.swift; path = ZCRMiOS/Classes/ZCRMModule.swift; sourceTree = "<group>"; };
 		623A4F2486FD5C487A02931DF48BD43D /* ZCRMJunctionRecord.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ZCRMJunctionRecord.swift; path = ZCRMiOS/Classes/ZCRMJunctionRecord.swift; sourceTree = "<group>"; };
@@ -283,7 +281,6 @@
 				D75FE306440746CF99D0D1BB1566E1BD /* ZCRMLayout.swift */,
 				B1E3B63A214A628A009B290E /* ZCRMLayoutDelegate.swift */,
 				36C0C3BBCA891C97A5DCE2BD71D6A62C /* ZCRMLoginHandler.swift */,
-				593920B4F152D9F4281B769C42340B80 /* ZCRMMetaData.swift */,
 				5F8E4CCEC7EC492F2A0DC736E9B44AB8 /* ZCRMModule.swift */,
 				6C03FF21215054E80049791E /* ZCRMModuleDelegate.swift */,
 				8790BD75E3D1FBA1DCBBB5CD8A408CFE /* ZCRMModuleRelation.swift */,
@@ -602,7 +599,6 @@
 				90AC2AD5CCEA1EACFDBBC75D96337E6C /* ZCRMLayout.swift in Sources */,
 				6C99893B48CFB1AB2DB2095717B7F1A6 /* ZCRMLoginHandler.swift in Sources */,
 				B1E3B644214B9D71009B290E /* ZCRMTagDelegate.swift in Sources */,
-				CEE9AA21D0395320D32F52304A2D2286 /* ZCRMMetaData.swift in Sources */,
 				6927B168E824F241AF89A94700EC8723 /* ZCRMNote.swift in Sources */,
 				CB0DAF2E25080A60E1D3CA9582662185 /* ZCRMOrganisation.swift in Sources */,
 				4D953D41F002452A82E6A2F0FCB4A410 /* ZCRMPickListValue.swift in Sources */,
