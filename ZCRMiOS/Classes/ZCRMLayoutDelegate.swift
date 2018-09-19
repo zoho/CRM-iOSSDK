@@ -10,7 +10,7 @@ open class ZCRMLayoutDelegate : ZCRMEntity
     public var layoutId : Int64
     public var layoutName : String
     
-    public init( layoutId : Int64, layoutName : String )
+    internal init( layoutId : Int64, layoutName : String )
     {
         self.layoutId = layoutId
         self.layoutName = layoutName
