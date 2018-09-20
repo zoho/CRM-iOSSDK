@@ -19,6 +19,6 @@ open class ZCRMTag : ZCRMTagDelegate
     
     init()
     {
-        super.init( tagId : APIConstants.INT64_MOCK)
+        super.init( tagId : APIConstants.INT64_MOCK, moduleAPIName : APIConstants.STRING_MOCK)
     }
 }
