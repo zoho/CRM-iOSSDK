@@ -175,7 +175,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func merge( withTag : ZCRMTag, completion : @escaping( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
+    internal func merge( withTag : ZCRMTagDelegate, completion : @escaping( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
         if let tag = self.tag
         {
@@ -184,9 +184,8 @@ internal class TagAPIHandler : CommonAPIHandler
                 completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Tag ID MUST NOT be nil" ) ) )
                 return
             }
-            var conflictTagJSON : [String:Any] = self.getZCRMTagAsJSON(tag: withTag) as Any as! [String:Any]
             var conflictIdJSON : [String:Any] = [String:Any]()
-            conflictIdJSON[RequestParamKeys.conflictId] = conflictTagJSON[ResponseJSONKeys.id]
+            conflictIdJSON[RequestParamKeys.conflictId] = withTag.tagId
             setJSONRootKey(key: JSONRootKey.TAGS)
             var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
             var dataArray : [[String:Any]] = [[String:Any]]()

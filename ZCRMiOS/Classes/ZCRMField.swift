@@ -14,7 +14,7 @@ open class ZCRMField : ZCRMEntity
 	public var type : String = APIConstants.STRING_MOCK
 	public var readOnly : Bool = APIConstants.BOOL_MOCK
 	public var visible : Bool = APIConstants.BOOL_MOCK
-	public var mandatory : Bool = APIConstants.BOOL_MOCK
+	public var mandatory : Bool?
 	public var customField : Bool = APIConstants.BOOL_MOCK
 	public var defaultValue : Any?
 	public var maxLength : Int = APIConstants.INT_MOCK

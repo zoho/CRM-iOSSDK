@@ -513,28 +513,25 @@ internal class UserAPIHandler : CommonAPIHandler
             throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.countryLocale ) is must not be nil" )
         }
         user.countryLocale = userDict.getString(key : ResponseJSONKeys.countryLocale )
-        if userDict.hasValue( forKey : ResponseJSONKeys.dateFormat ) == false
+        if userDict.hasValue( forKey : ResponseJSONKeys.dateFormat )
         {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.dateFormat ) is must not be nil" )
+            user.dateFormat = userDict.getString( key : ResponseJSONKeys.dateFormat )
         }
-        user.dateFormat = userDict.getString( key : ResponseJSONKeys.dateFormat )
         user.dateOfBirth = userDict.optString( key : ResponseJSONKeys.dob )
         if userDict.hasValue( forKey : ResponseJSONKeys.country ) == false
         {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.country ) is must not be nil" )
+            user.country = userDict.getString( key : ResponseJSONKeys.country )
         }
-        user.country = userDict.getString( key : ResponseJSONKeys.country )
         user.fax = userDict.optString( key : ResponseJSONKeys.fax )
         if userDict.hasValue( forKey : ResponseJSONKeys.locale ) == false
         {
             throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.locale ) is must not be nil" )
         }
         user.locale = userDict.getString( key : ResponseJSONKeys.locale )
-        if userDict.hasValue( forKey : ResponseJSONKeys.nameFormat ) == false
+        if userDict.hasValue( forKey : ResponseJSONKeys.nameFormat )
         {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.nameFormat ) is must not be nil" )
+            user.nameFormat = userDict.getString( key : ResponseJSONKeys.nameFormat )
         }
-        user.nameFormat = userDict.getString( key : ResponseJSONKeys.nameFormat )
         user.phone = userDict.optString( key : ResponseJSONKeys.phone )
         user.website = userDict.optString( key : ResponseJSONKeys.website )
         user.street = userDict.optString( key : ResponseJSONKeys.street )

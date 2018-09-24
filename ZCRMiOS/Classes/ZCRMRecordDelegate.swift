@@ -16,6 +16,36 @@ open class ZCRMRecordDelegate : ZCRMEntity
         self.moduleAPIName = moduleAPIName
     }
     
+    public func newAttachment() -> ZCRMAttachment
+    {
+        return ZCRMAttachment(parentRecord: self)
+    }
+    
+    public func newNote( content : String ) -> ZCRMNote
+    {
+        return ZCRMNote( content : content )
+    }
+    
+    public func newNote( content : String?, title : String ) -> ZCRMNote
+    {
+        return ZCRMNote(content : content, title : title)
+    }
+    
+    public func newTag( tagName : String ) -> ZCRMTag
+    {
+        return ZCRMTag(tagName: tagName)
+    }
+    
+    public func getTagDelegate(tagId : Int64) -> ZCRMTagDelegate
+    {
+        return ZCRMTagDelegate(tagId: tagId, moduleAPIName: self.moduleAPIName)
+    }
+    
+    public func getTagDelegate(tagId : Int64, tagName : String) -> ZCRMTagDelegate
+    {
+        return ZCRMTagDelegate(tagId: tagId, tagName: tagName, moduleAPIName: self.moduleAPIName)
+    }
+    
     /// Returns the API response of the ZCRMRecord delete.
     ///
     /// - Returns: API response of the ZCRMRecord delete
@@ -189,7 +219,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if Note id is nil
     public func updateNote(note: ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> ())
     {
-        if( note.id != APIConstants.INT64_MOCK )
+        if( note.id == APIConstants.INT64_MOCK )
         {
             completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Note ID must not be nil for update operation." ) ) )
         }
@@ -219,7 +249,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to get notes of the ZCRMRecord
     public func getNotes( completion : @escaping( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
     {
-        ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.moduleAPIName).getNotes( ofParentRecord: self, page : 0, per_page : 20 ) { ( result ) in
+        ZCRMModuleRelation(relatedListAPIName: "Notes", parentModuleAPIName: self.moduleAPIName).getNotes( ofParentRecord: self, page : 1, per_page : 20 ) { ( result ) in
             completion( result )
         }
     }
@@ -430,36 +460,6 @@ open class ZCRMRecordDelegate : ZCRMEntity
         EntityAPIHandler(recordDelegate: self).unfollow() { ( result ) in
             completion( result )
         }
-    }
-    
-    public func newAttachment() -> ZCRMAttachment
-    {
-        return ZCRMAttachment(parentRecord: self)
-    }
-    
-    public func newNote( content : String ) -> ZCRMNote
-    {
-        return ZCRMNote( content : content )
-    }
-    
-    public func newNote( content : String?, title : String ) -> ZCRMNote
-    {
-        return ZCRMNote(content : content, title : title)
-    }
-    
-    public func newTag( tagName : String ) -> ZCRMTag
-    {
-        return ZCRMTag(tagName: tagName)
-    }
-    
-    public func getTagDelegate(tagId : Int64) -> ZCRMTagDelegate
-    {
-        return ZCRMTagDelegate(tagId: tagId, moduleAPIName: self.moduleAPIName)
-    }
-    
-    public func getTagDelegate(tagId : Int64, tagName : String) -> ZCRMTagDelegate
-    {
-        return ZCRMTagDelegate(tagId: tagId, tagName: tagName, moduleAPIName: self.moduleAPIName)
     }
 }
 

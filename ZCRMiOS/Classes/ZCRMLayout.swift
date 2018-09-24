@@ -8,7 +8,6 @@
 
 open class ZCRMLayout : ZCRMLayoutDelegate
 {
-    public var name : String
     public var createdBy : ZCRMUserDelegate = USER_MOCK
     public var createdTime : String = APIConstants.STRING_MOCK
     public var modifiedBy : ZCRMUserDelegate = USER_MOCK
@@ -20,8 +19,7 @@ open class ZCRMLayout : ZCRMLayoutDelegate
 	
     init( name : String )
     {
-        self.name = name
-        super.init( layoutId : APIConstants.INT64_MOCK, layoutName : self.name )
+        super.init( layoutId : APIConstants.INT64_MOCK, layoutName : name )
     }
 	
     /// Add ZCRMSection to the ZCRMLayout.
