@@ -118,7 +118,14 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         let notesList:[[String:Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                         for noteDetails in notesList
                         {
-                            notes.append( self.getZCRMNote(noteDetails: noteDetails))
+                            if ( noteDetails.hasValue(forKey: ResponseJSONKeys.noteContent))
+                            {
+                                notes.append( self.getZCRMNote(noteDetails: noteDetails, note: ZCRMNote(content: noteDetails.getString(key: ResponseJSONKeys.noteContent))))
+                            }
+                            else
+                            {
+                                notes.append( self.getZCRMNote(noteDetails: noteDetails, note: ZCRMNote(content: nil, title: noteDetails.getString(key: ResponseJSONKeys.noteTitle))))
+                            }
                         }
                         bulkResponse.setData(data: notes)
                         completion( .success( notes, bulkResponse ) )
@@ -348,7 +355,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     let respDataArr : [[String:Any?]] = responseJSON.optArrayOfDictionaries(key: self.getJSONRootKey())!
                     let respData : [String:Any?] = respDataArr[0]
                     let recordDetails : [String:Any] = respData.getDictionary( key : APIConstants.DETAILS )
-                    let note = self.getZCRMNote(noteDetails: recordDetails)
+                    let note = self.getZCRMNote(noteDetails: recordDetails, note: note)
                     response.setData(data: note )
                     completion( .success( note, response ) )
                 }
@@ -392,7 +399,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         let respDataArr : [[String:Any?]] = responseJSON.optArrayOfDictionaries(key: self.getJSONRootKey())!
                         let respData : [String:Any?] = respDataArr[0]
                         let recordDetails : [String:Any] = respData.getDictionary(key: APIConstants.DETAILS)
-                        let updatedNote = self.getZCRMNote(noteDetails: recordDetails)
+                        let updatedNote = self.getZCRMNote(noteDetails: recordDetails, note: note)
                         response.setData(data: updatedNote )
                         completion( .success( updatedNote, response ) )
                     }
@@ -436,6 +443,10 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 	private func getZCRMAttachment(attachmentDetails : [String:Any?]) -> ZCRMAttachment
 	{
         let attachment : ZCRMAttachment = ZCRMAttachment( parentRecord : self.parentRecord )
+        if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.id))
+        {
+            attachment.attachmentId = attachmentDetails.getInt64(key: ResponseJSONKeys.id)
+        }
         if let fileName : String = attachmentDetails.optString( key : ResponseJSONKeys.fileName )
         {
             attachment.fileName = fileName
@@ -481,11 +492,21 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 		return attachment
 	}
 	
-    private func getZCRMNote(noteDetails : [String:Any?]) -> ZCRMNote
-	{
-        let note : ZCRMNote = ZCRMNote( content : noteDetails.getString( key : ResponseJSONKeys.noteContent ) )
+    private func getZCRMNote(noteDetails : [String:Any?], note : ZCRMNote) -> ZCRMNote
+    {
         note.parentRecord = self.parentRecord
-        note.title = noteDetails.optString( key : ResponseJSONKeys.noteTitle )
+        if ( noteDetails.hasValue( forKey : ResponseJSONKeys.id ) )
+        {
+            note.id = noteDetails.getInt64( key : ResponseJSONKeys.id )
+        }
+        if ( noteDetails.hasValue( forKey : ResponseJSONKeys.noteContent ) )
+        {
+            note.content = noteDetails.optString( key : ResponseJSONKeys.noteContent )
+        }
+        if ( noteDetails.hasValue( forKey : ResponseJSONKeys.noteTitle ) )
+        {
+            note.title = noteDetails.optString( key : ResponseJSONKeys.noteTitle )
+        }
         if ( noteDetails.hasValue( forKey : ResponseJSONKeys.createdBy ) )
         {
             let createdByDetails : [String:Any] = noteDetails.getDictionary(key: ResponseJSONKeys.createdBy)
@@ -591,7 +612,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     {
         if let junctionRecord = self.junctionRecord
         {
-            setUrlPath(urlPath: "/\(self.parentRecord.moduleAPIName)/\( String( self.parentRecord.recordId ) )/\(junctionRecord.apiName)/\(junctionRecord.id))" )
+            setUrlPath(urlPath: "/\(self.parentRecord.moduleAPIName)/\( String( self.parentRecord.recordId ) )/\(junctionRecord.apiName)/\(junctionRecord.id)" )
             setRequestMethod(requestMethod: .DELETE )
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )

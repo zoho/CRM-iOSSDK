@@ -126,8 +126,14 @@ internal class MetaDataAPIHandler : CommonAPIHandler
             }
             module.properties = properties
         }
-        module.displayField = moduleDetails.getString(key: ResponseJSONKeys.displayField)
-        module.searchLayoutFields = moduleDetails.getArray(key: ResponseJSONKeys.searchLayoutFields) as? [String]
+        if( moduleDetails.hasValue(forKey: ResponseJSONKeys.displayField))
+        {
+            module.displayField = moduleDetails.getString(key: ResponseJSONKeys.displayField)
+        }
+        if( moduleDetails.hasValue(forKey: ResponseJSONKeys.searchLayoutFields))
+        {
+            module.searchLayoutFields = moduleDetails.getArray(key: ResponseJSONKeys.searchLayoutFields) as? [String]
+        }
         if(moduleDetails.hasValue(forKey: ResponseJSONKeys.parentModule))
         {
             let parentModuleDetails = moduleDetails.getDictionary(key: ResponseJSONKeys.parentModule)
@@ -141,25 +147,22 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         {
             module.customView = ModuleAPIHandler(module: module).getZCRMCustomView(cvDetails: moduleDetails.getDictionary(key: ResponseJSONKeys.customView))
         }
-        if moduleDetails.hasValue( forKey : ResponseJSONKeys.kanbanView ) == false
+        if (moduleDetails.hasValue( forKey : ResponseJSONKeys.kanbanView ))
         {
             module.isKanbanView = moduleDetails.getBoolean(key: ResponseJSONKeys.kanbanView)
         }
-        if moduleDetails.hasValue( forKey : ResponseJSONKeys.filterStatus ) == false
+        if moduleDetails.hasValue( forKey : ResponseJSONKeys.filterStatus )
         {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.filterStatus ) is must not be nil" )
+            module.filterStatus = moduleDetails.getBoolean(key: ResponseJSONKeys.filterStatus)
         }
-        module.filterStatus = moduleDetails.getBoolean(key: ResponseJSONKeys.filterStatus)
-        if moduleDetails.hasValue( forKey : ResponseJSONKeys.presenceSubMenu ) == false
+        if moduleDetails.hasValue( forKey : ResponseJSONKeys.presenceSubMenu )
         {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.presenceSubMenu ) is must not be nil" )
+            module.isSubMenuPresent = moduleDetails.getBoolean(key: ResponseJSONKeys.presenceSubMenu)
         }
-        module.isSubMenuPresent = moduleDetails.getBoolean(key: ResponseJSONKeys.presenceSubMenu)
-        if moduleDetails.hasValue( forKey : ResponseJSONKeys.perPage ) == false
+        if moduleDetails.hasValue( forKey : ResponseJSONKeys.perPage )
         {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.perPage ) is must not be nil" )
+            module.perPage = moduleDetails.getInt(key: ResponseJSONKeys.perPage)
         }
-        module.perPage = moduleDetails.getInt(key: ResponseJSONKeys.perPage)
         if moduleDetails.hasValue( forKey : ResponseJSONKeys.filterSupported ) == false
         {
             throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.filterSupported ) is must not be nil" )
@@ -171,7 +174,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         }
         module.isFeedsRequired = moduleDetails.getBoolean(key: ResponseJSONKeys.feedsRequired)
         return module
-	}
+    }
 	
 	private func setRelatedListProperties(relatedList : ZCRMModuleRelation, relatedListDetails : [String : Any]) throws
 	{

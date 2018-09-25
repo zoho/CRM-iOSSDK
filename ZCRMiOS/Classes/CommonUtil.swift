@@ -23,46 +23,46 @@ public enum ZCRMError : Error
 
 public struct ErrorCode
 {
-    static var INVALID_DATA = "INVALID_DATA"
-    static var INTERNAL_ERROR = "INTERNAL_ERROR"
-    static var RESPONSE_NIL = "RESPONSE_NIL"
-    static var VALUE_NIL = "VALUE_NIL"
-    static var MANDATORY_NOT_FOUND = "MANDATORY_NOT_FOUND"
-    static var RESPONSE_ROOT_KEY_NIL = "RESPONSE_ROOT_KEY_NIL"
-    static var FILE_SIZE_EXCEEDED = "FILE_SIZE_EXCEEDED"
-    static var MAX_COUNT_EXCEEDED = "MAX_COUNT_EXCEEDED"
-    static var FIELD_NOT_FOUND = "FIELD_NOT_FOUND"
-    static var OAUTHTOKEN_NIL = "OAUTHTOKEN_NIL"
-    static var OAUTH_FETCH_ERROR = "OAUTH_FETCH_ERROR"
-    static var UNABLE_TO_CONSTRUCT_URL = "UNABLE_TO_CONSTRUCT_URL"
-    static var INVALID_FILE_TYPE = "INVALID_FILE_TYPE"
-    static var INVALID_MODULE = "INVALID_MODULE"
+    public static var INVALID_DATA = "INVALID_DATA"
+    public static var INTERNAL_ERROR = "INTERNAL_ERROR"
+    public static var RESPONSE_NIL = "RESPONSE_NIL"
+    public static var VALUE_NIL = "VALUE_NIL"
+    public static var MANDATORY_NOT_FOUND = "MANDATORY_NOT_FOUND"
+    public static var RESPONSE_ROOT_KEY_NIL = "RESPONSE_ROOT_KEY_NIL"
+    public static var FILE_SIZE_EXCEEDED = "FILE_SIZE_EXCEEDED"
+    public static var MAX_COUNT_EXCEEDED = "MAX_COUNT_EXCEEDED"
+    public static var FIELD_NOT_FOUND = "FIELD_NOT_FOUND"
+    public static var OAUTHTOKEN_NIL = "OAUTHTOKEN_NIL"
+    public static var OAUTH_FETCH_ERROR = "OAUTH_FETCH_ERROR"
+    public static var UNABLE_TO_CONSTRUCT_URL = "UNABLE_TO_CONSTRUCT_URL"
+    public static var INVALID_FILE_TYPE = "INVALID_FILE_TYPE"
+    public static var INVALID_MODULE = "INVALID_MODULE"
 }
 
-struct ErrorMessage
+public struct ErrorMessage
 {
-    static var INVALID_ID_MSG  = "The given id seems to be invalid."
-    static var API_MAX_RECORDS_MSG = "Cannot process more than 100 records at a time."
-    static var RESPONSE_NIL_MSG  = "Response is nil"
-    static var OAUTHTOKEN_NIL_MSG = "The oauth token is nil"
-    static var OAUTH_FETCH_ERROR_MSG = "There was an error in fetching oauth Token"
-    static var UNABLE_TO_CONSTRUCT_URL_MSG = "There was a problem constructing the URL"
-    static var INVALID_FILE_TYPE_MSG = "The file you have chosen is not supported. Please choose a PNG, JPG, BMP, or GIF file type."
+    public static var INVALID_ID_MSG  = "The given id seems to be invalid."
+    public static var API_MAX_RECORDS_MSG = "Cannot process more than 100 records at a time."
+    public static var RESPONSE_NIL_MSG  = "Response is nil"
+    public static var OAUTHTOKEN_NIL_MSG = "The oauth token is nil"
+    public static var OAUTH_FETCH_ERROR_MSG = "There was an error in fetching oauth Token"
+    public static var UNABLE_TO_CONSTRUCT_URL_MSG = "There was a problem constructing the URL"
+    public static var INVALID_FILE_TYPE_MSG = "The file you have chosen is not supported. Please choose a PNG, JPG, BMP, or GIF file type."
 }
 
 public extension Error
 {
-    var code : Int
+    public var code : Int
     {
         return ( self as NSError ).code
     }
     
-    var description : String
+    public var description : String
     {
         return ( self as NSError ).localizedDescription
     }
     
-    var ZCRMErrordetails : ( code : String, description : String )?
+    public var ZCRMErrordetails : ( code : String, description : String )?
     {
         guard let error = self as? ZCRMError else {
             return nil
