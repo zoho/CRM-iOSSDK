@@ -120,11 +120,11 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         {
                             if ( noteDetails.hasValue(forKey: ResponseJSONKeys.noteContent))
                             {
-                                notes.append( self.getZCRMNote(noteDetails: noteDetails, note: ZCRMNote(content: noteDetails.getString(key: ResponseJSONKeys.noteContent))))
+                                try notes.append( self.getZCRMNote(noteDetails: noteDetails, note: ZCRMNote(content: noteDetails.getString(key: ResponseJSONKeys.noteContent))))
                             }
                             else
                             {
-                                notes.append( self.getZCRMNote(noteDetails: noteDetails, note: ZCRMNote(content: nil, title: noteDetails.getString(key: ResponseJSONKeys.noteTitle))))
+                                try notes.append( self.getZCRMNote(noteDetails: noteDetails, note: ZCRMNote(content: nil, title: noteDetails.getString(key: ResponseJSONKeys.noteTitle))))
                             }
                         }
                         bulkResponse.setData(data: notes)
@@ -171,7 +171,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         let attachmentsList:[[String:Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                         for attachmentDetails in attachmentsList
                         {
-                            attachments.append(self.getZCRMAttachment(attachmentDetails: attachmentDetails))
+                            try attachments.append(self.getZCRMAttachment(attachmentDetails: attachmentDetails))
                         }
                         bulkResponse.setData(data: attachments)
                         completion( .success( attachments, bulkResponse ) )
@@ -208,7 +208,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     let respDataArr : [[String:Any?]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     let respData : [String:Any?] = respDataArr[0]
                     let recordDetails : [String:Any] = respData.getDictionary( key : APIConstants.DETAILS )
-                    let attachment = self.getZCRMAttachment(attachmentDetails: recordDetails)
+                    let attachment = try self.getZCRMAttachment(attachmentDetails: recordDetails)
                     response.setData(data: attachment)
                     completion( .success( attachment, response ) )
                 }
@@ -238,7 +238,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     let respDataArr : [[String:Any?]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     let respData : [String:Any?] = respDataArr[0]
                     let recordDetails : [String:Any] = respData.getDictionary( key : APIConstants.DETAILS )
-                    let attachment = self.getZCRMAttachment(attachmentDetails: recordDetails)
+                    let attachment = try self.getZCRMAttachment(attachmentDetails: recordDetails)
                     response.setData(data: attachment)
                     completion( .success( attachment, response ) )
                 }
@@ -268,7 +268,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     let response = try resultType.resolve()
                     let responseJSONArray : [ [ String : Any ] ]  = response.getResponseJSON().getArrayOfDictionaries( key : self.getJSONRootKey() )
                     let details = responseJSONArray[ 0 ].getDictionary( key : APIConstants.DETAILS )
-                    let attachment = self.getZCRMAttachment(attachmentDetails: details)
+                    let attachment = try self.getZCRMAttachment(attachmentDetails: details)
                     response.setData( data : attachment )
                     completion( .success( attachment, response ) )
                 }
@@ -355,7 +355,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     let respDataArr : [[String:Any?]] = responseJSON.optArrayOfDictionaries(key: self.getJSONRootKey())!
                     let respData : [String:Any?] = respDataArr[0]
                     let recordDetails : [String:Any] = respData.getDictionary( key : APIConstants.DETAILS )
-                    let note = self.getZCRMNote(noteDetails: recordDetails, note: note)
+                    let note = try self.getZCRMNote(noteDetails: recordDetails, note: note)
                     response.setData(data: note )
                     completion( .success( note, response ) )
                 }
@@ -399,7 +399,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         let respDataArr : [[String:Any?]] = responseJSON.optArrayOfDictionaries(key: self.getJSONRootKey())!
                         let respData : [String:Any?] = respDataArr[0]
                         let recordDetails : [String:Any] = respData.getDictionary(key: APIConstants.DETAILS)
-                        let updatedNote = self.getZCRMNote(noteDetails: recordDetails, note: note)
+                        let updatedNote = try self.getZCRMNote(noteDetails: recordDetails, note: note)
                         response.setData(data: updatedNote )
                         completion( .success( updatedNote, response ) )
                     }
@@ -440,13 +440,14 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
 	}
 	
-	private func getZCRMAttachment(attachmentDetails : [String:Any?]) -> ZCRMAttachment
+	private func getZCRMAttachment(attachmentDetails : [String:Any?]) throws -> ZCRMAttachment
 	{
         let attachment : ZCRMAttachment = ZCRMAttachment( parentRecord : self.parentRecord )
-        if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.id))
+        if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.id)) == false
         {
-            attachment.attachmentId = attachmentDetails.getInt64(key: ResponseJSONKeys.id)
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.id ) is must not be nil" )
         }
+        attachment.attachmentId = attachmentDetails.getInt64(key: ResponseJSONKeys.id)
         if let fileName : String = attachmentDetails.optString( key : ResponseJSONKeys.fileName )
         {
             attachment.fileName = fileName
@@ -492,13 +493,14 @@ internal class RelatedListAPIHandler : CommonAPIHandler
 		return attachment
 	}
 	
-    private func getZCRMNote(noteDetails : [String:Any?], note : ZCRMNote) -> ZCRMNote
+    private func getZCRMNote(noteDetails : [String:Any?], note : ZCRMNote) throws -> ZCRMNote
     {
         note.parentRecord = self.parentRecord
-        if ( noteDetails.hasValue( forKey : ResponseJSONKeys.id ) )
+        if ( noteDetails.hasValue( forKey : ResponseJSONKeys.id ) ) == false
         {
-            note.id = noteDetails.getInt64( key : ResponseJSONKeys.id )
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.id ) is must not be nil" )
         }
+        note.id = noteDetails.getInt64( key : ResponseJSONKeys.id )
         if ( noteDetails.hasValue( forKey : ResponseJSONKeys.noteContent ) )
         {
             note.content = noteDetails.optString( key : ResponseJSONKeys.noteContent )
@@ -533,7 +535,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             let attachmentsList : [[String:Any?]] = noteDetails.getArrayOfDictionaries(key: ResponseJSONKeys.attachments)
             for attachmentDetails in attachmentsList
             {
-                note.addAttachment(attachment: self.getZCRMAttachment(attachmentDetails: attachmentDetails))
+                try note.addAttachment(attachment: self.getZCRMAttachment(attachmentDetails: attachmentDetails))
             }
         }
         if(noteDetails.hasValue(forKey: ResponseJSONKeys.parentId))

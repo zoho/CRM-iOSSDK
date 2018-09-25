@@ -512,12 +512,12 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getTaxAsJSONArray() -> [ [ String : Any ] ]?
     {
-        if ( self.record.tax.isEmpty )
+        if ( self.record.tax == nil)
         {
             return nil
         }
         var taxJSONArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
-        let allTax : [ ZCRMTax ] = self.record.tax
+        let allTax : [ ZCRMTax ] = self.record.tax!
         for tax in allTax
         {
             taxJSONArray.append( self.getTaxAsJSON( tax : tax ) as Any as! [ String : Any ] )
@@ -536,12 +536,12 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getLineItemsAsJSONArray() -> [[String:Any]]?
     {
-        if(self.record.lineItems.isEmpty)
+        if(self.record.lineItems == nil)
         {
             return nil
         }
         var allLineItems : [[String:Any]] = [[String:Any]]()
-        let allLines : [ZCRMInventoryLineItem] = self.record.lineItems
+        let allLines : [ZCRMInventoryLineItem] = self.record.lineItems!
         for lineItem in allLines
         {
             allLineItems.append(self.getZCRMInventoryLineItemAsJSON(invLineItem: lineItem) as Any as! [ String : Any ] )
@@ -551,12 +551,12 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getPriceDetailsAsJSONArray() -> [ [ String : Any ] ]?
     {
-        if( self.record.priceDetails.isEmpty )
+        if( self.record.priceDetails == nil )
         {
             return nil
         }
         var priceDetails : [ [ String : Any ] ] = [ [ String : Any ] ]()
-        let allPriceDetails : [ ZCRMPriceBookPricing ] = self.record.priceDetails
+        let allPriceDetails : [ ZCRMPriceBookPricing ] = self.record.priceDetails!
         for priceDetail in allPriceDetails
         {
             priceDetails.append( self.getZCRMPriceDetailAsJSON(priceDetail : priceDetail ) as Any as! [ String : Any ] )
@@ -566,12 +566,12 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getParticipantsAsJSONArray() -> [ [ String : Any ] ]?
     {
-        if( self.record.participants.isEmpty)
+        if( self.record.participants == nil)
         {
             return nil
         }
         var participantsDetails : [ [ String : Any ] ] = [ [ String : Any ] ]()
-        let allParticipants : [ ZCRMEventParticipant ] = self.record.participants
+        let allParticipants : [ ZCRMEventParticipant ] = self.record.participants!
         for participant in allParticipants
         {
             participantsDetails.append( self.getZCRMEventParticipantAsJSON( participant : participant ) as Any as! [ String : Any ] )
@@ -595,9 +595,18 @@ internal class EntityAPIHandler : CommonAPIHandler
     {
         var priceDetailJSON : [ String : Any? ] = [ String : Any? ]()
         priceDetailJSON[ ResponseJSONKeys.id ] = priceDetail.id
-        priceDetailJSON[ ResponseJSONKeys.discount ] = priceDetail.discount
-        priceDetailJSON[ ResponseJSONKeys.toRange ] = priceDetail.toRange
-        priceDetailJSON[ ResponseJSONKeys.fromRange ] = priceDetail.fromRange
+        if( priceDetail.discount != APIConstants.DOUBLE_MOCK )
+        {
+            priceDetailJSON[ ResponseJSONKeys.discount ] = priceDetail.discount
+        }
+        if( priceDetail.toRange != APIConstants.DOUBLE_MOCK )
+        {
+            priceDetailJSON[ ResponseJSONKeys.toRange ] = priceDetail.toRange
+        }
+        if( priceDetail.fromRange != APIConstants.DOUBLE_MOCK )
+        {
+            priceDetailJSON[ ResponseJSONKeys.fromRange ] = priceDetail.fromRange
+        }
         return priceDetailJSON
     }
     
@@ -761,7 +770,11 @@ internal class EntityAPIHandler : CommonAPIHandler
             }
 			else if( value is [[ String : Any ]] )
 			{
-				self.record.setValue(forField: fieldAPIName , value: self.getAllZCRMSubformRecords(apiName: fieldAPIName , subforms: value as! [[ String : Any]] ))
+                let subformRecordsDetails : [[String:Any]] = value as! [[ String : Any]]
+                for subformRecordDetails  in subformRecordsDetails
+                {
+                    self.record.subformRecord![fieldAPIName] = getZCRMSubformRecord(apiName: fieldAPIName, subformDetails: subformRecordDetails)
+                }
 			}
             else
             {
