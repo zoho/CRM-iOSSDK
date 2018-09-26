@@ -428,25 +428,55 @@ internal class EntityAPIHandler : CommonAPIHandler
             {
                 value = ( value as? ZCRMUserDelegate )?.id
             }
-			if( recordData[ fieldApiName ] is [ZCRMSubformRecord]  && (recordData[fieldApiName] as! [ZCRMSubformRecord]).isEmpty == false)
-			{
-				var subformObj : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
-				for subform in recordData[ fieldApiName ] as! [ ZCRMSubformRecord ]
-				{
-					subformObj.append( subform.fieldNameVsValue )
-				}
-			}
             recordJSON[ fieldApiName ] = value
         }
         if( self.record.dataProcessingBasicDetails != nil )
         {
             recordJSON[ ResponseJSONKeys.dataProcessingBasisDetails ] = self.getZCRMDataProcessingDetailsAsJSON(details: self.record.dataProcessingBasicDetails! )
         }
+        if ( self.record.subformRecord != nil )
+        {
+            for apiName in self.record.subformRecord!.keys
+            {
+                if (self.record.subformRecord?.hasValue(forKey: apiName) ?? false)
+                {
+                    recordJSON[apiName] = getAllZCRMSubformRecordAsJSONArray(apiName: apiName, subformRecords: self.record.subformRecord![apiName]!)
+                }
+            }
+        }
         recordJSON[ ResponseJSONKeys.productDetails ] = self.getLineItemsAsJSONArray()
         recordJSON[ ResponseJSONKeys.tax ] = self.getTaxAsJSONArray()
         recordJSON[ ResponseJSONKeys.participants ] = self.getParticipantsAsJSONArray()
         recordJSON[ ResponseJSONKeys.pricingDetails ] = self.getPriceDetailsAsJSONArray()
         return recordJSON
+    }
+    
+    private func getZCRMSubformRecordAsJSON( subformRecord : ZCRMSubformRecord ) -> [ String : Any ]
+    {
+        var detailsJSON : [ String : Any ] = [ String : Any ]()
+        let recordData : [ String : Any ] = subformRecord.getData()
+        if ( subformRecord.layout != nil )
+        {
+            if ( subformRecord.layout?.layoutId != APIConstants.INT64_MOCK )
+            {
+                detailsJSON[ResponseJSONKeys.layout] = subformRecord.layout?.layoutId
+            }
+        }
+        for fieldApiName in recordData.keys
+        {
+            detailsJSON[fieldApiName] = recordData[fieldApiName]
+        }
+        return detailsJSON
+    }
+    
+    private func getAllZCRMSubformRecordAsJSONArray( apiName : String, subformRecords : [ZCRMSubformRecord] ) -> [[String:Any]]?
+    {
+        var allSubformRecordsDetails : [[String:Any]] = [[String:Any]]()
+        for subformRecord in subformRecords
+        {
+            allSubformRecordsDetails.append(self.getZCRMSubformRecordAsJSON(subformRecord: subformRecord))
+        }
+        return allSubformRecordsDetails
     }
     
     private func getZCRMDataProcessingDetailsAsJSON( details : ZCRMDataProcessBasicDetails ) -> [ String : Any? ]
@@ -772,13 +802,10 @@ internal class EntityAPIHandler : CommonAPIHandler
                 lookupRecord.lookupLabel = lookupDetails.optString( key : ResponseJSONKeys.name )
                 self.record.setValue( forField : fieldAPIName, value : lookupRecord )
             }
-			else if( value is [[ String : Any ]] )
+            else if( value is [[ String : Any ]] )
 			{
                 let subformRecordsDetails : [[String:Any]] = value as! [[ String : Any]]
-                for subformRecordDetails  in subformRecordsDetails
-                {
-                    self.record.subformRecord![fieldAPIName] = getZCRMSubformRecord(apiName: fieldAPIName, subformDetails: subformRecordDetails)
-                }
+                self.record.subformRecord?[fieldAPIName] = getAllZCRMSubformRecords(apiName: fieldAPIName, subforms: subformRecordsDetails)
 			}
             else
             {

@@ -19,7 +19,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     public var lineItems : [ZCRMInventoryLineItem]?
     public var priceDetails : [ ZCRMPriceBookPricing ]?
     public var participants : [ ZCRMEventParticipant ]?
-    public var subformRecord : [String:ZCRMSubformRecord]?
+    public var subformRecord : [String:[ZCRMSubformRecord]]?
     public var tax : [ ZCRMTax ]?
     public var tags : [ZCRMTag]?
     public var dataProcessingBasicDetails : ZCRMDataProcessBasicDetails?
