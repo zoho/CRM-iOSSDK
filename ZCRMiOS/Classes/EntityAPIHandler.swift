@@ -517,6 +517,10 @@ internal class EntityAPIHandler : CommonAPIHandler
             return nil
         }
         var taxJSONArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
+        if self.record.tax == nil
+        {
+            return nil
+        }
         let allTax : [ ZCRMTax ] = self.record.tax!
         for tax in allTax
         {

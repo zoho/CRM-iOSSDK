@@ -104,7 +104,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     /// - Parameter newLineItem: line item to be added
     public func addLineItem(newLineItem : ZCRMInventoryLineItem)
     {
-        self.lineItems!.append( newLineItem )
+        self.lineItems?.append( newLineItem )
     }
     
     internal func addTag( tag : ZCRMTag )
@@ -121,7 +121,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     /// - Parameter priceDetail: price detail to be added
     public func addPriceDetail( priceDetail : ZCRMPriceBookPricing )
     {
-        self.priceDetails!.append( priceDetail )
+        self.priceDetails?.append( priceDetail )
     }
     
     /// Add ZCRMEventParticipant to the ZCRMRecord
@@ -129,7 +129,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     /// - Parameter participant: participant to be added
     public func addParticipant( participant : ZCRMEventParticipant )
     {
-        self.participants!.append( participant )
+        self.participants?.append( participant )
     }
     
     /// Add ZCRMTax to the ZCRMRecord
@@ -138,7 +138,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     public func addTax( tax : ZCRMTax )
     {
 //        self.tax[ tax.getTaxName() ] = tax
-        self.tax!.append(tax)
+        self.tax?.append(tax)
     }
     
     /// Returns cloned ZCRMRecord

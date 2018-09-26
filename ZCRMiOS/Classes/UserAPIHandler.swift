@@ -518,7 +518,7 @@ internal class UserAPIHandler : CommonAPIHandler
             user.dateFormat = userDict.getString( key : ResponseJSONKeys.dateFormat )
         }
         user.dateOfBirth = userDict.optString( key : ResponseJSONKeys.dob )
-        if userDict.hasValue( forKey : ResponseJSONKeys.country ) == false
+        if userDict.hasValue( forKey : ResponseJSONKeys.country )
         {
             user.country = userDict.getString( key : ResponseJSONKeys.country )
         }
