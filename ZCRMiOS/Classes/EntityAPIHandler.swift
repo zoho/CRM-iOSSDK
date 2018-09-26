@@ -434,13 +434,13 @@ internal class EntityAPIHandler : CommonAPIHandler
         {
             recordJSON[ ResponseJSONKeys.dataProcessingBasisDetails ] = self.getZCRMDataProcessingDetailsAsJSON(details: self.record.dataProcessingBasicDetails! )
         }
-        if ( self.record.subformRecord != nil )
+        if let subform = self.record.subformRecord
         {
-            for apiName in self.record.subformRecord!.keys
+            for apiName in subform.keys
             {
-                if (self.record.subformRecord?.hasValue(forKey: apiName) ?? false)
+                if( subform.hasValue(forKey: apiName) )
                 {
-                    recordJSON[apiName] = getAllZCRMSubformRecordAsJSONArray(apiName: apiName, subformRecords: self.record.subformRecord![apiName]!)
+                    recordJSON[ apiName ] = getAllZCRMSubformRecordAsJSONArray(apiName: apiName, subformRecords: subform[apiName]!)
                 }
             }
         }
@@ -455,11 +455,11 @@ internal class EntityAPIHandler : CommonAPIHandler
     {
         var detailsJSON : [ String : Any ] = [ String : Any ]()
         let recordData : [ String : Any ] = subformRecord.getData()
-        if ( subformRecord.layout != nil )
+        if let layout = subformRecord.layout
         {
-            if ( subformRecord.layout?.layoutId != APIConstants.INT64_MOCK )
+            if ( layout.layoutId != APIConstants.INT64_MOCK )
             {
-                detailsJSON[ResponseJSONKeys.layout] = subformRecord.layout?.layoutId
+                detailsJSON[ResponseJSONKeys.layout] = layout.layoutId
             }
         }
         for fieldApiName in recordData.keys
@@ -542,16 +542,12 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getTaxAsJSONArray() -> [ [ String : Any ] ]?
     {
-        if ( self.record.tax == nil)
+        guard let tax = self.record.tax else
         {
             return nil
         }
         var taxJSONArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
-        if self.record.tax == nil
-        {
-            return nil
-        }
-        let allTax : [ ZCRMTax ] = self.record.tax!
+        let allTax : [ ZCRMTax ] = tax
         for tax in allTax
         {
             taxJSONArray.append( self.getTaxAsJSON( tax : tax ) as Any as! [ String : Any ] )
@@ -570,12 +566,12 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getLineItemsAsJSONArray() -> [[String:Any]]?
     {
-        if(self.record.lineItems == nil)
+        guard let lineItems = self.record.lineItems else
         {
             return nil
         }
         var allLineItems : [[String:Any]] = [[String:Any]]()
-        let allLines : [ZCRMInventoryLineItem] = self.record.lineItems!
+        let allLines : [ZCRMInventoryLineItem] = lineItems
         for lineItem in allLines
         {
             allLineItems.append(self.getZCRMInventoryLineItemAsJSON(invLineItem: lineItem) as Any as! [ String : Any ] )
@@ -585,12 +581,12 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getPriceDetailsAsJSONArray() -> [ [ String : Any ] ]?
     {
-        if( self.record.priceDetails == nil )
+        guard let price = self.record.priceDetails else
         {
             return nil
         }
         var priceDetails : [ [ String : Any ] ] = [ [ String : Any ] ]()
-        let allPriceDetails : [ ZCRMPriceBookPricing ] = self.record.priceDetails!
+        let allPriceDetails : [ ZCRMPriceBookPricing ] = price
         for priceDetail in allPriceDetails
         {
             priceDetails.append( self.getZCRMPriceDetailAsJSON(priceDetail : priceDetail ) as Any as! [ String : Any ] )
@@ -600,12 +596,12 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getParticipantsAsJSONArray() -> [ [ String : Any ] ]?
     {
-        if( self.record.participants == nil)
+        guard let participants = self.record.participants else
         {
             return nil
         }
         var participantsDetails : [ [ String : Any ] ] = [ [ String : Any ] ]()
-        let allParticipants : [ ZCRMEventParticipant ] = self.record.participants!
+        let allParticipants : [ ZCRMEventParticipant ] = participants
         for participant in allParticipants
         {
             participantsDetails.append( self.getZCRMEventParticipantAsJSON( participant : participant ) as Any as! [ String : Any ] )
