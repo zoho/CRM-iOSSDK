@@ -440,7 +440,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
 	}
 	
-	private func getZCRMAttachment(attachmentDetails : [String:Any?]) throws -> ZCRMAttachment
+    private func getZCRMAttachment(attachmentDetails : [String:Any?]) throws -> ZCRMAttachment
 	{
         let attachment : ZCRMAttachment = ZCRMAttachment( parentRecord : self.parentRecord )
         if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.id)) == false
@@ -490,12 +490,23 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         {
             attachment.linkURL = attachmentDetails.getString( key : ResponseJSONKeys.linkURL )
         }
+        if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.parentId))
+        {
+            let parentRecordList : [ String : Any ] = attachmentDetails.getDictionary(key: ResponseJSONKeys.parentId)
+            if( parentRecordList.optString(key: ResponseJSONKeys.seModule) != nil)
+            {
+                attachment.parentRecord = ZCRMRecordDelegate(recordId: self.parentRecord.recordId, moduleAPIName: attachmentDetails.getString(key: ResponseJSONKeys.seModule))
+            }
+            else
+            {
+                attachment.parentRecord = ZCRMRecordDelegate(recordId: self.parentRecord.recordId, moduleAPIName: self.parentRecord.moduleAPIName)
+            }
+        }
 		return attachment
 	}
 	
     private func getZCRMNote(noteDetails : [String:Any?], note : ZCRMNote) throws -> ZCRMNote
     {
-        note.parentRecord = self.parentRecord
         if ( noteDetails.hasValue( forKey : ResponseJSONKeys.id ) ) == false
         {
             throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.id ) is must not be nil" )
@@ -541,7 +552,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         if(noteDetails.hasValue(forKey: ResponseJSONKeys.parentId))
         {
             let parentRecordList : [ String : Any ] = noteDetails.getDictionary(key: ResponseJSONKeys.parentId)
-            if( parentRecordList.optString(key: ResponseJSONKeys.name) != nil)
+            if( parentRecordList.optString(key: ResponseJSONKeys.seModule) != nil)
             {
                 note.parentRecord = ZCRMRecordDelegate(recordId: self.parentRecord.recordId, moduleAPIName: noteDetails.getString(key: ResponseJSONKeys.seModule))
             }

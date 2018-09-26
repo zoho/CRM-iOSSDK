@@ -903,7 +903,7 @@ fileprivate extension UserAPIHandler
         static let city = "city"
         static let confirm = "confirm"
         static let countryLocale = "country_locale"
-        static let dateFormat = "date_fromat"
+        static let dateFormat = "date_format"
         static let dob = "dob"
         static let country = "country"
         static let fax = "fax"

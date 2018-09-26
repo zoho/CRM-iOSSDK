@@ -968,14 +968,14 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getZCRMParticipant( participantDetails : [ String : Any ] ) -> ZCRMEventParticipant
     {
-        let id : Int64 = participantDetails.getInt64( key : ResponseJSONKeys.participant )
+        let id : Int64 = participantDetails.getInt64( key : ResponseJSONKeys.id )
         let type : String = participantDetails.getString( key : ResponseJSONKeys.type )
         let participant : ZCRMEventParticipant = ZCRMEventParticipant(type : type, id : id )
         if type == "email"
         {
             participant.email =  participantDetails.getString( key : ResponseJSONKeys.participant )
         }
-        else if let id = Int64( participantDetails.getString( key : ResponseJSONKeys.participant ) )
+        else
         {
             participant.entity = ZCRMRecordDelegate( recordId : id, moduleAPIName : type )
             participant.email =  participantDetails.getString( key : ConsentProcessThrough.EMAIL.rawValue )
