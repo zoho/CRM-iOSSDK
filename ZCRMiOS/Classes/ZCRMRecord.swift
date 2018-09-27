@@ -104,6 +104,10 @@ open class ZCRMRecord : ZCRMRecordDelegate
     /// - Parameter newLineItem: line item to be added
     public func addLineItem(newLineItem : ZCRMInventoryLineItem)
     {
+        if self.lineItems == nil
+        {
+            self.lineItems = [ZCRMInventoryLineItem]()
+        }
         self.lineItems?.append( newLineItem )
     }
     
