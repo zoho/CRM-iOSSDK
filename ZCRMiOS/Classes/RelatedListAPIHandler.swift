@@ -495,11 +495,11 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             let parentRecordList : [ String : Any ] = attachmentDetails.getDictionary(key: ResponseJSONKeys.parentId)
             if( parentRecordList.optString(key: ResponseJSONKeys.seModule) != nil)
             {
-                attachment.parentRecord = ZCRMRecordDelegate(recordId: self.parentRecord.recordId, moduleAPIName: attachmentDetails.getString(key: ResponseJSONKeys.seModule))
+                attachment.parentRecord = ZCRMRecordDelegate(recordId: parentRecordList.getInt64(key: ResponseJSONKeys.id), moduleAPIName: attachmentDetails.getString(key: ResponseJSONKeys.seModule))
             }
             else
             {
-                attachment.parentRecord = ZCRMRecordDelegate(recordId: self.parentRecord.recordId, moduleAPIName: self.parentRecord.moduleAPIName)
+                attachment.parentRecord = ZCRMRecordDelegate(recordId: parentRecordList.getInt64(key: ResponseJSONKeys.id), moduleAPIName: self.parentRecord.moduleAPIName)
             }
         }
 		return attachment
