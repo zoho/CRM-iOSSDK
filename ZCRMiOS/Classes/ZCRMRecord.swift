@@ -121,6 +121,10 @@ open class ZCRMRecord : ZCRMRecordDelegate
     /// - Parameter priceDetail: price detail to be added
     public func addPriceDetail( priceDetail : ZCRMPriceBookPricing )
     {
+        if self.priceDetails == nil
+        {
+            self.priceDetails = [ ZCRMPriceBookPricing ]()
+        }
         self.priceDetails?.append( priceDetail )
     }
     
@@ -129,6 +133,10 @@ open class ZCRMRecord : ZCRMRecordDelegate
     /// - Parameter participant: participant to be added
     public func addParticipant( participant : ZCRMEventParticipant )
     {
+        if self.participants == nil
+        {
+            self.participants = [ ZCRMEventParticipant ]()
+        }
         self.participants?.append( participant )
     }
     
@@ -137,7 +145,10 @@ open class ZCRMRecord : ZCRMRecordDelegate
     /// - Parameter tax: ZCRMTax to be added
     public func addTax( tax : ZCRMTax )
     {
-//        self.tax[ tax.getTaxName() ] = tax
+        if self.tax == nil
+        {
+            self.tax = [ ZCRMTax ]()
+        }
         self.tax?.append(tax)
     }
     
