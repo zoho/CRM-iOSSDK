@@ -513,10 +513,11 @@ internal class UserAPIHandler : CommonAPIHandler
             throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.countryLocale ) is must not be nil" )
         }
         user.countryLocale = userDict.getString(key : ResponseJSONKeys.countryLocale )
-        if userDict.hasValue( forKey : ResponseJSONKeys.dateFormat )
+        if userDict.hasValue( forKey : ResponseJSONKeys.dateFormat ) == false
         {
-            user.dateFormat = userDict.getString( key : ResponseJSONKeys.dateFormat )
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.dateFormat ) is must not be nil" )
         }
+        user.dateFormat = userDict.getString( key : ResponseJSONKeys.dateFormat )
         user.dateOfBirth = userDict.optString( key : ResponseJSONKeys.dob )
         if userDict.hasValue( forKey : ResponseJSONKeys.country )
         {
