@@ -13,7 +13,7 @@ public class ZCRMSubformRecord : ZCRMEntity
 	public var modifiedTime : String = APIConstants.STRING_MOCK
 	public var createdTime : String = APIConstants.STRING_MOCK
     var layout : ZCRMLayout?
-	public var fieldNameVsValue : [String:Any?] = [String:Any?]()
+	public var fieldNameVsValue : [String:Any] = [String:Any]()
 	
 	internal init( apiName : String , id : Int64 )
 	{
@@ -51,5 +51,10 @@ public class ZCRMSubformRecord : ZCRMEntity
 			throw ZCRMError.ProcessingError( code : ErrorCode.FIELD_NOT_FOUND, message : "The given field is not present in the record.")
 		}
 	}
+    
+    public func getData() -> [String:Any]
+    {
+        return self.fieldNameVsValue
+    }
 	
 }

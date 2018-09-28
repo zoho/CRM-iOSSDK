@@ -10,14 +10,15 @@ import Foundation
 
 internal class TagAPIHandler : CommonAPIHandler
 {
-    private var tag : ZCRMTagDelegate?
+    private var tagDelegate : ZCRMTagDelegate?
+    private var tag : ZCRMTag?
     private var module : ZCRMModuleDelegate?
     
     public override init (){}
     
-    public init(tag : ZCRMTagDelegate)
+    public init(tagDelegate : ZCRMTagDelegate)
     {
-        self.tag = tag
+        self.tagDelegate = tagDelegate
     }
     
     public init(module : ZCRMModuleDelegate)
@@ -25,7 +26,13 @@ internal class TagAPIHandler : CommonAPIHandler
         self.module = module
     }
     
-    public init(tag : ZCRMTagDelegate, module : ZCRMModuleDelegate)
+    public init(tagDelegate : ZCRMTagDelegate, module : ZCRMModuleDelegate)
+    {
+        self.tagDelegate = tagDelegate
+        self.module = module
+    }
+    
+    public init(tag : ZCRMTag, module : ZCRMModuleDelegate)
     {
         self.tag = tag
         self.module = module
@@ -77,14 +84,14 @@ internal class TagAPIHandler : CommonAPIHandler
 
     internal func getRecordCount( completion : @escaping( Result.DataResponse< Int64, APIResponse > ) -> () )
     {
-        if let tag = self.tag, let module = self.module
+        if let tagDelegate = self.tagDelegate, let module = self.module
         {
-            if tag.tagId == APIConstants.INT64_MOCK
+            if tagDelegate.tagId == APIConstants.INT64_MOCK
             {
                 completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Tag ID MUST NOT be nil" ) ) )
                 return
             }
-            let tagIdString : String = String(tag.tagId)
+            let tagIdString : String = String(tagDelegate.tagId)
             setJSONRootKey(key: JSONRootKey.TAGS)
             setUrlPath(urlPath: "/settings/tags/\(tagIdString)/actions/records_count")
             setRequestMethod(requestMethod: .GET)
@@ -177,9 +184,9 @@ internal class TagAPIHandler : CommonAPIHandler
 
     internal func merge( withTag : ZCRMTagDelegate, completion : @escaping( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
-        if let tag = self.tag
+        if let tagDelegate = self.tagDelegate
         {
-            if tag.tagId == APIConstants.INT64_MOCK
+            if tagDelegate.tagId == APIConstants.INT64_MOCK
             {
                 completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Tag ID MUST NOT be nil" ) ) )
                 return
@@ -191,7 +198,7 @@ internal class TagAPIHandler : CommonAPIHandler
             var dataArray : [[String:Any]] = [[String:Any]]()
             dataArray.append(conflictIdJSON)
             reqBodyObj[getJSONRootKey()] = dataArray
-            let idString = String(tag.tagId)
+            let idString = String(tagDelegate.tagId)
             setUrlPath(urlPath: "/settings/tags/\(idString)/actions/merge")
             setRequestMethod(requestMethod: .POST)
             setRequestBody(requestBody: reqBodyObj)
@@ -220,7 +227,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func update(updateTag : ZCRMTag, completion : @escaping( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
+    internal func update( completion : @escaping( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
         if let module = self.module, let tag = self.tag
         {
@@ -233,7 +240,7 @@ internal class TagAPIHandler : CommonAPIHandler
             let tagId : String = String( tag.tagId )
             var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
             var dataArray : [[String:Any]] = [[String:Any]]()
-            var updateTagJSON = self.getZCRMTagAsJSON(tag: updateTag) as Any as! [String:Any]
+            var updateTagJSON = self.getZCRMTagAsJSON(tag: tag) as Any as! [String:Any]
             var nameJSON : [String:Any] = [String:Any]()
             nameJSON[ResponseJSONKeys.name] = updateTagJSON[ResponseJSONKeys.name]
             dataArray.append(nameJSON)

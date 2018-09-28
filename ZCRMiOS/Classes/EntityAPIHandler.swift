@@ -439,25 +439,55 @@ internal class EntityAPIHandler : CommonAPIHandler
             {
                 value = userID
             }
-			if( recordData[ fieldApiName ] is [ZCRMSubformRecord]  && (recordData[fieldApiName] as! [ZCRMSubformRecord]).isEmpty == false)
-			{
-				var subformObj : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
-				for subform in recordData[ fieldApiName ] as! [ ZCRMSubformRecord ]
-				{
-					subformObj.append( subform.fieldNameVsValue )
-				}
-			}
             recordJSON[ fieldApiName ] = value
         }
         if( self.record.dataProcessingBasicDetails != nil )
         {
             recordJSON[ ResponseJSONKeys.dataProcessingBasisDetails ] = self.getZCRMDataProcessingDetailsAsJSON(details: self.record.dataProcessingBasicDetails! )
         }
+        if let subform = self.record.subformRecord
+        {
+            for apiName in subform.keys
+            {
+                if( subform.hasValue(forKey: apiName) )
+                {
+                    recordJSON[ apiName ] = getAllZCRMSubformRecordAsJSONArray(apiName: apiName, subformRecords: subform[apiName]!)
+                }
+            }
+        }
         recordJSON[ ResponseJSONKeys.productDetails ] = self.getLineItemsAsJSONArray()
         recordJSON[ ResponseJSONKeys.tax ] = self.getTaxAsJSONArray()
         recordJSON[ ResponseJSONKeys.participants ] = self.getParticipantsAsJSONArray()
         recordJSON[ ResponseJSONKeys.pricingDetails ] = self.getPriceDetailsAsJSONArray()
         return recordJSON
+    }
+    
+    private func getZCRMSubformRecordAsJSON( subformRecord : ZCRMSubformRecord ) -> [ String : Any ]
+    {
+        var detailsJSON : [ String : Any ] = [ String : Any ]()
+        let recordData : [ String : Any ] = subformRecord.getData()
+        if let layout = subformRecord.layout
+        {
+            if ( layout.layoutId != APIConstants.INT64_MOCK )
+            {
+                detailsJSON[ResponseJSONKeys.layout] = layout.layoutId
+            }
+        }
+        for fieldApiName in recordData.keys
+        {
+            detailsJSON[fieldApiName] = recordData[fieldApiName]
+        }
+        return detailsJSON
+    }
+    
+    private func getAllZCRMSubformRecordAsJSONArray( apiName : String, subformRecords : [ZCRMSubformRecord] ) -> [[String:Any]]?
+    {
+        var allSubformRecordsDetails : [[String:Any]] = [[String:Any]]()
+        for subformRecord in subformRecords
+        {
+            allSubformRecordsDetails.append(self.getZCRMSubformRecordAsJSON(subformRecord: subformRecord))
+        }
+        return allSubformRecordsDetails
     }
     
     private func getZCRMDataProcessingDetailsAsJSON( details : ZCRMDataProcessBasicDetails ) -> [ String : Any? ]
@@ -523,12 +553,12 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getTaxAsJSONArray() -> [ [ String : Any ] ]?
     {
-        if ( self.record.tax.isEmpty )
+        guard let tax = self.record.tax else
         {
             return nil
         }
         var taxJSONArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
-        let allTax : [ ZCRMTax ] = self.record.tax
+        let allTax : [ ZCRMTax ] = tax
         for tax in allTax
         {
             taxJSONArray.append( self.getTaxAsJSON( tax : tax ) as Any as! [ String : Any ] )
@@ -553,12 +583,12 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getLineItemsAsJSONArray() -> [[String:Any]]?
     {
-        if(self.record.lineItems.isEmpty)
+        guard let lineItems = self.record.lineItems else
         {
             return nil
         }
         var allLineItems : [[String:Any]] = [[String:Any]]()
-        let allLines : [ZCRMInventoryLineItem] = self.record.lineItems
+        let allLines : [ZCRMInventoryLineItem] = lineItems
         for lineItem in allLines
         {
             allLineItems.append(self.getZCRMInventoryLineItemAsJSON(invLineItem: lineItem) as Any as! [ String : Any ] )
@@ -568,12 +598,12 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getPriceDetailsAsJSONArray() -> [ [ String : Any ] ]?
     {
-        if( self.record.priceDetails.isEmpty )
+        guard let price = self.record.priceDetails else
         {
             return nil
         }
         var priceDetails : [ [ String : Any ] ] = [ [ String : Any ] ]()
-        let allPriceDetails : [ ZCRMPriceBookPricing ] = self.record.priceDetails
+        let allPriceDetails : [ ZCRMPriceBookPricing ] = price
         for priceDetail in allPriceDetails
         {
             priceDetails.append( self.getZCRMPriceDetailAsJSON(priceDetail : priceDetail ) as Any as! [ String : Any ] )
@@ -583,12 +613,12 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getParticipantsAsJSONArray() -> [ [ String : Any ] ]?
     {
-        if( self.record.participants.isEmpty)
+        guard let participants = self.record.participants else
         {
             return nil
         }
         var participantsDetails : [ [ String : Any ] ] = [ [ String : Any ] ]()
-        let allParticipants : [ ZCRMEventParticipant ] = self.record.participants
+        let allParticipants : [ ZCRMEventParticipant ] = participants
         for participant in allParticipants
         {
             participantsDetails.append( self.getZCRMEventParticipantAsJSON( participant : participant ) as Any as! [ String : Any ] )
@@ -624,9 +654,18 @@ internal class EntityAPIHandler : CommonAPIHandler
         {
             priceDetailJSON[ ResponseJSONKeys.id ] = priceDetail.id
         }
-        priceDetailJSON[ ResponseJSONKeys.discount ] = priceDetail.discount
-        priceDetailJSON[ ResponseJSONKeys.toRange ] = priceDetail.toRange
-        priceDetailJSON[ ResponseJSONKeys.fromRange ] = priceDetail.fromRange
+        if( priceDetail.discount != APIConstants.DOUBLE_MOCK )
+        {
+            priceDetailJSON[ ResponseJSONKeys.discount ] = priceDetail.discount
+        }
+        if( priceDetail.toRange != APIConstants.DOUBLE_MOCK )
+        {
+            priceDetailJSON[ ResponseJSONKeys.toRange ] = priceDetail.toRange
+        }
+        if( priceDetail.fromRange != APIConstants.DOUBLE_MOCK )
+        {
+            priceDetailJSON[ ResponseJSONKeys.fromRange ] = priceDetail.fromRange
+        }
         return priceDetailJSON
     }
     
@@ -812,9 +851,10 @@ internal class EntityAPIHandler : CommonAPIHandler
                 lookupRecord.lookupLabel = lookupDetails.optString( key : ResponseJSONKeys.name )
                 self.record.setValue( forField : fieldAPIName, value : lookupRecord )
             }
-			else if( value is [[ String : Any ]] )
+            else if( value is [[ String : Any ]] )
 			{
-				self.record.setValue(forField: fieldAPIName , value: self.getAllZCRMSubformRecords(apiName: fieldAPIName , subforms: value as! [[ String : Any]] ))
+                let subformRecordsDetails : [[String:Any]] = value as! [[ String : Any]]
+                self.record.subformRecord?[fieldAPIName] = getAllZCRMSubformRecords(apiName: fieldAPIName, subforms: subformRecordsDetails)
 			}
             else
             {
@@ -988,7 +1028,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         {
             participant.email =  participantDetails.getString( key : ResponseJSONKeys.participant )
         }
-        else if let id = Int64( participantDetails.getString( key : ResponseJSONKeys.participant ) )
+        else
         {
             participant.entity = ZCRMRecordDelegate( recordId : id, moduleAPIName : type )
             participant.email =  participantDetails.getString( key : ConsentProcessThrough.EMAIL.rawValue )

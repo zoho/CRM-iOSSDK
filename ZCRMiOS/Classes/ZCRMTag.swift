@@ -22,7 +22,7 @@ open class ZCRMTag : ZCRMTagDelegate
         super.init( tagId : APIConstants.INT64_MOCK, moduleAPIName : APIConstants.STRING_MOCK)
     }
     
-    public func update( updateTag : ZCRMTag, completion : @escaping ( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
+    public func update( completion : @escaping ( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
         if self.moduleAPIName == APIConstants.STRING_MOCK
         {
@@ -30,7 +30,7 @@ open class ZCRMTag : ZCRMTagDelegate
         }
         else
         {
-            TagAPIHandler( tag : self, module : ZCRMModuleDelegate( apiName : self.moduleAPIName ) ).update( updateTag : updateTag, completion : { ( result ) in
+            TagAPIHandler( tag : self, module : ZCRMModuleDelegate( apiName : self.moduleAPIName ) ).update( completion : { ( result ) in
                 completion( result )
             } )
         }

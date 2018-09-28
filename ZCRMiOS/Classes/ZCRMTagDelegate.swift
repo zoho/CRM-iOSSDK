@@ -32,7 +32,7 @@ open class ZCRMTagDelegate : ZCRMEntity
         }
         else
         {
-            TagAPIHandler( tag : self, module : ZCRMModuleDelegate( apiName : self.moduleAPIName ) ).getRecordCount { ( result ) in
+            TagAPIHandler( tagDelegate: self, module : ZCRMModuleDelegate( apiName : self.moduleAPIName ) ).getRecordCount { ( result ) in
                 completion( result )
             }
         }
@@ -40,7 +40,7 @@ open class ZCRMTagDelegate : ZCRMEntity
     
     public func merge( withTag : ZCRMTagDelegate, completion : @escaping ( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
-        TagAPIHandler(tag: self).merge(withTag: withTag) { ( result ) in
+        TagAPIHandler(tagDelegate: self).merge(withTag: withTag) { ( result ) in
             completion( result )
         }
     }
