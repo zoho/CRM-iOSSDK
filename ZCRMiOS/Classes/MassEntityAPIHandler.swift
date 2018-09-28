@@ -515,7 +515,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 }
             }
         }
-        setUrlPath(urlPath: "/\(self.module.apiName))/actions/remove_tags")
+        setUrlPath(urlPath: "/\(self.module.apiName)/actions/remove_tags")
         setRequestMethod(requestMethod: .POST)
         addRequestParam(param: RequestParamKeys.ids, value: idString)
         addRequestParam(param: RequestParamKeys.tagNames, value: tagNamesString)

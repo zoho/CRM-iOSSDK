@@ -11,13 +11,13 @@ open class ZCRMTagDelegate : ZCRMEntity
     public var tagName : String  = APIConstants.STRING_MOCK
     var moduleAPIName : String  = APIConstants.STRING_MOCK
     
-    init( tagId : Int64, moduleAPIName : String )
+    internal init( tagId : Int64, moduleAPIName : String )
     {
         self.tagId = tagId
         self.moduleAPIName = moduleAPIName
     }
     
-    init( tagId : Int64, tagName : String, moduleAPIName : String )
+    internal init( tagId : Int64, tagName : String, moduleAPIName : String )
     {
         self.tagId = tagId
         self.tagName = tagName
@@ -32,30 +32,16 @@ open class ZCRMTagDelegate : ZCRMEntity
         }
         else
         {
-            TagAPIHandler( tag : self, module : ZCRMModuleDelegate( apiName : self.moduleAPIName ) ).getRecordCount { ( result ) in
+            TagAPIHandler( tagDelegate: self, module : ZCRMModuleDelegate( apiName : self.moduleAPIName ) ).getRecordCount { ( result ) in
                 completion( result )
             }
         }
     }
     
-    public func merge( withTag : ZCRMTag, completion : @escaping ( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
+    public func merge( withTag : ZCRMTagDelegate, completion : @escaping ( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
-        TagAPIHandler(tag: self).merge(withTag: withTag) { ( result ) in
+        TagAPIHandler(tagDelegate: self).merge(withTag: withTag) { ( result ) in
             completion( result )
-        }
-    }
-    
-    public func update( updateTag : ZCRMTag, completion : @escaping ( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
-    {
-        if self.moduleAPIName == APIConstants.STRING_MOCK
-        {
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND , message: "Tag Module API Name must not be nil." ) ) )
-        }
-        else
-        {
-            TagAPIHandler( tag : self, module : ZCRMModuleDelegate( apiName : self.moduleAPIName ) ).update( updateTag : updateTag, completion : { ( result ) in
-                completion( result )
-            } )
         }
     }
     

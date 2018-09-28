@@ -372,10 +372,14 @@ internal class ModuleAPIHandler : CommonAPIHandler
             layout.addAccessibleProfile(profile: profile)
         }
         let sectionDetails : [[String:Any]] = layoutDetails.getArrayOfDictionaries(key: ResponseJSONKeys.sections)
-        for sectionDetail in sectionDetails
+        do
         {
-            let section : ZCRMSection = ZCRMSection(sectionName: sectionDetail.getString(key: ResponseJSONKeys.name))
-            layout.addSection(section: section)
+            let sections : [ZCRMSection] = try self.getAllSectionsOfLayout(allSectionsDetails: sectionDetails)
+            layout.setSections(allSections: sections)
+        }
+        catch
+        {
+            ZCRMError.SDKError(code: ErrorCode.VALUE_NIL, message: "\(ResponseJSONKeys.sections) must not be nil")
         }
         return layout
     }
@@ -463,11 +467,10 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
         field.customField = fieldDetails.getBoolean(key: ResponseJSONKeys.customField)
         field.defaultValue = fieldDetails.optValue(key: ResponseJSONKeys.defaultValue)
-        if fieldDetails.hasValue( forKey : ResponseJSONKeys.required ) == false
+        if fieldDetails.hasValue( forKey : ResponseJSONKeys.required )
         {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.required ) is must not be nil" )
+            field.mandatory = fieldDetails.getBoolean(key: ResponseJSONKeys.required)
         }
-        field.mandatory = fieldDetails.getBoolean(key: ResponseJSONKeys.required)
         field.sequenceNo = fieldDetails.optInt(key: ResponseJSONKeys.sequenceNumber)
         field.tooltip = fieldDetails.optString(key: ResponseJSONKeys.toolTip)
         if fieldDetails.hasValue( forKey : ResponseJSONKeys.webhook ) == false
@@ -511,13 +514,11 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 if let displayValue = pickListValueDict.optString( key : ResponseJSONKeys.displayValue ), let actualValue = pickListValueDict.optString( key : ResponseJSONKeys.actualValue )
                 {
                     let pickListValue = ZCRMPickListValue(displayName: displayValue, actualName: actualValue  )
-                    print( "pickListValueDict : \( pickListValueDict)" )
                     pickListValue.maps = pickListValueDict.optArrayOfDictionaries( key : ResponseJSONKeys.maps ) ?? Array<Dictionary<String, Any>>()
-                    if pickListValueDict.hasValue( forKey : ResponseJSONKeys.sequenceNumber ) == false
+                    if pickListValueDict.hasValue( forKey : ResponseJSONKeys.sequenceNumber )
                     {
-                        throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.sequenceNumber ) is must not be nil" )
+                        pickListValue.sequenceNumber = pickListValueDict.getInt(key : ResponseJSONKeys.sequenceNumber )
                     }
-                    pickListValue.sequenceNumber = pickListValueDict.getInt(key : ResponseJSONKeys.sequenceNumber )
                     field.addPickListValue( pickListValue : pickListValue )
                 }
             }

@@ -519,22 +519,20 @@ internal class UserAPIHandler : CommonAPIHandler
         }
         user.dateFormat = userDict.getString( key : ResponseJSONKeys.dateFormat )
         user.dateOfBirth = userDict.optString( key : ResponseJSONKeys.dob )
-        if userDict.hasValue( forKey : ResponseJSONKeys.country ) == false
+        if userDict.hasValue( forKey : ResponseJSONKeys.country )
         {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.country ) is must not be nil" )
+            user.country = userDict.getString( key : ResponseJSONKeys.country )
         }
-        user.country = userDict.getString( key : ResponseJSONKeys.country )
         user.fax = userDict.optString( key : ResponseJSONKeys.fax )
         if userDict.hasValue( forKey : ResponseJSONKeys.locale ) == false
         {
             throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.locale ) is must not be nil" )
         }
         user.locale = userDict.getString( key : ResponseJSONKeys.locale )
-        if userDict.hasValue( forKey : ResponseJSONKeys.nameFormat ) == false
+        if userDict.hasValue( forKey : ResponseJSONKeys.nameFormat )
         {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.nameFormat ) is must not be nil" )
+            user.nameFormat = userDict.getString( key : ResponseJSONKeys.nameFormat )
         }
-        user.nameFormat = userDict.getString( key : ResponseJSONKeys.nameFormat )
         user.phone = userDict.optString( key : ResponseJSONKeys.phone )
         user.website = userDict.optString( key : ResponseJSONKeys.website )
         user.street = userDict.optString( key : ResponseJSONKeys.street )
@@ -614,15 +612,7 @@ internal class UserAPIHandler : CommonAPIHandler
         {
              userJSON[ ResponseJSONKeys.id ] = nil
         }
-        let firstName = user.firstName
-        if firstName != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.firstName ] = firstName
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.firstName ] = nil
-        }
+        userJSON[ ResponseJSONKeys.firstName ] = user.firstName
         let lastName = user.lastName
         if lastName != APIConstants.STRING_MOCK
         {
@@ -641,51 +631,11 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.fullName ] = nil
         }
-        let alias = user.alias
-        if alias != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.alias ] = alias
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.alias ] = nil
-        }
-        let dob = user.dateOfBirth
-        if dob != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.dob ] = dob
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.dob ] = nil
-        }
-        let mobile = user.mobile
-        if mobile != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.mobile ] = mobile
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.mobile ] = nil
-        }
-        let phone = user.phone
-        if phone != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.phone ] = phone
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.phone ] = nil
-        }
-        let fax = user.fax
-        if fax != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.fax ] = fax
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.fax ] = nil
-        }
+        userJSON[ ResponseJSONKeys.alias ] = user.alias
+        userJSON[ ResponseJSONKeys.dob ] = user.dateOfBirth
+        userJSON[ ResponseJSONKeys.mobile ] = user.mobile
+        userJSON[ ResponseJSONKeys.phone ] = user.phone
+        userJSON[ ResponseJSONKeys.fax ] = user.fax
         let email = user.emailId
         if email != APIConstants.STRING_MOCK
         {
@@ -695,51 +645,11 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.email ] = nil
         }
-        let zip = user.zip
-        if zip != APIConstants.INT64_MOCK
-        {
-            userJSON[ ResponseJSONKeys.zip ] = zip
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.zip ] = nil
-        }
-        let country = user.country
-        if country != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.country ] = country
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.country ] = nil
-        }
-        let state = user.state
-        if state != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.state ] = state
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.state ] = nil
-        }
-        let city = user.city
-        if city != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.city ] = city
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.city ] = nil
-        }
-        let street = user.street
-        if street != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.street ] = street
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.street ] = nil
-        }
+        userJSON[ ResponseJSONKeys.zip ] = user.zip
+        userJSON[ ResponseJSONKeys.country ] = user.country
+        userJSON[ ResponseJSONKeys.state ] = user.state
+        userJSON[ ResponseJSONKeys.city ] = user.city
+        userJSON[ ResponseJSONKeys.street ] = user.street
         let locale = user.locale
         if locale != APIConstants.STRING_MOCK
         {
@@ -758,15 +668,7 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.countryLocale ] = nil
         }
-        let nameFormat = user.nameFormat
-        if nameFormat != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.nameFormat ] = nameFormat
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.nameFormat ] = nil
-        }
+        userJSON[ ResponseJSONKeys.nameFormat ] = user.nameFormat
         let dateFormat = user.dateFormat
         if dateFormat != APIConstants.STRING_MOCK
         {
@@ -794,15 +696,7 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             userJSON[ ResponseJSONKeys.timeZone ] = nil
         }
-        let website = user.website
-        if website != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.website ] = website
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.website ] = nil
-        }
+        userJSON[ ResponseJSONKeys.website ] = user.website
         let confirm = user.confirm
         userJSON[ ResponseJSONKeys.confirm ] = confirm
         let status = user.status
@@ -906,7 +800,7 @@ fileprivate extension UserAPIHandler
         static let city = "city"
         static let confirm = "confirm"
         static let countryLocale = "country_locale"
-        static let dateFormat = "date_fromat"
+        static let dateFormat = "date_format"
         static let dob = "dob"
         static let country = "country"
         static let fax = "fax"

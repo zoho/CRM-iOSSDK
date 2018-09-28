@@ -28,11 +28,11 @@ public class ZCRMUser : ZCRMUserDelegate
     public var city : String?
     public var state : String?
     public var zip : Int64?
-    public var country : String = APIConstants.STRING_MOCK
+    public var country : String?
     public var locale : String = APIConstants.STRING_MOCK
     public var countryLocale : String = APIConstants.STRING_MOCK
     
-    public var nameFormat : String = APIConstants.STRING_MOCK
+    public var nameFormat : String?
     public var dateFormat : String = APIConstants.STRING_MOCK
     public var timeFormat : String = APIConstants.STRING_MOCK
     
@@ -45,7 +45,7 @@ public class ZCRMUser : ZCRMUserDelegate
     public var createdTime : String?
     public var modifiedBy : ZCRMUserDelegate?
     public var modifiedTime : String?
-    public var reportingTo : ZCRMUserDelegate = USER_MOCK
+    public var reportingTo : ZCRMUserDelegate?
     
     public var fieldNameVsValue : [ String : Any ] = [ String : Any ]()
     

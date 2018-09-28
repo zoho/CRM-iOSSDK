@@ -12,13 +12,27 @@ open class ZCRMTag : ZCRMTagDelegate
     var modifiedBy : ZCRMUserDelegate = USER_MOCK
     var modifiedTime : String = APIConstants.STRING_MOCK
     
-    init( tagName : String )
+    internal init( tagName : String )
     {
         super.init( tagId : APIConstants.INT64_MOCK, tagName : tagName, moduleAPIName : APIConstants.STRING_MOCK )
     }
     
-    init()
+    internal init()
     {
         super.init( tagId : APIConstants.INT64_MOCK, moduleAPIName : APIConstants.STRING_MOCK)
+    }
+    
+    public func update( completion : @escaping ( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
+    {
+        if self.moduleAPIName == APIConstants.STRING_MOCK
+        {
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND , message: "Tag Module API Name must not be nil." ) ) )
+        }
+        else
+        {
+            TagAPIHandler( tag : self, module : ZCRMModuleDelegate( apiName : self.moduleAPIName ) ).update( completion : { ( result ) in
+                completion( result )
+            } )
+        }
     }
 }
