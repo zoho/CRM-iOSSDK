@@ -228,7 +228,7 @@ public class FormDBHelper{
         contentValues.updateValue(String(fields.isPresentInQuickCreateLayout()!), forKey: ZCRMTableDetails.Fields.QUICK_CREATE_LAYOUT)
         contentValues.updateValue(fields.maxLength, forKey: ZCRMTableDetails.Fields.MAX_LENGTH)
         contentValues.updateValue(String(fields.customField), forKey: ZCRMTableDetails.Fields.CUSTOM_FIELD)
-        contentValues.updateValue(String(fields.mandatory), forKey: ZCRMTableDetails.Fields.MANDATORY)
+        contentValues.updateValue(fields.mandatory, forKey: ZCRMTableDetails.Fields.MANDATORY)
         contentValues.updateValue(String(fields.visible), forKey: ZCRMTableDetails.Fields.VISIBLE)
         contentValues.updateValue(String(fields.readOnly), forKey: ZCRMTableDetails.Fields.READ_ONLY)
         if(fields.defaultValue != nil)

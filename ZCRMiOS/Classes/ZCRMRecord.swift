@@ -165,7 +165,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         if( recordId != APIConstants.INT64_MOCK )
         {
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Entity ID MUST be null for create operation." ) ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.INVALID_DATA, message : "Entity ID MUST be null for create operation." ) ) )
         }
         else
         {

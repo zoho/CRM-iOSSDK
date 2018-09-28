@@ -27,7 +27,11 @@ internal class EntityAPIHandler : CommonAPIHandler
 	internal func getRecord( withPrivateFields : Bool, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
-        let urlPath = "/\(self.record.moduleAPIName)/\(self.record.recordId)"
+        if self.recordDelegate.recordId == APIConstants.INT64_MOCK
+        {
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Record id MUST NOT be nil" ) ) )
+        }
+        let urlPath = "/\(self.record.moduleAPIName)/\(self.recordDelegate.recordId)"
 		setUrlPath(urlPath : urlPath )
         if( withPrivateFields == true )
         {
@@ -91,6 +95,10 @@ internal class EntityAPIHandler : CommonAPIHandler
     internal func updateRecord( completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
+        if self.record.recordId == APIConstants.INT64_MOCK
+        {
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Record id MUST NOT be nil" ) ) )
+        }
         var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
         var dataArray : [[String:Any]] = [[String:Any]]()
         dataArray.append(self.getZCRMRecordAsJSON() as Any as! [ String : Any ])
@@ -121,6 +129,10 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     internal func deleteRecord( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
+        if self.recordDelegate.recordId == APIConstants.INT64_MOCK
+        {
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Record id MUST NOT be nil" ) ) )
+        }
 		setUrlPath(urlPath : "/\(self.record.moduleAPIName)/\(self.recordDelegate.recordId)")
 		setRequestMethod(requestMethod : .DELETE )
 		let request : APIRequest = APIRequest(handler : self )
@@ -404,7 +416,6 @@ internal class EntityAPIHandler : CommonAPIHandler
         return priceDetail
     }
     
-    
     internal func getZCRMRecordAsJSON() -> [String:Any]
     {
         var recordJSON : [ String : Any ] = [ String : Any ]()
@@ -420,13 +431,13 @@ internal class EntityAPIHandler : CommonAPIHandler
         for fieldApiName in recordData.keys
         {
             var value  = recordData[ fieldApiName ]
-            if( recordData[ fieldApiName ] is ZCRMRecord )
+            if recordData[ fieldApiName ] is ZCRMRecord, let recordId = ( value as? ZCRMRecord )?.recordId
             {
-                value = ( value as? ZCRMRecord )?.recordId
+                value = recordId
             }
-            if( recordData[ fieldApiName ] is ZCRMUserDelegate )
+            if recordData[ fieldApiName ] is ZCRMUserDelegate, let userID = ( value as? ZCRMUserDelegate )?.id
             {
-                value = ( value as? ZCRMUserDelegate )?.id
+                value = userID
             }
 			if( recordData[ fieldApiName ] is [ZCRMSubformRecord]  && (recordData[fieldApiName] as! [ZCRMSubformRecord]).isEmpty == false)
 			{
@@ -529,8 +540,14 @@ internal class EntityAPIHandler : CommonAPIHandler
     {
         var taxJSON : [ String : Any? ] = [ String : Any? ]()
         taxJSON[ ResponseJSONKeys.name ] = tax.taxName
-        taxJSON[ ResponseJSONKeys.percentage ] = tax.percentage
-        taxJSON[ ResponseJSONKeys.value ] = tax.value
+        if tax.percentage != APIConstants.DOUBLE_MOCK
+        {
+            taxJSON[ ResponseJSONKeys.percentage ] = tax.percentage
+        }
+        if tax.value != APIConstants.DOUBLE_MOCK
+        {
+            taxJSON[ ResponseJSONKeys.value ] = tax.value
+        }
         return taxJSON
     }
     
@@ -584,9 +601,18 @@ internal class EntityAPIHandler : CommonAPIHandler
         var participantJSON : [ String : Any? ] = [ String : Any? ]()
         participantJSON[ ResponseJSONKeys.participant ] = participant.id
         participantJSON[ ResponseJSONKeys.type ] = participant.type
-        participantJSON[ ResponseJSONKeys.name ] = participant.name
-        participantJSON[ ConsentProcessThrough.EMAIL.rawValue ] = participant.email
-        participantJSON[ ResponseJSONKeys.status ] = participant.status
+        if participant.name != APIConstants.STRING_MOCK
+        {
+            participantJSON[ ResponseJSONKeys.name ] = participant.name
+        }
+        if participant.email != APIConstants.STRING_MOCK
+        {
+            participantJSON[ ConsentProcessThrough.EMAIL.rawValue ] = participant.email
+        }
+        if participant.status != APIConstants.STRING_MOCK
+        {
+            participantJSON[ ResponseJSONKeys.status ] = participant.status
+        }
         participantJSON[ ResponseJSONKeys.invited ] = participant.isInvited
         return participantJSON
     }
@@ -594,7 +620,10 @@ internal class EntityAPIHandler : CommonAPIHandler
     private func getZCRMPriceDetailAsJSON( priceDetail : ZCRMPriceBookPricing ) -> [ String : Any? ]
     {
         var priceDetailJSON : [ String : Any? ] = [ String : Any? ]()
-        priceDetailJSON[ ResponseJSONKeys.id ] = priceDetail.id
+        if priceDetail.id != APIConstants.INT64_MOCK
+        {
+            priceDetailJSON[ ResponseJSONKeys.id ] = priceDetail.id
+        }
         priceDetailJSON[ ResponseJSONKeys.discount ] = priceDetail.discount
         priceDetailJSON[ ResponseJSONKeys.toRange ] = priceDetail.toRange
         priceDetailJSON[ ResponseJSONKeys.fromRange ] = priceDetail.fromRange
@@ -608,7 +637,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         {
             lineItem[ResponseJSONKeys.id] = String(invLineItem.id)
         }
-        else
+        else if invLineItem.product.recordId != APIConstants.INT64_MOCK
         {
             lineItem[ResponseJSONKeys.product] = String(invLineItem.product.recordId)
         }
@@ -619,13 +648,31 @@ internal class EntityAPIHandler : CommonAPIHandler
         else
         {
             lineItem[ResponseJSONKeys.productDescription] = invLineItem.description
-            lineItem[ResponseJSONKeys.listPrice] = invLineItem.listPrice
-            lineItem[ResponseJSONKeys.quantity] = invLineItem.quantity
-            if(invLineItem.discountPercentage == 0.0)
+            if invLineItem.listPrice != APIConstants.DOUBLE_MOCK
+            {
+                lineItem[ResponseJSONKeys.listPrice] = invLineItem.listPrice
+            }
+            if invLineItem.quantity != APIConstants.DOUBLE_MOCK
+            {
+                lineItem[ResponseJSONKeys.quantity] = invLineItem.quantity
+            }
+            if invLineItem.total != APIConstants.DOUBLE_MOCK
+            {
+                lineItem[ResponseJSONKeys.total] = invLineItem.total
+            }
+            if invLineItem.totalAfterDiscount != APIConstants.DOUBLE_MOCK
+            {
+                lineItem[ResponseJSONKeys.totalAfterDiscount] = invLineItem.totalAfterDiscount
+            }
+            if invLineItem.netTotal != APIConstants.DOUBLE_MOCK
+            {
+                lineItem[ResponseJSONKeys.netTotal] = invLineItem.netTotal
+            }
+            if( invLineItem.discountPercentage == 0.0 && invLineItem.discount != APIConstants.DOUBLE_MOCK )
             {
                 lineItem[ResponseJSONKeys.Discount] = invLineItem.discount
             }
-            else
+            else if invLineItem.discountPercentage != APIConstants.DOUBLE_MOCK
             {
                 lineItem[ResponseJSONKeys.Discount] = String(invLineItem.discountPercentage) + "%"
             }
@@ -634,8 +681,14 @@ internal class EntityAPIHandler : CommonAPIHandler
             for lineTax in lineTaxes
             {
                 var tax : [String:Any] = [String:Any]()
-                tax[ResponseJSONKeys.name] = lineTax.taxName
-                tax[ResponseJSONKeys.percentage] = lineTax.percentage
+                if lineTax.taxName != APIConstants.STRING_MOCK
+                {
+                    tax[ResponseJSONKeys.name] = lineTax.taxName
+                }
+                if lineTax.percentage != APIConstants.DOUBLE_MOCK
+                {
+                    tax[ResponseJSONKeys.percentage] = lineTax.percentage
+                }
                 allTaxes.append(tax)
             }
             if(!allTaxes.isEmpty)
@@ -704,7 +757,7 @@ internal class EntityAPIHandler : CommonAPIHandler
             else if(ResponseJSONKeys.owner == fieldAPIName)
             {
                 let ownerObj : [String:Any] = value as! [String : Any]
-                self.record.createdBy = getUserDelegate(userJSON : ownerObj)
+                self.record.owner = getUserDelegate(userJSON : ownerObj)
             }
             else if(ResponseJSONKeys.layout == fieldAPIName)
             {
@@ -928,7 +981,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getZCRMParticipant( participantDetails : [ String : Any ] ) -> ZCRMEventParticipant
     {
-        let id : Int64 = participantDetails.getInt64( key : ResponseJSONKeys.participant )
+        let id : Int64 = participantDetails.getInt64( key : ResponseJSONKeys.id )
         let type : String = participantDetails.getString( key : ResponseJSONKeys.type )
         let participant : ZCRMEventParticipant = ZCRMEventParticipant(type : type, id : id )
         if type == "email"
@@ -940,7 +993,7 @@ internal class EntityAPIHandler : CommonAPIHandler
             participant.entity = ZCRMRecordDelegate( recordId : id, moduleAPIName : type )
             participant.email =  participantDetails.getString( key : ConsentProcessThrough.EMAIL.rawValue )
         }
-        participant.name = participantDetails.getString( key : ResponseJSONKeys.name )
+        participant.name = participantDetails.optString( key : ResponseJSONKeys.name )
         participant.status = participantDetails.getString( key : ResponseJSONKeys.status )
         participant.isInvited = participantDetails.getBoolean( key : ResponseJSONKeys.invited ) 
         return participant

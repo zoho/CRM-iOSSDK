@@ -45,7 +45,7 @@ public class ZCRMUser : ZCRMUserDelegate
     public var createdTime : String?
     public var modifiedBy : ZCRMUserDelegate?
     public var modifiedTime : String?
-    public var reportingTo : ZCRMUserDelegate = USER_MOCK
+    public var reportingTo : ZCRMUserDelegate?
     
     public var fieldNameVsValue : [ String : Any ] = [ String : Any ]()
     

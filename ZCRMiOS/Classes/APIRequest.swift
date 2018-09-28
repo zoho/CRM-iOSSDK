@@ -69,7 +69,6 @@ internal enum RequestMethod : String
         self.jsonRootKey = handler.getJSONRootKey()
     }
     
-    
     private func authenticateRequest( completion : @escaping( ZCRMError? ) -> () )
     {
         if let bundleID = Bundle.main.bundleIdentifier
@@ -128,7 +127,6 @@ internal enum RequestMethod : String
         }
     }
     
-    
     private func addHeader(headerName : String, headerVal : String)
     {
         self.headers[headerName] = headerVal
@@ -142,7 +140,7 @@ internal enum RequestMethod : String
                 if let err = error
                 {
                     print( "Error Occured : \( err.localizedDescription )" )
-                    completion( err )
+                    completion( typeCastToZCRMError( err ) )
                 }
                 else
                 {
@@ -201,7 +199,6 @@ internal enum RequestMethod : String
             completion(nil)
         }
     }
-    
     
     internal func getAPIResponse( completion : @escaping (Result.Response<APIResponse>) -> Void )
     {

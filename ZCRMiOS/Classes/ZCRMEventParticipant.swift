@@ -11,7 +11,7 @@ import Foundation
 open class ZCRMEventParticipant
 {
     public var email : String = APIConstants.STRING_MOCK
-    public var name : String = APIConstants.STRING_MOCK
+    public var name : String?
     public var id : Int64
     public var type : String
     public var isInvited : Bool = APIConstants.BOOL_MOCK
