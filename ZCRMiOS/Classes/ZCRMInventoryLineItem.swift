@@ -25,7 +25,7 @@ public class ZCRMInventoryLineItem
     /// Initialise the instance of a ZCRMInventoryLineItem with the given record.
     ///
     /// - Parameter product: record for which ZCRMInventoryLineItem instance is to be initialised
-    public init(product : ZCRMRecord, quantity : Double )
+    public init(product : ZCRMRecordDelegate, quantity : Double )
 	{
 		self.product = product
         self.quantity = quantity

@@ -69,7 +69,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
         else
         {
-            throw ZCRMError.ProcessingError( code : ErrorCode.FIELD_NOT_FOUND, message : "The given field is not present in the record.")
+            throw ZCRMError.ProcessingError( code : ErrorCode.FIELD_NOT_FOUND, message : "The given field is not present in the record. Field Name -> \(ofField)" )
         }
     }
     
