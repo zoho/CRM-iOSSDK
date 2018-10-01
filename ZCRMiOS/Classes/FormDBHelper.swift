@@ -236,7 +236,7 @@ public class FormDBHelper{
         contentValues.updateValue(String(fields.readOnly), forKey: ZCRMTableDetails.Fields.READ_ONLY)
         if(fields.defaultValue != nil)
         {
-            contentValues.updateValue(fields.defaultValue, forKey: ZCRMTableDetails.Fields.DEFAULT_VALUE)
+            contentValues.updateValue(fields.defaultValue!, forKey: ZCRMTableDetails.Fields.DEFAULT_VALUE)
         }
         contentValues.updateValue(fields.sequenceNo, forKey: ZCRMTableDetails.Fields.SEQ_NUM)
         contentValues.updateValue(String(layoutId)+String(fields.id), forKey: ZCRMTableDetails.Fields.UNIQUE_ID)
