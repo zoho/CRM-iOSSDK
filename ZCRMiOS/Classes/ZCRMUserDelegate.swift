@@ -22,20 +22,6 @@ open class ZCRMUserDelegate : ZCRMEntity
             completion( result )
         }
     }
-    
-    public func downloadProfilePhoto( completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
-    {
-        UserAPIHandler().downloadPhoto( size : PhotoSize.ORIGINAL ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func downloadProfilePhoto( size : PhotoSize, completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
-    {
-        UserAPIHandler().downloadPhoto( size : size ) { ( result ) in
-            completion( result )
-        }
-    }
 }
 
 let USER_MOCK : ZCRMUserDelegate = ZCRMUserDelegate( id : APIConstants.INT64_MOCK, name : APIConstants.STRING_MOCK )
