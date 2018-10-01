@@ -8,20 +8,11 @@
 open class ZCRMRecordDelegate : ZCRMEntity
 {
     public var recordId : Int64
-    var recordLabel : String
     var moduleAPIName : String
     
     init ( recordId : Int64, moduleAPIName : String )
     {
         self.recordId = recordId
-        self.recordLabel = APIConstants.STRING_MOCK
-        self.moduleAPIName = moduleAPIName
-    }
-    
-    init ( recordId : Int64, recordLabel : String, moduleAPIName : String)
-    {
-        self.recordId = recordId
-        self.recordLabel = recordLabel
         self.moduleAPIName = moduleAPIName
     }
     
