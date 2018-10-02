@@ -128,5 +128,19 @@ public class ZCRMUser : ZCRMUserDelegate
             completion( result )
         }
     }
+    
+    public func downloadProfilePhoto( completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
+    {
+        UserAPIHandler(user: self).downloadPhoto( size : PhotoSize.ORIGINAL ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func downloadProfilePhoto( size : PhotoSize, completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
+    {
+        UserAPIHandler(user: self).downloadPhoto( size : size ) { ( result ) in
+            completion( result )
+        }
+    }
 }
 
