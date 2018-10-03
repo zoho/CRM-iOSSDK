@@ -22,6 +22,16 @@ public class ZCRMRestClient
         return ZCRMOrganisationDelegate()
     }
     
+    public func getModuleRelation( relatedListAPIName : String, parentModuleAPIName : String ) -> ZCRMModuleRelation
+    {
+        return ZCRMModuleRelation(relatedListAPIName: relatedListAPIName, parentModuleAPIName: parentModuleAPIName)
+    }
+    
+    public func getModuleRelation( parentModuleAPIName : String, relatedListId : Int64 ) -> ZCRMModuleRelation
+    {
+        return ZCRMModuleRelation(parentModuleAPIName: parentModuleAPIName, relatedListId: relatedListId)
+    }
+    
     public func getOrganisationDetails( completion : @escaping( Result.DataResponse< ZCRMOrganisation, APIResponse > ) -> () )
     {
         OrganizationAPIHandler().getOrganizationDetails() { ( result ) in

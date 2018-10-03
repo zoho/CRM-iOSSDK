@@ -62,9 +62,18 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         let recordsList:[[String:Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                         for recordDetails in recordsList
                         {
-                            let record : ZCRMRecord = ZCRMRecord(moduleAPIName: relatedList.apiName)
-                            try EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordDetails)
-                            records.append(record)
+                            if relatedList.apiName == "Activities"
+                            {
+                                let record : ZCRMRecord = ZCRMRecord(moduleAPIName: recordDetails.getString(key: "Activity_Type"))
+                                try EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordDetails)
+                                records.append(record)
+                            }
+                            else
+                            {
+                                let record : ZCRMRecord = ZCRMRecord(moduleAPIName: relatedList.apiName)
+                                try EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordDetails)
+                                records.append(record)
+                            }
                         }
                         bulkResponse.setData(data: records)
                         completion( .success( records, bulkResponse ) )

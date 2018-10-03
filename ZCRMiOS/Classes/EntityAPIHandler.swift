@@ -317,6 +317,43 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
     }
     
+    internal func getTimelineEvents( page : Int, perPage : Int, filter : String?, completion : @escaping( Result.DataResponse< [ ZCRMTimelineEvent ], BulkAPIResponse > ) -> () )
+    {
+        setJSONRootKey( key : JSONRootKey.TIMELINES )
+        var timelines : [ZCRMTimelineEvent] = [ZCRMTimelineEvent]()
+        setUrlPath(urlPath: "/\(self.recordDelegate.moduleAPIName)/\(self.recordDelegate.recordId)/timelines")
+        setRequestMethod(requestMethod: .GET)
+        if let paramFilter = filter
+        {
+            addRequestParam(param: RequestParamKeys.filter, value: paramFilter)
+        }
+        addRequestParam(param: "page", value: String(page))
+        addRequestParam(param: "per_page", value: String(perPage))
+        let request : APIRequest = APIRequest(handler: self )
+        print( "Request : \( request.toString() )" )
+        
+        request.getBulkAPIResponse { ( resultType ) in
+            do{
+                let bulkResponse = try resultType.resolve()
+                let responseJSON = bulkResponse.getResponseJSON()
+                if responseJSON.isEmpty == false
+                {
+                    let timelinesList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                    for timelineList in timelinesList
+                    {
+                        let timeline : ZCRMTimelineEvent = try self.getZCRMTimelineEvent(timelineDetails: timelineList)
+                        timelines.append(timeline)
+                    }
+                    bulkResponse.setData(data: timelines)
+                }
+                completion( .success( timelines, bulkResponse ) )
+            }
+            catch{
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
     // TODO : Add response object as List of Tags when overwrite false case is fixed
     internal func addTags( tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
@@ -756,7 +793,10 @@ internal class EntityAPIHandler : CommonAPIHandler
             }
             else if( ResponseJSONKeys.participants == fieldAPIName )
             {
-                self.setParticipants( participantsArray : value as! [ [ String : Any ] ] )
+                if recordDetails.hasValue(forKey: ResponseJSONKeys.participants)
+                {
+                    self.setParticipants( participantsArray : value as! [ [ String : Any ] ] )
+                }
             }
             else if( ResponseJSONKeys.dollarLineTax == fieldAPIName )
             {
@@ -1038,6 +1078,40 @@ internal class EntityAPIHandler : CommonAPIHandler
         participant.isInvited = participantDetails.getBoolean( key : ResponseJSONKeys.invited ) 
         return participant
     }
+    
+    private func getZCRMTimelineEvent( timelineDetails : [ String : Any ] ) throws -> ZCRMTimelineEvent
+    {
+        let record : ZCRMRecordDelegate = ZCRMRecordDelegate( recordId: timelineDetails.getDictionary(key: ResponseJSONKeys.record).getInt64(key: ResponseJSONKeys.id), moduleAPIName: timelineDetails.getDictionary(key: ResponseJSONKeys.record).getDictionary(key: ResponseJSONKeys.module).getString(key: ResponseJSONKeys.name))
+        let timeline : ZCRMTimelineEvent = ZCRMTimelineEvent(action: timelineDetails.getString(key: "action"), record : record)
+        if timelineDetails.hasValue(forKey: "audited_time") == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.auditedTime ) is must not be nil" )
+        }
+        timeline.auditedTime = timelineDetails.getString(key: "audited_time")
+        let doneByDetails : [ String : Any ] = timelineDetails.getDictionary( key : ResponseJSONKeys.doneBy )
+        let doneBy : ZCRMUserDelegate = ZCRMUserDelegate( id : doneByDetails.getInt64( key : ResponseJSONKeys.id ), name : doneByDetails.getString( key : ResponseJSONKeys.name ) )
+        timeline.doneBy = doneBy
+        if timelineDetails.hasValue(forKey: ResponseJSONKeys.source) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.source ) is must not be nil" )
+        }
+        timeline.sourceName = timelineDetails.getDictionary(key: ResponseJSONKeys.source).getString(key: ResponseJSONKeys.name)
+        timeline.automationType = timelineDetails.optDictionary(key: ResponseJSONKeys.automationDetails)?.optString(key: ResponseJSONKeys.type)
+        timeline.automationRule = timelineDetails.optDictionary(key: ResponseJSONKeys.automationDetails)?.optDictionary(key: ResponseJSONKeys.rule)?.optString(key: ResponseJSONKeys.name)
+        if timelineDetails.hasValue(forKey: ResponseJSONKeys.fieldHistory)
+        {
+            let fieldHistoryDetails : [[String:Any]] = timelineDetails.getArrayOfDictionaries(key: ResponseJSONKeys.fieldHistory)
+            for fieldHistoryDetail in fieldHistoryDetails
+            {
+                let fieldLabel : String = fieldHistoryDetail.getString(key: ResponseJSONKeys.fieldLabel)
+                let id : Int64 = fieldHistoryDetail.getInt64(key: ResponseJSONKeys.id)
+                let old : String? = fieldHistoryDetail.optString(key: ResponseJSONKeys.old)
+                let new : String? = fieldHistoryDetail.optString(key: ResponseJSONKeys.new)
+                timeline.addFieldHistory(fieldLabel: fieldLabel, id: id, old: old, new: new)
+            }
+        }
+        return timeline
+    }
 }
 
 fileprivate extension EntityAPIHandler
@@ -1048,6 +1122,7 @@ fileprivate extension EntityAPIHandler
         static let assignTo = "assign_to"
         static let tagNames = "tag_names"
         static let overWrite = "over_write"
+        static let filter = "filter"
     }
     struct ResponseJSONKeys
     {
@@ -1108,6 +1183,20 @@ fileprivate extension EntityAPIHandler
         static let ALARM = "ALARM"
         static let recurringActivity = "Recurring_Activity"
         static let RRULE = "RRULE"
+        
+        static let action = "action"
+        static let auditedTime = "audited_time"
+        static let doneBy = "done_by"
+        static let automationDetails = "automation_details"
+        static let record = "record"
+        static let module = "module"
+        static let source = "source"
+        static let fieldHistory = "field_history"
+        static let fieldLabel = "field_label"
+        static let old = "old"
+        static let new = "new"
+        static let rule = "rule"
+        static let relatedRecord = "related_record"
     }
 }
 

@@ -45,6 +45,20 @@ open class ZCRMNote : ZCRMEntity
         self.attachments?.append( attachment )
     }
     
+    fileprivate func removeAttachment( attachmentId : Int64 )
+    {
+        var index : Int = Int()
+        for count in 0..<self.attachments!.count - 1
+        {
+            if attachments![count].attachmentId == attachmentId
+            {
+                index = count
+                break
+            }
+        }
+        attachments?.remove(at: index)
+    }
+    
     public func getAllAttachmentsDetails( page : Int, per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
     {
         do
@@ -83,6 +97,14 @@ open class ZCRMNote : ZCRMEntity
     public func uploadAttachmentWithPath( filePath : String, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
     {
         ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: "Notes").uploadAttachmentWithPath(ofParentRecord: ZCRMRecordDelegate(recordId: self.id, moduleAPIName: "Notes"), filePath: filePath) { ( result ) in
+            do
+            {
+                try self.addAttachment(attachment: result.resolve().data)
+            }
+            catch
+            {
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
             completion( result )
         }
     }
@@ -90,6 +112,14 @@ open class ZCRMNote : ZCRMEntity
     public func uploadAttachmentWithData( fileName : String, data : Data, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
     {
         ZCRMModuleRelation(relatedListAPIName: "Attachments", parentModuleAPIName: "Notes").uploadAttachmentWithData( ofParentRecord: ZCRMRecordDelegate(recordId: self.id, moduleAPIName: "Notes"), fileName : fileName, data : data ) { ( result ) in
+            do
+            {
+                try self.addAttachment(attachment: result.resolve().data)
+            }
+            catch
+            {
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
             completion( result )
         }
     }
@@ -114,6 +144,15 @@ open class ZCRMNote : ZCRMEntity
     public func deleteAttachment( attachmentId : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         ZCRMModuleRelation( relatedListAPIName : "Attachments", parentModuleAPIName : "Notes" ).deleteAttachment( ofParentRecord : ZCRMRecordDelegate(recordId: self.id, moduleAPIName: "Notes"), attachmentId : attachmentId ) { ( result ) in
+            do
+            {
+                let _ = try result.resolve()
+                self.removeAttachment(attachmentId: attachmentId)
+            }
+            catch
+            {
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
             completion( result )
         }
     }

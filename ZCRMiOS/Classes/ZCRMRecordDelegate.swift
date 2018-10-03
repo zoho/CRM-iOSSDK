@@ -461,6 +461,34 @@ open class ZCRMRecordDelegate : ZCRMEntity
             completion( result )
         }
     }
+    
+    public func getTimelineEvents( completion : @escaping( Result.DataResponse< [ZCRMTimelineEvent], BulkAPIResponse > ) -> () )
+    {
+        EntityAPIHandler(recordDelegate: self).getTimelineEvents(page: 1, perPage: 20, filter: nil) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getTimelineEvents( filter : String, completion : @escaping( Result.DataResponse< [ZCRMTimelineEvent], BulkAPIResponse > ) -> () )
+    {
+        EntityAPIHandler(recordDelegate: self).getTimelineEvents(page: 1, perPage: 20, filter: filter) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getTimelineEvents( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ZCRMTimelineEvent], BulkAPIResponse > ) -> () )
+    {
+        EntityAPIHandler(recordDelegate: self).getTimelineEvents(page: page, perPage: perPage, filter: nil) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getTimelineEvents( page : Int, perPage : Int, filter : String, completion : @escaping( Result.DataResponse< [ZCRMTimelineEvent], BulkAPIResponse > ) -> () )
+    {
+        EntityAPIHandler(recordDelegate: self).getTimelineEvents(page: page, perPage: perPage, filter: filter) { ( result ) in
+            completion( result )
+        }
+    }
 }
 
 let RECORD_MOCK : ZCRMRecordDelegate = ZCRMRecordDelegate( recordId : APIConstants.INT64_MOCK, moduleAPIName : APIConstants.STRING_MOCK )
