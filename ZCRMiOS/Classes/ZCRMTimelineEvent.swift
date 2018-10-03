@@ -30,15 +30,9 @@ open class ZCRMTimelineEvent : ZCRMEntity
         self.record = record
     }
     
-    func initFieldHistory( fieldLabel : String, id : Int64, old : String?, new : String? ) -> FieldHistory
-    {
-        let fieldHistory = FieldHistory(fieldLabel : fieldLabel, id : id, oldValue : old, newValue : new)
-        return fieldHistory
-    }
-    
     func addFieldHistory( fieldLabel : String, id : Int64, old : String?, new : String? )
     {
-        if self.fieldHistory != nil
+        if self.fieldHistory == nil
         {
             self.fieldHistory = [FieldHistory]()
         }
