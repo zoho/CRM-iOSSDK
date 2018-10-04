@@ -844,6 +844,10 @@ internal class EntityAPIHandler : CommonAPIHandler
             {
                 self.record.modifiedTime = value as! String
             }
+            else if( ResponseJSONKeys.activityType == fieldAPIName )
+            {
+                self.record.moduleAPIName = value as! String
+            }
             else if(ResponseJSONKeys.owner == fieldAPIName)
             {
                 let ownerObj : [String:Any] = value as! [String : Any]
@@ -1198,6 +1202,8 @@ fileprivate extension EntityAPIHandler
         static let ALARM = "ALARM"
         static let recurringActivity = "Recurring_Activity"
         static let RRULE = "RRULE"
+        
+        static let activityType = "Activity_Type"
         
         static let action = "action"
         static let auditedTime = "audited_time"
