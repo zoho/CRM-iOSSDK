@@ -321,11 +321,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     {
         setJSONRootKey( key : JSONRootKey.TIMELINES )
         var timelines : [ZCRMTimelineEvent] = [ZCRMTimelineEvent]()
-        if self.recordDelegate.recordId != APIConstants.INT64_MOCK
-        {
-            setUrlPath(urlPath: "/\(self.recordDelegate.moduleAPIName)/\(self.recordDelegate.recordId)/timelines")
-        }
-        else
+        if self.recordDelegate.recordId == APIConstants.INT64_MOCK
         {
             completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Record ID MUST NOT be nil" ) ) )
         }
@@ -352,12 +348,12 @@ internal class EntityAPIHandler : CommonAPIHandler
                         timelines.append(timeline)
                     }
                     bulkResponse.setData(data: timelines)
+                    completion( .success( timelines, bulkResponse ) )
                 }
                 else
                 {
                     completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG ) ) )
                 }
-                completion( .success( timelines, bulkResponse ) )
             }
             catch{
                 completion( .failure( typeCastToZCRMError( error ) ) )
@@ -804,9 +800,13 @@ internal class EntityAPIHandler : CommonAPIHandler
             }
             else if( ResponseJSONKeys.participants == fieldAPIName )
             {
-                if recordDetails.hasValue(forKey: ResponseJSONKeys.participants)
+                if recordDetails.hasValue(forKey: ResponseJSONKeys.participants) && value is [ [ String : Any ] ]
                 {
                     self.setParticipants( participantsArray : value as! [ [ String : Any ] ] )
+                }
+                else
+                {
+                    print("Type of participants should be array of dictionaries")
                 }
             }
             else if( ResponseJSONKeys.dollarLineTax == fieldAPIName )
@@ -1107,8 +1107,12 @@ internal class EntityAPIHandler : CommonAPIHandler
             throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.source ) is must not be nil" )
         }
         timeline.sourceName = timelineDetails.getDictionary(key: ResponseJSONKeys.source).getString(key: ResponseJSONKeys.name)
-        timeline.automationType = timelineDetails.optDictionary(key: ResponseJSONKeys.automationDetails)?.optString(key: ResponseJSONKeys.type)
-        timeline.automationRule = timelineDetails.optDictionary(key: ResponseJSONKeys.automationDetails)?.optDictionary(key: ResponseJSONKeys.rule)?.optString(key: ResponseJSONKeys.name)
+        if timelineDetails.hasValue(forKey: ResponseJSONKeys.automationDetails)
+        {
+            let automationDetails : [String:Any] = timelineDetails.getDictionary(key: ResponseJSONKeys.automationDetails)
+            timeline.automationType = automationDetails.optString(key: ResponseJSONKeys.type)
+            timeline.automationRule = automationDetails.optDictionary(key: ResponseJSONKeys.rule)?.optString(key: ResponseJSONKeys.name)
+        }
         if timelineDetails.hasValue(forKey: ResponseJSONKeys.fieldHistory)
         {
             let fieldHistoryDetails : [[String:Any]] = timelineDetails.getArrayOfDictionaries(key: ResponseJSONKeys.fieldHistory)
