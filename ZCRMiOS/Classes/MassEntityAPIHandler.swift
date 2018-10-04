@@ -144,6 +144,10 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     }
                     bulkResponse.setData(data: records)
                 }
+                else
+                {
+                    completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG ) ) )
+                }
                 completion( .success( records, bulkResponse ) )
             }
             catch{
@@ -206,6 +210,10 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         try EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordDetails)
                         records.append(record)
                     }
+                }
+                else
+                {
+                    completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG ) ) )
                 }
                 bulkResponse.setData( data : records )
                 completion( .success( records, bulkResponse ) )

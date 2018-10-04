@@ -47,16 +47,19 @@ open class ZCRMNote : ZCRMEntity
     
     fileprivate func removeAttachment( attachmentId : Int64 )
     {
-        var index : Int = Int()
-        for count in 0..<self.attachments!.count - 1
+        if attachments != nil
         {
-            if attachments![count].attachmentId == attachmentId
+            var index : Int = Int()
+            for count in 0..<self.attachments!.count - 1
             {
-                index = count
-                break
+                if attachments![count].attachmentId == attachmentId
+                {
+                    index = count
+                    break
+                }
             }
+            attachments?.remove(at: index)
         }
-        attachments?.remove(at: index)
     }
     
     public func getAllAttachmentsDetails( page : Int, per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
@@ -100,12 +103,12 @@ open class ZCRMNote : ZCRMEntity
             do
             {
                 try self.addAttachment(attachment: result.resolve().data)
+                completion( result )
             }
             catch
             {
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
-            completion( result )
         }
     }
     
@@ -115,12 +118,12 @@ open class ZCRMNote : ZCRMEntity
             do
             {
                 try self.addAttachment(attachment: result.resolve().data)
+                completion( result )
             }
             catch
             {
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
-            completion( result )
         }
     }
     
@@ -146,14 +149,17 @@ open class ZCRMNote : ZCRMEntity
         ZCRMModuleRelation( relatedListAPIName : "Attachments", parentModuleAPIName : "Notes" ).deleteAttachment( ofParentRecord : ZCRMRecordDelegate(recordId: self.id, moduleAPIName: "Notes"), attachmentId : attachmentId ) { ( result ) in
             do
             {
-                let _ = try result.resolve()
-                self.removeAttachment(attachmentId: attachmentId)
+                let resp = try result.resolve()
+                if resp.getStatus() == APIConstants.CODE_SUCCESS
+                {
+                    self.removeAttachment(attachmentId: attachmentId)
+                }
+                completion( result )
             }
             catch
             {
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
-            completion( result )
         }
     }
 }

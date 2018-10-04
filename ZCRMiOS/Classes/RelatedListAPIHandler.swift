@@ -62,9 +62,9 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         let recordsList:[[String:Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                         for recordDetails in recordsList
                         {
-                            if relatedList.apiName == "Activities"
+                            if relatedList.apiName == ResponseJSONKeys.activities
                             {
-                                let record : ZCRMRecord = ZCRMRecord(moduleAPIName: recordDetails.getString(key: "Activity_Type"))
+                                let record : ZCRMRecord = ZCRMRecord(moduleAPIName: recordDetails.getString(key: ResponseJSONKeys.activityType))
                                 try EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordDetails)
                                 records.append(record)
                             }
@@ -684,5 +684,8 @@ extension RelatedListAPIHandler
         static let attachments = "$attachments"
         static let parentId = "Parent_Id"
         static let seModule = "$se_module"
+        
+        static let activities = "Activities"
+        static let activityType = "Activity_Type"
     }
 }

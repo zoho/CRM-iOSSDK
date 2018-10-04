@@ -321,7 +321,14 @@ internal class EntityAPIHandler : CommonAPIHandler
     {
         setJSONRootKey( key : JSONRootKey.TIMELINES )
         var timelines : [ZCRMTimelineEvent] = [ZCRMTimelineEvent]()
-        setUrlPath(urlPath: "/\(self.recordDelegate.moduleAPIName)/\(self.recordDelegate.recordId)/timelines")
+        if self.recordDelegate.recordId != APIConstants.INT64_MOCK
+        {
+            setUrlPath(urlPath: "/\(self.recordDelegate.moduleAPIName)/\(self.recordDelegate.recordId)/timelines")
+        }
+        else
+        {
+            completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Record ID MUST NOT be nil" ) ) )
+        }
         setRequestMethod(requestMethod: .GET)
         if let paramFilter = filter
         {
@@ -345,6 +352,10 @@ internal class EntityAPIHandler : CommonAPIHandler
                         timelines.append(timeline)
                     }
                     bulkResponse.setData(data: timelines)
+                }
+                else
+                {
+                    completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG ) ) )
                 }
                 completion( .success( timelines, bulkResponse ) )
             }
@@ -1082,12 +1093,12 @@ internal class EntityAPIHandler : CommonAPIHandler
     private func getZCRMTimelineEvent( timelineDetails : [ String : Any ] ) throws -> ZCRMTimelineEvent
     {
         let record : ZCRMRecordDelegate = ZCRMRecordDelegate( recordId: timelineDetails.getDictionary(key: ResponseJSONKeys.record).getInt64(key: ResponseJSONKeys.id), moduleAPIName: timelineDetails.getDictionary(key: ResponseJSONKeys.record).getDictionary(key: ResponseJSONKeys.module).getString(key: ResponseJSONKeys.name))
-        let timeline : ZCRMTimelineEvent = ZCRMTimelineEvent(action: timelineDetails.getString(key: "action"), record : record)
-        if timelineDetails.hasValue(forKey: "audited_time") == false
+        let timeline : ZCRMTimelineEvent = ZCRMTimelineEvent(action: timelineDetails.getString(key: ResponseJSONKeys.action), record : record)
+        if timelineDetails.hasValue(forKey: ResponseJSONKeys.auditedTime) == false
         {
             throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.auditedTime ) is must not be nil" )
         }
-        timeline.auditedTime = timelineDetails.getString(key: "audited_time")
+        timeline.auditedTime = timelineDetails.getString(key: ResponseJSONKeys.auditedTime)
         let doneByDetails : [ String : Any ] = timelineDetails.getDictionary( key : ResponseJSONKeys.doneBy )
         let doneBy : ZCRMUserDelegate = ZCRMUserDelegate( id : doneByDetails.getInt64( key : ResponseJSONKeys.id ), name : doneByDetails.getString( key : ResponseJSONKeys.name ) )
         timeline.doneBy = doneBy
