@@ -317,50 +317,6 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getTimelineEvents( page : Int, perPage : Int, filter : String?, completion : @escaping( Result.DataResponse< [ ZCRMTimelineEvent ], BulkAPIResponse > ) -> () )
-    {
-        setJSONRootKey( key : JSONRootKey.TIMELINES )
-        var timelines : [ZCRMTimelineEvent] = [ZCRMTimelineEvent]()
-        if self.recordDelegate.recordId == APIConstants.INT64_MOCK
-        {
-            completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Record ID MUST NOT be nil" ) ) )
-        }
-        setRequestMethod(requestMethod: .GET)
-        if let paramFilter = filter
-        {
-            addRequestParam(param: RequestParamKeys.filter, value: paramFilter)
-        }
-        addRequestParam(param: "page", value: String(page))
-        addRequestParam(param: "per_page", value: String(perPage))
-        let request : APIRequest = APIRequest(handler: self )
-        print( "Request : \( request.toString() )" )
-        
-        request.getBulkAPIResponse { ( resultType ) in
-            do{
-                let bulkResponse = try resultType.resolve()
-                let responseJSON = bulkResponse.getResponseJSON()
-                if responseJSON.isEmpty == false
-                {
-                    let timelinesList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
-                    for timelineList in timelinesList
-                    {
-                        let timeline : ZCRMTimelineEvent = try self.getZCRMTimelineEvent(timelineDetails: timelineList)
-                        timelines.append(timeline)
-                    }
-                    bulkResponse.setData(data: timelines)
-                    completion( .success( timelines, bulkResponse ) )
-                }
-                else
-                {
-                    completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG ) ) )
-                }
-            }
-            catch{
-                completion( .failure( typeCastToZCRMError( error ) ) )
-            }
-        }
-    }
-    
     // TODO : Add response object as List of Tags when overwrite false case is fixed
     internal func addTags( tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
@@ -888,21 +844,15 @@ internal class EntityAPIHandler : CommonAPIHandler
                     self.record.setValue(ofProperty: propertyName, value: value)
                 }
             }
-            else if( ResponseJSONKeys.remindAt == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) )
+            else if( ResponseJSONKeys.remindAt == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) && value is [String:Any] )
             {
-                if value is [String:Any]
-                {
-                    let alarmDetails = recordDetails.getDictionary( key : fieldAPIName )
-                    self.record.setValue( forField : ResponseJSONKeys.ALARM, value : alarmDetails.getString( key : ResponseJSONKeys.ALARM ) )
-                }
+                let alarmDetails = recordDetails.getDictionary( key : fieldAPIName )
+                self.record.setValue( forField : ResponseJSONKeys.ALARM, value : alarmDetails.getString( key : ResponseJSONKeys.ALARM ) )
             }
-            else if( ResponseJSONKeys.recurringActivity == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) )
+            else if( ResponseJSONKeys.recurringActivity == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) && value is [String:Any] )
             {
-                if value is [String:Any]
-                {
-                    let recurringActivity = recordDetails.getDictionary( key : fieldAPIName )
-                    self.record.setValue( forField : ResponseJSONKeys.RRULE, value : recurringActivity.getString( key : ResponseJSONKeys.RRULE ) )
-                }
+                let recurringActivity = recordDetails.getDictionary( key : fieldAPIName )
+                self.record.setValue( forField : ResponseJSONKeys.RRULE, value : recurringActivity.getString( key : ResponseJSONKeys.RRULE ) )
             }
             else if( value is [ String : Any ] )
             {
@@ -1099,44 +1049,6 @@ internal class EntityAPIHandler : CommonAPIHandler
         participant.isInvited = participantDetails.getBoolean( key : ResponseJSONKeys.invited ) 
         return participant
     }
-    
-    private func getZCRMTimelineEvent( timelineDetails : [ String : Any ] ) throws -> ZCRMTimelineEvent
-    {
-        let record : ZCRMRecordDelegate = ZCRMRecordDelegate( recordId: timelineDetails.getDictionary(key: ResponseJSONKeys.record).getInt64(key: ResponseJSONKeys.id), moduleAPIName: timelineDetails.getDictionary(key: ResponseJSONKeys.record).getDictionary(key: ResponseJSONKeys.module).getString(key: ResponseJSONKeys.name))
-        let timeline : ZCRMTimelineEvent = ZCRMTimelineEvent(action: timelineDetails.getString(key: ResponseJSONKeys.action), record : record)
-        if timelineDetails.hasValue(forKey: ResponseJSONKeys.auditedTime) == false
-        {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.auditedTime ) is must not be nil" )
-        }
-        timeline.auditedTime = timelineDetails.getString(key: ResponseJSONKeys.auditedTime)
-        let doneByDetails : [ String : Any ] = timelineDetails.getDictionary( key : ResponseJSONKeys.doneBy )
-        let doneBy : ZCRMUserDelegate = ZCRMUserDelegate( id : doneByDetails.getInt64( key : ResponseJSONKeys.id ), name : doneByDetails.getString( key : ResponseJSONKeys.name ) )
-        timeline.doneBy = doneBy
-        if timelineDetails.hasValue(forKey: ResponseJSONKeys.source) == false
-        {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.source ) is must not be nil" )
-        }
-        timeline.sourceName = timelineDetails.getDictionary(key: ResponseJSONKeys.source).getString(key: ResponseJSONKeys.name)
-        if timelineDetails.hasValue(forKey: ResponseJSONKeys.automationDetails)
-        {
-            let automationDetails : [String:Any] = timelineDetails.getDictionary(key: ResponseJSONKeys.automationDetails)
-            timeline.automationType = automationDetails.optString(key: ResponseJSONKeys.type)
-            timeline.automationRule = automationDetails.optDictionary(key: ResponseJSONKeys.rule)?.optString(key: ResponseJSONKeys.name)
-        }
-        if timelineDetails.hasValue(forKey: ResponseJSONKeys.fieldHistory)
-        {
-            let fieldHistoryDetails : [[String:Any]] = timelineDetails.getArrayOfDictionaries(key: ResponseJSONKeys.fieldHistory)
-            for fieldHistoryDetail in fieldHistoryDetails
-            {
-                let fieldLabel : String = fieldHistoryDetail.getString(key: ResponseJSONKeys.fieldLabel)
-                let id : Int64 = fieldHistoryDetail.getInt64(key: ResponseJSONKeys.id)
-                let old : String? = fieldHistoryDetail.optString(key: ResponseJSONKeys.old)
-                let new : String? = fieldHistoryDetail.optString(key: ResponseJSONKeys.new)
-                timeline.addFieldHistory(fieldLabel: fieldLabel, id: id, old: old, new: new)
-            }
-        }
-        return timeline
-    }
 }
 
 fileprivate extension EntityAPIHandler
@@ -1147,7 +1059,6 @@ fileprivate extension EntityAPIHandler
         static let assignTo = "assign_to"
         static let tagNames = "tag_names"
         static let overWrite = "over_write"
-        static let filter = "filter"
     }
     struct ResponseJSONKeys
     {
@@ -1210,20 +1121,6 @@ fileprivate extension EntityAPIHandler
         static let RRULE = "RRULE"
         
         static let activityType = "Activity_Type"
-        
-        static let action = "action"
-        static let auditedTime = "audited_time"
-        static let doneBy = "done_by"
-        static let automationDetails = "automation_details"
-        static let record = "record"
-        static let module = "module"
-        static let source = "source"
-        static let fieldHistory = "field_history"
-        static let fieldLabel = "field_label"
-        static let old = "old"
-        static let new = "new"
-        static let rule = "rule"
-        static let relatedRecord = "related_record"
     }
 }
 

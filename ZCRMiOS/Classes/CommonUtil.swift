@@ -597,7 +597,6 @@ struct JSONRootKey {
     static let ANALYTICS : String = "Analytics"
     static let STAGES : String = "stages"
     static let TAXES : String = "taxes"
-    static let TIMELINES : String = "timelines"
 }
 
 //MARK:- RESULT TYPES
