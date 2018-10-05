@@ -890,13 +890,19 @@ internal class EntityAPIHandler : CommonAPIHandler
             }
             else if( ResponseJSONKeys.remindAt == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) )
             {
-                let alarmDetails = recordDetails.getDictionary( key : fieldAPIName )
-                self.record.setValue( forField : ResponseJSONKeys.ALARM, value : alarmDetails.getString( key : ResponseJSONKeys.ALARM ) )
+                if value is [String:Any]
+                {
+                    let alarmDetails = recordDetails.getDictionary( key : fieldAPIName )
+                    self.record.setValue( forField : ResponseJSONKeys.ALARM, value : alarmDetails.getString( key : ResponseJSONKeys.ALARM ) )
+                }
             }
             else if( ResponseJSONKeys.recurringActivity == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) )
             {
-                let recurringActivity = recordDetails.getDictionary( key : fieldAPIName )
-                self.record.setValue( forField : ResponseJSONKeys.RRULE, value : recurringActivity.getString( key : ResponseJSONKeys.RRULE ) )
+                if value is [String:Any]
+                {
+                    let recurringActivity = recordDetails.getDictionary( key : fieldAPIName )
+                    self.record.setValue( forField : ResponseJSONKeys.RRULE, value : recurringActivity.getString( key : ResponseJSONKeys.RRULE ) )
+                }
             }
             else if( value is [ String : Any ] )
             {
