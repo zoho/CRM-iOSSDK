@@ -25,11 +25,6 @@ open class ZCRMModuleDelegate : ZCRMEntity
     {
         return ZCRMRecordDelegate( recordId : id, moduleAPIName : apiName )
     }
-    
-    public func newCustomView( cvName : String ) -> ZCRMCustomView
-    {
-        return ZCRMCustomView(cvName: cvName, moduleAPIName: self.apiName)
-    }
 
     public func newSubFormRecord( subFormName : String ) -> ZCRMSubformRecord
     {
