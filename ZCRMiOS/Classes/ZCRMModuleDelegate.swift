@@ -26,7 +26,7 @@ open class ZCRMModuleDelegate : ZCRMEntity
         return ZCRMRecordDelegate( recordId : id, moduleAPIName : apiName )
     }
     
-    public func getCustomView( cvName : String ) -> ZCRMCustomView
+    public func newCustomView( cvName : String ) -> ZCRMCustomView
     {
         return ZCRMCustomView(cvName: cvName, moduleAPIName: self.apiName)
     }
