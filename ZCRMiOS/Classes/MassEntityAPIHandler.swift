@@ -54,14 +54,14 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         try EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordJSON)
                         updatedRecords.append(record)
                         entityResponse.setData(data: record)
-                        bulkResponse.setData( data : updatedRecords )
-                        completion( .success( updatedRecords, bulkResponse ) )
                     }
                     else
                     {
                         entityResponse.setData(data: nil)
                     }
                 }
+                bulkResponse.setData( data : updatedRecords )
+                completion( .success( updatedRecords, bulkResponse ) )
             }
             catch{
                 completion( .failure( typeCastToZCRMError( error ) ) )
