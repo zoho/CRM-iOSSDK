@@ -19,6 +19,21 @@ open class ZCRMOrganisationDelegate : ZCRMEntity
         return ZCRMUserDelegate(id: id, name: name)
     }
     
+    public func getProfileDelegate(profileId: Int64, profileName: String) -> ZCRMProfileDelegate
+    {
+        return ZCRMProfileDelegate(profileId: profileId, profileName: profileName)
+    }
+    
+    public func getProfileDelegate(profileId: Int64, profileName: String, isDefault: Bool) -> ZCRMProfileDelegate
+    {
+        return ZCRMProfileDelegate(profileId: profileId, profileName: profileName, isDefault: isDefault)
+    }
+    
+    public func getRoleDelegate(roleId: Int64, roleName: String) -> ZCRMRoleDelegate
+    {
+        return ZCRMRoleDelegate(roleId: roleId, roleName: roleName)
+    }
+    
     public func getAllUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         UserAPIHandler().getAllUsers( modifiedSince : nil, page : 1, perPage : 200 ) { ( result ) in

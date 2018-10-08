@@ -143,8 +143,12 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         records.append(record)
                     }
                     bulkResponse.setData(data: records)
+                    completion( .success( records, bulkResponse ) )
                 }
-                completion( .success( records, bulkResponse ) )
+                else
+                {
+                    completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG ) ) )
+                }
             }
             catch{
                 completion( .failure( typeCastToZCRMError( error ) ) )
@@ -206,9 +210,13 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         try EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordDetails)
                         records.append(record)
                     }
+                    bulkResponse.setData( data : records )
+                    completion( .success( records, bulkResponse ) )
                 }
-                bulkResponse.setData( data : records )
-                completion( .success( records, bulkResponse ) )
+                else
+                {
+                    completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG ) ) )
+                }
             }
             catch{
                 completion( .failure( typeCastToZCRMError( error ) ) )

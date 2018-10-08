@@ -756,7 +756,14 @@ internal class EntityAPIHandler : CommonAPIHandler
             }
             else if( ResponseJSONKeys.participants == fieldAPIName )
             {
-                self.setParticipants( participantsArray : value as! [ [ String : Any ] ] )
+                if recordDetails.hasValue(forKey: ResponseJSONKeys.participants) && value is [ [ String : Any ] ]
+                {
+                    self.setParticipants( participantsArray : value as! [ [ String : Any ] ] )
+                }
+                else
+                {
+                    print("Type of participants should be array of dictionaries")
+                }
             }
             else if( ResponseJSONKeys.dollarLineTax == fieldAPIName )
             {
@@ -792,6 +799,10 @@ internal class EntityAPIHandler : CommonAPIHandler
             else if(ResponseJSONKeys.modifiedTime == fieldAPIName)
             {
                 self.record.modifiedTime = value as! String
+            }
+            else if( ResponseJSONKeys.activityType == fieldAPIName )
+            {
+                self.record.moduleAPIName = value as! String
             }
             else if(ResponseJSONKeys.owner == fieldAPIName)
             {
@@ -833,12 +844,12 @@ internal class EntityAPIHandler : CommonAPIHandler
                     self.record.setValue(ofProperty: propertyName, value: value)
                 }
             }
-            else if( ResponseJSONKeys.remindAt == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) )
+            else if( ResponseJSONKeys.remindAt == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) && value is [String:Any] )
             {
                 let alarmDetails = recordDetails.getDictionary( key : fieldAPIName )
                 self.record.setValue( forField : ResponseJSONKeys.ALARM, value : alarmDetails.getString( key : ResponseJSONKeys.ALARM ) )
             }
-            else if( ResponseJSONKeys.recurringActivity == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) )
+            else if( ResponseJSONKeys.recurringActivity == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) && value is [String:Any] )
             {
                 let recurringActivity = recordDetails.getDictionary( key : fieldAPIName )
                 self.record.setValue( forField : ResponseJSONKeys.RRULE, value : recurringActivity.getString( key : ResponseJSONKeys.RRULE ) )
@@ -1108,6 +1119,8 @@ fileprivate extension EntityAPIHandler
         static let ALARM = "ALARM"
         static let recurringActivity = "Recurring_Activity"
         static let RRULE = "RRULE"
+        
+        static let activityType = "Activity_Type"
     }
 }
 
