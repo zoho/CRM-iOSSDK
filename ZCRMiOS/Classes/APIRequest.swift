@@ -40,7 +40,9 @@ internal enum RequestMethod : String
 
  internal class APIRequest
  {
-    private var baseUrl : String = "\( APIBASEURL )/crm/\( APIVERSION )"
+//    private var baseUrl : String = "\( APIBASEURL )/crm/\( APIVERSION )"
+    private var baseUrl : String = "https://crm.localzoho.com/crm/\( APIVERSION )"
+//    private var baseUrl : String = "https://ignite.localzoho.com/crm/\( APIVERSION )"
     private var urlPath : String = ""
     private var requestMethod : RequestMethod
     private var headers : [String : String] = [String : String]()
@@ -69,63 +71,72 @@ internal enum RequestMethod : String
         self.jsonRootKey = handler.getJSONRootKey()
     }
     
-    private func authenticateRequest( completion : @escaping( ZCRMError? ) -> () )
+//    private func authenticateRequest( completion : @escaping( ZCRMError? ) -> () )
+//    {
+//        if let bundleID = Bundle.main.bundleIdentifier
+//        {
+//            self.addHeader( headerName : "User-Agent", headerVal : "ZCRMiOS_\(bundleID)" )
+//        }
+//        else
+//        {
+//            self.addHeader( headerName : "User-Agent", headerVal : "ZCRMiOS_unknown_bundle" )
+//        }
+//        if( APPTYPE == "ZCRM" )
+//        {
+//            ZCRMLoginHandler().getOauth2Token { ( token, error ) in
+//                if let err = error
+//                {
+//                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTH_FETCH_ERROR, message: err.description))
+//                    return
+//                }
+//                if let oAuthtoken = token, token.notNilandEmpty
+//                {
+//                    self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( oAuthtoken )" )
+//                    completion( nil )
+//                    return
+//                }
+//                else
+//                {
+//                    print( "oAuthtoken is nil." )
+//                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTHTOKEN_NIL, message: ErrorMessage.OAUTHTOKEN_NIL_MSG))
+//                }
+//            }
+//        }
+//        else
+//        {
+//            ZVCRMLoginHandler().getOauth2Token { ( token, error ) in
+//                if( APPTYPE == "ZCRMCP" )
+//                {
+//                    self.addHeader( headerName : "X-CRMPORTAL", headerVal : "SDKCLIENT" )
+//                }
+//                if let err = error
+//                {
+//                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTH_FETCH_ERROR, message: err.description))
+//                    return
+//                }
+//                if let oAuthtoken = token, token.notNilandEmpty
+//                {
+//                    self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( oAuthtoken )")
+//                    completion( nil )
+//                    return
+//                }
+//                else
+//                {
+//                    print( "oAuthtoken is empty." )
+//                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTHTOKEN_NIL, message: ErrorMessage.OAUTHTOKEN_NIL_MSG))
+//                }
+//            }
+//        }
+//    }
+
+    private func authenticateRequest( completion : @escaping( Error? ) -> () )
     {
-        if let bundleID = Bundle.main.bundleIdentifier
-        {
-            self.addHeader( headerName : "User-Agent", headerVal : "ZCRMiOS_\(bundleID)" )
-        }
-        else
-        {
-            self.addHeader( headerName : "User-Agent", headerVal : "ZCRMiOS_unknown_bundle" )
-        }
-        if( APPTYPE == "ZCRM" )
-        {
-            ZCRMLoginHandler().getOauth2Token { ( token, error ) in
-                if let err = error
-                {
-                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTH_FETCH_ERROR, message: err.description))
-                    return
-                }
-                if let oAuthtoken = token, token.notNilandEmpty
-                {
-                    self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( oAuthtoken )" )
-                    completion( nil )
-                    return
-                }
-                else
-                {
-                    print( "oAuthtoken is nil." )
-                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTHTOKEN_NIL, message: ErrorMessage.OAUTHTOKEN_NIL_MSG))
-                }
-            }
-        }
-        else
-        {
-            ZVCRMLoginHandler().getOauth2Token { ( token, error ) in
-                if( APPTYPE == "ZCRMCP" )
-                {
-                    self.addHeader( headerName : "X-CRMPORTAL", headerVal : "SDKCLIENT" )
-                }
-                if let err = error
-                {
-                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTH_FETCH_ERROR, message: err.description))
-                    return
-                }
-                if let oAuthtoken = token, token.notNilandEmpty
-                {
-                    self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( oAuthtoken )")
-                    completion( nil )
-                    return
-                }
-                else
-                {
-                    print( "oAuthtoken is empty." )
-                    completion(ZCRMError.SDKError(code: ErrorCode.OAUTHTOKEN_NIL, message: ErrorMessage.OAUTHTOKEN_NIL_MSG))
-                }
-            }
-        }
+        let accessToken : String = UserDefaults.standard.object( forKey : "AccessToken" ) as! String
+        self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( accessToken )" )
+        print("headers ; \(self.headers.description)")
+        completion( nil )
     }
+
     
     private func addHeader(headerName : String, headerVal : String)
     {

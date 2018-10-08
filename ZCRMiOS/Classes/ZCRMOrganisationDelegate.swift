@@ -34,6 +34,16 @@ open class ZCRMOrganisationDelegate : ZCRMEntity
         return ZCRMRoleDelegate(roleId: roleId, roleName: roleName)
     }
     
+    public func newOrgEmail( name : String, email : String, profiles : [ZCRMProfileDelegate] ) -> ZCRMOrgEmail
+    {
+        return ZCRMOrgEmail(name: name, email: email, profiles: profiles)
+    }
+    
+    public func newOrgEmail( id : Int64 ) -> ZCRMOrgEmail
+    {
+        return ZCRMOrgEmail(id: id)
+    }
+    
     public func getAllUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         UserAPIHandler().getAllUsers( modifiedSince : nil, page : 1, perPage : 200 ) { ( result ) in
@@ -149,6 +159,20 @@ open class ZCRMOrganisationDelegate : ZCRMEntity
     public func searchUsers( withCriteria : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         UserAPIHandler().searchUsers( criteria : withCriteria, page : page, perPage : perPage) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getOrgEmail( id : Int64, completion : @escaping( Result.DataResponse< ZCRMOrgEmail, APIResponse > ) -> () )
+    {
+        EmailAPIHandler().getOrgEmail(id: id) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getOrgEmails(completion : @escaping( Result.DataResponse< [ZCRMOrgEmail], BulkAPIResponse > ) -> () )
+    {
+        EmailAPIHandler().getOrgEmails { ( result ) in
             completion( result )
         }
     }
