@@ -13,19 +13,19 @@ open class ZCRMOrgEmail : ZCRMEntity
     var name : String = APIConstants.STRING_MOCK
     var email : String = APIConstants.STRING_MOCK
     
-    init( name : String, email : String, profiles : [ZCRMProfileDelegate] )
+    internal init( name : String, email : String, profiles : [ZCRMProfileDelegate] )
     {
         self.name = name
         self.email = email
         self.profiles = profiles
     }
     
-    init( id : Int64 )
+    internal init( id : Int64 )
     {
         self.id = id
     }
     
-    func addProfile( profile : ZCRMProfileDelegate )
+    public func addProfile( profile : ZCRMProfileDelegate )
     {
         profiles.append(profile)
     }

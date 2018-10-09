@@ -39,11 +39,6 @@ open class ZCRMOrganisationDelegate : ZCRMEntity
         return ZCRMOrgEmail(name: name, email: email, profiles: profiles)
     }
     
-    public func newOrgEmail( id : Int64 ) -> ZCRMOrgEmail
-    {
-        return ZCRMOrgEmail(id: id)
-    }
-    
     public func getAllUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         UserAPIHandler().getAllUsers( modifiedSince : nil, page : 1, perPage : 200 ) { ( result ) in

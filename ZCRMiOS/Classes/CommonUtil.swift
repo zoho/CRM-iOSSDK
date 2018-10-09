@@ -573,6 +573,10 @@ internal struct APIConstants
     static let DOUBLE_MOCK : Double = -55.5555555555555555
     static let BOOL_MOCK : Bool = false
     
+    static let SETTINGS : String = "settings"
+    static let EMAILS : String = "emails"
+    static let ORG_EMAILS : String = "org_emails"
+    
     static let MAX_ALLOWED_FILE_SIZE_IN_MB : Int = 20
 }
 

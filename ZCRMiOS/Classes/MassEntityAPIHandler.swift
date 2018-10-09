@@ -75,6 +75,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 		var records : [ZCRMRecord] = [ZCRMRecord]()
 		setUrlPath(urlPath: "/\(self.module.apiName)" )
 		setRequestMethod( requestMethod : .GET )
+        addRequestHeader(header: "X-ZOHO-SERVICE", value: "crmmobile")
 		if ( fields != nil && !fields!.isEmpty)
 		{
 			var fieldsStr : String = ""

@@ -24,10 +24,17 @@ internal class EmailAPIHandler : CommonAPIHandler
             setJSONRootKey(key: JSONRootKey.ORG_EMAILS)
             var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
             var dataArray : [[String:Any]] = [[String:Any]]()
-            dataArray.append(self.getZCRMOrgEmailAsJSON(orgEmail: orgEmail))
+            do
+            {
+                dataArray.append(try self.getZCRMOrgEmailAsJSON(orgEmail: orgEmail))
+            }
+            catch
+            {
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
             reqBodyObj[getJSONRootKey()] = dataArray
             
-            setUrlPath(urlPath: "/settings/emails/org_emails")
+            setUrlPath(urlPath: "/\(APIConstants.SETTINGS)/\(APIConstants.EMAILS)/\(APIConstants.ORG_EMAILS)")
             setRequestMethod(requestMethod: .POST)
             setRequestBody(requestBody: reqBodyObj)
             
@@ -40,7 +47,7 @@ internal class EmailAPIHandler : CommonAPIHandler
                     let responseJSONArray  = response.getResponseJSON().getArrayOfDictionaries( key : self.getJSONRootKey() )
                     let responseJSONData = responseJSONArray[0]
                     let responseDetails : [ String : Any ] = responseJSONData[ APIConstants.DETAILS ] as! [ String : Any ]
-                    let createdMail = self.getZCRMOrgEmail(orgEmail: orgEmail, orgEmailDetails: responseDetails)
+                    let createdMail = try self.getZCRMOrgEmail(orgEmail: orgEmail, orgEmailDetails: responseDetails)
                     response.setData( data : createdMail )
                     completion( .success( createdMail, response ) )
                 }
@@ -55,6 +62,7 @@ internal class EmailAPIHandler : CommonAPIHandler
         }
     }
     
+    //MARK:- To confirm the email id given
     internal func confirm( code : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         if let orgEmail = self.orgEmail
@@ -62,7 +70,7 @@ internal class EmailAPIHandler : CommonAPIHandler
             if orgEmail.id != APIConstants.INT64_MOCK
             {
                 setJSONRootKey(key: JSONRootKey.ORG_EMAILS)
-                setUrlPath(urlPath: "/settings/emails/org_emails/\(String(orgEmail.id))/actions/confirm")
+                setUrlPath(urlPath: "/\(APIConstants.SETTINGS)/\(APIConstants.EMAILS)/\(APIConstants.ORG_EMAILS)/\(String(orgEmail.id))/actions/confirm")
                 addRequestParam(param: RequestParamKeys.code, value: code)
                 setRequestMethod(requestMethod: .POST)
                 let request : APIRequest = APIRequest(handler: self)
@@ -96,7 +104,7 @@ internal class EmailAPIHandler : CommonAPIHandler
             if orgEmail.id != APIConstants.INT64_MOCK
             {
                 setJSONRootKey(key: JSONRootKey.ORG_EMAILS)
-                setUrlPath(urlPath: "/settings/emails/org_emails/\(String(orgEmail.id))/actions/resend_confirm_email")
+                setUrlPath(urlPath: "/\(APIConstants.SETTINGS)/\(APIConstants.EMAILS)/\(APIConstants.ORG_EMAILS)/\(String(orgEmail.id))/actions/resend_confirm_email")
                 setRequestMethod(requestMethod: .POST)
                 let request : APIRequest = APIRequest(handler: self)
                 print( "Request : \(request.toString())" )
@@ -125,7 +133,7 @@ internal class EmailAPIHandler : CommonAPIHandler
     internal func getOrgEmail( id : Int64, completion : @escaping( Result.DataResponse< ZCRMOrgEmail, APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.ORG_EMAILS)
-        setUrlPath(urlPath: "/settings/emails/org_emails/\(String(id))")
+        setUrlPath(urlPath: "/\(APIConstants.SETTINGS)/\(APIConstants.EMAILS)/\(APIConstants.ORG_EMAILS)/\(String(id))")
         setRequestMethod(requestMethod: .GET)
         let request : APIRequest = APIRequest(handler: self)
         print( "Request : \(request.toString())" )
@@ -137,7 +145,7 @@ internal class EmailAPIHandler : CommonAPIHandler
                 let responseJSON = response.getResponseJSON()
                 let orgEmailList:[[String : Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                 var orgEmail : ZCRMOrgEmail = ZCRMOrgEmail(id: orgEmailList[0].getInt64(key: ResponseJSONKeys.id))
-                orgEmail = self.getZCRMOrgEmail(orgEmail: orgEmail, orgEmailDetails: orgEmailList[0])
+                orgEmail = try self.getZCRMOrgEmail(orgEmail: orgEmail, orgEmailDetails: orgEmailList[0])
                 response.setData(data: orgEmail )
                 completion( .success( orgEmail, response ) )
             }
@@ -152,7 +160,7 @@ internal class EmailAPIHandler : CommonAPIHandler
     {
         var orgEmails : [ZCRMOrgEmail] = [ZCRMOrgEmail]()
         setJSONRootKey(key: JSONRootKey.ORG_EMAILS)
-        setUrlPath(urlPath: "/settings/emails/org_emails")
+        setUrlPath(urlPath: "/\(APIConstants.SETTINGS)/\(APIConstants.EMAILS)/\(APIConstants.ORG_EMAILS)")
         setRequestMethod(requestMethod: .GET)
         let request : APIRequest = APIRequest(handler: self)
         print( "Request : \(request.toString())" )
@@ -167,7 +175,7 @@ internal class EmailAPIHandler : CommonAPIHandler
                     for orgEmailList in orgEmailsList
                     {
                         let orgEmail = ZCRMOrgEmail(id: orgEmailList.getInt64(key: ResponseJSONKeys.id))
-                        orgEmails.append(self.getZCRMOrgEmail(orgEmail: orgEmail, orgEmailDetails: orgEmailList))
+                        orgEmails.append( try self.getZCRMOrgEmail(orgEmail: orgEmail, orgEmailDetails: orgEmailList))
                     }
                     bulkResponse.setData(data: orgEmails)
                     completion( .success( orgEmails, bulkResponse ) )
@@ -186,7 +194,7 @@ internal class EmailAPIHandler : CommonAPIHandler
     internal func delete( id : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.ORG_EMAILS)
-        setUrlPath(urlPath: "/settings/emails/org_emails/\(String(id))" )
+        setUrlPath(urlPath: "/\(APIConstants.SETTINGS)/\(APIConstants.EMAILS)/\(APIConstants.ORG_EMAILS)/\(String(id))" )
         setRequestMethod(requestMethod: .DELETE )
         let request : APIRequest = APIRequest(handler: self)
         print( "Request : \( request.toString() )" )
@@ -202,12 +210,13 @@ internal class EmailAPIHandler : CommonAPIHandler
         }
     }
     
-    private func getZCRMOrgEmail(orgEmail : ZCRMOrgEmail, orgEmailDetails : [String : Any]) -> ZCRMOrgEmail
+    private func getZCRMOrgEmail(orgEmail : ZCRMOrgEmail, orgEmailDetails : [String : Any]) throws -> ZCRMOrgEmail
     {
-        if orgEmailDetails.hasValue(forKey: ResponseJSONKeys.id)
+        if orgEmailDetails.hasValue( forKey : ResponseJSONKeys.id ) == false
         {
-            orgEmail.id = orgEmailDetails.getInt64(key: ResponseJSONKeys.id)
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.id ) is must not be nil" )
         }
+        orgEmail.id = orgEmailDetails.getInt64(key: ResponseJSONKeys.id)
         if orgEmailDetails.hasValue(forKey: ResponseJSONKeys.confirm)
         {
             orgEmail.confirm = orgEmailDetails.getBoolean(key: ResponseJSONKeys.confirm)
@@ -216,6 +225,7 @@ internal class EmailAPIHandler : CommonAPIHandler
         {
             orgEmail.name = orgEmailDetails.getString(key: ResponseJSONKeys.displayName)
         }
+        
         if orgEmailDetails.hasValue(forKey: ResponseJSONKeys.email)
         {
             orgEmail.email = orgEmailDetails.getString(key: ResponseJSONKeys.email)
@@ -226,33 +236,47 @@ internal class EmailAPIHandler : CommonAPIHandler
             for profileDet in profilesDet
             {
                 var profile : ZCRMProfileDelegate
-                if profileDet.hasValue(forKey: ResponseJSONKeys.name)
-                {
-                    profile = ZCRMProfileDelegate(profileId: profileDet.getInt64(key: ResponseJSONKeys.id), profileName: profileDet.getString(key: ResponseJSONKeys.name))
-                }
-                else
-                {
-                    profile = ZCRMProfileDelegate(profileId: profileDet.getInt64(key: ResponseJSONKeys.id), profileName: APIConstants.STRING_MOCK)
-                }
+                profile = ZCRMProfileDelegate(profileId: profileDet.getInt64(key: ResponseJSONKeys.id), profileName: profileDet.getString(key: ResponseJSONKeys.name))
                 orgEmail.addProfile(profile: profile)
             }
         }
         return orgEmail
     }
     
-    private func getZCRMOrgEmailAsJSON( orgEmail : ZCRMOrgEmail ) -> [String:Any]
+    private func getZCRMOrgEmailAsJSON( orgEmail : ZCRMOrgEmail ) throws -> [String:Any]
     {
         var orgEmailDetails : [String:Any] = [String:Any]()
         var profilesDetails : [[String:Any]] = [[String:Any]]()
-        orgEmailDetails[ ResponseJSONKeys.displayName ] = orgEmail.name
-        orgEmailDetails[ ResponseJSONKeys.email ] = orgEmail.email
-        for profile in orgEmail.profiles
+        if orgEmail.name != APIConstants.STRING_MOCK
         {
-            var profileDetails : [String:Any] = [String:Any]()
-            profileDetails[ResponseJSONKeys.id] = profile.profileId
-            profilesDetails.append(profileDetails)
+            orgEmailDetails[ ResponseJSONKeys.displayName ] = orgEmail.name
         }
-        orgEmailDetails[ ResponseJSONKeys.profiles ] = profilesDetails
+        else
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.displayName ) is must not be nil" )
+        }
+        if orgEmail.email != APIConstants.STRING_MOCK
+        {
+            orgEmailDetails[ ResponseJSONKeys.email ] = orgEmail.email
+        }
+        else
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.email ) is must not be nil" )
+        }
+        if orgEmail.profiles.isEmpty != true
+        {
+            for profile in orgEmail.profiles
+            {
+                var profileDetails : [String:Any] = [String:Any]()
+                profileDetails[ResponseJSONKeys.id] = profile.profileId
+                profilesDetails.append(profileDetails)
+            }
+            orgEmailDetails[ ResponseJSONKeys.profiles ] = profilesDetails
+        }
+        else
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.profiles ) is must not be nil" )
+        }
         return orgEmailDetails
     }
 }

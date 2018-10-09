@@ -33,6 +33,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
         let urlPath = "/\(self.record.moduleAPIName)/\(self.recordDelegate.recordId)"
 		setUrlPath(urlPath : urlPath )
+        addRequestHeader(header: "X-ZOHO-SERVICE", value: "crmmobile")
         if( withPrivateFields == true )
         {
             addRequestParam( param : RequestParamKeys.include, value : APIConstants.PRIVATE_FIELDS )
