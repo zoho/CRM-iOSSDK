@@ -221,24 +221,25 @@ internal class EmailAPIHandler : CommonAPIHandler
         {
             orgEmail.confirm = orgEmailDetails.getBoolean(key: ResponseJSONKeys.confirm)
         }
-        if orgEmailDetails.hasValue(forKey: ResponseJSONKeys.displayName)
+        if orgEmailDetails.hasValue(forKey: ResponseJSONKeys.displayName) == false
         {
-            orgEmail.name = orgEmailDetails.getString(key: ResponseJSONKeys.displayName)
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.displayName ) is must not be nil" )
         }
-        
+        orgEmail.name = orgEmailDetails.getString(key: ResponseJSONKeys.displayName)
         if orgEmailDetails.hasValue(forKey: ResponseJSONKeys.email)
         {
             orgEmail.email = orgEmailDetails.getString(key: ResponseJSONKeys.email)
         }
-        if orgEmailDetails.hasValue(forKey: ResponseJSONKeys.profiles)
+        if orgEmailDetails.hasValue(forKey: ResponseJSONKeys.profiles) == false
         {
-            let profilesDet : [[String:Any]] = orgEmailDetails.getArrayOfDictionaries(key: ResponseJSONKeys.profiles)
-            for profileDet in profilesDet
-            {
-                var profile : ZCRMProfileDelegate
-                profile = ZCRMProfileDelegate(profileId: profileDet.getInt64(key: ResponseJSONKeys.id), profileName: profileDet.getString(key: ResponseJSONKeys.name))
-                orgEmail.addProfile(profile: profile)
-            }
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.profiles ) is must not be nil" )
+        }
+        let profilesDet : [[String:Any]] = orgEmailDetails.getArrayOfDictionaries(key: ResponseJSONKeys.profiles)
+        for profileDet in profilesDet
+        {
+            var profile : ZCRMProfileDelegate
+            profile = ZCRMProfileDelegate(profileId: profileDet.getInt64(key: ResponseJSONKeys.id), profileName: profileDet.getString(key: ResponseJSONKeys.name))
+            orgEmail.addProfile(profile: profile)
         }
         return orgEmail
     }
