@@ -63,7 +63,7 @@ internal class EmailAPIHandler : CommonAPIHandler
     }
     
     //MARK:- To confirm the email id given
-    internal func confirm( code : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    internal func updateConfirmationStatus( code : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         if let orgEmail = self.orgEmail
         {
@@ -247,36 +247,27 @@ internal class EmailAPIHandler : CommonAPIHandler
     {
         var orgEmailDetails : [String:Any] = [String:Any]()
         var profilesDetails : [[String:Any]] = [[String:Any]]()
-        if orgEmail.name != APIConstants.STRING_MOCK
-        {
-            orgEmailDetails[ ResponseJSONKeys.displayName ] = orgEmail.name
-        }
-        else
+        if orgEmail.name == APIConstants.STRING_MOCK
         {
             throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.displayName ) is must not be nil" )
         }
-        if orgEmail.email != APIConstants.STRING_MOCK
-        {
-            orgEmailDetails[ ResponseJSONKeys.email ] = orgEmail.email
-        }
-        else
+        orgEmailDetails[ ResponseJSONKeys.displayName ] = orgEmail.name
+        if orgEmail.email == APIConstants.STRING_MOCK
         {
             throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.email ) is must not be nil" )
         }
+        orgEmailDetails[ ResponseJSONKeys.email ] = orgEmail.email
         if orgEmail.profiles.isEmpty != true
-        {
-            for profile in orgEmail.profiles
-            {
-                var profileDetails : [String:Any] = [String:Any]()
-                profileDetails[ResponseJSONKeys.id] = profile.profileId
-                profilesDetails.append(profileDetails)
-            }
-            orgEmailDetails[ ResponseJSONKeys.profiles ] = profilesDetails
-        }
-        else
         {
             throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.profiles ) is must not be nil" )
         }
+        for profile in orgEmail.profiles
+        {
+            var profileDetails : [String:Any] = [String:Any]()
+            profileDetails[ResponseJSONKeys.id] = profile.profileId
+            profilesDetails.append(profileDetails)
+        }
+        orgEmailDetails[ ResponseJSONKeys.profiles ] = profilesDetails
         return orgEmailDetails
     }
 }

@@ -625,7 +625,6 @@ public struct Result {
             
             switch self {
             case .success(let data,let response):
-                print("????????????????\(response.toString())")
                 return (data,response)
                 
             case .failure(let error):
