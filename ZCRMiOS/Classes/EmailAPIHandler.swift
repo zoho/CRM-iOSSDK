@@ -63,7 +63,7 @@ internal class EmailAPIHandler : CommonAPIHandler
     }
     
     //MARK:- To confirm the email id given
-    internal func updateConfirmationStatus( code : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    internal func confirmation( withCode : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         if let orgEmail = self.orgEmail
         {
@@ -71,7 +71,7 @@ internal class EmailAPIHandler : CommonAPIHandler
             {
                 setJSONRootKey(key: JSONRootKey.ORG_EMAILS)
                 setUrlPath(urlPath: "/\(APIConstants.SETTINGS)/\(APIConstants.EMAILS)/\(APIConstants.ORG_EMAILS)/\(String(orgEmail.id))/actions/confirm")
-                addRequestParam(param: RequestParamKeys.code, value: code)
+                addRequestParam(param: RequestParamKeys.code, value: withCode)
                 setRequestMethod(requestMethod: .POST)
                 let request : APIRequest = APIRequest(handler: self)
                 print( "Request : \(request.toString())" )

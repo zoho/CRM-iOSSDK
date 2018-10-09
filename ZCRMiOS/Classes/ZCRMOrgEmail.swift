@@ -37,9 +37,9 @@ open class ZCRMOrgEmail : ZCRMEntity
         }
     }
     
-    public func confirm( code : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func confirmation( withCode : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        EmailAPIHandler(orgEmail: self).confirm(code: code) { ( result ) in
+        EmailAPIHandler(orgEmail: self).confirmation(withCode: withCode) { ( result ) in
             completion( result )
         }
     }

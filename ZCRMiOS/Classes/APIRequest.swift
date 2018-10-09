@@ -40,7 +40,7 @@
  
  internal class APIRequest
  {
-    private var baseUrl : String = "https://crm.localzoho.com/crm/\( APIVERSION )"
+    private var baseUrl : String = "\( APIBASEURL )/crm/\( APIVERSION )"
     private var urlPath : String = ""
     private var requestMethod : RequestMethod
     private var headers : [String : String] = [String : String]()
