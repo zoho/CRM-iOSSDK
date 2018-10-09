@@ -257,7 +257,7 @@ internal class EmailAPIHandler : CommonAPIHandler
             throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.email ) is must not be nil" )
         }
         orgEmailDetails[ ResponseJSONKeys.email ] = orgEmail.email
-        if orgEmail.profiles.isEmpty != true
+        if orgEmail.profiles.isEmpty == true
         {
             throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.profiles ) is must not be nil" )
         }
