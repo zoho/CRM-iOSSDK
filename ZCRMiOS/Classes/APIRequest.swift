@@ -106,7 +106,7 @@ internal enum RequestMethod : String
         else
         {
             ZVCRMLoginHandler().getOauth2Token { ( token, error ) in
-                if( APPTYPE == "ZCRMCP" )
+                if( APPTYPE == "ZCRMCP"  && self.headers.hasValue( forKey : "X-CRMPORTAL" ) == false )
                 {
                     self.addHeader( headerName : "X-CRMPORTAL", headerVal : "SDKCLIENT" )
                 }

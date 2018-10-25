@@ -52,13 +52,45 @@ public class ZohoCRMSDK {
             if let appConfiguration = NSDictionary( contentsOfFile : file ) as? [String : Any]
             {
                 crmAppConfigs = CRMAppConfigUtil( appConfigDict : appConfiguration )
+                if let baseURL = apiBaseURL
+                {
+                    APIBASEURL = baseURL
+                }
+                if let scopes = oauthScopes
+                {
+                    crmAppConfigs.setOauthScopes( scopes : scopes )
+                }
+                if let accountURL = accountsURL
+                {
+                    crmAppConfigs.setAccountsURL( url : accountURL )
+                }
+                if let clientId = clientID
+                {
+                    crmAppConfigs.setClientID( id : clientId )
+                }
+                if let clientSecretId = clientSecretID {
+                    crmAppConfigs.setClientSecretID(id: clientSecretId)
+                }
+                if let portalId = portalID
+                {
+                    crmAppConfigs.setPortalID(id: portalId)
+                }
+                if let redirectURLScheme = redirectURLScheme {
+                    crmAppConfigs.setRedirectURLScheme(scheme: redirectURLScheme)
+                }
+                if let bundleID = Bundle.main.bundleIdentifier
+                {
+                    self.userAgent = "ZCRMiOS_\(bundleID)"
+                }
                 if let type = appType
                 {
                     try self.handleAppType( appType : type, appConfigurations : crmAppConfigs )
+                    APPTYPE = type
                 }
                 else if let type = appConfiguration[ "Type" ] as? String
                 {
                     try self.handleAppType( appType : type, appConfigurations : crmAppConfigs )
+                    APPTYPE = type
                 }
                 else
                 {
@@ -73,41 +105,6 @@ public class ZohoCRMSDK {
         else
         {
             throw ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: "AppConfiguration.plist is not foud.")
-        }
-        if let baseURL = apiBaseURL
-        {
-            APIBASEURL = baseURL
-        }
-        if let type = appType
-        {
-            APPTYPE = type
-            crmAppConfigs.setAppType(type: type)
-        }
-        if let scopes = oauthScopes
-        {
-            crmAppConfigs.setOauthScopes( scopes : scopes )
-        }
-        if let accountURL = accountsURL
-        {
-            crmAppConfigs.setAccountsURL( url : accountURL )
-        }
-        if let clientId = clientID
-        {
-            crmAppConfigs.setClientID( id : clientId )
-        }
-        if let clientSecretId = clientSecretID {
-            crmAppConfigs.setClientSecretID(id: clientSecretId)
-        }
-        if let portalId = portalID
-        {
-            crmAppConfigs.setPortalID(id: portalId)
-        }
-        if let redirectURLScheme = redirectURLScheme {
-            crmAppConfigs.setRedirectURLScheme(scheme: redirectURLScheme)
-        }
-        if let bundleID = Bundle.main.bundleIdentifier
-        {
-            self.userAgent = "ZCRMiOS_\(bundleID)"
         }
 
         self.initIAMLogin( appType : APPTYPE, window : window, apiBaseURL : apiBaseURL )
@@ -230,21 +227,6 @@ public class ZohoCRMSDK {
 		}
 	}
     
-    public func setAPIBaseURL( url : String )
-    {
-        APIBASEURL = url
-    }
-    
-    public func setAppType( type : String )
-    {
-        APPTYPE = type
-    }
-    
-    public func setAccountsURL( url : String )
-    {
-        self.crmAppConfigs.setAccountsURL( url : url )
-    }
-    
     public func getAPIBaseURL() -> String
     {
         return "\( APIBASEURL )/crm/\( APIVERSION )"
@@ -258,21 +240,6 @@ public class ZohoCRMSDK {
     public func transformAPIBaseURL( baseURL : String )
     {
         APIBASEURL = baseURL
-    }
-    
-    public func setClientID( id : String )
-    {
-        self.crmAppConfigs.setClientID( id : id )
-    }
-    
-    public func setClientSecretID( id : String )
-    {
-        self.crmAppConfigs.setClientSecretID( id : id )
-    }
-    
-    public func setRedirectURLScheme( urlScheme : String )
-    {
-        self.crmAppConfigs.setRedirectURLScheme( scheme : urlScheme )
     }
     
 }
