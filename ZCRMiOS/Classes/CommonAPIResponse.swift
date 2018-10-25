@@ -80,7 +80,7 @@ public class CommonAPIResponse
         }
     }
     
-    internal func getInfo() -> ResponseInfo?
+    public func getInfo() -> ResponseInfo?
     {
         return self.info
     }

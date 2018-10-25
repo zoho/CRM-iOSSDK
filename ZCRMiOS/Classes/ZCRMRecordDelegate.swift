@@ -8,7 +8,7 @@
 open class ZCRMRecordDelegate : ZCRMEntity
 {
     public var recordId : Int64
-    var moduleAPIName : String
+    public internal( set ) var moduleAPIName : String
     
     init ( recordId : Int64, moduleAPIName : String )
     {
