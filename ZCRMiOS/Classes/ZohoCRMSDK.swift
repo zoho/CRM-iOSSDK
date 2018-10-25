@@ -222,9 +222,29 @@ public class ZohoCRMSDK {
 		}
 	}
     
+    public func setAPIBaseURL( url : String )
+    {
+        APIBASEURL = url
+    }
+    
+    public func setAppType( type : String )
+    {
+        APPTYPE = type
+    }
+    
+    public func setAccountsURL( url : String )
+    {
+        self.crmAppConfigs.setAccountsURL( url : url )
+    }
+    
     public func getAPIBaseURL() -> String
     {
         return "\( APIBASEURL )/crm/\( APIVERSION )"
+    }
+    
+    public func setPortalID( id : String )
+    {
+        self.crmAppConfigs.setPortalID( id : id )
     }
     
     public func transformAPIBaseURL( baseURL : String )

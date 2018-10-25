@@ -61,6 +61,11 @@ public class CRMAppConfigUtil
         self.appConfigDict[ "OAuthScopes" ] = scopes
     }
     
+    internal func setAccountsURL( url : String )
+    {
+        self.appConfigDict[ "AccountsURL" ] = url
+    }
+    
     internal func getAccountsURL() -> String
     {
         return self.appConfigDict.getString( key : "AccountsURL" )
@@ -74,6 +79,11 @@ public class CRMAppConfigUtil
     internal func getAppType() -> String
     {
         return self.appType!
+    }
+    
+    internal func setPortalID( id : String )
+    {
+        self.appConfigDict[ "PortalID" ] = id
     }
     
     public func getPortalID() -> String
