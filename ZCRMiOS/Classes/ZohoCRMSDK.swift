@@ -231,4 +231,20 @@ public class ZohoCRMSDK {
     {
         APIBASEURL = baseURL
     }
+    
+    public func setClientID( id : String )
+    {
+        self.crmAppConfigs.setClientID( id : id )
+    }
+    
+    public func setClientSecretID( id : String )
+    {
+        self.crmAppConfigs.setClientSecretID( id : id )
+    }
+    
+    public func setRedirectURLScheme( urlScheme : String )
+    {
+        self.crmAppConfigs.setRedirectURLScheme( scheme : urlScheme )
+    }
+    
 }

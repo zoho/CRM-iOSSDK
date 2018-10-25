@@ -21,14 +21,29 @@ public class CRMAppConfigUtil
     
     public init() {}
     
+    internal func setClientID( id : String )
+    {
+        self.appConfigDict[ "ClientID" ] = id
+    }
+    
     internal func getClientID() -> String
     {
         return self.appConfigDict.getString( key : "ClientID" )
     }
     
+    internal func setClientSecretID( id : String )
+    {
+        self.appConfigDict[ "ClientSecretID" ] = id
+    }
+    
     internal func getClientSecretID() -> String
     {
         return self.appConfigDict.getString( key : "ClientSecretID" )
+    }
+    
+    internal func setRedirectURLScheme( scheme : String )
+    {
+        self.appConfigDict[ "RedirectURLScheme" ] = scheme
     }
     
     internal func getRedirectURLScheme() -> String
