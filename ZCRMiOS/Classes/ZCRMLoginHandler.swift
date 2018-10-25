@@ -48,22 +48,11 @@ public class ZCRMLoginHandler
     
     public func initIAMLogin( window : UIWindow? )
     {
-        do
-        {
-            self.setAppConfigurations()
-            try self.updateBaseURL( countryDomain : COUNTRYDOMAIN )
-            print( "Country Domain : \( COUNTRYDOMAIN )" )
-        }
-        catch
-        {
-            print( "Error : \( error )" )
-        }
-        
         ZohoAuth.initWithClientID( appConfigurationUtil.getClientID(), clientSecret : appConfigurationUtil.getClientSecretID(), scope : appConfigurationUtil.getAuthscopes(), urlScheme : appConfigurationUtil.getRedirectURLScheme(), mainWindow : window, accountsURL : appConfigurationUtil.getAccountsURL() )
         print( "redirectURL : \( appConfigurationUtil.getRedirectURLScheme() )")
     }
     
-    private func setAppConfigurations()
+    internal func setAppConfigurations()
     {
         APPTYPE = appConfigurationUtil.getAppType()
         APIVERSION = appConfigurationUtil.getApiVersion()
@@ -75,7 +64,7 @@ public class ZCRMLoginHandler
         accessType = appConfigurationUtil.getAccessType()
     }
     
-    private func updateBaseURL( countryDomain : String ) throws
+    internal func updateBaseURL( countryDomain : String ) throws
     {
         var domain : String = String()
         switch accessType

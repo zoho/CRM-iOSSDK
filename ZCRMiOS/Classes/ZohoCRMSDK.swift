@@ -11,9 +11,12 @@ import UIKit
 public class ZohoCRMSDK {
 	
 	public static let shared = ZohoCRMSDK()
+    public var userAgent : String = "ZCRMiOS_unknown_bundle"
+    public var requestHeaders : Dictionary< String, String >?
 	private var isVerticalCRM: Bool = false
 	private var zcrmLoginHandler: ZCRMLoginHandler = ZCRMLoginHandler.init()
 	private var zvcrmLoginHandler: ZVCRMLoginHandler = ZVCRMLoginHandler.init()
+    private var crmAppConfigs : CRMAppConfigUtil!
 	
 	private init() {}
 	
@@ -31,52 +34,125 @@ public class ZohoCRMSDK {
 	
 	public func handleUrl( url : URL, sourceApplication : String?, annotation : Any )
 	{
-		if self.isVerticalCRM {
+		if self.isVerticalCRM
+        {
 			self.zvcrmLoginHandler.iamLoginHandleURL(url: url, sourceApplication: sourceApplication, annotation: annotation)
-		} else {
+		}
+        else
+        {
 			self.zcrmLoginHandler.iamLoginHandleURL(url: url, sourceApplication: sourceApplication, annotation: annotation)
 		}
 	}
 	
-	
-	public func initialise(window: UIWindow) throws
+	public static func initialise( window : UIWindow ) throws
 	{
-		if let file = Bundle.main.path(forResource : "AppConfiguration", ofType: "plist" )
-		{
-			if let appConfiguration = NSDictionary( contentsOfFile : file ) as? [String : Any]
-			{
-				let crmAppConfigs: CRMAppConfigUtil = CRMAppConfigUtil(appConfigDict: appConfiguration)
-				if let appType = appConfiguration["Type"] as? String {
-					crmAppConfigs.setAppType(type: appType)
-					do
-					{
-						if appType == "ZCRM" {
-							self.zcrmLoginHandler = try ZCRMLoginHandler(appConfigUtil: crmAppConfigs)
-						} else {
-							self.zvcrmLoginHandler = try ZVCRMLoginHandler(appConfigUtil: crmAppConfigs)
-							self.isVerticalCRM = true
-						}
-						self.clearFirstLaunch()
-					}
-					catch {
-						 throw ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: error.description)
-					}
-				} else {
-					throw ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: "appType is not specified in the AppConfiguration.plist")
-				}
-			} else {
-				 throw ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: "AppConfiguration.plist has no data.")
-			}
-		} else {
-			throw ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: "AppConfiguration.plist is not foud.")
-		}
-		
-		if self.isVerticalCRM {
-			self.zvcrmLoginHandler.initIAMLogin(window: window)
-		} else {
-			self.zcrmLoginHandler.initIAMLogin(window: window)
-		}
+		try shared.initialise( window : window, appType : nil, apiBaseURL : nil , oauthScopes : nil )
 	}
+    
+    public static func initialise( window : UIWindow, appType : String, oauthScopes : [ Any ] ) throws
+    {
+        try shared.initialise( window : window, appType : appType, apiBaseURL : nil , oauthScopes : oauthScopes )
+    }
+    
+    public static func initialise( window : UIWindow, appType : String, apiBaseURL : String, oauthScopes : [ Any ] ) throws
+    {
+        try shared.initialise( window : window, appType : appType, apiBaseURL : apiBaseURL , oauthScopes : nil )
+    }
+    
+    fileprivate func initialise( window : UIWindow, appType : String?, apiBaseURL : String?, oauthScopes : [ Any ]? ) throws
+    {
+        self.crmAppConfigs = CRMAppConfigUtil(appConfigDict: Dictionary< String, Any >() )
+        if let file = Bundle.main.path(forResource : "AppConfiguration", ofType: "plist" )
+        {
+            if let appConfiguration = NSDictionary( contentsOfFile : file ) as? [String : Any]
+            {
+                crmAppConfigs = CRMAppConfigUtil( appConfigDict : appConfiguration )
+                if let type = appType
+                {
+                    try self.handleAppType( appType : type, appConfigurations : crmAppConfigs )
+                }
+                else if let type = appConfiguration[ "Type" ] as? String
+                {
+                    try self.handleAppType( appType : type, appConfigurations : crmAppConfigs )
+                }
+                else
+                {
+                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "appType is not specified" )
+                }
+            }
+            else
+            {
+                throw ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: "AppConfiguration.plist has no data.")
+            }
+        }
+        else
+        {
+            throw ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: "AppConfiguration.plist is not foud.")
+        }
+        
+        self.initIAMLogin( appType : APPTYPE, window : window, apiBaseURL : apiBaseURL )
+        if let baseURL = apiBaseURL
+        {
+            APIBASEURL = baseURL
+        }
+        if let scopes = oauthScopes
+        {
+            crmAppConfigs.setOauthScopes( scopes : scopes )
+        }
+        if let bundleID = Bundle.main.bundleIdentifier
+        {
+            self.userAgent = "ZCRMiOS_\(bundleID)"
+        }
+    }
+    
+    fileprivate func initIAMLogin( appType : String, window : UIWindow, apiBaseURL : String? )
+    {
+        if self.isVerticalCRM
+        {
+            self.zvcrmLoginHandler.initIAMLogin(window: window)
+        }
+        else
+        {
+            self.zcrmLoginHandler.initIAMLogin(window: window)
+            guard let baseURL = apiBaseURL else
+            {
+                do
+                {
+                    self.zcrmLoginHandler.setAppConfigurations()
+                    try self.zcrmLoginHandler.updateBaseURL( countryDomain : COUNTRYDOMAIN )
+                    print( "Country Domain : \( COUNTRYDOMAIN )" )
+                }
+                catch
+                {
+                    print( "Error : \( error )" )
+                }
+                return
+            }
+            APIBASEURL = baseURL
+        }
+    }
+    
+    fileprivate func handleAppType( appType : String, appConfigurations : CRMAppConfigUtil ) throws
+    {
+        appConfigurations.setAppType( type : appType )
+        do
+        {
+            if appType == "ZCRM"
+            {
+                self.zcrmLoginHandler = try ZCRMLoginHandler( appConfigUtil : appConfigurations )
+            }
+            else
+            {
+                self.zvcrmLoginHandler = try ZVCRMLoginHandler( appConfigUtil : appConfigurations )
+                self.isVerticalCRM = true
+            }
+            self.clearFirstLaunch()
+        }
+        catch
+        {
+            throw ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: error.description)
+        }
+    }
 	
 	public func showLogin(completion: @escaping (Bool) -> ())
 	{
@@ -145,4 +221,14 @@ public class ZohoCRMSDK {
 			}
 		}
 	}
+    
+    public func getAPIBaseURL() -> String
+    {
+        return "\( APIBASEURL )/crm/\( APIVERSION )"
+    }
+    
+    public func transformAPIBaseURL( baseURL : String )
+    {
+        APIBASEURL = baseURL
+    }
 }

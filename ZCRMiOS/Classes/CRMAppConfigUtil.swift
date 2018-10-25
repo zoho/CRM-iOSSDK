@@ -41,6 +41,11 @@ public class CRMAppConfigUtil
         return self.appConfigDict.getArray( key : "OAuthScopes" )
     }
     
+    internal func setOauthScopes( scopes : [ Any ] )
+    {
+        self.appConfigDict[ "OAuthScopes" ] = scopes
+    }
+    
     internal func getAccountsURL() -> String
     {
         return self.appConfigDict.getString( key : "AccountsURL" )

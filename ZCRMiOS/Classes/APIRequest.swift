@@ -40,7 +40,7 @@ internal enum RequestMethod : String
 
  internal class APIRequest
  {
-    private var baseUrl : String = "\( APIBASEURL )/crm/\( APIVERSION )"
+    private var baseUrl : String = ZohoCRMSDK.shared.getAPIBaseURL()
     private var urlPath : String = ""
     private var requestMethod : RequestMethod
     private var headers : [String : String] = [String : String]()
@@ -71,13 +71,16 @@ internal enum RequestMethod : String
     
     private func authenticateRequest( completion : @escaping( ZCRMError? ) -> () )
     {
-        if let bundleID = Bundle.main.bundleIdentifier
+        self.addHeader( headerName : "User-Agent", headerVal : ZohoCRMSDK.shared.userAgent )
+        if let headers = ZohoCRMSDK.shared.requestHeaders
         {
-            self.addHeader( headerName : "User-Agent", headerVal : "ZCRMiOS_\(bundleID)" )
-        }
-        else
-        {
-            self.addHeader( headerName : "User-Agent", headerVal : "ZCRMiOS_unknown_bundle" )
+            for headerName in headers.keys
+            {
+                if headers.hasValue( forKey : headerName )
+                {
+                    self.addHeader( headerName : headerName, headerVal : headers.getString( key : headerName ) )
+                }
+            }
         }
         if( APPTYPE == "ZCRM" )
         {
