@@ -44,22 +44,7 @@ public class ZohoCRMSDK {
 		}
 	}
 	
-	public static func initialise( window : UIWindow ) throws
-	{
-		try shared.initialise( window : window, appType : nil, apiBaseURL : nil , oauthScopes : nil )
-	}
-    
-    public static func initialise( window : UIWindow, appType : String, oauthScopes : [ Any ] ) throws
-    {
-        try shared.initialise( window : window, appType : appType, apiBaseURL : nil , oauthScopes : oauthScopes )
-    }
-    
-    public static func initialise( window : UIWindow, appType : String, apiBaseURL : String, oauthScopes : [ Any ] ) throws
-    {
-        try shared.initialise( window : window, appType : appType, apiBaseURL : apiBaseURL , oauthScopes : nil )
-    }
-    
-    fileprivate func initialise( window : UIWindow, appType : String?, apiBaseURL : String?, oauthScopes : [ Any ]? ) throws
+    public func initialise( window : UIWindow, appType : String? =  nil, apiBaseURL : String? = nil, oauthScopes : [ Any ]? = nil, clientID : String? = nil, clientSecretID : String? = nil, redirectURLScheme : String? = nil, accountsURL : String? = nil, portalID : String? = nil ) throws
     {
         self.crmAppConfigs = CRMAppConfigUtil(appConfigDict: Dictionary< String, Any >() )
         if let file = Bundle.main.path(forResource : "AppConfiguration", ofType: "plist" )
@@ -89,20 +74,43 @@ public class ZohoCRMSDK {
         {
             throw ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: "AppConfiguration.plist is not foud.")
         }
-        
-        self.initIAMLogin( appType : APPTYPE, window : window, apiBaseURL : apiBaseURL )
         if let baseURL = apiBaseURL
         {
             APIBASEURL = baseURL
+        }
+        if let type = appType
+        {
+            APPTYPE = type
+            crmAppConfigs.setAppType(type: type)
         }
         if let scopes = oauthScopes
         {
             crmAppConfigs.setOauthScopes( scopes : scopes )
         }
+        if let accountURL = accountsURL
+        {
+            crmAppConfigs.setAccountsURL( url : accountURL )
+        }
+        if let clientId = clientID
+        {
+            crmAppConfigs.setClientID( id : clientId )
+        }
+        if let clientSecretId = clientSecretID {
+            crmAppConfigs.setClientSecretID(id: clientSecretId)
+        }
+        if let portalId = portalID
+        {
+            crmAppConfigs.setPortalID(id: portalId)
+        }
+        if let redirectURLScheme = redirectURLScheme {
+            crmAppConfigs.setRedirectURLScheme(scheme: redirectURLScheme)
+        }
         if let bundleID = Bundle.main.bundleIdentifier
         {
             self.userAgent = "ZCRMiOS_\(bundleID)"
         }
+
+        self.initIAMLogin( appType : APPTYPE, window : window, apiBaseURL : apiBaseURL )
     }
     
     fileprivate func initIAMLogin( appType : String, window : UIWindow, apiBaseURL : String? )
