@@ -169,6 +169,7 @@ public class ZCRMLoginHandler
                 {
                     self.clearIAMLoginFirstLaunch()
                     print( "removed AllScopesWithSuccess!" )
+                    ZohoCRMSDK.shared.requestHeaders?.removeAll()
                     URLCache.shared.removeAllCachedResponses()
                     if let cookies = HTTPCookieStorage.shared.cookies {
                         for cookie in cookies {

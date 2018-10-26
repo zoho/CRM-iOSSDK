@@ -125,6 +125,7 @@ public class ZVCRMLoginHandler
                     self.handleLogin( completion : { _ in
                             
                     })
+                    ZohoCRMSDK.shared.requestHeaders?.removeAll()
                     URLCache.shared.removeAllCachedResponses()
                     if let cookies = HTTPCookieStorage.shared.cookies {
                         for cookie in cookies {
