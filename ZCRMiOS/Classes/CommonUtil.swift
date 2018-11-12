@@ -579,7 +579,7 @@ internal struct APIConstants
 var APPTYPE : String = "ZCRM"
 var APIBASEURL : String = String()
 var ACCOUNTSURL : String = String()
-var APIVERSION : String = String()
+var APIVERSION : String = "v2"
 var COUNTRYDOMAIN : String = "com"
 
 struct JSONRootKey {
