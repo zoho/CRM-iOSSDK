@@ -9,10 +9,16 @@
 internal class UserAPIHandler : CommonAPIHandler
 {
     var user : ZCRMUser?
+    var userDelegate : ZCRMUserDelegate?
     
     internal init( user : ZCRMUser )
     {
         self.user = user
+    }
+    
+    internal init( userDelegate : ZCRMUserDelegate )
+    {
+        self.userDelegate = userDelegate
     }
     
     internal override init()
@@ -211,6 +217,39 @@ internal class UserAPIHandler : CommonAPIHandler
             catch{
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
+        }
+    }
+    
+    internal func updateUser( userDetails : [String:Any], completion : @escaping( Result.Response< APIResponse > ) -> () )
+    {
+        if let userDelegate = self.userDelegate
+        {
+            setJSONRootKey(key: JSONRootKey.USERS)
+            setRequestMethod(requestMethod: .PUT)
+            setUrlPath( urlPath : "/users/\( userDelegate.id )" )
+            var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
+            var dataArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
+            dataArray.append(userDetails)
+            reqBodyObj[ getJSONRootKey() ] = dataArray
+            setRequestBody(requestBody: reqBodyObj)
+            let request = APIRequest(handler: self)
+            print( "Request : \( request.toString() )" )
+            
+            request.getAPIResponse { ( resultType ) in
+                do
+                {
+                    let response = try resultType.resolve()
+                    completion( .success( response ) )
+                }
+                catch
+                {
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+        }
+        else
+        {
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "User Delegate MUST NOT be nil" ) ) )
         }
     }
 
