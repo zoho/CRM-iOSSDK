@@ -145,6 +145,7 @@ public class ZohoCRMSDK {
             if appType == "ZCRM"
             {
                 self.zcrmLoginHandler = try ZCRMLoginHandler( appConfigUtil : appConfigurations )
+                self.isVerticalCRM = false
             }
             else
             {
