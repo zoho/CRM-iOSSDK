@@ -111,7 +111,7 @@ public class FileAPIResponse : APIResponse
     {
         self.tempLocalUrl = tempLocalUrl!
         try super.init(response: response,responseData: nil,
-                       responseJSONRootKey: JSONRootKey.NILL)
+                       responseJSONRootKey: JSONRootKey.NIL)
     }
     
     public func getFileName() -> String

@@ -44,6 +44,7 @@ public struct ErrorMessage
     public static var INVALID_ID_MSG  = "The given id seems to be invalid."
     public static var API_MAX_RECORDS_MSG = "Cannot process more than 100 records at a time."
     public static var RESPONSE_NIL_MSG  = "Response is nil"
+    public static var RESPONSE_JSON_NIL_MSG = "Response JSON is empty"
     public static var OAUTHTOKEN_NIL_MSG = "The oauth token is nil"
     public static var OAUTH_FETCH_ERROR_MSG = "There was an error in fetching oauth Token"
     public static var UNABLE_TO_CONSTRUCT_URL_MSG = "There was a problem constructing the URL"
@@ -142,6 +143,14 @@ internal extension Dictionary
     func hasValue(forKey : Key) -> Bool
     {
         return self[forKey] != nil && !(self[forKey] is NSNull)
+    }
+    
+    func valueCheck( forKey : Key ) throws
+    {
+        if hasValue(forKey: forKey) == false
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( forKey ) must not be nil" )
+        }
     }
     
     func optValue(key: Key) -> Any?
@@ -584,7 +593,7 @@ var COUNTRYDOMAIN : String = "com"
 
 struct JSONRootKey {
     static let DATA : String = "data"
-    static let NILL : String = "NoRootKey" // used by FileAPIResponse
+    static let NIL : String = "NoRootKey" // used by FileAPIResponse
     static let TAGS : String = "tags"
     static let LAYOUTS : String = "layouts"
     static let FIELDS : String = "fields"
