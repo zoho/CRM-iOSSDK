@@ -35,7 +35,7 @@ class DashboardAPIHandler: CommonAPIHandler
     fileprivate typealias AggregateColumn = ZCRMDashboardComponent.AggregateColumnInfo
     fileprivate typealias GroupingColumn = ZCRMDashboardComponent.GroupingColumnInfo
     fileprivate typealias VerticalGrouping = ZCRMDashboardComponent.VerticalGrouping
-    fileprivate typealias AllowedValues = ZCRMDashboardComponent.AllowedValues
+    fileprivate typealias GroupingConfig = ZCRMDashboardComponent.GroupingConfig
     fileprivate typealias ComponentChunks = ZCRMDashboardComponent.ComponentChunks
     fileprivate typealias Aggregate = ZCRMDashboardComponent.Aggregate
     
@@ -50,7 +50,7 @@ class DashboardAPIHandler: CommonAPIHandler
     fileprivate typealias MetaComponentLayoutPropsTuple = (width:Int?,height:Int?,xPosition:Int?,yPosition:Int?)
     //Component Parser Return Type
     fileprivate typealias SegmentRangesTuple = (color:String?,startPos:String?,endPos:String?)
-    fileprivate typealias GroupingConfig = (AllowedValues:[AllowedValues]?,CustomGroups:[String]?)
+    fileprivate typealias GroupingConfigDetails = (AllowedValues:[GroupingConfig]?,CustomGroups:[GroupingConfig]?)
 }
 
 /// DICTIONARY KEYS FOR PARSER FUNCTIONS
@@ -103,7 +103,7 @@ fileprivate extension DashboardAPIHandler
 ///HANDLER FUNCTIONS
 extension DashboardAPIHandler
 {
-    func getAllDashboards(fromPage page:Int,withPerPageOf perPage:Int,then onCompletion: @escaping ArrayOfDashboards)
+    func getAllDashboards(fromPage page:Int,withPerPageOf perPage:Int, searchWord : String?, queryScope : ZCRMAnalytics.QueryScope?, then onCompletion: @escaping ArrayOfDashboards)
     {
         let URLPath = "/\(URLPathName.ANALYTICS)"
         var arrayOfDashboardObj = [ZCRMDashboard]()
@@ -113,6 +113,14 @@ extension DashboardAPIHandler
         //let validPerPage = perPage > 200 ? 200 : perPage
         //addRequestParam(param: .perPage, value: "\(validPerPage)")
         addRequestParam(param: "page" , value: String(page) )
+        if let searchWord = searchWord
+        {
+            addRequestParam(param: ZCRMAnalytics.RequestParamKeys.searchWord, value: searchWord)
+        }
+        if let queryScope = queryScope
+        {
+            addRequestParam(param: ZCRMAnalytics.RequestParamKeys.queryScope, value: queryScope.rawValue)
+        }
         setJSONRootKey(key: JSONRootKey.ANALYTICS)
         let request = APIRequest(handler: self)
         request.getBulkAPIResponse { (resultType) in
@@ -363,12 +371,12 @@ fileprivate extension DashboardAPIHandler
         }
         if refreshedDashboard.id == APIConstants.INT64_MOCK
         {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\(DashBoardAPINames.dashboardID) is must not be nil" )
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\(DashBoardAPINames.dashboardID) must not be nil" )
         }
         oldDashBoard.id = refreshedDashboard.id
         if refreshedDashboard.name == APIConstants.STRING_MOCK
         {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\(DashBoardAPINames.dashboardName) is must not be nil" )
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\(DashBoardAPINames.dashboardName) must not be nil" )
         }
         oldDashBoard.name = refreshedDashboard.name
         oldDashBoard.accessType = refreshedDashboard.accessType
@@ -400,23 +408,23 @@ fileprivate extension DashboardAPIHandler
         }
         if refreshedComp.name == APIConstants.STRING_MOCK
         {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\(ComponentAPINames.componentName) is must not be nil" )
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\(ComponentAPINames.componentName) must not be nil" )
         }
         oldComp.name = refreshedComp.name
         if refreshedComp.componentId == APIConstants.INT64_MOCK
         {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "Component Id is must not be nil" )
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "Component Id must not be nil" )
         }
         oldComp.componentId = refreshedComp.componentId
         if refreshedComp.dashboardId == APIConstants.INT64_MOCK
         {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "Dashboard Id is must not be nil" )
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "Dashboard Id must not be nil" )
         }
         oldComp.dashboardId = refreshedComp.dashboardId
         oldComp.category = refreshedComp.category
         if refreshedComp.type == APIConstants.STRING_MOCK
         {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\(ComponentAPINames.type) is must not be nil" )
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\(ComponentAPINames.type) must not be nil" )
         }
         oldComp.type = refreshedComp.type
         oldComp.objective = refreshedComp.objective
@@ -616,7 +624,7 @@ fileprivate extension DashboardAPIHandler
     func constructSegmentRangesObjectFrom(_ Tuple:SegmentRangesTuple) throws -> CompSegmentRanges?
     {
         guard var startPosPercent = Tuple.startPos, var endPosPercent = Tuple.endPos else {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "UNABLE TO CONSTRUCT SEGMENT RANGES OBJECT FROM TUPLE" )
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "Unable to construct segment ranges object from tuple")
         }
         // Removing % and converting to number
         startPosPercent.removeLast()
@@ -626,7 +634,7 @@ fileprivate extension DashboardAPIHandler
         guard let color = Tuple.color,
             let startPos = startPosInt,
             let endPos = endPosInt else {
-                throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "UNABLE TO CONSTRUCT SEGMENT RANGES OBJECT FROM TUPLE" )
+                throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "Unable to construct segment ranges object from tuple" )
         }
         return CompSegmentRanges(color: color, startPos: startPos, endPos: endPos)
     } // func ends
@@ -642,7 +650,7 @@ fileprivate extension DashboardAPIHandler
         try colorPaletteJSON.valueCheck(forKey: ComponentAPINames.colorPaletteName)
         try colorPaletteJSON.valueCheck(forKey: ComponentAPINames.colorPaletteStartingIndex)
         guard let name = ColorPalette(rawValue: colorPaletteJSON.getString(key: ComponentAPINames.colorPaletteName)) else {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ComponentAPINames.colorPalette ) is must not be nil" )
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ComponentAPINames.colorPalette ) must not be nil" )
         }
         return (name,colorPaletteJSON.getInt(key: ComponentAPINames.colorPaletteStartingIndex))
     } // func ends
@@ -651,7 +659,7 @@ fileprivate extension DashboardAPIHandler
     func setComponentChunksValues(To componentObj:ZCRMDashboardComponent, Using chunks: [[String:Any]]?) throws
     {
         guard let ArrayOfComponentChunksJSON = chunks else {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "FAILED TO GET COMPONENT CHUNKS [STRING:ANY]".lowercased() )
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "Failed to get component chunks [String:Any]")
         }
         for componentChunksJSON in ArrayOfComponentChunksJSON
         {
@@ -712,27 +720,8 @@ fileprivate extension DashboardAPIHandler
         var aggregates : [Aggregate] = [Aggregate]()
         for aggr in ArrayOfAggregateJSON
         {
-            var aggrLabel : String = String()
+            let aggrLabel : String = try self.getValue(dict: aggr, key: ComponentAPINames.label)
             var aggrObj : Aggregate
-            if aggr.optString(key: ComponentAPINames.label) == "-"  {
-                aggrLabel = "none"
-            }
-            else if let label = aggr.optString(key: ComponentAPINames.label)
-            {
-                aggrLabel = label
-            }
-            else if let label = aggr.optInt(key: ComponentAPINames.label)
-            {
-                aggrLabel = String(label)
-            }
-            else if let label = aggr.optDouble(key: ComponentAPINames.label)
-            {
-                aggrLabel = String(label)
-            }
-            else
-            {
-                throw ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : "Label should be of type Int, Double or String" )
-            }
             if let val = aggr.optDouble(key: ComponentAPINames.value)
             {
                 aggrObj = Aggregate(label: aggrLabel, value: val)
@@ -777,10 +766,10 @@ fileprivate extension DashboardAPIHandler
         var ArrayOfGroupingColumnObj = [GroupingColumn]()
         try componentChunksJSON.valueCheck(forKey: Key)
         let ArrayOfGroupingColumnJSON = componentChunksJSON.getArrayOfDictionaries(key: Key)
-        var allowedValues : [AllowedValues] = [AllowedValues]()
-        var customGroups : [String] = [String]()
         for groupingColumnJSON in ArrayOfGroupingColumnJSON
         {
+            var allowedValues : [GroupingConfig] = [GroupingConfig]()
+            var customGroups : [GroupingConfig] = [GroupingConfig]()
             try groupingColumnJSON.valueCheck(forKey: ComponentAPINames.label)
             try groupingColumnJSON.valueCheck(forKey: ComponentAPINames.type)
             try groupingColumnJSON.valueCheck(forKey: ComponentAPINames.name)
@@ -790,14 +779,19 @@ fileprivate extension DashboardAPIHandler
                 {
                     for allowedValueJSON in allowedValuesJSON
                     {
-                        let allowedValue : AllowedValues = AllowedValues(label: allowedValueJSON.getString(key: ComponentAPINames.label),
-                                                                         value: allowedValueJSON.getString(key: ComponentAPINames.value))
+                        let allowedValue : GroupingConfig = GroupingConfig(label: allowedValueJSON.getString(key: ComponentAPINames.label),
+                                                                           value: allowedValueJSON.getString(key: ComponentAPINames.value))
                         allowedValues.append(allowedValue)
                     }
                 }
-                if groupingConfig.hasValue(forKey: ComponentAPINames.customGroups)
+                if let customGroupsJSON = groupingConfig.optArrayOfDictionaries(key: ComponentAPINames.customGroups)
                 {
-                    customGroups = groupingConfig.getArray(key: ComponentAPINames.customGroups) as! [String]
+                    for customGroupJSON in customGroupsJSON
+                    {
+                        let customGroup : GroupingConfig = GroupingConfig(label: customGroupJSON.getString(key: ComponentAPINames.label),
+                                                                          value: customGroupJSON.getString(key: ComponentAPINames.value))
+                        customGroups.append(customGroup)
+                    }
                 }
             }
             ArrayOfGroupingColumnObj.append(GroupingColumn(label: groupingColumnJSON.getString(key: ComponentAPINames.label),
@@ -822,47 +816,13 @@ fileprivate extension DashboardAPIHandler
             try verticalGroupingJSON.valueCheck(forKey: ComponentAPINames.label)
             try verticalGroupingJSON.valueCheck(forKey: ComponentAPINames.key)
             let key = verticalGroupingJSON.getString(key: ComponentAPINames.key)
-            if verticalGroupingJSON.optString(key: ComponentAPINames.label) == "-"
-            {
-                label = "none"
-            }
-            else if let lbl = verticalGroupingJSON.optString(key: ComponentAPINames.label)
-            {
-                label = lbl
-            }
-            else if let lbl = verticalGroupingJSON.optInt(key: ComponentAPINames.label)
-            {
-                label = String(lbl)
-            }
-            else
-            {
-                throw ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : "Label should be of type Int or String" )
-            }
+            label = try self.getValue(dict: verticalGroupingJSON, key: ComponentAPINames.label)
             if let aggregate = componentChunksJSON.getDictionary(key: ComponentAPINames.dataMap).getDictionary(key: key).optArrayOfDictionaries(key: ComponentAPINames.aggregates)
             {
                 for aggr in aggregate
                 {
-                    var aggrLabel : String = String()
+                    let aggrLabel : String = try self.getValue(dict: aggr, key: ComponentAPINames.label)
                     var aggrObj : Aggregate
-                    if aggr.optString(key: ComponentAPINames.label) == "-"  {
-                        aggrLabel = "none"
-                    }
-                    else if let label = aggr.optString(key: ComponentAPINames.label)
-                    {
-                        aggrLabel = label
-                    }
-                    else if let label = aggr.optInt(key: ComponentAPINames.label)
-                    {
-                        aggrLabel = String(label)
-                    }
-                    else if let label = aggr.optDouble(key: ComponentAPINames.label)
-                    {
-                        aggrLabel = String(label)
-                    }
-                    else
-                    {
-                        throw ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : "Label should be of type Int, Double or String" )
-                    }
                     if let val = aggr.optDouble(key: ComponentAPINames.value)
                     {
                         aggrObj = Aggregate(label: aggrLabel, value: val)
@@ -890,6 +850,31 @@ fileprivate extension DashboardAPIHandler
         }
         return ArrayOfVerticalGroupingObj
     } // func ends
+    
+    func getValue(dict: [String:Any], key: String) throws -> String
+    {
+        var value : String
+        if dict.optString(key: key) == "-"  {
+            value = "none"
+        }
+        else if let label = dict.optString(key: key)
+        {
+            value = label
+        }
+        else if let label = dict.optInt(key: key)
+        {
+            value = String(label)
+        }
+        else if let label = dict.optDouble(key: key)
+        {
+            value = String(label)
+        }
+        else
+        {
+            throw ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : "\(key) should be of type Int, Double or String" )
+        }
+        return value
+    }
 }
 
 ///DASHBOARD COMPONENT COLOR THEMES PARSER
@@ -913,7 +898,7 @@ fileprivate extension DashboardAPIHandler
                     case ColorPaletteAPINames.colorPalettes:
                         colorPalette = try getArrayOfColorPaletteFrom(value as? [String:Any])
                     default:
-                        throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "UNKNOWN KEY \(key) ENCOUNTERED IN COLOR THEMES PARSING".lowercased() )
+                        throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "Unknown key \(key) encountered in color themes parsing")
                     } // case ends
                 } // inner loop ends
                 if let colorThemeObj = try constructColorPaletteObjFrom(colorThemesValues,colorPalette)
@@ -932,7 +917,7 @@ fileprivate extension DashboardAPIHandler
     func getArrayOfColorPaletteFrom(_ colorPaletteJSON: [String:Any]?) throws -> [ColorPaletteKeys:[String]]?
     {
         guard let colorPaletteJSON = colorPaletteJSON else {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "FAILED TO TYPECAST COLOR PALETTE JSON TO [STRING:ANY]".lowercased() )
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "Failed to typecast color palette JSON to [String:Any]")
         }
         var colorPaletteValues = [ColorPaletteKeys:[String]]()
         for (key,value) in colorPaletteJSON
@@ -948,7 +933,7 @@ fileprivate extension DashboardAPIHandler
             case ColorPaletteKeys.vibrant.rawValue:
                 colorPaletteValues[.vibrant] = value as? [String]
             default:
-                throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "UNKNOWN COLOR PALETTE \(key) FOUND !!".lowercased() )
+                throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "Unknown color palette \(key) found!!" )
             }
         }
         return colorPaletteValues
@@ -957,7 +942,7 @@ fileprivate extension DashboardAPIHandler
     func constructColorPaletteObjFrom(_ dict:[ColorThemeKeys:Any],_ colorPalette: [ColorPaletteKeys:[String]]?) throws -> ZCRMDashboardComponentColorThemes?
     {
         guard let colorPalette = colorPalette else {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "UNABLE TO CONSTRUCT COLOR PALETTE OBJECT".lowercased() )
+            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "Unable to construct color palette object" )
         }
         try dict.valueCheck(forKey: .name)
         let colorPaletteObj = ZCRMDashboardComponentColorThemes()

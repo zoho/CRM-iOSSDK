@@ -88,10 +88,10 @@ extension ZCRMDashboardComponent
         public internal(set) var label : String = APIConstants.STRING_MOCK
         public internal(set) var type : String = APIConstants.STRING_MOCK
         public internal(set) var name : String = APIConstants.STRING_MOCK
-        public internal(set) var allowedValues: [AllowedValues]?
-        public internal(set) var customGroups: [String]?
+        public internal(set) var allowedValues: [GroupingConfig]?
+        public internal(set) var customGroups: [GroupingConfig]?
         
-        init(label: String, type: String, name: String, allowedValues: [AllowedValues]?, customGroups: [String]?)
+        init(label: String, type: String, name: String, allowedValues: [GroupingConfig]?, customGroups: [GroupingConfig]?)
         {
             self.label = label
             self.type = type
@@ -148,7 +148,7 @@ extension ZCRMDashboardComponent
         }
     }
     
-    public struct AllowedValues
+    public struct GroupingConfig
     {
         public internal(set) var label : String = APIConstants.STRING_MOCK
         public internal(set) var value : String = APIConstants.STRING_MOCK
