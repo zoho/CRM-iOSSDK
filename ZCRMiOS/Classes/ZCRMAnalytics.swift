@@ -13,7 +13,7 @@ open class ZCRMAnalytics
     init(){}
     public static let shared = ZCRMAnalytics()
     
-    public func getAllDashboards(then onCompletion:@escaping ArrayOfDashboards)
+    public func getDashboards(then onCompletion:@escaping ArrayOfDashboards)
     {
         // 200 is the maxNumber of records that can be retreived in an API Call
         DashboardAPIHandler().getAllDashboards(fromPage: 1, withPerPageOf: 200, searchWord: nil, queryScope: nil) { (resultType) in
@@ -21,30 +21,60 @@ open class ZCRMAnalytics
         }
     }
     
-    public func getAllDashboards(fromPage page:Int, perPage:Int, then onCompletion: @escaping ArrayOfDashboards)
+    public func getMyDashboards(then onCompletion:@escaping ArrayOfDashboards)
+    {
+        // 200 is the maxNumber of records that can be retreived in an API Call
+        DashboardAPIHandler().getAllDashboards(fromPage: 1, withPerPageOf: 200, searchWord: nil, queryScope: ZCRMAnalytics.QueryScope.MINE) { (resultType) in
+            onCompletion(resultType)
+        }
+    }
+    
+    public func getSharedDashboards(then onCompletion:@escaping ArrayOfDashboards)
+    {
+        // 200 is the maxNumber of records that can be retreived in an API Call
+        DashboardAPIHandler().getAllDashboards(fromPage: 1, withPerPageOf: 200, searchWord: nil, queryScope: ZCRMAnalytics.QueryScope.SHARED) { (resultType) in
+            onCompletion(resultType)
+        }
+    }
+    
+    public func getDashboards(fromPage page:Int, perPage:Int, then onCompletion: @escaping ArrayOfDashboards)
     {
         DashboardAPIHandler().getAllDashboards(fromPage: page,withPerPageOf: perPage, searchWord: nil, queryScope: nil) { (resultType) in
             onCompletion(resultType)
         }
     }
     
-    public func getAllDashboards(searchWord : String, then onCompletion: @escaping ArrayOfDashboards)
+    public func getMyDashboards(fromPage page:Int, perPage:Int, then onCompletion: @escaping ArrayOfDashboards)
+    {
+        DashboardAPIHandler().getAllDashboards(fromPage: page,withPerPageOf: perPage, searchWord: nil, queryScope: ZCRMAnalytics.QueryScope.MINE) { (resultType) in
+            onCompletion(resultType)
+        }
+    }
+    
+    public func getSharedDashboards(fromPage page:Int, perPage:Int, then onCompletion: @escaping ArrayOfDashboards)
+    {
+        DashboardAPIHandler().getAllDashboards(fromPage: page,withPerPageOf: perPage, searchWord: nil, queryScope: ZCRMAnalytics.QueryScope.SHARED) { (resultType) in
+            onCompletion(resultType)
+        }
+    }
+    
+    public func searchDashboards(searchWord : String, then onCompletion: @escaping ArrayOfDashboards)
     {
         DashboardAPIHandler().getAllDashboards(fromPage: 1, withPerPageOf: 200, searchWord: searchWord, queryScope: nil) { (resultType) in
             onCompletion(resultType)
         }
     }
     
-    public func getAllDashboards(queryScope : ZCRMAnalytics.QueryScope, then onCompletion: @escaping ArrayOfDashboards)
+    public func searchMyDashboards(searchWord : String, then onCompletion: @escaping ArrayOfDashboards)
     {
-        DashboardAPIHandler().getAllDashboards(fromPage: 1, withPerPageOf: 200, searchWord: nil, queryScope: queryScope) { (resultType) in
+        DashboardAPIHandler().getAllDashboards(fromPage: 1, withPerPageOf: 200, searchWord: searchWord, queryScope: ZCRMAnalytics.QueryScope.MINE) { (resultType) in
             onCompletion(resultType)
         }
     }
     
-    public func getAllDashboards(searchWord : String, queryScope : ZCRMAnalytics.QueryScope, then onCompletion: @escaping ArrayOfDashboards)
+    public func searchSharedDashboards(searchWord : String, then onCompletion: @escaping ArrayOfDashboards)
     {
-        DashboardAPIHandler().getAllDashboards(fromPage: 1, withPerPageOf: 200, searchWord: searchWord, queryScope: queryScope) { (resultType) in
+        DashboardAPIHandler().getAllDashboards(fromPage: 1, withPerPageOf: 200, searchWord: searchWord, queryScope: ZCRMAnalytics.QueryScope.SHARED) { (resultType) in
             onCompletion(resultType)
         }
     }
