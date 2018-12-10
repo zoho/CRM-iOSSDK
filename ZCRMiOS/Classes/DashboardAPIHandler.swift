@@ -35,7 +35,7 @@ class DashboardAPIHandler: CommonAPIHandler
     fileprivate typealias AggregateColumn = ZCRMDashboardComponent.AggregateColumnInfo
     fileprivate typealias GroupingColumn = ZCRMDashboardComponent.GroupingColumnInfo
     fileprivate typealias VerticalGrouping = ZCRMDashboardComponent.VerticalGrouping
-    fileprivate typealias GroupingConfig = ZCRMDashboardComponent.GroupingConfig
+    fileprivate typealias GroupingValue = ZCRMDashboardComponent.GroupingValue
     fileprivate typealias ComponentChunks = ZCRMDashboardComponent.ComponentChunks
     fileprivate typealias Aggregate = ZCRMDashboardComponent.Aggregate
     
@@ -50,7 +50,7 @@ class DashboardAPIHandler: CommonAPIHandler
     fileprivate typealias MetaComponentLayoutPropsTuple = (width:Int?,height:Int?,xPosition:Int?,yPosition:Int?)
     //Component Parser Return Type
     fileprivate typealias SegmentRangesTuple = (color:String?,startPos:String?,endPos:String?)
-    fileprivate typealias GroupingConfigDetails = (AllowedValues:[GroupingConfig]?,CustomGroups:[GroupingConfig]?)
+    fileprivate typealias GroupingConfigDetails = (AllowedValues:[GroupingValue]?,CustomGroups:[GroupingValue]?)
 }
 
 /// DICTIONARY KEYS FOR PARSER FUNCTIONS
@@ -768,8 +768,8 @@ fileprivate extension DashboardAPIHandler
         let ArrayOfGroupingColumnJSON = componentChunksJSON.getArrayOfDictionaries(key: Key)
         for groupingColumnJSON in ArrayOfGroupingColumnJSON
         {
-            var allowedValues : [GroupingConfig] = [GroupingConfig]()
-            var customGroups : [GroupingConfig] = [GroupingConfig]()
+            var allowedValues : [GroupingValue] = [GroupingValue]()
+            var customGroups : [GroupingValue] = [GroupingValue]()
             try groupingColumnJSON.valueCheck(forKey: ComponentAPINames.label)
             try groupingColumnJSON.valueCheck(forKey: ComponentAPINames.type)
             try groupingColumnJSON.valueCheck(forKey: ComponentAPINames.name)
@@ -779,8 +779,8 @@ fileprivate extension DashboardAPIHandler
                 {
                     for allowedValueJSON in allowedValuesJSON
                     {
-                        let allowedValue : GroupingConfig = GroupingConfig(label: allowedValueJSON.getString(key: ComponentAPINames.label),
-                                                                           value: allowedValueJSON.getString(key: ComponentAPINames.value))
+                        let allowedValue : GroupingValue = GroupingValue(label: allowedValueJSON.getString(key: ComponentAPINames.label),
+                                                                         value: allowedValueJSON.getString(key: ComponentAPINames.value))
                         allowedValues.append(allowedValue)
                     }
                 }
@@ -788,8 +788,8 @@ fileprivate extension DashboardAPIHandler
                 {
                     for customGroupJSON in customGroupsJSON
                     {
-                        let customGroup : GroupingConfig = GroupingConfig(label: customGroupJSON.getString(key: ComponentAPINames.label),
-                                                                          value: customGroupJSON.getString(key: ComponentAPINames.value))
+                        let customGroup : GroupingValue = GroupingValue(label: customGroupJSON.getString(key: ComponentAPINames.label),
+                                                                        value: customGroupJSON.getString(key: ComponentAPINames.value))
                         customGroups.append(customGroup)
                     }
                 }
