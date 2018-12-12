@@ -16,6 +16,13 @@ open class ZCRMUserDelegate : ZCRMEntity
         self.name = name
     }
     
+    public func update( userDetails : [String:Any], completion : @escaping( Result.Response< APIResponse > ) -> () )
+    {
+        UserAPIHandler(userDelegate: self).updateUser(userDetails: userDetails) { ( result ) in
+            completion( result )
+        }
+    }
+    
     public func delete( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         UserAPIHandler().deleteUser( userId : self.id ) { ( result ) in
@@ -23,37 +30,16 @@ open class ZCRMUserDelegate : ZCRMEntity
         }
     }
     
-    public func update( userDetails : [ String : Any ], completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func uploadProfilePhoto( filePath : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        UserAPIHandler(userDelegate: self).updateUser(userDetails: userDetails) { ( result ) in
+        UserAPIHandler(userDelegate: self).uploadPhotoWithPath(filePath: filePath) { ( result ) in
             completion( result )
         }
     }
     
-    public func uploadProfilePhotoWithPath( filePath : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func uploadProfilePhoto( fileName : String, fileContent : Data, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        UserAPIHandler(userDelegate: self).uploadPhotoWithPath(photoViewPermission: XPhotoViewPermission.zero, filePath: filePath) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func uploadProfilePhotoWithData( fileName : String, data : Data, completion : @escaping( Result.Response< APIResponse > ) -> () )
-    {
-        UserAPIHandler(userDelegate: self).uploadPhotoWithData( photoViewPermission: XPhotoViewPermission.zero, fileName: fileName, data : data ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func uploadProfilePhotoWithPath( photoViewPermission : XPhotoViewPermission, filePath : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
-    {
-        UserAPIHandler(userDelegate: self).uploadPhotoWithPath(photoViewPermission: photoViewPermission, filePath: filePath) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func uploadProfilePhotoWithData( photoViewPermission : XPhotoViewPermission, fileName : String, data : Data, completion : @escaping( Result.Response< APIResponse > ) -> () )
-    {
-        UserAPIHandler(userDelegate: self).uploadPhotoWithData( photoViewPermission: photoViewPermission, fileName: fileName, data : data ) { ( result ) in
+        UserAPIHandler(userDelegate: self).uploadPhotoWithData( fileName: fileName, data : fileContent ) { ( result ) in
             completion( result )
         }
     }

@@ -117,7 +117,7 @@ public class ZCRMCachedModuleHandler
     {
         let layoutJSON : [String:Any] = try getLayoutDetails(layoutId: layoutId)
         let module = ZCRMModuleDelegate(apiName: apiName)
-        return ModuleAPIHandler(module: module).getZCRMLayout(layoutDetails: layoutJSON)
+        return try ModuleAPIHandler(module: module).getZCRMLayout(layoutDetails: layoutJSON)
     }
     
     private func getLayoutDetails(layoutId: Int64) throws -> [String:Any]

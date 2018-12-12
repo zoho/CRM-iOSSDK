@@ -412,7 +412,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 {
                     let trashRecordDetails : [ String : Any ] = entityResponse.getResponseJSON()
                     self.trashRecord = ZCRMTrashRecord(type : trashRecordDetails.getString( key : RequestParamKeys.type ), entityId : trashRecordDetails.getInt64( key : ResponseJSONKeys.id) )
-                    self.setTrashRecordProperties( record : trashRecordDetails )
+                    try self.setTrashRecordProperties( record : trashRecordDetails )
                     trashRecords.append( self.trashRecord )
                 }
                 bulkResponse.setData( data : trashRecords )
@@ -543,19 +543,19 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     }
 	
 	// MARK: - Utility Functions
-	private func setTrashRecordProperties( record : [ String : Any ] )
+	private func setTrashRecordProperties( record : [ String : Any ] ) throws
     {
         for ( fieldAPIName, value ) in record
         {
             if( ResponseJSONKeys.createdBy == fieldAPIName )
             {
                 let createdBy : [ String : Any ] = value as! [ String : Any ]
-                self.trashRecord.createdBy = getUserDelegate(userJSON : createdBy)
+                self.trashRecord.createdBy = try getUserDelegate(userJSON : createdBy)
             }
             else if( ResponseJSONKeys.deletedBy == fieldAPIName )
             {
                 let deletedBy : [ String : Any ] = value as! [ String : Any ]
-                self.trashRecord.deletedBy = getUserDelegate(userJSON : deletedBy)
+                self.trashRecord.deletedBy = try getUserDelegate(userJSON : deletedBy)
             }
             else if( ResponseJSONKeys.displayName == fieldAPIName )
             {

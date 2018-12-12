@@ -204,11 +204,12 @@ internal class EntityAPIHandler : CommonAPIHandler
                 completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.INVALID_FILE_TYPE, message : ErrorMessage.INVALID_FILE_TYPE_MSG ) ) )
                 return
             }
+            setJSONRootKey( key : JSONRootKey.NIL )
             setUrlPath(urlPath :"/\(self.recordDelegate.moduleAPIName)/\(String(self.recordDelegate.recordId))/photo")
             setRequestMethod(requestMethod : .POST )
             let request : APIRequest = APIRequest(handler : self )
             print( "Request : \( request.toString() )" )
-            request.uploadFile( filePath : filePath) { ( resultType ) in
+            request.uploadFile( filePath : filePath, content: nil) { ( resultType ) in
                 do{
                     let response = try resultType.resolve()
                     completion( .success( response ) )
@@ -226,13 +227,14 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     internal func uploadPhotoWithData( fileName : String, data : Data, completion: @escaping(Result.Response< APIResponse > )->Void)
     {
+        setJSONRootKey( key : JSONRootKey.NIL )
         setUrlPath(urlPath :"/\(self.recordDelegate.moduleAPIName)/\(String(self.recordDelegate.recordId))/photo")
         setRequestMethod(requestMethod : .POST )
         let request : APIRequest = APIRequest(handler : self )
         
         print( "Request : \( request.toString() )" )
         
-        request.uploadFileWithData(fileName : fileName, data: data) { ( resultType ) in
+        request.uploadFileWithData(fileName : fileName, content: nil, data: data) { ( resultType ) in
             do{
                 let response = try resultType.resolve()
                 completion( .success( response ) )
@@ -785,12 +787,12 @@ internal class EntityAPIHandler : CommonAPIHandler
             else if(ResponseJSONKeys.createdBy == fieldAPIName)
             {
                 let createdBy : [String:Any] = value as! [String : Any]
-                self.record.createdBy = getUserDelegate(userJSON : createdBy)
+                self.record.createdBy = try getUserDelegate(userJSON : createdBy)
             }
             else if(ResponseJSONKeys.modifiedBy == fieldAPIName)
             {
                 let modifiedBy : [String:Any] = value as! [String : Any]
-                self.record.modifiedBy = getUserDelegate(userJSON : modifiedBy)
+                self.record.modifiedBy = try getUserDelegate(userJSON : modifiedBy)
             }
             else if(ResponseJSONKeys.createdTime == fieldAPIName)
             {
@@ -807,7 +809,7 @@ internal class EntityAPIHandler : CommonAPIHandler
             else if(ResponseJSONKeys.owner == fieldAPIName)
             {
                 let ownerObj : [String:Any] = value as! [String : Any]
-                self.record.owner = getUserDelegate(userJSON : ownerObj)
+                self.record.owner = try getUserDelegate(userJSON : ownerObj)
             }
             else if(ResponseJSONKeys.layout == fieldAPIName)
             {

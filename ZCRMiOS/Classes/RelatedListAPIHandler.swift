@@ -201,7 +201,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
             
-            request.uploadFile( filePath : filePath, completion: { ( resultType ) in
+            request.uploadFile( filePath : filePath, content: nil, completion: { ( resultType ) in
                 do{
                     let response = try resultType.resolve()
                     let responseJSON = response.getResponseJSON()
@@ -219,7 +219,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "RELATED LIST must not be nil" ) ) )
         }
     }
     
@@ -231,7 +231,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             setRequestMethod(requestMethod: .POST )
             let request : APIRequest = APIRequest(handler: self)
             print( "Request : \( request.toString() )" )
-            request.uploadFileWithData(fileName: fileName, data: data, completion: { ( resultType ) in
+            request.uploadFileWithData(fileName: fileName, content: nil, data: data, completion: { ( resultType ) in
                 do{
                     let response = try resultType.resolve()
                     let responseJSON = response.getResponseJSON()
@@ -249,7 +249,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Related list MUST NOT be nil" ) ) )
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "RELATED LIST must not be nil" ) ) )
         }
     }
 
@@ -460,19 +460,19 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         if ( attachmentDetails.hasValue( forKey : ResponseJSONKeys.createdBy ) )
         {
             let createdByDetails : [String:Any] = attachmentDetails.getDictionary(key: ResponseJSONKeys.createdBy)
-            attachment.createdBy = getUserDelegate(userJSON : createdByDetails)
+            attachment.createdBy = try getUserDelegate(userJSON : createdByDetails)
             attachment.createdTime = attachmentDetails.getString(key: ResponseJSONKeys.createdTime)
         }
         if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.modifiedBy))
         {
             let modifiedByDetails : [String:Any] = attachmentDetails.getDictionary(key: ResponseJSONKeys.modifiedBy)
-            attachment.modifiedBy = getUserDelegate(userJSON : modifiedByDetails)
+            attachment.modifiedBy = try getUserDelegate(userJSON : modifiedByDetails)
             attachment.modifiedTime = attachmentDetails.getString(key: ResponseJSONKeys.modifiedTime)
         }
 		if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.owner))
 		{
 			let ownerDetails : [String:Any] = attachmentDetails.getDictionary(key: ResponseJSONKeys.owner)
-            attachment.owner = getUserDelegate(userJSON : ownerDetails)
+            attachment.owner = try getUserDelegate(userJSON : ownerDetails)
 		}
         else if( attachment.createdBy.id != APIConstants.INT64_MOCK )
         {
@@ -523,19 +523,19 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         if ( noteDetails.hasValue( forKey : ResponseJSONKeys.createdBy ) )
         {
             let createdByDetails : [String:Any] = noteDetails.getDictionary(key: ResponseJSONKeys.createdBy)
-            note.createdBy = getUserDelegate(userJSON : createdByDetails)
+            note.createdBy = try getUserDelegate(userJSON : createdByDetails)
             note.createdTime = noteDetails.getString(key: ResponseJSONKeys.createdTime)
         }
         if ( noteDetails.hasValue( forKey : ResponseJSONKeys.modifiedBy ) )
         {
             let modifiedByDetails : [String:Any] = noteDetails.getDictionary( key : ResponseJSONKeys.modifiedBy )
-            note.modifiedBy = getUserDelegate(userJSON : modifiedByDetails)
+            note.modifiedBy = try getUserDelegate(userJSON : modifiedByDetails)
             note.modifiedTime = noteDetails.getString(key: ResponseJSONKeys.modifiedTime)
         }
         if( noteDetails.hasValue( forKey: ResponseJSONKeys.owner ) )
         {
             let ownerDetails : [String:Any] = noteDetails.getDictionary(key: ResponseJSONKeys.owner)
-            note.owner = getUserDelegate(userJSON : ownerDetails)
+            note.owner = try getUserDelegate(userJSON : ownerDetails)
         }
         else if( note.createdBy.id != APIConstants.INT_MOCK )
         {

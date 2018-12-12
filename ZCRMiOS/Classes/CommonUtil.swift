@@ -666,8 +666,10 @@ func typeCastToZCRMError(_ error:Error) -> ZCRMError {
     return typecastedError
 }
 
-func getUserDelegate( userJSON : [ String : Any ] ) -> ZCRMUserDelegate
+func getUserDelegate( userJSON : [ String : Any ] ) throws -> ZCRMUserDelegate
 {
+    try userJSON.valueCheck(forKey: "id")
+    try userJSON.valueCheck(forKey: "name")
     let user : ZCRMUserDelegate = ZCRMUserDelegate( id : userJSON.getInt64( key : "id" ), name : userJSON.getString( key : "name" ) )
     return user
 }

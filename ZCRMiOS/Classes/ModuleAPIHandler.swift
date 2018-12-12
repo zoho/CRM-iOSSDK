@@ -36,8 +36,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 let responseJSON = bulkResponse.getResponseJSON()
                 if responseJSON.isEmpty == false
                 {
-                    let layouts = self.getAllLayouts( layoutsList : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )
-                    bulkResponse.setData( data : self.getAllLayouts( layoutsList : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) ) )
+                    let layouts = try self.getAllLayouts( layoutsList : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )
+                    bulkResponse.setData( data : try self.getAllLayouts( layoutsList : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) ) )
                     completion( .success( layouts, bulkResponse ) )
                 }
                 else
@@ -65,7 +65,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 let response = try resultType.resolve()
                 let responseJSON = response.getResponseJSON()
                 let layoutsList:[[String : Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
-                let layout = self.getZCRMLayout( layoutDetails : layoutsList[ 0 ] )
+                let layout = try self.getZCRMLayout( layoutDetails : layoutsList[ 0 ] )
                 response.setData(data: layout )
                 completion( .success( layout, response ) )
             }
@@ -328,17 +328,17 @@ internal class ModuleAPIHandler : CommonAPIHandler
         return customView
     }
     
-    internal func getAllLayouts(layoutsList : [[String : Any]]) -> [ZCRMLayout]
+    internal func getAllLayouts(layoutsList : [[String : Any]]) throws -> [ZCRMLayout]
     {
         var allLayouts : [ZCRMLayout] = [ZCRMLayout]()
         for layout in layoutsList
         {
-            allLayouts.append(self.getZCRMLayout(layoutDetails: layout))
+            allLayouts.append( try self.getZCRMLayout(layoutDetails: layout))
         }
         return allLayouts
     }
     
-    internal func getZCRMLayout(layoutDetails : [String : Any]) -> ZCRMLayout
+    internal func getZCRMLayout(layoutDetails : [String : Any]) throws -> ZCRMLayout
     {
         let layout : ZCRMLayout = ZCRMLayout(name: layoutDetails.getString(key: ResponseJSONKeys.name))
         if( layoutDetails.hasValue(forKey: ResponseJSONKeys.id))
@@ -356,13 +356,13 @@ internal class ModuleAPIHandler : CommonAPIHandler
         if(layoutDetails.hasValue(forKey: ResponseJSONKeys.createdBy))
         {
             let createdByObj : [String:Any] = layoutDetails.getDictionary(key: ResponseJSONKeys.createdBy)
-            layout.createdBy = getUserDelegate(userJSON : createdByObj)
+            layout.createdBy = try getUserDelegate(userJSON : createdByObj)
             layout.createdTime = layoutDetails.getString(key: ResponseJSONKeys.createdTime)
         }
         if(layoutDetails.hasValue(forKey: ResponseJSONKeys.createdBy))
         {
             let modifiedByObj : [String:Any] = layoutDetails.getDictionary(key: ResponseJSONKeys.createdBy)
-            layout.modifiedBy = getUserDelegate(userJSON : modifiedByObj)
+            layout.modifiedBy = try getUserDelegate(userJSON : modifiedByObj)
             layout.modifiedTime = layoutDetails.getString(key: ResponseJSONKeys.modifiedTime)
         }
         let profilesDetails : [[String:Any]] = layoutDetails.getArrayOfDictionaries(key: ResponseJSONKeys.profiles)

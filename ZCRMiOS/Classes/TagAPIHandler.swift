@@ -61,7 +61,7 @@ internal class TagAPIHandler : CommonAPIHandler
                         let tagsList :[[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                         for tagDetails in tagsList
                         {
-                            tags.append(self.getZCRMTag(tagDetails: tagDetails))
+                            tags.append( try self.getZCRMTag(tagDetails: tagDetails))
                         }
                         bulkResponse.setData(data: tags)
                         completion( .success( tags, bulkResponse ) )
@@ -159,7 +159,7 @@ internal class TagAPIHandler : CommonAPIHandler
                         {
                             let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
                             let tagJSON :[String:Any] = entResponseJSON.getDictionary(key: APIConstants.DETAILS)
-                            let tag : ZCRMTag = self.getZCRMTag(tagDetails: tagJSON)
+                            let tag : ZCRMTag = try self.getZCRMTag(tagDetails: tagJSON)
                             createdTags.append(tag)
                             entityResponse.setData(data: tag)
                         }
@@ -212,7 +212,7 @@ internal class TagAPIHandler : CommonAPIHandler
                     let respDataArray : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     let respData : [String:Any?] = respDataArray[0]
                     let tagDetails : [String:Any] = respData.getDictionary(key: APIConstants.DETAILS)
-                    let tag = self.getZCRMTag(tagDetails: tagDetails)
+                    let tag = try self.getZCRMTag(tagDetails: tagDetails)
                     response.setData(data: tag)
                     completion( .success( tag, response ) )
                 }
@@ -260,7 +260,7 @@ internal class TagAPIHandler : CommonAPIHandler
                     let respDataArr : [[String:Any?]] = responseJSON.optArrayOfDictionaries(key: self.getJSONRootKey())!
                     let respData : [String:Any?] = respDataArr[0]
                     let recordDetails : [String:Any] = respData.getDictionary(key: APIConstants.DETAILS)
-                    let updatedTag = self.getZCRMTag(tagDetails : recordDetails)
+                    let updatedTag = try self.getZCRMTag(tagDetails : recordDetails)
                     response.setData(data: updatedTag )
                     completion( .success( updatedTag, response ) )
                 }
@@ -310,7 +310,7 @@ internal class TagAPIHandler : CommonAPIHandler
                         {
                             let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
                             let tagJSON :[String:Any] = entResponseJSON.getDictionary(key: APIConstants.DETAILS)
-                            let tag : ZCRMTag = self.getZCRMTag(tagDetails: tagJSON)
+                            let tag : ZCRMTag = try self.getZCRMTag(tagDetails: tagJSON)
                             updatedTags.append(tag)
                             entityResponse.setData(data: tag)
                         }
@@ -354,7 +354,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getZCRMTag( tagDetails : [String : Any?] ) -> ZCRMTag
+    internal func getZCRMTag( tagDetails : [String : Any?] ) throws -> ZCRMTag
     {
         let tag : ZCRMTag = ZCRMTag()
         if tagDetails.hasKey(forKey: ResponseJSONKeys.id)
@@ -368,13 +368,13 @@ internal class TagAPIHandler : CommonAPIHandler
         if ( tagDetails.hasValue( forKey : ResponseJSONKeys.createdBy ) )
         {
             let createdByDetails : [String:Any] = tagDetails.getDictionary(key: ResponseJSONKeys.createdBy)
-            tag.createdBy = getUserDelegate(userJSON : createdByDetails)
+            tag.createdBy = try getUserDelegate(userJSON : createdByDetails)
             tag.createdTime = tagDetails.getString(key: ResponseJSONKeys.createdTime)
         }
         if ( tagDetails.hasValue( forKey : ResponseJSONKeys.modifiedBy ) )
         {
             let modifiedByDetails : [String:Any] = tagDetails.getDictionary(key: ResponseJSONKeys.modifiedBy)
-            tag.modifiedBy = getUserDelegate(userJSON : modifiedByDetails)
+            tag.modifiedBy = try getUserDelegate(userJSON : modifiedByDetails)
             tag.modifiedTime = tagDetails.getString(key: ResponseJSONKeys.modifiedTime)
         }
         if let moduleAPIName = module?.apiName
