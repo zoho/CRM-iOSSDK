@@ -7,22 +7,30 @@
 
 open class ZCRMProfileDelegate : ZCRMEntity
 {
-    public var profileId : Int64
-    public var profileName : String
-    public var isDefault : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var id : Int64
+    public internal( set ) var name : String
+    public internal( set ) var isDefault : Bool = APIConstants.BOOL_MOCK
     
-    internal init( profileId : Int64, profileName : String, isDefault : Bool )
+    internal init( id : Int64, name : String, isDefault : Bool )
     {
-        self.profileId = profileId
-        self.profileName = profileName
+        self.id = id
+        self.name = name
         self.isDefault = isDefault
     }
     
-    internal init( profileId : Int64, profileName : String )
+    internal init( id : Int64, name : String )
     {
-        self.profileId = profileId
-        self.profileName = profileName
+        self.id = id
+        self.name = name
     }
 }
 
-let PROFILE_MOCK : ZCRMProfileDelegate = ZCRMProfileDelegate( profileId : APIConstants.INT64_MOCK, profileName : APIConstants.STRING_MOCK )
+extension ZCRMProfileDelegate : Equatable
+{
+    public static func == (lhs: ZCRMProfileDelegate, rhs: ZCRMProfileDelegate) -> Bool {
+        let equals : Bool = lhs.id == rhs.id &&
+            lhs.name == rhs.name &&
+            lhs.isDefault == rhs.isDefault
+        return equals
+    }
+}

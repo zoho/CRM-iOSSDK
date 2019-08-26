@@ -23,35 +23,56 @@ open class ZCRMModuleDelegate : ZCRMEntity
     
     public func getRecordDelegate( id : Int64 ) -> ZCRMRecordDelegate
     {
-        return ZCRMRecordDelegate( recordId : id, moduleAPIName : apiName )
+        return ZCRMRecordDelegate( id : id, moduleAPIName : apiName )
     }
 
     public func newSubFormRecord( subFormName : String ) -> ZCRMSubformRecord
     {
-        return ZCRMSubformRecord( apiName : subFormName )
+        return ZCRMSubformRecord( name : subFormName )
     }
     
+    @available(*, deprecated, message: "Use the method 'newTag' with params name" )
     public func newTag( tagName : String ) -> ZCRMTag
     {
-        return ZCRMTag(tagName: tagName)
+        let tag = ZCRMTag( name : tagName, moduleAPIName : self.apiName )
+        tag.isCreate = true
+        return tag
     }
     
-    public func getTagDelegate( tagId : Int64 ) -> ZCRMTagDelegate
+    public func newTag( name : String ) -> ZCRMTag
     {
-        return ZCRMTagDelegate(tagId: tagId, moduleAPIName: self.apiName)
-    }
-    
-    public func getTagDelegate( tagId : Int64, tagName : String ) -> ZCRMTagDelegate
-    {
-        return ZCRMTagDelegate(tagId: tagId, tagName: tagName, moduleAPIName: self.apiName)
+        let tag = ZCRMTag( name : name, moduleAPIName : self.apiName )
+        tag.isCreate = true
+        return tag
     }
     
     /// Returns related list to the module.
     ///
     /// - Returns: related list to the module.
-    public func getAllRelatedLists( completion : @escaping( Result.DataResponse< [ ZCRMModuleRelation ], BulkAPIResponse > ) -> () )
+    public func getRelatedLists( completion : @escaping( Result.DataResponse< [ ZCRMModuleRelation ], BulkAPIResponse > ) -> () )
     {
-        ModuleAPIHandler( module : self ).getAllRelatedLists { ( result ) in
+        ModuleAPIHandler( module : self, cacheFlavour : .URL_VS_RESPONSE ).getAllRelatedLists { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getRelatedListsFromServer( completion : @escaping( Result.DataResponse< [ ZCRMModuleRelation ], BulkAPIResponse > ) -> () )
+    {
+        ModuleAPIHandler( module : self, cacheFlavour : .NO_CACHE ).getAllRelatedLists { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getRelatedList( id : Int64, completion : @escaping( Result.DataResponse< ZCRMModuleRelation, APIResponse > ) -> () )
+    {
+        ModuleAPIHandler( module: self, cacheFlavour: .URL_VS_RESPONSE ).getRelatedList(id: id) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getRelatedListFromServer( id : Int64, completion : @escaping( Result.DataResponse< ZCRMModuleRelation, APIResponse > ) -> () )
+    {
+        ModuleAPIHandler( module: self, cacheFlavour: .NO_CACHE ).getRelatedList(id: id) { ( result ) in
             completion( result )
         }
     }
@@ -60,9 +81,16 @@ open class ZCRMModuleDelegate : ZCRMEntity
     ///
     /// - Returns: all the layouts of the module
     /// - Throws: ZCRMSDKError if failed to get all layouts
-    public func getAllLayouts( completion : @escaping( Result.DataResponse< [ ZCRMLayout ], BulkAPIResponse > ) -> () )
+    public func getLayouts( completion : @escaping( Result.DataResponse< [ ZCRMLayout ], BulkAPIResponse > ) -> () )
     {
-        ModuleAPIHandler(module: self).getAllLayouts( modifiedSince : nil) { ( result ) in
+        ModuleAPIHandler(module: self, cacheFlavour: .URL_VS_RESPONSE).getAllLayouts( modifiedSince : nil) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getLayoutsFromServer( completion : @escaping( Result.DataResponse< [ ZCRMLayout ], BulkAPIResponse > ) -> () )
+    {
+        ModuleAPIHandler(module: self, cacheFlavour: .NO_CACHE).getAllLayouts( modifiedSince : nil) { ( result ) in
             completion( result )
         }
     }
@@ -72,9 +100,18 @@ open class ZCRMModuleDelegate : ZCRMEntity
     /// - Parameter modifiedSince: modified time
     /// - Returns: all the layouts of the module with the given modified since time
     /// - Throws: ZCRMSDKError if failed to get all layouts
-    public func getAllLayouts( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMLayout ], BulkAPIResponse > ) -> () )
+    @available(*, deprecated, message: "Modified Since is not supported" )
+    public func getLayouts( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMLayout ], BulkAPIResponse > ) -> () )
     {
-        ModuleAPIHandler(module: self).getAllLayouts( modifiedSince : modifiedSince) { ( result ) in
+        ModuleAPIHandler(module: self, cacheFlavour : .URL_VS_RESPONSE).getAllLayouts( modifiedSince : modifiedSince) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    @available(*, deprecated, message: "Modified Since is not supported" )
+    public func getLayoutsFromServer( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMLayout ], BulkAPIResponse > ) -> () )
+    {
+        ModuleAPIHandler(module: self, cacheFlavour : .NO_CACHE).getAllLayouts( modifiedSince : modifiedSince) { ( result ) in
             completion( result )
         }
     }
@@ -84,16 +121,30 @@ open class ZCRMModuleDelegate : ZCRMEntity
     /// - Parameter layoutId: layout id
     /// - Returns: layout with given layout id
     /// - Throws: ZCRMSDKError if failed to get a layout
-    public func getLayout( layoutId : Int64, completion : @escaping( Result.DataResponse< ZCRMLayout, APIResponse > ) -> () )
+    public func getLayout( id : Int64, completion : @escaping( Result.DataResponse< ZCRMLayout, APIResponse > ) -> () )
     {
-        ModuleAPIHandler( module : self ).getLayout( layoutId : layoutId) { ( result ) in
+        ModuleAPIHandler( module : self, cacheFlavour : .URL_VS_RESPONSE ).getLayout( layoutId : id ) { ( result ) in
             completion( result )
         }
     }
     
-    public func getAllFields( completion : @escaping( Result.DataResponse< [ ZCRMField ], BulkAPIResponse > ) -> () )
+    public func getLayoutFromServer( id : Int64, completion : @escaping( Result.DataResponse< ZCRMLayout, APIResponse > ) -> () )
     {
-        ModuleAPIHandler( module : self ).getAllFields( modifiedSince : nil) { ( result ) in
+        ModuleAPIHandler( module : self, cacheFlavour : .NO_CACHE ).getLayout( layoutId : id ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getFields( completion : @escaping( Result.DataResponse< [ ZCRMField ], BulkAPIResponse > ) -> () )
+    {
+        ModuleAPIHandler( module : self, cacheFlavour : .URL_VS_RESPONSE ).getAllFields( modifiedSince : nil ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getFieldsFromServer( completion : @escaping( Result.DataResponse< [ ZCRMField ], BulkAPIResponse > ) -> () )
+    {
+        ModuleAPIHandler( module : self, cacheFlavour : .NO_CACHE ).getAllFields( modifiedSince : nil ) { ( result ) in
             completion( result )
         }
     }
@@ -103,9 +154,32 @@ open class ZCRMModuleDelegate : ZCRMEntity
     /// - Parameter modifiedSince: modified time
     /// - Returns: list of ZCRMFields of the module
     /// - Throws: ZCRMSDKError if failed to get all fields
-    public func getAllFields( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMField ], BulkAPIResponse > ) -> () )
+    @available(*, deprecated, message: "Modified Since is not supported" )
+    public func getFields( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMField ], BulkAPIResponse > ) -> () )
     {
-        ModuleAPIHandler( module : self ).getAllFields( modifiedSince : modifiedSince) { ( result ) in
+        ModuleAPIHandler( module : self, cacheFlavour : .URL_VS_RESPONSE ).getAllFields( modifiedSince : modifiedSince ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    @available(*, deprecated, message: "Modified Since is not supported" )
+    public func getFieldsFromServer( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMField ], BulkAPIResponse > ) -> () )
+    {
+        ModuleAPIHandler( module : self, cacheFlavour : .NO_CACHE ).getAllFields( modifiedSince : modifiedSince ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getField( id : Int64, completion : @escaping( Result.DataResponse< ZCRMField, APIResponse > ) -> () )
+    {
+        ModuleAPIHandler(module: self, cacheFlavour: .URL_VS_RESPONSE).getField(fieldId: id) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getFieldFromServer( id : Int64, completion : @escaping( Result.DataResponse< ZCRMField, APIResponse > ) -> () )
+    {
+        ModuleAPIHandler(module: self, cacheFlavour: .NO_CACHE).getField(fieldId: id) { ( result ) in
             completion( result )
         }
     }
@@ -114,9 +188,16 @@ open class ZCRMModuleDelegate : ZCRMEntity
     ///
     /// - Returns: custom views of the module
     /// - Throws: ZCRMSDKError if failed to get the custom views
-    public func getAllCustomViews( completion : @escaping( Result.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
+    public func getCustomViews( completion : @escaping( Result.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
     {
-        ModuleAPIHandler(module: self).getAllCustomViews( modifiedSince : nil) { ( result ) in
+        ModuleAPIHandler(module: self, cacheFlavour: .URL_VS_RESPONSE).getAllCustomViews( modifiedSince : nil) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getCustomViewsFromServer( completion : @escaping( Result.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
+    {
+        ModuleAPIHandler(module: self, cacheFlavour: .NO_CACHE).getAllCustomViews( modifiedSince : nil) { ( result ) in
             completion( result )
         }
     }
@@ -126,9 +207,18 @@ open class ZCRMModuleDelegate : ZCRMEntity
     /// - Parameter modifiedSince: modified time
     /// - Returns: custom views of the module
     /// - Throws: ZCRMSDKError if failed to get the custom views
-    public func getAllCustomViews( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
+    @available(*, deprecated, message: "Modified Since is not supported" )
+    public func getCustomViews( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
     {
-        ModuleAPIHandler(module: self).getAllCustomViews( modifiedSince : modifiedSince ) { ( result ) in
+        ModuleAPIHandler(module: self, cacheFlavour: .URL_VS_RESPONSE).getAllCustomViews( modifiedSince : modifiedSince ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    @available(*, deprecated, message: "Modified Since is not supported" )
+    public func getCustomViewsFromServer( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
+    {
+        ModuleAPIHandler(module: self, cacheFlavour: .NO_CACHE).getAllCustomViews( modifiedSince : modifiedSince ) { ( result ) in
             completion( result )
         }
     }
@@ -138,10 +228,47 @@ open class ZCRMModuleDelegate : ZCRMEntity
     /// - Parameter cvId: Id of the custom view to be returned
     /// - Returns: custom view with the given cvID of the module
     /// - Throws: ZCRMSDKError if failed to get the custom view
-    public func getCustomView( cvId : Int64, completion : @escaping( Result.DataResponse< ZCRMCustomView, APIResponse > ) -> () )
+    public func getCustomView( id : Int64, completion : @escaping( Result.DataResponse< ZCRMCustomView, APIResponse > ) -> () )
     {
-        ModuleAPIHandler( module : self ).getCustomView( cvId : cvId) { ( result ) in
+        ModuleAPIHandler( module : self, cacheFlavour : .URL_VS_RESPONSE ).getCustomView( cvId : id ) { ( result ) in
             completion( result )
+        }
+    }
+    
+    public func getCustomViewFromServer( id : Int64, completion : @escaping( Result.DataResponse< ZCRMCustomView, APIResponse > ) -> () )
+    {
+        ModuleAPIHandler( module : self, cacheFlavour : .NO_CACHE ).getCustomView( cvId : id ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getActivitiesCVs( completion: @escaping( Result.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
+    {
+        do
+        {
+            try  activitiesCVModuleCheck(module: self.apiName)
+            ModuleAPIHandler(module: self, cacheFlavour: .URL_VS_RESPONSE).getActivitiesCVs { ( result ) in
+                completion( result )
+            }
+        }
+        catch
+        {
+            completion( .failure( typeCastToZCRMError( error ) ) )
+        }
+    }
+    
+    public func getActivitiesCVsFromServer( completion: @escaping( Result.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
+    {
+        do
+        {
+            try  activitiesCVModuleCheck(module: self.apiName)
+            ModuleAPIHandler(module: self, cacheFlavour: .NO_CACHE).getActivitiesCVs { ( result ) in
+                completion( result )
+            }
+        }
+        catch
+        {
+            completion( .failure( typeCastToZCRMError( error ) ) )
         }
     }
     
@@ -150,322 +277,103 @@ open class ZCRMModuleDelegate : ZCRMEntity
     /// - Parameter recordId: Id of the record to be returned
     /// - Returns: ZCRMRecord with the given ID of the module
     /// - Throws: ZCRMSDKError if failed to get the record
-    public func getRecord( recordId : Int64, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func getRecord( id : Int64, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
-        let record : ZCRMRecordDelegate = ZCRMRecordDelegate(recordId: recordId, moduleAPIName: self.apiName )
-        EntityAPIHandler(recordDelegate: record).getRecord( withPrivateFields : false, completion : { ( result ) in
+        EntityAPIHandler( recordDelegate : ZCRMRecordDelegate( id : id, moduleAPIName : self.apiName ) ).getRecord( withPrivateFields : false, completion : { ( result ) in
             completion( result )
         } )
     }
     
-    public func getRecordWithPrivateFields( recordId : Int64, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func getRecordWithPrivateFields( id : Int64, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
-        let record : ZCRMRecordDelegate = ZCRMRecordDelegate(recordId: recordId, moduleAPIName: self.apiName)
-        EntityAPIHandler(recordDelegate: record).getRecord( withPrivateFields : true, completion : { ( result ) in
+        EntityAPIHandler( recordDelegate : ZCRMRecordDelegate( id : id, moduleAPIName : self.apiName ) ).getRecord( withPrivateFields : true, completion : { ( result ) in
             completion( result )
         } )
     }
     
-    /// Returns List of all records of the module(BulkAPIResponse).
-    ///
-    /// - Returns: List of all records of the module
-    /// - Throws: ZCRMSDKError if failed to get the records
-    public func getRecords( completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    @available(*, deprecated, message: "Use the struct 'GetRecordParams'" )
+    public func getRecords( recordParams : ZCRMQuery.GetRecords, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler(module: self).getRecords( cvId : nil, fields : nil , sortByField : nil, sortOrder : nil, converted : nil , approved : nil, page : 1, per_page : 100, modifiedSince : nil, includePrivateFields : false, kanbanView : nil, completion : { ( result ) in
-            completion( result )
-        } )
-    }
-    
-    public func getRecordsWithPrivateFields( completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
-    {
-        MassEntityAPIHandler(module: self).getRecords( cvId : nil, fields : nil , sortByField : nil, sortOrder : nil, converted : nil , approved : nil, page : 1, per_page : 100, modifiedSince : nil, includePrivateFields : true, kanbanView : nil, completion : { ( result ) in
-            completion( result )
-        } )
-    }
-    
-    /// Returns list of all records of the module of a requested page number with records of per_page count(BulkAPIResponse).
-    ///
-    /// - Parameters:
-    ///   - page: page number of the module
-    ///   - per_page: number of records to be given for a single page.
-    /// - Returns: list of all records of the module of a requested page number with records of per_page count
-    /// - Throws: ZCRMSDKError if failed to get the records
-    public func getRecords(page : Int, per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
-    {
-        MassEntityAPIHandler(module: self).getRecords( cvId : nil, fields : nil , sortByField : nil, sortOrder : nil, converted : nil , approved : nil, page : page, per_page : per_page, modifiedSince : nil, includePrivateFields : false, kanbanView : nil, completion : { ( result ) in
-            completion( result )
-        } )
-    }
-    
-    public func getRecordsWithPrivateFields(page : Int, per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
-    {
-        MassEntityAPIHandler(module: self).getRecords( cvId : nil, fields : nil , sortByField : nil, sortOrder : nil, converted : nil , approved : nil, page : page, per_page : per_page, modifiedSince : nil, includePrivateFields : true, kanbanView : nil, completion : { ( result ) in
-            completion( result )
-        } )
-    }
-    
-    public func getRecords( sortByField : String, sortOrder : SortOrder, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
-    {
-        MassEntityAPIHandler(module: self).getRecords(cvId: nil, fields: nil, sortByField: sortByField, sortOrder: sortOrder, converted: nil, approved: nil, page: 1, per_page: 100, modifiedSince: nil, includePrivateFields: false, kanbanView: nil) { ( result ) in
+        MassEntityAPIHandler( module : self ).getRecords( cvId : nil, filterId : nil, recordParams : recordParams ) { ( result ) in
             completion( result )
         }
     }
     
-    public func getRecordsWithPrivateFields( sortByField : String, sortOrder : SortOrder, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func getRecords( recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler(module: self).getRecords(cvId: nil, fields: nil, sortByField: sortByField, sortOrder: sortOrder, converted: nil, approved: nil, page: 1, per_page: 100, modifiedSince: nil, includePrivateFields: true, kanbanView: nil) { ( result ) in
+        MassEntityAPIHandler( module : self ).getRecords( cvId : nil, filterId : nil, recordParams : recordParams ) { ( result ) in
             completion( result )
         }
     }
     
-    /// Returns List of all records of the module with the given cvID(BulkAPIResponse).
-    ///
-    /// - Parameter cvId: custom view ID
-    /// - Returns: List of all records of the module with the given cvID
-    /// - Throws: ZCRMSDKError if failed to get the records
-    public func getRecords(cvId : Int64, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    @available(*, deprecated, message: "Use the struct 'GetRecordParams'" )
+    public func getRecords( cvId : Int64, recordParams : ZCRMQuery.GetRecords, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : nil , sortByField : nil, sortOrder : nil, converted : nil , approved : nil, page : 1, per_page : 100, modifiedSince : nil, includePrivateFields : false, kanbanView : nil, completion : { ( result ) in
-            completion( result )
-        } )
-    }
-    
-    public func getRecordsWithPrivateFields(cvId : Int64, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
-    {
-        MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : nil , sortByField : nil, sortOrder : nil, converted : nil , approved : nil, page : 1, per_page : 100, modifiedSince : nil, includePrivateFields : true, kanbanView : nil, completion : { ( result ) in
-            completion( result )
-        } )
-    }
-    
-    /// Returns list of all records of the module of a requested page number with records of per_page count(BulkAPIResponse).
-    ///
-    /// - Parameters:
-    ///   - cvId: custom view ID
-    ///   - page: page number of the module
-    ///   - per_page: number of records to be given for a single page.
-    /// - Returns: list of all records of the module of a requested page number with records of per_page count
-    /// - Throws: ZCRMSDKError if failed to get the records
-    public func getRecords(cvId : Int64, page : Int, per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
-    {
-        MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : nil , sortByField : nil, sortOrder : nil, converted : nil , approved : nil, page : page, per_page : per_page, modifiedSince : nil, includePrivateFields : false, kanbanView : nil, completion : { ( result ) in
-            completion( result )
-        } )
-    }
-    
-    public func getRecordsWithPrivateFields(cvId : Int64, page : Int, per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
-    {
-        MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : nil , sortByField : nil, sortOrder : nil, converted : nil , approved : nil, page : page, per_page : per_page, modifiedSince : nil, includePrivateFields : true, kanbanView : nil, completion : { ( result ) in
-            completion( result )
-        } )
-    }
-    
-    /// Returns list of all records of the module, before returning the list of records gets sorted with the given field and sort order(BulkAPIResponse).
-    ///
-    /// - Parameters:
-    ///   - cvId: custom view ID
-    ///   - sortByField: field by which the records get sorted
-    ///   - sortOrder: sort order (asc, desc)
-    /// - Returns: sorted list of records of the module
-    /// - Throws: ZCRMSDKError if failed to get the records
-    public func getRecords(cvId : Int64, sortByField : String, sortOrder : SortOrder, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
-    {
-        MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : nil , sortByField : sortByField, sortOrder : sortOrder, converted : nil , approved : nil, page : 1, per_page : 100, modifiedSince : nil, includePrivateFields : false, kanbanView : nil, completion : { ( result ) in
-            completion( result )
-        } )
-    }
-    
-    public func getRecordsWithPrivateFields(cvId : Int64, sortByField : String, sortOrder : SortOrder, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
-    {
-        MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : nil , sortByField : sortByField, sortOrder : sortOrder, converted : nil , approved : nil, page : 1, per_page : 100, modifiedSince : nil, includePrivateFields : true, kanbanView : nil, completion : { ( result ) in
-            completion( result )
-        } )
-    }
-    
-    /// Returns list of all records of the module of a requested page number with records of per_page count, before returning the list of records gets sorted with the given field and sort order(BulkAPIResponse).
-    ///
-    /// - Parameters:
-    ///   - cvId: custom view ID
-    ///   - sortByField: field by which the records get sorted
-    ///   - sortOrder: sort order (asc, desc)
-    ///   - page: page number of the module
-    ///   - per_page: page number of the module
-    ///   - modifiedSince: modified time
-    /// - Returns: sorted list of records of the module of a requested page number with records of per_page count
-    /// - Throws: ZCRMSDKError if failed to get the records
-    public func getRecords(cvId : Int64, sortByField : String, sortOrder : SortOrder, page : Int, per_page : Int, modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
-    {
-        MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : nil , sortByField : sortByField, sortOrder : sortOrder, converted : nil , approved : nil, page : page, per_page : per_page, modifiedSince : modifiedSince, includePrivateFields : false, kanbanView : nil, completion : { ( result ) in
-            completion( result )
-        } )
-    }
-    
-    public func getRecordsWithPrivateFields(cvId : Int64, sortByField : String, sortOrder : SortOrder, page : Int, per_page : Int, modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
-    {
-        MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : nil , sortByField : sortByField, sortOrder : sortOrder, converted : nil , approved : nil, page : page, per_page : per_page, modifiedSince : modifiedSince, includePrivateFields : true, kanbanView : nil, completion : { ( result ) in
-            completion( result )
-        } )
-    }
-    
-    /// Returns list of all records of the module which matches the requested params, before returning the list of records gets sorted with the given field and sort order(BulkAPIResponse).
-    ///
-    /// - Parameters:
-    ///   - cvId: custom view ID
-    ///   - fields : field apiNames
-    ///   - sortByField: field by which the records get sorted
-    ///   - sortOrder: sort order (asc, desc)
-    ///   - converted: specifies converted type or not
-    ///   - approved: specifies approved type or not
-    ///   - page: page number of the module
-    ///   - per_page: page number of the module
-    ///   - modifiedSince: modified time
-    /// - Returns: sorted list of records of the module  matches the requested params
-    /// - Throws: ZCRMSDKError if failed to get the records
-    public func getRecords( cvId : Int64?, fields : [String]? , sortByField : String? , sortOrder : SortOrder? , converted : Bool? , approved : Bool? , page : Int , per_page : Int , modifiedSince : String?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
-    {
-        MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : fields , sortByField : sortByField, sortOrder : sortOrder, converted : converted , approved : approved, page : page, per_page : per_page, modifiedSince : modifiedSince, includePrivateFields : false, kanbanView : nil, completion : { ( result ) in
-            completion( result )
-        } )
-    }
-    
-    public func getRecordsWithPrivateFields( cvId : Int64?, fields : [String]? , sortByField : String? , sortOrder : SortOrder? , converted : Bool? , approved : Bool? , page : Int , per_page : Int , modifiedSince : String?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
-    {
-        MassEntityAPIHandler( module : self ).getRecords( cvId : cvId, fields : fields , sortByField : sortByField, sortOrder : sortOrder, converted : converted , approved : approved, page : page, per_page : per_page, modifiedSince : modifiedSince, includePrivateFields : true, kanbanView : nil, completion : { ( result ) in
-            completion( result )
-        } )
-    }
-    
-    public func getRecords( cvId : Int64, kanbanView : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
-    {
-        MassEntityAPIHandler( module : self ).getRecords( cvId : cvId, fields : nil, sortByField : nil, sortOrder : nil, converted : nil, approved : nil, page : 1, per_page : 100, modifiedSince : nil, includePrivateFields : false, kanbanView : kanbanView ) { ( result ) in
+        MassEntityAPIHandler( module : self ).getRecords( cvId : cvId, filterId : nil, recordParams : recordParams ) { ( result ) in
             completion( result )
         }
     }
     
-    public func getRecords( cvId : Int64, sortByField : String?, sortOrder : SortOrder?, kanbanView : String?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func getRecords( cvId : Int64, recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler( module : self ).getRecords( cvId : cvId, fields : nil, sortByField : sortByField, sortOrder : sortOrder, converted : nil, approved : nil, page : 1, per_page : 100, modifiedSince : nil, includePrivateFields : false, kanbanView : kanbanView ) { ( result ) in
+        MassEntityAPIHandler( module : self ).getRecords( cvId : cvId, filterId : nil, recordParams : recordParams ) { ( result ) in
             completion( result )
         }
     }
     
-    /// Returns list of all approved records of the module which matches the requested params, before returning the list of records gets sorted with the given field and sort order(BulkAPIResponse).
-    ///
-    /// - Parameters:
-    ///   - cvId: custom view ID
-    ///   - fields : field apiNames
-    ///   - sortByField: field by which the records get sorted
-    ///   - sortOrder: sort order (asc, desc)
-    ///   - page: page number of the module
-    ///   - per_page: page number of the module
-    /// - Returns: sorted list of records of the module matches the requested params
-    /// - Throws: ZCRMSDKError if failed to get the records
-    public func getApprovedRecords( cvId : Int64? , fields : [String]? , sortByField : String? , sortOrder : SortOrder? , page : Int , per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    @available(*, deprecated, message: "Use the struct 'GetRecordParams'" )
+    public func getRecords( cvId : Int64, filterId : Int64, recordParams : ZCRMQuery.GetRecords, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : fields , sortByField : sortByField, sortOrder : sortOrder, converted : nil , approved : true, page : page, per_page : per_page, modifiedSince : nil, includePrivateFields : false, kanbanView : nil, completion : { ( result ) in
+        MassEntityAPIHandler( module : self ).getRecords( cvId : cvId, filterId : filterId, recordParams : recordParams ) { ( result ) in
             completion( result )
-        } )
+        }
     }
     
-    public func getApprovedRecordsWithPrivateFields( cvId : Int64? , fields : [String]? , sortByField : String? , sortOrder : SortOrder? , page : Int , per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func getRecords( cvId : Int64, filterId : Int64, recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : fields , sortByField : sortByField, sortOrder : sortOrder, converted : nil , approved : true, page : page, per_page : per_page, modifiedSince : nil, includePrivateFields : true, kanbanView : nil, completion : { ( result ) in
+        MassEntityAPIHandler( module : self ).getRecords( cvId : cvId, filterId : filterId, recordParams : recordParams ) { ( result ) in
             completion( result )
-        } )
+        }
     }
     
-    /// Returns list of all unapproved records of the module which matches the requested params, before returning the list of records gets sorted with the given field and sort order(BulkAPIResponse).
-    ///
-    /// - Parameters:
-    ///   - cvId: custom view ID
-    ///   - fields : field apiNames
-    ///   - sortByField: field by which the records get sorted
-    ///   - sortOrder: sort order (asc, desc)
-    ///   - page: page number of the module
-    ///   - per_page: page number of the module
-    /// - Returns: sorted list of records of the module matches the requested params
-    /// - Throws: ZCRMSDKError if failed to get the records
-    public func getUnApprovedRecords( cvId : Int64? , fields : [String]? , sortByField : String? , sortOrder : SortOrder? , page : Int , per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    @available(*, deprecated, message: "Use the method 'getRecords' with 'GetRecordParams'" )
+    public func getApprovedRecords( recordParams : ZCRMQuery.GetRecords, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : fields , sortByField : sortByField, sortOrder : sortOrder, converted : nil , approved : false, page : page, per_page : per_page, modifiedSince : nil, includePrivateFields : false, kanbanView : nil, completion : { ( result ) in
+        var recParams = recordParams
+        recParams.isApproved = true
+        MassEntityAPIHandler( module : self ).getRecords( cvId : nil, filterId : nil, recordParams : recordParams ) { ( result ) in
             completion( result )
-        } )
+        }
     }
     
-    public func getUnApprovedRecordsWithPrivateFields( cvId : Int64? , fields : [String]? , sortByField : String? , sortOrder : SortOrder? , page : Int , per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    @available(*, deprecated, message: "Use the method 'getRecords' with 'GetRecordParams'" )
+    public func getUnapprovedRecords( recordParams : ZCRMQuery.GetRecords, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : fields , sortByField : sortByField, sortOrder : sortOrder, converted : nil , approved : false, page : page, per_page : per_page, modifiedSince : nil, includePrivateFields : true, kanbanView : nil, completion : { ( result ) in
+        var recParams = recordParams
+        recParams.isApproved = false
+        MassEntityAPIHandler( module : self ).getRecords( cvId : nil, filterId : nil, recordParams : recordParams ) { ( result ) in
             completion( result )
-        } )
+        }
     }
     
-    /// Returns list of all converted records of the module which matches the requested params, before returning the list of records gets sorted with the given field and sort order(BulkAPIResponse).
-    ///
-    /// - Parameters:
-    ///   - fields : field apiNames
-    ///   - sortByField: field by which the records get sorted
-    ///   - sortOrder: sort order (asc, desc)
-    ///   - page: page number of the module
-    ///   - per_page: page number of the module
-    /// - Returns: sorted list of records of the module matches the requested params
-    /// - Throws: ZCRMSDKError if failed to get the records
-    public func getConvertedRecords(cvId : Int64? , fields : [String]? , sortByField : String? , sortOrder : SortOrder? , page : Int , per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    @available(*, deprecated, message: "Use the method 'getRecords' with 'GetRecordParams'" )
+    public func getConvertedRecords( recordParams : ZCRMQuery.GetRecords, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : fields , sortByField : sortByField, sortOrder : sortOrder, converted : true , approved : nil, page : page, per_page : per_page, modifiedSince : nil, includePrivateFields : false, kanbanView : nil, completion : { ( result ) in
+        var recParams = recordParams
+        recParams.isConverted = true
+        MassEntityAPIHandler( module : self ).getRecords( cvId : nil, filterId : nil, recordParams : recordParams ) { ( result ) in
             completion( result )
-        } )
+        }
     }
     
-    public func getConvertedRecordsWithPrivateFields(cvId : Int64? , fields : [String]? , sortByField : String? , sortOrder : SortOrder? , page : Int , per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    @available(*, deprecated, message: "Use the method 'getRecords' with 'GetRecordParams'" )
+    public func getUnconvertedRecords( recordParams : ZCRMQuery.GetRecords, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : fields , sortByField : sortByField, sortOrder : sortOrder, converted : true , approved : nil, page : page, per_page : per_page, modifiedSince : nil, includePrivateFields : true, kanbanView : nil, completion : { ( result ) in
+        var recParams = recordParams
+        recParams.isConverted = false
+        MassEntityAPIHandler( module : self ).getRecords( cvId : nil, filterId : nil, recordParams : recordParams ) { ( result ) in
             completion( result )
-        } )
-    }
-    
-    /// Returns list of all unconverted records of the module which matches the requested params, before returning the list of records gets sorted with the given field and sort order(BulkAPIResponse).
-    ///
-    /// - Parameters:
-    ///   - cvId: custom view ID
-    ///   - fields : fields apiNames
-    ///   - sortByField: field by which the records get sorted
-    ///   - sortOrder: sort order (asc, desc)
-    ///   - page: page number of the module
-    ///   - per_page: page number of the module
-    /// - Returns: sorted list of records of the module matches the requested params
-    /// - Throws: ZCRMSDKError if failed to get the records
-    public func getUnConvertedRecords(cvId : Int64? , fields : [String]? , sortByField : String? , sortOrder : SortOrder? , page : Int , per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
-    {
-        MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : fields , sortByField : sortByField, sortOrder : sortOrder, converted : false, approved : nil, page : page, per_page : per_page, modifiedSince : nil, includePrivateFields : false, kanbanView : nil, completion : { ( result ) in
-            completion( result )
-        } )
-    }
-    
-    public func getUnConvertedRecordsWithPrivateFields(cvId : Int64? , fields : [String]? , sortByField : String? , sortOrder : SortOrder? , page : Int , per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
-    {
-        MassEntityAPIHandler(module: self).getRecords( cvId : cvId, fields : fields , sortByField : sortByField, sortOrder : sortOrder, converted : false, approved : nil, page : page, per_page : per_page, modifiedSince : nil, includePrivateFields : true, kanbanView : nil, completion : { ( result ) in
-            completion( result )
-        } )
-    }
-    
-    /// Returns list of all approved records of the module which the given fields.
-    ///
-    /// - Parameters:
-    ///   - fields : fields apiNames
-    /// - Returns: sorted list of records of the module matches the given fields
-    /// - Throws: ZCRMSDKError if failed to get the records
-    public func getRecordByFields( fields : [String], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
-    {
-        MassEntityAPIHandler(module: self).getRecords( cvId : nil, fields : fields , sortByField : nil, sortOrder : nil, converted : nil , approved : nil, page : 1, per_page : 100, modifiedSince : nil, includePrivateFields : false, kanbanView : nil, completion : { ( result ) in
-            completion( result )
-        } )
-    }
-    
-    public func getRecordByFieldsWithPrivateFields( fields : [String], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
-    {
-        MassEntityAPIHandler(module: self).getRecords( cvId : nil, fields : fields , sortByField : nil, sortOrder : nil, converted : nil , approved : nil, page : 1, per_page : 100, modifiedSince : nil, includePrivateFields : true, kanbanView : nil, completion : { ( result ) in
-            completion( result )
-        } )
+        }
     }
     
     /// Returns List of all deleted records of the module(BulkAPIResponse).
@@ -474,14 +382,14 @@ open class ZCRMModuleDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to get the records
     public func getDeletedRecords( completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler( module : self ).getDeletedRecords(modifiedSince: nil, page: 1, perPage: 100) { ( result ) in
+        MassEntityAPIHandler( module : self ).getDeletedRecords( modifiedSince : nil, page : nil, perPage : nil ) { ( result ) in
             completion( result )
         }
     }
     
     public func getDeletedRecords( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler( module : self ).getDeletedRecords(modifiedSince: modifiedSince, page: 1, perPage: 100) { ( result ) in
+        MassEntityAPIHandler( module : self ).getDeletedRecords( modifiedSince : modifiedSince, page : nil, perPage : nil ) { ( result ) in
             completion( result )
         }
     }
@@ -507,7 +415,28 @@ open class ZCRMModuleDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to get the records
     public func getRecycleBinRecords( completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler( module : self ).getRecycleBinRecords { ( result ) in
+        MassEntityAPIHandler( module : self ).getRecycleBinRecords( modifiedSince : nil, page : nil, perPage : nil ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getRecycleBinRecords( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).getRecycleBinRecords( modifiedSince : modifiedSince, page : nil, perPage : nil ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getRecycleBinRecords( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).getRecycleBinRecords(modifiedSince: nil, page: page, perPage: perPage) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getRecycleBinRecords( modifiedSince : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).getRecycleBinRecords(modifiedSince: modifiedSince, page: page, perPage: perPage) { ( result ) in
             completion( result )
         }
     }
@@ -518,7 +447,28 @@ open class ZCRMModuleDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to get the records
     public func getPermanentlyDeletedRecords( completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler( module : self ).getPermanentlyDeletedRecords { ( result ) in
+        MassEntityAPIHandler( module : self ).getPermanentlyDeletedRecords( modifiedSince : nil, page : nil, perPage : nil ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getPermanentlyDeletedRecords( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).getPermanentlyDeletedRecords( modifiedSince : modifiedSince, page : nil, perPage : nil ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getPermanentlyDeletedRecords( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).getPermanentlyDeletedRecords(modifiedSince: nil, page: page, perPage: perPage) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getPermanentlyDeletedRecords( modifiedSince : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).getPermanentlyDeletedRecords(modifiedSince: modifiedSince, page: page, perPage: perPage) { ( result ) in
             completion( result )
         }
     }
@@ -528,9 +478,22 @@ open class ZCRMModuleDelegate : ZCRMEntity
     /// - Parameter searchText: text to be searched
     /// - Returns: list of records which contains the given search text as substring
     /// - Throws: ZCRMSDKError if failed to get the records
+    @available(*, deprecated, message: "Use the method 'searchBy' with param 'text'" )
     public func searchRecords(searchText: String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler(module: self).searchByText( searchText: searchText, page: 1, perPage: 200 ) { ( result ) in
+        MassEntityAPIHandler(module: self).searchByText( searchText: searchText, page: nil, perPage: nil ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    /// Returns list of records which contains the given search text as substring(BulkAPIResponse).
+    ///
+    /// - Parameter searchText: text to be searched
+    /// - Returns: list of records which contains the given search text as substring
+    /// - Throws: ZCRMSDKError if failed to get the records
+    public func searchBy( text : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).searchByText( searchText : text, page : nil, perPage : nil ) { ( result ) in
             completion( result )
         }
     }
@@ -543,9 +506,41 @@ open class ZCRMModuleDelegate : ZCRMEntity
     ///   - per_page: number of records to be given for a single page.
     /// - Returns: list of records of the module which contains the given search text as substring, with requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get the records
+    @available(*, deprecated, message: "Use the method 'searchBy' with param 'text'" )
     public func searchRecords(searchText: String, page: Int, per_page: Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
     {
         MassEntityAPIHandler(module: self).searchByText( searchText: searchText, page: page, perPage: per_page) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    /// Returns list of records of the module which contains the given search text as substring, with requested page number with records of per_page count(BulkAPIResponse).
+    ///
+    /// - Parameters:
+    ///   - searchText: text to be searched
+    ///   - page: page number of the module
+    ///   - per_page: number of records to be given for a single page.
+    /// - Returns: list of records of the module which contains the given search text as substring, with requested page number with records of per_page count
+    /// - Throws: ZCRMSDKError if failed to get the records
+    public func searchBy( text : String, page : Int, per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).searchByText( searchText : text, page : page, perPage : per_page ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    @available(*, deprecated, message: "Use the method with searchBy with param type 'ZCRMCriteria'" )
+    public func searchByCriteria( criteria : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).searchByCriteria( searchCriteria : criteria, page : nil, perPage : nil) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    @available(*, deprecated, message: "Use the method with searchBy with param type 'ZCRMCriteria'" )
+    public func searchByCriteria( criteria : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).searchByCriteria( searchCriteria : criteria, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
@@ -555,9 +550,9 @@ open class ZCRMModuleDelegate : ZCRMEntity
     /// - Parameter criteria: criteria to be searched
     /// - Returns: list of records which satisfies the given criteria
     /// - Throws: ZCRMSDKError if failed to get the records
-    public func searchByCriteria( criteria : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func searchBy( criteria : ZCRMQuery.ZCRMCriteria, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler( module : self ).searchByCriteria( searchCriteria : criteria, page : 1, perPage : 200) { ( result ) in
+        MassEntityAPIHandler( module : self ).searchByCriteria( searchCriteria : criteria, page : nil, perPage : nil ) { ( result ) in
             completion( result )
         }
     }
@@ -570,7 +565,7 @@ open class ZCRMModuleDelegate : ZCRMEntity
     ///   - perPage: number of records to be given for a single page
     /// - Returns: list of records of the module which satisfies the given criteria, with requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get the records
-    public func searchByCriteria( criteria : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func searchBy( criteria : ZCRMQuery.ZCRMCriteria, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).searchByCriteria( searchCriteria : criteria, page : page, perPage : perPage) { ( result ) in
             completion( result )
@@ -582,24 +577,10 @@ open class ZCRMModuleDelegate : ZCRMEntity
     /// - Parameter searchValue: value to be searched
     /// - Returns: list of records of the module which satisfies the given value
     /// - Throws: ZCRMSDKError if failed to get the records
+    @available(*, deprecated, message: "Use the method 'searchBy' with param 'phone'" )
     public func searchByPhone( searchValue : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler( module : self ).searchByPhone( searchValue : searchValue, page : 1, perPage : 200 ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    /// Returns list of records of the module which satisfies the given value, with requested page number with records of per_page count(BulkAPIResponse).
-    ///
-    /// - Parameters:
-    ///   - searchValue: value to be searched
-    ///   - page: page number of the module
-    ///   - perPage: number of records to be given for a single page
-    /// - Returns: list of records of the module which satisfies the given value, with requested page number with records of per_page count
-    /// - Throws: ZCRMSDKError if failed to get the records
-    public func searchByPhone( searchValue : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
-    {
-        MassEntityAPIHandler( module : self ).searchByPhone( searchValue : searchValue, page : page, perPage : perPage) { ( result ) in
+        MassEntityAPIHandler( module : self ).searchByPhone( searchValue : searchValue, page : nil, perPage : nil ) { ( result ) in
             completion( result )
         }
     }
@@ -609,9 +590,9 @@ open class ZCRMModuleDelegate : ZCRMEntity
     /// - Parameter searchValue: value to be searched
     /// - Returns: list of records of the module which satisfies the given value
     /// - Throws: ZCRMSDKError if failed to get the records
-    public func searchByEmail( searchValue : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func searchBy( phone : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler( module : self ).searchByEmail( searchValue : searchValue, page : 1, perPage : 200 ) { ( result ) in
+        MassEntityAPIHandler( module : self ).searchByPhone( searchValue : phone, page : nil, perPage : nil ) { ( result ) in
             completion( result )
         }
     }
@@ -624,9 +605,81 @@ open class ZCRMModuleDelegate : ZCRMEntity
     ///   - perPage: number of records to be given for a single page
     /// - Returns: list of records of the module which satisfies the given value, with requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get the records
+    @available(*, deprecated, message: "Use the method 'searchBy' with param 'phone'" )
+    public func searchByPhone( searchValue : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).searchByPhone( searchValue : searchValue, page : page, perPage : perPage) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    /// Returns list of records of the module which satisfies the given value, with requested page number with records of per_page count(BulkAPIResponse).
+    ///
+    /// - Parameters:
+    ///   - searchValue: value to be searched
+    ///   - page: page number of the module
+    ///   - perPage: number of records to be given for a single page
+    /// - Returns: list of records of the module which satisfies the given value, with requested page number with records of per_page count
+    /// - Throws: ZCRMSDKError if failed to get the records
+    public func searchBy( phone : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).searchByPhone( searchValue : phone, page : page, perPage : perPage) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    /// Returns list of records of the module which satisfies the given value(BulkAPIResponse).
+    ///
+    /// - Parameter searchValue: value to be searched
+    /// - Returns: list of records of the module which satisfies the given value
+    /// - Throws: ZCRMSDKError if failed to get the records
+    @available(*, deprecated, message: "Use the method 'searchBy' with param 'email'" )
+    public func searchByEmail( searchValue : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).searchByEmail( searchValue : searchValue, page : nil, perPage : nil ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    /// Returns list of records of the module which satisfies the given value(BulkAPIResponse).
+    ///
+    /// - Parameter searchValue: value to be searched
+    /// - Returns: list of records of the module which satisfies the given value
+    /// - Throws: ZCRMSDKError if failed to get the records
+    public func searchBy( email : String, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).searchByEmail( searchValue : email, page : nil, perPage : nil ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    /// Returns list of records of the module which satisfies the given value, with requested page number with records of per_page count(BulkAPIResponse).
+    ///
+    /// - Parameters:
+    ///   - searchValue: value to be searched
+    ///   - page: page number of the module
+    ///   - perPage: number of records to be given for a single page
+    /// - Returns: list of records of the module which satisfies the given value, with requested page number with records of per_page count
+    /// - Throws: ZCRMSDKError if failed to get the records
+    @available(*, deprecated, message: "Use the method 'searchBy' with param 'email'" )
     public func searchByEmail( searchValue : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).searchByEmail( searchValue : searchValue, page : page, perPage : perPage) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    /// Returns list of records of the module which satisfies the given value, with requested page number with records of per_page count(BulkAPIResponse).
+    ///
+    /// - Parameters:
+    ///   - searchValue: value to be searched
+    ///   - page: page number of the module
+    ///   - perPage: number of records to be given for a single page
+    /// - Returns: list of records of the module which satisfies the given value, with requested page number with records of per_page count
+    /// - Throws: ZCRMSDKError if failed to get the records
+    public func searchBy( email : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).searchByEmail( searchValue : email, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
@@ -638,7 +691,14 @@ open class ZCRMModuleDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to create records
     public func createRecords(records: [ZCRMRecord], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
     {
-        MassEntityAPIHandler(module: self).createRecords( records: records) { ( result ) in
+        MassEntityAPIHandler(module: self).createRecords( triggers: nil, records: records) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func createRecords(triggers : [Trigger], records: [ZCRMRecord], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    {
+        MassEntityAPIHandler(module: self).createRecords( triggers: triggers, records: records) { ( result ) in
             completion( result )
         }
     }
@@ -653,7 +713,14 @@ open class ZCRMModuleDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to update records
     public func updateRecords(recordIds: [Int64], fieldAPIName: String, value: Any?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
     {
-        MassEntityAPIHandler(module: self).updateRecords( ids: recordIds, fieldAPIName: fieldAPIName, value: value) { ( result ) in
+        MassEntityAPIHandler(module: self).updateRecords( triggers: nil, ids: recordIds, fieldAPIName: fieldAPIName, value: value) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func updateRecords(triggers : [Trigger], recordIds: [Int64], fieldAPIName: String, value: Any?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    {
+        MassEntityAPIHandler(module: self).updateRecords( triggers : triggers, ids: recordIds, fieldAPIName: fieldAPIName, value: value) { ( result ) in
             completion( result )
         }
     }
@@ -665,7 +732,14 @@ open class ZCRMModuleDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to upsert records
     public func upsertRecords( records : [ ZCRMRecord ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler( module : self ).upsertRecords( records : records) { ( result ) in
+        MassEntityAPIHandler( module : self ).upsertRecords( triggers: nil, records : records) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func upsertRecords( triggers : [Trigger],  records : [ ZCRMRecord ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    {
+        MassEntityAPIHandler( module : self ).upsertRecords( triggers: triggers, records : records) { ( result ) in
             completion( result )
         }
     }
@@ -693,9 +767,10 @@ open class ZCRMModuleDelegate : ZCRMEntity
     {
         for tag in tags
         {
-            if tag.tagId != APIConstants.INT64_MOCK
+            if !tag.isCreate
             {
-                completion( .failure( ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : "tag Id should be nil" ) ) )
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.INVALID_DATA) : TAG ID should be nil")
+                completion( .failure( ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : "TAG ID should be nil", details : nil ) ) )
                 return
             }
         }
@@ -708,14 +783,10 @@ open class ZCRMModuleDelegate : ZCRMEntity
     {
         for tag in tags
         {
-            if tag.tagId == APIConstants.INT64_MOCK
+            if tag.isCreate
             {
-                completion( .failure( ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : ErrorMessage.INVALID_ID_MSG ) ) )
-                return
-            }
-            if tag.tagName == APIConstants.STRING_MOCK
-            {
-                completion( .failure( ZCRMError.InValidError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "tag name must not be nil" ) ) )
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.INVALID_DATA) : TAG ID and NAME should be nil")
+                completion( .failure( ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : "TAG ID and NAME must not be nil", details : nil ) ) )
                 return
             }
         }
@@ -724,39 +795,92 @@ open class ZCRMModuleDelegate : ZCRMEntity
         } )
     }
     
-    public func addTags( recordIds : [Int64], tags : [ZCRMTag], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
+    public func addTags( records : [ ZCRMRecord ], tags : [ String ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler(module: self).addTags(recordIds: recordIds, tags: tags, overWrite: nil) { ( result ) in
+        MassEntityAPIHandler( module : self ).addTags( records : records, tags : tags, overWrite : nil ) { ( result ) in
             completion( result )
         }
     }
     
-    public func addTags( recordIds : [Int64], tags : [ZCRMTag], overWrite : Bool?, completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
+    public func addTags( records : [ ZCRMRecord ], tags : [ String ], overWrite : Bool?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler(module: self).addTags(recordIds: recordIds, tags: tags, overWrite: overWrite) { ( result ) in
+        MassEntityAPIHandler( module : self ).addTags( records : records, tags : tags, overWrite : overWrite ) { ( result ) in
             completion( result )
         }
     }
     
-    public func removeTags( recordIds: [Int64], tags : [ZCRMTag], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
+    public func removeTags( records : [ ZCRMRecord ], tags : [ String ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        MassEntityAPIHandler(module: self).removeTags(recordIds: recordIds, tags: tags) { ( result ) in
+        MassEntityAPIHandler( module : self ).removeTags( records : records, tags : tags ) { ( result ) in
             completion( result )
         }
     }
     
-    public func getDealStages( completion : @escaping( Result.DataResponse< [ ZCRMStage ], BulkAPIResponse > ) -> () )
+    public func rescheduleCalls( records : [ ZCRMRecord ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
-        if self.apiName == "Deals"
+        do
         {
-            ModuleAPIHandler( module: self ).getStages { ( result ) in
+            try callsModuleCheck(module: self.apiName)
+            MassEntityAPIHandler(module: self).rescheduleCalls(records: records, triggers: nil) { ( result ) in
                 completion( result )
             }
         }
-        else
+        catch
         {
-            completion( .failure( ZCRMError.InValidError(code : ErrorCode.INVALID_DATA, message : "Module is invalid" ) ) )
+            completion( .failure( typeCastToZCRMError( error ) ) )
         }
     }
     
+    public func rescheduleCalls( records : [ ZCRMRecord ], triggers : [Trigger], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    {
+        do
+        {
+            try callsModuleCheck(module: self.apiName)
+            MassEntityAPIHandler(module: self).rescheduleCalls(records: records, triggers: triggers) { ( result ) in
+                completion( result )
+            }
+        }
+        catch
+        {
+            completion( .failure( typeCastToZCRMError( error ) ) )
+        }
+    }
+    
+    public func cancelCalls( records : [ ZCRMRecord ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    {
+        do
+        {
+            try callsModuleCheck(module: self.apiName)
+            MassEntityAPIHandler(module: self).cancelCalls(records: records, triggers: nil) { ( result ) in
+                completion( result )
+            }
+        }
+        catch
+        {
+            completion( .failure( typeCastToZCRMError( error ) ) )
+        }
+    }
+    
+    public func cancelCalls( records : [ ZCRMRecord ], triggers : [ Trigger ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    {
+        do
+        {
+            try callsModuleCheck(module: self.apiName)
+            MassEntityAPIHandler(module: self).cancelCalls(records: records, triggers: triggers) { ( result ) in
+                completion( result )
+            }
+        }
+        catch
+        {
+            completion( .failure( typeCastToZCRMError( error ) ) )
+        }
+    }
+}
+
+extension ZCRMModuleDelegate : Equatable
+{
+    public static func == (lhs: ZCRMModuleDelegate, rhs: ZCRMModuleDelegate) -> Bool {
+        let equals : Bool = lhs.apiName == rhs.apiName
+        return equals
+    }
 }

@@ -10,16 +10,29 @@ import Foundation
 
 open class ZCRMTrashRecord : ZCRMEntity
 {
-    public var entityId : Int64
-    public var type : String
-    public var displayName : String = APIConstants.STRING_MOCK
-    public var deletedTime : String = APIConstants.STRING_MOCK
-    public var deletedBy : ZCRMUserDelegate = USER_MOCK
-    public var createdBy : ZCRMUserDelegate = USER_MOCK
+    public internal( set ) var id : Int64
+    public internal( set ) var type : String
+    public internal( set ) var displayName : String?
+    public internal( set ) var deletedTime : String = APIConstants.STRING_MOCK
+    public internal( set ) var deletedBy : ZCRMUserDelegate?
+    public internal( set ) var createdBy : ZCRMUserDelegate?
     
-    internal init( type : String, entityId : Int64 )
+    internal init( type : String, id : Int64 )
     {
-        self.entityId = entityId
+        self.id = id
         self.type = type
+    }
+}
+
+extension ZCRMTrashRecord : Equatable
+{
+    public static func == (lhs: ZCRMTrashRecord, rhs: ZCRMTrashRecord) -> Bool {
+        let equals : Bool = lhs.id == rhs.id &&
+            lhs.type == rhs.type &&
+            lhs.displayName == rhs.displayName &&
+            lhs.deletedTime == rhs.deletedTime &&
+            lhs.deletedBy == rhs.deletedBy &&
+            lhs.createdBy == rhs.createdBy
+        return equals
     }
 }

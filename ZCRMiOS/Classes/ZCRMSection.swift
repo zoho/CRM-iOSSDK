@@ -8,19 +8,23 @@
 
 public class ZCRMSection : ZCRMEntity
 {
-	public var name : String
-	public var displayName : String = APIConstants.STRING_MOCK
-	public var columnCount : Int = APIConstants.INT_MOCK
-	public var sequence : Int = APIConstants.INT_MOCK
-	public var fields : [ZCRMField]?
-    public var isSubformSection : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var apiName : String
+	public internal( set ) var name : String = APIConstants.STRING_MOCK
+	public internal( set ) var displayName : String = APIConstants.STRING_MOCK
+	public internal( set ) var columnCount : Int = APIConstants.INT_MOCK
+	public internal( set ) var sequence : Int = APIConstants.INT_MOCK
+	public internal( set ) var fields : [ ZCRMField ] = [ ZCRMField ]()
+    public internal( set ) var isSubformSection : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var reorderRows : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var tooltip : String?
+    public internal( set ) var maximumRows : Int?
 	
     /// Initialise the instance of a section with the given section name.
     ///
     /// - Parameter sectionName: section name whose associated section is to be initialised
-	internal init(sectionName : String)
+	internal init( apiName : String )
 	{
-		self.name = sectionName
+		self.apiName = apiName
 	}
 	
     /// Add given ZCRMFields to the sections.
@@ -28,18 +32,28 @@ public class ZCRMSection : ZCRMEntity
     /// - Parameter field: ZCRMField to be added
 	internal func addField(field : ZCRMField)
 	{
-        if self.fields == nil
-        {
-            self.fields = [ ZCRMField ]()
-        }
-        self.fields?.append( field )
+        self.fields.append( field )
 	}
 	
     /// Add given list of fields to the section.
     ///
     /// - Parameter allFields: list of ZCRMFields
+    @available(*, deprecated, message: "Use the property directly" )
 	internal func addFields(allFields : [ZCRMField])
 	{
 		self.fields = allFields
 	}
+}
+
+extension ZCRMSection : Equatable
+{
+    public static func == (lhs: ZCRMSection, rhs: ZCRMSection) -> Bool {
+        let equals : Bool = lhs.name == rhs.name &&
+            lhs.displayName == rhs.displayName &&
+            lhs.columnCount == rhs.columnCount &&
+            lhs.sequence == rhs.sequence &&
+            lhs.fields == rhs.fields &&
+            lhs.isSubformSection == rhs.isSubformSection
+        return equals
+    }
 }

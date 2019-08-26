@@ -8,49 +8,48 @@
 
 open class ZCRMModule : ZCRMModuleDelegate
 {
-    public var singularLabel : String
-    public var pluralLabel : String
-    public var id : Int64 = APIConstants.INT64_MOCK
-    public var systemName : String = APIConstants.STRING_MOCK
+    public internal( set ) var singularLabel : String
+    public internal( set ) var pluralLabel : String
+    public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
+    public internal( set ) var name : String = APIConstants.STRING_MOCK
     
-    public var creatable : Bool = APIConstants.BOOL_MOCK
-    public var viewable : Bool = APIConstants.BOOL_MOCK
-    public var convertible : Bool = APIConstants.BOOL_MOCK
-    public var editable : Bool = APIConstants.BOOL_MOCK
-    public var deletable : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var isCreatable : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var isViewable : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var isConvertible : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var isEditable : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var isDeletable : Bool = APIConstants.BOOL_MOCK
     
-    public var modifiedBy : ZCRMUserDelegate = USER_MOCK
-    public var modifiedTime : String = APIConstants.STRING_MOCK
+    public internal( set ) var modifiedBy : ZCRMUserDelegate?
+    public internal( set ) var modifiedTime : String?
     
-    public var allowedProfiles : [ZCRMProfileDelegate]?
-    public var relatedLists : [ZCRMModuleRelation]?
+    public internal( set ) var accessibleProfiles : [ZCRMProfileDelegate]?
+    public internal( set ) var relatedLists : [ZCRMModuleRelation]?
 
     
-    public var globalSearchSupported : Bool = APIConstants.BOOL_MOCK
-    public var visibility : Int = APIConstants.INT_MOCK
-    public var apiSupported : Bool = APIConstants.BOOL_MOCK
-    public var quickCreate : Bool = APIConstants.BOOL_MOCK
-    public var scoringSupported : Bool = APIConstants.BOOL_MOCK
-    public var sequenceNumber : Int?
-    public var generatedType : String = APIConstants.STRING_MOCK
-    public var businessCardFieldLimit : Int?
-    public var webLink : String?
+    public internal( set ) var isGlobalSearchSupported : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var visibility : Int = APIConstants.INT_MOCK
+    public internal( set ) var isAPISupported : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var isQuickCreateAvailable : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var isScoringSupported : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var sequenceNumber : Int?
+    public internal( set ) var generatedType : String = APIConstants.STRING_MOCK
+    public internal( set ) var businessCardFieldLimit : Int?
+    public internal( set ) var webLink : String?
     
-    public var arguments : [ [ String : Any ] ]?
-    public var properties : [ String ] = [ APIConstants.STRING_MOCK ]
+    public internal( set ) var arguments : [ [ String : Any ] ]?
     
-    public var displayField : String?
-    public var searchLayoutFields : [ String ]?
-    public var parentModule : ZCRMModule?
-    public var customView : ZCRMCustomView?
+    public internal( set ) var displayField : String?
+    public internal( set ) var searchLayoutFields : [ String ]?
+    public internal( set ) var parentModule : ZCRMModuleDelegate?
+    public internal( set ) var customView : ZCRMCustomView?
     
-    public var isKanbanView : Bool = APIConstants.BOOL_MOCK
-    public var filterStatus : Bool = APIConstants.BOOL_MOCK
-    public var isSubMenuPresent : Bool = APIConstants.BOOL_MOCK
-    public var perPage : Int?
-    public var isFilterSupported : Bool = APIConstants.BOOL_MOCK
-    public var isFeedsRequired : Bool = APIConstants.BOOL_MOCK
-    public var parenModule : ZCRMModuleDelegate?
+    public internal( set ) var isKanbanViewEnabled : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var filterStatus : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var isSubMenuPresent : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var perPage : Int?
+    public internal( set ) var isFilterSupported : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var isFeedsRequired : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var isEmailTemplateSupported : Bool = APIConstants.BOOL_MOCK
     
     internal init( apiName : String, singularLabel : String, pluralLabel : String )
     {
@@ -59,8 +58,84 @@ open class ZCRMModule : ZCRMModuleDelegate
         super.init( apiName : apiName )
 	}
     
-    func addAllowedProfile( profile : ZCRMProfileDelegate )
+    func addAccessibleProfiles( profile : ZCRMProfileDelegate )
     {
-        self.allowedProfiles?.append( profile )
+        if self.accessibleProfiles == nil
+        {
+            self.accessibleProfiles = [ ZCRMProfileDelegate ]()
+        }
+        self.accessibleProfiles?.append( profile )
+    }
+    
+    func addRelatedList( relatedList : ZCRMModuleRelation )
+    {
+        if self.relatedLists == nil
+        {
+            self.relatedLists = [ ZCRMModuleRelation ]()
+        }
+        self.relatedLists?.append( relatedList )
+    }
+}
+
+extension ZCRMModule
+{
+    public static func == (lhs: ZCRMModule, rhs: ZCRMModule) -> Bool {
+        var argumentsFlag : Bool = false
+        var count : Int = 0
+        if lhs.arguments == nil && rhs.arguments == nil
+        {
+            argumentsFlag = true
+        }
+        else if let lhsArguments = lhs.arguments, let rhsArguments = rhs.arguments
+        {
+            if lhsArguments.count == rhsArguments.count
+            {
+                for index in 0..<lhsArguments.count
+                {
+                    if NSDictionary(dictionary: lhsArguments[index]).isEqual(to: rhsArguments[index])
+                    {
+                        count = count + 1
+                    }
+                }
+                if count == lhsArguments.count
+                {
+                    argumentsFlag = true
+                }
+            }
+        }
+        let equals : Bool = lhs.singularLabel == rhs.singularLabel &&
+            lhs.pluralLabel == rhs.pluralLabel &&
+            lhs.id == rhs.id &&
+            lhs.name == rhs.name &&
+            lhs.isCreatable == rhs.isCreatable &&
+            lhs.isViewable == rhs.isViewable &&
+            lhs.isConvertible == rhs.isConvertible &&
+            lhs.isEditable == rhs.isEditable &&
+            lhs.isDeletable == rhs.isDeletable &&
+            lhs.modifiedBy == rhs.modifiedBy &&
+            lhs.modifiedTime == rhs.modifiedTime &&
+            lhs.accessibleProfiles == rhs.accessibleProfiles &&
+            lhs.relatedLists == rhs.relatedLists &&
+            lhs.isGlobalSearchSupported == rhs.isGlobalSearchSupported &&
+            lhs.visibility == rhs.visibility &&
+            lhs.isAPISupported == rhs.isAPISupported &&
+            lhs.isQuickCreateAvailable == rhs.isQuickCreateAvailable &&
+            lhs.isScoringSupported == rhs.isScoringSupported &&
+            lhs.sequenceNumber == rhs.sequenceNumber &&
+            lhs.generatedType == rhs.generatedType &&
+            lhs.businessCardFieldLimit == rhs.businessCardFieldLimit &&
+            lhs.webLink == rhs.webLink &&
+            argumentsFlag &&
+            lhs.displayField == rhs.displayField &&
+            lhs.searchLayoutFields == rhs.searchLayoutFields &&
+            lhs.parentModule == rhs.parentModule &&
+            lhs.customView == rhs.customView &&
+            lhs.isKanbanViewEnabled == rhs.isKanbanViewEnabled &&
+            lhs.filterStatus == rhs.filterStatus &&
+            lhs.isSubMenuPresent == rhs.isSubMenuPresent &&
+            lhs.perPage == rhs.perPage &&
+            lhs.isFilterSupported == rhs.isFilterSupported &&
+            lhs.isFeedsRequired == rhs.isFeedsRequired
+        return equals
     }
 }

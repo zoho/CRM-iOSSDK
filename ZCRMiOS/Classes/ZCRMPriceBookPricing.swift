@@ -9,7 +9,7 @@
 
 open class ZCRMPriceBookPricing
 {
-    public var id : Int64
+    public internal( set ) var id : Int64
     public var toRange : Double = APIConstants.DOUBLE_MOCK
     public var fromRange : Double = APIConstants.DOUBLE_MOCK
     public var discount : Double = APIConstants.DOUBLE_MOCK
@@ -26,6 +26,17 @@ open class ZCRMPriceBookPricing
         self.fromRange = fromRange
         self.discount = discount
         self.id = APIConstants.INT64_MOCK
+    }
+}
+
+extension ZCRMPriceBookPricing : Equatable
+{
+    public static func == (lhs: ZCRMPriceBookPricing, rhs: ZCRMPriceBookPricing) -> Bool {
+        let equals : Bool = lhs.id == rhs.id  &&
+            lhs.toRange == rhs.toRange &&
+            lhs.fromRange == rhs.fromRange &&
+            lhs.discount == rhs.discount
+        return equals
     }
 }
 

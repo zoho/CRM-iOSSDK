@@ -8,18 +8,18 @@
 
 open class ZCRMLayout : ZCRMLayoutDelegate
 {
-    public var createdBy : ZCRMUserDelegate = USER_MOCK
-    public var createdTime : String = APIConstants.STRING_MOCK
-    public var modifiedBy : ZCRMUserDelegate = USER_MOCK
-    public var modifiedTime : String = APIConstants.STRING_MOCK
-    public var visible : Bool = APIConstants.BOOL_MOCK
-    public var status : Int = APIConstants.INT_MOCK
-    public var sections : [ZCRMSection]?
-    public var accessibleProfiles : [ZCRMProfileDelegate]?
+    public internal( set ) var createdBy : ZCRMUserDelegate?
+    public internal( set ) var createdTime : String?
+    public internal( set ) var modifiedBy : ZCRMUserDelegate?
+    public internal( set ) var modifiedTime : String?
+    public internal( set ) var isVisible : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var status : Int = APIConstants.INT_MOCK
+    public internal( set ) var sections : [ ZCRMSection ] = [ ZCRMSection ]()
+    public internal( set ) var accessibleProfiles : [ ZCRMProfileDelegate ] = [ ZCRMProfileDelegate ]()
 	
     init( name : String )
     {
-        super.init( layoutId : APIConstants.INT64_MOCK, layoutName : name )
+        super.init( id : APIConstants.INT64_MOCK, name : name )
     }
 	
     /// Add ZCRMSection to the ZCRMLayout.
@@ -27,30 +27,21 @@ open class ZCRMLayout : ZCRMLayoutDelegate
     /// - Parameter section: ZCRMSection to be added
 	internal func addSection(section : ZCRMSection)
 	{
-        if self.sections == nil
-        {
-            self.sections = [ ZCRMSection ]()
-        }
-        self.sections?.append(section)
+        self.sections.append(section)
 	}
-	
-    /// Set list ZCRMSections of the ZCRMLayout
-    ///
-    /// - Parameter allSections: list of ZCRMSection
-	internal func setSections(allSections : [ZCRMSection])
-	{
-		self.sections = allSections
-	}
-	
-    /// Add ZCRMProfile access to the ZCRMLayout
-    ///
-    /// - Parameter profile: ZCRMProfile to be added
-	internal func addAccessibleProfile(profile : ZCRMProfileDelegate)
-	{
-        if self.accessibleProfiles == nil
-        {
-            self.accessibleProfiles = [ ZCRMProfileDelegate ]()
-        }
-        self.accessibleProfiles?.append(profile)
-	}
+}
+
+extension ZCRMLayout
+{
+    public static func == (lhs: ZCRMLayout, rhs: ZCRMLayout) -> Bool {
+        let equals : Bool = lhs.createdBy == rhs.createdBy &&
+            lhs.createdTime == rhs.createdTime &&
+            lhs.modifiedBy == rhs.modifiedBy &&
+            lhs.modifiedTime == rhs.modifiedTime &&
+            lhs.isVisible == rhs.isVisible &&
+            lhs.status == rhs.status &&
+            lhs.sections == rhs.sections &&
+            lhs.accessibleProfiles == rhs.accessibleProfiles
+        return equals
+    }
 }

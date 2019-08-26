@@ -6,14 +6,23 @@
 //
 open class ZCRMRoleDelegate : ZCRMEntity
 {
-    public var roleId : Int64
-    public var roleName : String
+    public internal( set ) var id : Int64
+    public internal( set ) var name : String
     
-    internal init( roleId : Int64, roleName : String )
+    internal init( id : Int64, name : String )
     {
-        self.roleId = roleId
-        self.roleName = roleName
+        self.id = id
+        self.name = name
     }
 }
 
-let ROLE_MOCK = ZCRMRoleDelegate( roleId : APIConstants.INT64_MOCK, roleName : APIConstants.STRING_MOCK )
+extension ZCRMRoleDelegate : Equatable
+{
+    public static func == (lhs: ZCRMRoleDelegate, rhs: ZCRMRoleDelegate) -> Bool {
+        let equals : Bool = lhs.id == rhs.id &&
+            lhs.name == rhs.name
+        return equals
+    }
+}
+
+let ROLE_MOCK = ZCRMRoleDelegate( id : APIConstants.INT64_MOCK, name : APIConstants.STRING_MOCK )

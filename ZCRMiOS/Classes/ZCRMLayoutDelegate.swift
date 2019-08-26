@@ -7,14 +7,21 @@
 
 open class ZCRMLayoutDelegate : ZCRMEntity
 {
-    public var layoutId : Int64
-    public var layoutName : String
+    public internal( set ) var id : Int64
+    public internal( set ) var name : String
     
-    internal init( layoutId : Int64, layoutName : String )
+    internal init( id : Int64, name : String )
     {
-        self.layoutId = layoutId
-        self.layoutName = layoutName
+        self.id = id
+        self.name = name
     }
 }
 
-let LAYOUT_MOCK : ZCRMLayoutDelegate = ZCRMLayoutDelegate( layoutId : APIConstants.INT64_MOCK, layoutName : APIConstants.STRING_MOCK )
+extension ZCRMLayoutDelegate : Equatable
+{
+    public static func == (lhs: ZCRMLayoutDelegate, rhs: ZCRMLayoutDelegate) -> Bool {
+        let equals : Bool = lhs.id == rhs.id &&
+            lhs.name == rhs.name
+        return equals
+    }
+}

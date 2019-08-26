@@ -29,39 +29,57 @@ public class ZCRMLoginHandler
             {
                 if( dict.keys.contains( key ) == false )
                 {
-                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "\( key ) not present in the App configuration plist!" )
+                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "\( key ) not present in the App configuration plist!", details: nil )
                 }
             }
             for key in dict.keys
             {
                 if( dict[ key ] == nil )
                 {
-                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "\( key ) is nil. It should have value" )
+                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "\( key ) is nil. It should have value", details: nil )
                 }
             }
         }
         else
         {
-            throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "App configuration property list is empty!" )
+            throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "App configuration property list is empty!", details: nil )
         }
     }
     
     public func initIAMLogin( window : UIWindow? )
     {
-        ZohoAuth.initWithClientID( appConfigurationUtil.getClientID(), clientSecret : appConfigurationUtil.getClientSecretID(), scope : appConfigurationUtil.getAuthscopes(), urlScheme : appConfigurationUtil.getRedirectURLScheme(), mainWindow : window, accountsURL : appConfigurationUtil.getAccountsURL() )
-        print( "redirectURL : \( appConfigurationUtil.getRedirectURLScheme() )")
+        do
+        {
+            self.setAppConfigurations()
+            try self.updateBaseURL( countryDomain : COUNTRYDOMAIN )
+            print( "Country Domain : \( COUNTRYDOMAIN )" )
+            ZohoAuth.initWithClientID( try appConfigurationUtil.getClientID(), clientSecret : try appConfigurationUtil.getClientSecretID(), scope : try appConfigurationUtil.getAuthscopes(), urlScheme : try appConfigurationUtil.getRedirectURLScheme(), mainWindow : window, accountsURL : try appConfigurationUtil.getAccountsURL() )
+            print( "redirectURL : \( try appConfigurationUtil.getRedirectURLScheme() )")
+        }
+        catch
+        {
+            print( "Error : \( error )" )
+        }
+        
     }
     
     internal func setAppConfigurations()
     {
-        APPTYPE = appConfigurationUtil.getAppType()
-        APIVERSION = appConfigurationUtil.getApiVersion()
-        if( APIVERSION.isEmpty == true )
+        do
         {
-            APIVERSION = "v2"
+            ZCRMSDKClient.shared.appType = appConfigurationUtil.getAppType()
+            ZCRMSDKClient.shared.apiVersion = try appConfigurationUtil.getApiVersion()
+            if( ZCRMSDKClient.shared.apiVersion.isEmpty == true )
+            {
+                ZCRMSDKClient.shared.apiVersion = "v2"
+            }
+                COUNTRYDOMAIN = try appConfigurationUtil.getCountryDomain()
+                accessType = try appConfigurationUtil.getAccessType()
         }
-        COUNTRYDOMAIN = appConfigurationUtil.getCountryDomain()
-        accessType = appConfigurationUtil.getAccessType()
+        catch
+        {
+            print("Error occured > \(error)")
+        }
     }
     
     internal func updateBaseURL( countryDomain : String ) throws
@@ -83,25 +101,25 @@ public class ZCRMLoginHandler
         switch ( countryDomain )
         {
         case ( "com" ), ( "us" ) :
-            APIBASEURL = "https://\( domain ).zohoapis.com"
+            ZCRMSDKClient.shared.apiBaseURL = "https://\( domain ).zohoapis.com"
             ACCOUNTSURL = "https://accounts.zoho.com"
             break
             
         case "eu" :
-            APIBASEURL = "https://\( domain ).zohoapis.eu"
+            ZCRMSDKClient.shared.apiBaseURL = "https://\( domain ).zohoapis.eu"
             ACCOUNTSURL = "https://accounts.zoho.eu"
             break
             
         case "cn" :
-            APIBASEURL = "https://\( domain ).zohoapis.com.cn"
+            ZCRMSDKClient.shared.apiBaseURL = "https://\( domain ).zohoapis.com.cn"
             ACCOUNTSURL = "https://accounts.zoho.com.cn"
             break
             
         default :
             print( "Country domain is invalid. \( domain )" )
-            throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message :  "Country domain is invalid." )
+            throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message :  "Country domain is invalid.", details: nil )
         }
-        print( "API Base URL : \(APIBASEURL)")
+        print( "API Base URL : \(ZCRMSDKClient.shared.apiBaseURL)")
     }
     
     public func clearIAMLoginFirstLaunch()
@@ -111,7 +129,7 @@ public class ZCRMLoginHandler
     
     public func getBaseURL() -> String
     {
-        return APIBASEURL
+        return ZCRMSDKClient.shared.apiBaseURL
     }
     
     public func iamLoginHandleURL( url : URL, sourceApplication : String?, annotation : Any )
@@ -169,7 +187,6 @@ public class ZCRMLoginHandler
                 {
                     self.clearIAMLoginFirstLaunch()
                     print( "removed AllScopesWithSuccess!" )
-                    ZohoCRMSDK.shared.requestHeaders?.removeAll()
                     URLCache.shared.removeAllCachedResponses()
                     if let cookies = HTTPCookieStorage.shared.cookies {
                         for cookie in cookies {
@@ -201,25 +218,32 @@ public class ZCRMLoginHandler
     internal func getLoginScreenParams() -> String
     {
         var loginScreenParams : String = ""
-        if( appConfigurationUtil.getAppConfigurations().hasKey( forKey : "ShowSignUp" ) && appConfigurationUtil.getShowSignUp() == "true" )
+        do
         {
-            loginScreenParams = "hide_signup=false"
+            let showSignUp = try appConfigurationUtil.getShowSignUp()
+            if( appConfigurationUtil.getAppConfigurations().hasKey( forKey : "ShowSignUp" ) && showSignUp == "true" )
+            {
+                loginScreenParams = "hide_signup=false"
+            }
+            
+            let portalID = try appConfigurationUtil.getPortalID()
+            if( appConfigurationUtil.getAppConfigurations().hasKey( forKey : "PortalID" ) && portalID.isEmpty == false )
+            {
+                if( loginScreenParams != "" && !loginScreenParams.contains( "PortalID" ) )
+                {
+                    loginScreenParams = loginScreenParams + "&portal_id=" + portalID
+                }
+                else
+                {
+                    loginScreenParams = "portal_id=" + portalID
+                }
+            }
         }
-        
-        if( appConfigurationUtil.getAppConfigurations().hasKey( forKey : "PortalID" ) && appConfigurationUtil.getPortalID().isEmpty == false )
+        catch
         {
-            let portalID = appConfigurationUtil.getPortalID()
-            if( loginScreenParams != "" && !loginScreenParams.contains( "PortalID" ) )
-            {
-                loginScreenParams = loginScreenParams + "&portal_id=" + portalID
-            }
-            else
-            {
-                loginScreenParams = "portal_id=" + portalID
-            }
+            print("Error occured in getLoginScreenParams() \(error)")
         }
         print( "login screen params = \( loginScreenParams )" )
         return loginScreenParams
     }
-	
 }
