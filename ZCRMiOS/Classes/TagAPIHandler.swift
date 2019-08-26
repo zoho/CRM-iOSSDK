@@ -10,25 +10,13 @@ import Foundation
 
 internal class TagAPIHandler : CommonAPIHandler
 {
-    private var tagDelegate : ZCRMTagDelegate?
     private var tag : ZCRMTag?
     private var module : ZCRMModuleDelegate?
     
     public override init (){}
     
-    public init(tagDelegate : ZCRMTagDelegate)
-    {
-        self.tagDelegate = tagDelegate
-    }
-    
     public init(module : ZCRMModuleDelegate)
     {
-        self.module = module
-    }
-    
-    public init(tagDelegate : ZCRMTagDelegate, module : ZCRMModuleDelegate)
-    {
-        self.tagDelegate = tagDelegate
         self.module = module
     }
     
@@ -45,66 +33,66 @@ internal class TagAPIHandler : CommonAPIHandler
         {
             var tags : [ZCRMTag] = [ZCRMTag]()
             setJSONRootKey(key: JSONRootKey.TAGS)
-            setUrlPath(urlPath: "/settings/tags")
+            setUrlPath(urlPath: "settings/tags")
             setRequestMethod(requestMethod: .GET)
-            addRequestParam(param: "module", value: module.apiName)
+            addRequestParam( param : RequestParamKeys.module, value : module.apiName )
             
             let request : APIRequest = APIRequest(handler: self)
-            print( "Request : \(request.toString())" )
+            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
             
             request.getBulkAPIResponse { ( resultType ) in
                 do{
                     let bulkResponse = try resultType.resolve()
                     let responseJSON = bulkResponse.getResponseJSON()
-                    if( responseJSON.isEmpty == false )
+                    if responseJSON.isEmpty == false
                     {
-                        let tagsList :[[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                        let tagsList :[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                        if( tagsList.isEmpty == true )
+                        {
+                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_NIL) : \(ErrorMessage.RESPONSE_JSON_NIL_MSG)")
+                            completion( .failure( ZCRMError.SDKError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
+                            return
+                        }
                         for tagDetails in tagsList
                         {
-                            tags.append( try self.getZCRMTag(tagDetails: tagDetails))
+                            let tag : ZCRMTag = ZCRMTag()
+                            tags.append(try self.getZCRMTag(tag: tag, tagDetails: tagDetails))
                         }
-                        bulkResponse.setData(data: tags)
-                        completion( .success( tags, bulkResponse ) )
                     }
-                    else
-                    {
-                        completion( .failure( ZCRMError.SDKError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_NIL_MSG ) ) )
-                    }
+                    bulkResponse.setData(data: tags)
+                    completion( .success( tags, bulkResponse ) )
                 }
                 catch{
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Module MUST NOT be nil" ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : MODULE NAME must not be nil")
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "MODULE NAME must not be nil", details : nil ) ) )
         }
     }
 
     internal func getRecordCount( completion : @escaping( Result.DataResponse< Int64, APIResponse > ) -> () )
     {
-        if let tagDelegate = self.tagDelegate, let module = self.module
+        if let tag = self.tag, let module = self.module
         {
-            if tagDelegate.tagId == APIConstants.INT64_MOCK
-            {
-                completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Tag ID MUST NOT be nil" ) ) )
-                return
-            }
-            let tagIdString : String = String(tagDelegate.tagId)
+            let tagIdString : String = String( tag.id )
             setJSONRootKey(key: JSONRootKey.TAGS)
-            setUrlPath(urlPath: "/settings/tags/\(tagIdString)/actions/records_count")
+            setUrlPath(urlPath: "settings/tags/\(tagIdString)/actions/records_count")
             setRequestMethod(requestMethod: .GET)
-            addRequestParam(param: "module", value: module.apiName)
+            addRequestParam( param : RequestParamKeys.module, value : module.apiName )
             
             let request : APIRequest = APIRequest(handler: self)
-            print( "Request : \(request.toString())" )
+            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
             
             request.getAPIResponse { ( resultType ) in
                 do{
                     let response = try resultType.resolve()
                     let responseJSON = response.getResponseJSON()
-                    if let count = Int64( responseJSON.getString( key : ResponseJSONKeys.count ) )
+                    if let count = try Int64( responseJSON.getString( key : ResponseJSONKeys.count ) )
                     {
                         completion( .success( count, response ) )
                     }
@@ -114,13 +102,15 @@ internal class TagAPIHandler : CommonAPIHandler
                     }
                 }
                 catch{
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Module and Tag ID MUST NOT be nil" ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : MODULE NAME and TAG ID must not be nil")
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "MODULE NAME and TAG ID must not be nil", details : nil ) ) )
         }
     }
 
@@ -129,37 +119,45 @@ internal class TagAPIHandler : CommonAPIHandler
         if let module = module
         {
             setJSONRootKey(key: JSONRootKey.TAGS)
-            var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
-            var dataArray : [[String:Any]] = [[String:Any]]()
+            var reqBodyObj : [String:[[String:Any?]]] = [String:[[String:Any?]]]()
+            var dataArray : [[String:Any?]] = [[String:Any?]]()
             for tag in tags
             {
-                if ( tag.tagName != APIConstants.STRING_MOCK )
+                if tag.isCreate
                 {
-                    dataArray.append( self.getZCRMTagAsJSON(tag: tag) as Any as! [String:Any] )
+                    dataArray.append( self.getZCRMTagAsJSON(tag: tag) )
                 }
             }
             reqBodyObj[getJSONRootKey()] = dataArray
             
-            setUrlPath(urlPath: "/settings/tags")
+            setUrlPath(urlPath: "settings/tags")
             setRequestMethod(requestMethod: .POST)
-            addRequestParam(param: "module", value: module.apiName)
+            addRequestParam( param : RequestParamKeys.module, value : module.apiName )
             setRequestBody(requestBody: reqBodyObj)
             
             let request : APIRequest = APIRequest(handler: self)
-            print( "Request : \(request.toString())" )
+            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
             
             request.getBulkAPIResponse { ( resultType ) in
                 do{
                     let bulkResponse = try resultType.resolve()
                     let responses : [EntityResponse] = bulkResponse.getEntityResponses()
                     var createdTags : [ZCRMTag] = [ZCRMTag]()
-                    for entityResponse in responses
+                    for index in 0..<responses.count
                     {
+                        let entityResponse = responses[ index ]
                         if( APIConstants.CODE_SUCCESS == entityResponse.getStatus())
                         {
                             let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                            let tagJSON :[String:Any] = entResponseJSON.getDictionary(key: APIConstants.DETAILS)
-                            let tag : ZCRMTag = try self.getZCRMTag(tagDetails: tagJSON)
+                            let tagJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
+                            if tagJSON.isEmpty == true
+                            {
+                                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_NIL) : \(ErrorMessage.RESPONSE_JSON_NIL_MSG)")
+                                completion( .failure( ZCRMError.SDKError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
+                                return
+                            }
+                            let tag : ZCRMTag = try self.getZCRMTag(tag: tags[index], tagDetails: tagJSON)
+                            tag.isCreate = false
                             createdTags.append(tag)
                             entityResponse.setData(data: tag)
                         }
@@ -172,58 +170,58 @@ internal class TagAPIHandler : CommonAPIHandler
                     completion( .success( createdTags, bulkResponse ) )
                 }
                 catch{
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Module MUST NOT be nil" ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : MODULE NAME must not be nil")
+            completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "MODULE NAME must not be nil", details : nil ) ) )
         }
     }
 
-    internal func merge( withTag : ZCRMTagDelegate, completion : @escaping( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
+    internal func merge( withTag : ZCRMTag, completion : @escaping( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
-        if let tagDelegate = self.tagDelegate
+        if let tag = self.tag
         {
-            if tagDelegate.tagId == APIConstants.INT64_MOCK
-            {
-                completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Tag ID MUST NOT be nil" ) ) )
-                return
-            }
             var conflictIdJSON : [String:Any] = [String:Any]()
-            conflictIdJSON[RequestParamKeys.conflictId] = withTag.tagId
+            conflictIdJSON[RequestParamKeys.conflictId] = withTag.id
             setJSONRootKey(key: JSONRootKey.TAGS)
             var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
             var dataArray : [[String:Any]] = [[String:Any]]()
             dataArray.append(conflictIdJSON)
             reqBodyObj[getJSONRootKey()] = dataArray
-            let idString = String(tagDelegate.tagId)
-            setUrlPath(urlPath: "/settings/tags/\(idString)/actions/merge")
+            let idString = String( tag.id )
+            setUrlPath(urlPath: "settings/tags/\(idString)/actions/merge")
             setRequestMethod(requestMethod: .POST)
             setRequestBody(requestBody: reqBodyObj)
             let request : APIRequest = APIRequest(handler: self)
-            print( "Request : \(request.toString())" )
+            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
             
             request.getAPIResponse { ( resultType ) in
                 do{
                     let response = try resultType.resolve()
                     let responseJSON :[String:Any] = response.getResponseJSON()
-                    let respDataArray : [[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                    let respDataArray : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     let respData : [String:Any?] = respDataArray[0]
-                    let tagDetails : [String:Any] = respData.getDictionary(key: APIConstants.DETAILS)
-                    let tag = try self.getZCRMTag(tagDetails: tagDetails)
+                    let tagDetails : [ String : Any ] = try respData.getDictionary( key : APIConstants.DETAILS )
+                    var tag = ZCRMTag()
+                    tag = try self.getZCRMTag(tag: tag, tagDetails: tagDetails)
                     response.setData(data: tag)
                     completion( .success( tag, response ) )
                 }
                 catch{
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Tag MUST NOT be nil" ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : TAG ID must not be nil")
+            completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "TAG ID must not be nil", details : nil ) ) )
         }
     }
 
@@ -231,47 +229,53 @@ internal class TagAPIHandler : CommonAPIHandler
     {
         if let module = self.module, let tag = self.tag
         {
-            if tag.tagId == APIConstants.INT64_MOCK
+            if tag.isCreate
             {
-                completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Tag ID MUST NOT be nil" ) ) )
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : TAG ID must not be nil")
+                completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "TAG ID must not be nil", details : nil ) ) )
                 return
             }
             setJSONRootKey(key: JSONRootKey.TAGS)
-            let tagId : String = String( tag.tagId )
+            let tagId : String = String( tag.id )
             var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
             var dataArray : [[String:Any]] = [[String:Any]]()
-            var updateTagJSON = self.getZCRMTagAsJSON(tag: tag) as Any as! [String:Any]
+            var updateTagJSON = self.getZCRMTagAsJSON(tag: tag)
             var nameJSON : [String:Any] = [String:Any]()
-            nameJSON[ResponseJSONKeys.name] = updateTagJSON[ResponseJSONKeys.name]
+            if let updateTagName = updateTagJSON[ ResponseJSONKeys.name ]
+            {
+                nameJSON[ResponseJSONKeys.name] = updateTagName
+            }
             dataArray.append(nameJSON)
             reqBodyObj[getJSONRootKey()] = dataArray
             
-            setUrlPath(urlPath: "/settings/tags/\(tagId)")
-            addRequestParam(param: "module", value: module.apiName)
-            setRequestMethod(requestMethod: .PUT )
+            setUrlPath(urlPath: "settings/tags/\(tagId)")
+            addRequestParam( param : RequestParamKeys.module, value : module.apiName )
+            setRequestMethod(requestMethod: .PATCH )
             setRequestBody(requestBody: reqBodyObj)
             let request : APIRequest = APIRequest(handler: self)
-            print( "Request : \( request.toString() )" )
+            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
             
             request.getAPIResponse { ( resultType ) in
                 do{
                     let response = try resultType.resolve()
                     let responseJSON = response.getResponseJSON()
-                    let respDataArr : [[String:Any?]] = responseJSON.optArrayOfDictionaries(key: self.getJSONRootKey())!
+                    let respDataArr : [ [ String : Any? ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     let respData : [String:Any?] = respDataArr[0]
-                    let recordDetails : [String:Any] = respData.getDictionary(key: APIConstants.DETAILS)
-                    let updatedTag = try self.getZCRMTag(tagDetails : recordDetails)
+                    let recordDetails : [ String : Any ] = try respData.getDictionary( key : APIConstants.DETAILS )
+                    let updatedTag = try self.getZCRMTag(tag: tag, tagDetails : recordDetails)
                     response.setData(data: updatedTag )
                     completion( .success( updatedTag, response ) )
                 }
                 catch{
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Module and Tag MUST NOT be nil" ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : TAG ID and MODULE NAME must not be nil")
+            completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "MODULE NAME and TAG ID must not be nil", details : nil ) ) )
         }
     }
 
@@ -280,37 +284,44 @@ internal class TagAPIHandler : CommonAPIHandler
         if let module = self.module
         {
             setJSONRootKey(key: JSONRootKey.TAGS)
-            var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
-            var dataArray : [[String:Any]] = [[String:Any]]()
+            var reqBodyObj : [String:[[String:Any?]]] = [String:[[String:Any?]]]()
+            var dataArray : [[String:Any?]] = [[String:Any?]]()
             for tag in tags
             {
-                if tag.tagId != APIConstants.INT64_MOCK
+                if !tag.isCreate
                 {
-                    dataArray.append( self.getZCRMTagAsJSON(tag: tag) as Any as! [String:Any] )
+                    dataArray.append( self.getZCRMTagAsJSON(tag: tag) )
                 }
             }
             reqBodyObj[getJSONRootKey()] = dataArray
             
-            setUrlPath(urlPath: "/settings/tags")
-            addRequestParam(param: "module", value: module.apiName)
-            setRequestMethod(requestMethod: .PUT)
+            setUrlPath(urlPath: "settings/tags")
+            addRequestParam( param : RequestParamKeys.module, value : module.apiName )
+            setRequestMethod(requestMethod: .PATCH)
             setRequestBody(requestBody: reqBodyObj)
             
             let request : APIRequest = APIRequest(handler: self)
-            print( "Request : \(request.toString())" )
+            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
             
             request.getBulkAPIResponse { ( resultType ) in
                 do{
                     let bulkResponse = try resultType.resolve()
                     let responses : [EntityResponse] = bulkResponse.getEntityResponses()
                     var updatedTags : [ZCRMTag] = [ZCRMTag]()
-                    for entityResponse in responses
+                    for index in 0..<responses.count
                     {
+                        let entityResponse = responses[ index ]
                         if(APIConstants.CODE_SUCCESS == entityResponse.getStatus())
                         {
                             let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                            let tagJSON :[String:Any] = entResponseJSON.getDictionary(key: APIConstants.DETAILS)
-                            let tag : ZCRMTag = try self.getZCRMTag(tagDetails: tagJSON)
+                            let tagJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
+                            if tagJSON.isEmpty == true
+                            {
+                                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_NIL) : \(ErrorMessage.RESPONSE_JSON_NIL_MSG)")
+                                completion( .failure( ZCRMError.SDKError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
+                                return
+                            }
+                            let tag : ZCRMTag = try self.getZCRMTag(tag: tags[index], tagDetails: tagJSON)
                             updatedTags.append(tag)
                             entityResponse.setData(data: tag)
                         }
@@ -323,13 +334,15 @@ internal class TagAPIHandler : CommonAPIHandler
                     completion( .success( updatedTags, bulkResponse ) )
                 }
                 catch{
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "Module MUST NOT be nil" ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : MODULE NAME must not be nil")
+            completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "MODULE NAME must not be nil", details : nil ) ) )
         }
     }
 
@@ -337,11 +350,11 @@ internal class TagAPIHandler : CommonAPIHandler
     {
         setJSONRootKey(key: JSONRootKey.TAGS)
         let idString = String(tagId)
-        setUrlPath(urlPath: "/settings/tags/\(idString)" )
+        setUrlPath(urlPath: "settings/tags/\(idString)" )
         setRequestMethod(requestMethod: .DELETE )
         setJSONRootKey( key : JSONRootKey.TAGS )
         let request : APIRequest = APIRequest(handler: self)
-        print( "Request : \( request.toString() )" )
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
             do{
@@ -349,73 +362,56 @@ internal class TagAPIHandler : CommonAPIHandler
                 completion( .success( response ) )
             }
             catch{
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
     }
     
-    internal func getZCRMTag( tagDetails : [String : Any?] ) throws -> ZCRMTag
+    internal func getZCRMTag( tag : ZCRMTag, tagDetails : [String : Any?] ) throws -> ZCRMTag
     {
-        let tag : ZCRMTag = ZCRMTag()
         if tagDetails.hasKey(forKey: ResponseJSONKeys.id)
         {
-            tag.tagId = tagDetails.getInt64(key: ResponseJSONKeys.id)
+            tag.id = try tagDetails.getInt64( key : ResponseJSONKeys.id )
         }
         if tagDetails.hasKey(forKey: ResponseJSONKeys.name)
         {
-            tag.tagName = tagDetails.getString(key: ResponseJSONKeys.name)
+            tag.name = try tagDetails.getString( key : ResponseJSONKeys.name )
         }
         if ( tagDetails.hasValue( forKey : ResponseJSONKeys.createdBy ) )
         {
-            let createdByDetails : [String:Any] = tagDetails.getDictionary(key: ResponseJSONKeys.createdBy)
+            let createdByDetails : [ String : Any ] = try tagDetails.getDictionary( key : ResponseJSONKeys.createdBy )
             tag.createdBy = try getUserDelegate(userJSON : createdByDetails)
-            tag.createdTime = tagDetails.getString(key: ResponseJSONKeys.createdTime)
+            tag.createdTime = try tagDetails.getString( key : ResponseJSONKeys.createdTime )
         }
         if ( tagDetails.hasValue( forKey : ResponseJSONKeys.modifiedBy ) )
         {
-            let modifiedByDetails : [String:Any] = tagDetails.getDictionary(key: ResponseJSONKeys.modifiedBy)
+            let modifiedByDetails : [ String : Any ] = try tagDetails.getDictionary( key : ResponseJSONKeys.modifiedBy )
             tag.modifiedBy = try getUserDelegate(userJSON : modifiedByDetails)
-            tag.modifiedTime = tagDetails.getString(key: ResponseJSONKeys.modifiedTime)
+            tag.modifiedTime = try tagDetails.getString( key : ResponseJSONKeys.modifiedTime )
         }
         if let moduleAPIName = module?.apiName
         {
             tag.moduleAPIName = moduleAPIName
         }
+        tag.isCreate = false
         return tag
     }
     
     internal func getZCRMTagAsJSON( tag : ZCRMTag ) -> [String : Any?]
     {
         var tagJSON : [String:Any?] = [String:Any?]()
-        if tag.tagId != APIConstants.INT64_MOCK
+        if !tag.isCreate
         {
-            tagJSON[ResponseJSONKeys.id] = tag.tagId
+            tagJSON.updateValue( tag.id, forKey : ResponseJSONKeys.id )
         }
-        if tag.tagName != APIConstants.STRING_MOCK
-        {
-            tagJSON[ResponseJSONKeys.name] = tag.tagName
-        }
-        if tag.createdBy.id != APIConstants.INT64_MOCK
-        {
-            tagJSON[ResponseJSONKeys.createdBy] = setUserDelegate( userObj : tag.createdBy )
-            tagJSON[ResponseJSONKeys.createdTime] = tag.createdTime
-        }
-        if tag.modifiedBy.id != APIConstants.INT64_MOCK
-        {
-            tagJSON[ResponseJSONKeys.modifiedBy] = setUserDelegate( userObj : tag.modifiedBy )
-            tagJSON[ResponseJSONKeys.modifiedTime] = tag.modifiedTime
-        }
+        tagJSON.updateValue( tag.name, forKey : ResponseJSONKeys.name )
         return tagJSON
     }
 }
 
 fileprivate extension TagAPIHandler
 {
-    struct RequestParamKeys
-    {
-        static let conflictId = "conflict_id"
-    }
-    
     struct ResponseJSONKeys
     {
         static let id = "id"
@@ -426,4 +422,9 @@ fileprivate extension TagAPIHandler
         static let modifiedTime = "modified_time"
         static let count = "count"
     }
+}
+
+extension RequestParamKeys
+{
+    static let conflictId = "conflict_id"
 }

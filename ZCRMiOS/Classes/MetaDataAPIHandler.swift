@@ -11,14 +11,14 @@ internal class MetaDataAPIHandler : CommonAPIHandler
     internal func getAllModules( modifiedSince : String?, completion: @escaping( Result.DataResponse< [ ZCRMModule ], BulkAPIResponse > ) -> () )
 	{
 		var allModules : [ZCRMModule] = [ZCRMModule]()
-		setUrlPath(urlPath: "/settings/modules" )
+		setUrlPath(urlPath: "settings/modules" )
 		setRequestMethod(requestMethod: .GET )
         if ( modifiedSince.notNilandEmpty)
         {
-			addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
+			addRequestHeader(header: RequestParamKeys.ifModifiedSince , value: modifiedSince! )
         }
 		let request : APIRequest = APIRequest(handler : self ) 
-        print( "Request : \( request.toString() )" )
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getBulkAPIResponse { ( resultType ) in
             do{
@@ -26,16 +26,23 @@ internal class MetaDataAPIHandler : CommonAPIHandler
                 let responseJSON = bulkResponse.getResponseJSON()
                 if responseJSON.isEmpty == false
                 {
-                    let modulesList:[[String:Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                    let modulesList:[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                    if modulesList.isEmpty == true
+                    {
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_NIL) : \(ErrorMessage.RESPONSE_JSON_NIL_MSG)")
+                        completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
+                        return
+                    }
                     for module in modulesList
                     {
                         allModules.append(try self.getZCRMModule(moduleDetails: module))
                     }
-                    bulkResponse.setData(data: allModules)
                 }
+                bulkResponse.setData(data: allModules)
                 completion( .success( allModules, bulkResponse ) )
             }
             catch{
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -43,22 +50,23 @@ internal class MetaDataAPIHandler : CommonAPIHandler
 
     internal func getModule( apiName : String, completion: @escaping( Result.DataResponse< ZCRMModule, APIResponse > ) -> () )
 	{
-		setUrlPath(urlPath: "/settings/modules/\(apiName)" )
+		setUrlPath(urlPath: "settings/modules/\(apiName)" )
 		setRequestMethod(requestMethod: .GET )
 		let request : APIRequest = APIRequest(handler: self)
-        print( "Request : \( request.toString() )" )
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
             do{
                 let response = try resultType.resolve()
                 let responseJSON = response.getResponseJSON()
-                let modulesList:[[String : Any]] = responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                let modulesList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                 let moduleDetails : [String : Any] = modulesList[0]
                 let module = try self.getZCRMModule( moduleDetails : moduleDetails )
                 response.setData( data : module )
                 completion( .success( module, response ) )
             }
             catch{
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -66,139 +74,107 @@ internal class MetaDataAPIHandler : CommonAPIHandler
 	
 	private func getZCRMModule(moduleDetails : [String:Any]) throws -> ZCRMModule
 	{
-        let module : ZCRMModule = ZCRMModule( apiName : moduleDetails.getString(key: ResponseJSONKeys.apiName), singularLabel: moduleDetails.getString(key: ResponseJSONKeys.singularLabel), pluralLabel: moduleDetails.getString(key: ResponseJSONKeys.pluralLabel))
-        module.id = moduleDetails.getInt64(key: ResponseJSONKeys.id)
-        module.systemName = moduleDetails.getString(key: ResponseJSONKeys.moduleName)
-        module.generatedType = moduleDetails.getString(key: ResponseJSONKeys.generatedType)
-        module.creatable = moduleDetails.getBoolean(key: ResponseJSONKeys.creatable)
-        module.viewable = moduleDetails.getBoolean(key: ResponseJSONKeys.viewable)
-        module.convertible = moduleDetails.getBoolean(key: ResponseJSONKeys.convertable)
-        module.editable = moduleDetails.getBoolean(key: ResponseJSONKeys.editable)
-        module.deletable = moduleDetails.getBoolean(key: ResponseJSONKeys.deletable)
-        module.visibility = moduleDetails.getInt(key: ResponseJSONKeys.visibility)
-        module.globalSearchSupported = moduleDetails.getBoolean(key: ResponseJSONKeys.globalSearchSupported)
-        module.apiSupported = moduleDetails.getBoolean(key: ResponseJSONKeys.apiSupported)
-        module.quickCreate = moduleDetails.getBoolean(key: ResponseJSONKeys.quickCreate)
-        module.scoringSupported = moduleDetails.getBoolean(key: ResponseJSONKeys.scoringSupported)
-        module.sequenceNumber = moduleDetails.getInt(key: ResponseJSONKeys.sequenceNumber)
-        module.businessCardFieldLimit = moduleDetails.getInt(key: ResponseJSONKeys.businessCardFieldLimit)
+        let module : ZCRMModule = ZCRMModule( apiName : try moduleDetails.getString( key : ResponseJSONKeys.apiName ), singularLabel : try moduleDetails.getString( key : ResponseJSONKeys.singularLabel ), pluralLabel : try moduleDetails.getString( key : ResponseJSONKeys.pluralLabel ) )
+        module.id = try moduleDetails.getInt64( key : ResponseJSONKeys.id )
+        module.name = try moduleDetails.getString( key : ResponseJSONKeys.moduleName )
+        module.generatedType = try moduleDetails.getString( key : ResponseJSONKeys.generatedType )
+        module.isCreatable = try moduleDetails.getBoolean( key : ResponseJSONKeys.creatable )
+        module.isViewable = try moduleDetails.getBoolean( key : ResponseJSONKeys.viewable )
+        module.isConvertible = try moduleDetails.getBoolean( key : ResponseJSONKeys.convertable )
+        module.isEditable = try moduleDetails.getBoolean( key : ResponseJSONKeys.editable )
+        module.isDeletable = try moduleDetails.getBoolean( key : ResponseJSONKeys.deletable )
+        module.visibility = try moduleDetails.getInt( key : ResponseJSONKeys.visibility )
+        module.isGlobalSearchSupported = try moduleDetails.getBoolean( key : ResponseJSONKeys.globalSearchSupported )
+        module.isAPISupported = try moduleDetails.getBoolean( key : ResponseJSONKeys.apiSupported )
+        module.isQuickCreateAvailable = try moduleDetails.getBoolean( key : ResponseJSONKeys.quickCreate )
+        module.isScoringSupported = try moduleDetails.getBoolean( key : ResponseJSONKeys.scoringSupported )
+        module.sequenceNumber = try moduleDetails.getInt( key : ResponseJSONKeys.sequenceNumber )
+        module.businessCardFieldLimit = try moduleDetails.getInt( key : ResponseJSONKeys.businessCardFieldLimit )
         module.webLink = moduleDetails.optString(key: ResponseJSONKeys.webLink)
         if(moduleDetails.hasValue(forKey: ResponseJSONKeys.modifiedBy))
         {
-            let modifiedByObj : [String:Any] = moduleDetails.getDictionary(key: ResponseJSONKeys.modifiedBy)
-            let modifiedBy : ZCRMUserDelegate = ZCRMUserDelegate(id: modifiedByObj.getInt64(key: ResponseJSONKeys.id), name: modifiedByObj.getString(key: ResponseJSONKeys.name))
+            let modifiedByObj : [ String : Any ] = try moduleDetails.getDictionary( key : ResponseJSONKeys.modifiedBy )
+            let modifiedBy = try getUserDelegate(userJSON: modifiedByObj)
             module.modifiedBy = modifiedBy
-            module.modifiedTime = moduleDetails.getString(key: ResponseJSONKeys.modifiedTime)
+            module.modifiedTime = try moduleDetails.getString( key : ResponseJSONKeys.modifiedTime )
         }
         if(moduleDetails.hasValue(forKey: ResponseJSONKeys.profiles))
         {
             var profiles : [ZCRMProfileDelegate] = [ZCRMProfileDelegate]()
-            let profilesDetails : [[String:Any]] = moduleDetails.getArrayOfDictionaries(key: ResponseJSONKeys.profiles)
+            let profilesDetails : [ [ String : Any ] ] = try moduleDetails.getArrayOfDictionaries( key : ResponseJSONKeys.profiles )
             for profileDetails in profilesDetails
             {
-                let profile : ZCRMProfileDelegate = ZCRMProfileDelegate(profileId: profileDetails.getInt64(key: ResponseJSONKeys.id), profileName: profileDetails.getString(key: ResponseJSONKeys.name))
+                let profile : ZCRMProfileDelegate = ZCRMProfileDelegate( id : try profileDetails.getInt64( key : ResponseJSONKeys.id ), name : try profileDetails.getString( key : ResponseJSONKeys.name ) )
                 profiles.append(profile)
             }
-            module.allowedProfiles = profiles
+            module.accessibleProfiles = profiles
         }
         if(moduleDetails.hasValue(forKey : ResponseJSONKeys.relatedLists))
         {
             var relatedLists : [ZCRMModuleRelation] = [ZCRMModuleRelation]()
-            let relatedListsDetails : [[String:Any]] = moduleDetails.getArrayOfDictionaries(key: ResponseJSONKeys.relatedLists)
+            let relatedListsDetails : [ [ String : Any ] ] = try moduleDetails.getArrayOfDictionaries( key : ResponseJSONKeys.relatedLists )
             for relatedListDetails in relatedListsDetails
             {
-                let relatedList : ZCRMModuleRelation = ZCRMModuleRelation(relatedListAPIName: relatedListDetails.getString(key: ResponseJSONKeys.apiName), parentModuleAPIName: module.apiName)
+                let relatedList : ZCRMModuleRelation = ZCRMModuleRelation( relatedListAPIName : try relatedListDetails.getString( key : ResponseJSONKeys.apiName ), parentModuleAPIName : module.apiName )
                 try setRelatedListProperties(relatedList: relatedList, relatedListDetails: relatedListDetails)
                 relatedLists.append(relatedList)
             }
             module.relatedLists = relatedLists
         }
         module.arguments = moduleDetails.optArrayOfDictionaries(key: ResponseJSONKeys.arguments)
-        if(moduleDetails.hasValue(forKey: ResponseJSONKeys.properties))
-        {
-            let dollarProperties = moduleDetails.optArray(key: ResponseJSONKeys.properties) as! [String]
-            var properties : [String] = [String]()
-            for dollarProperty in dollarProperties
-            {
-                var property = dollarProperty
-                property.removeFirst()
-                properties.append(property)
-            }
-            module.properties = properties
-        }
         if( moduleDetails.hasValue(forKey: ResponseJSONKeys.displayField))
         {
-            module.displayField = moduleDetails.getString(key: ResponseJSONKeys.displayField)
+            module.displayField = try moduleDetails.getString( key : ResponseJSONKeys.displayField )
         }
         if( moduleDetails.hasValue(forKey: ResponseJSONKeys.searchLayoutFields))
         {
-            module.searchLayoutFields = moduleDetails.getArray(key: ResponseJSONKeys.searchLayoutFields) as? [String]
+            module.searchLayoutFields = try moduleDetails.getArray( key : ResponseJSONKeys.searchLayoutFields ) as? [ String ]
         }
         if(moduleDetails.hasValue(forKey: ResponseJSONKeys.parentModule))
         {
-            let parentModuleDetails = moduleDetails.getDictionary(key: ResponseJSONKeys.parentModule)
+            let parentModuleDetails = try moduleDetails.getDictionary( key : ResponseJSONKeys.parentModule )
             if parentModuleDetails.hasValue(forKey: ResponseJSONKeys.apiName)
             {
-                let parentModule : ZCRMModuleDelegate = ZCRMModuleDelegate(apiName: parentModuleDetails.getString( key : ResponseJSONKeys.apiName ) )
-                module.parenModule = parentModule
+                let parentModule : ZCRMModuleDelegate = ZCRMModuleDelegate( apiName : try parentModuleDetails.getString( key : ResponseJSONKeys.apiName ) )
+                module.parentModule = parentModule
             }
         }
         if(moduleDetails.hasValue(forKey: ResponseJSONKeys.customView))
         {
-            module.customView = ModuleAPIHandler(module: module).getZCRMCustomView(cvDetails: moduleDetails.getDictionary(key: ResponseJSONKeys.customView))
+            module.customView = try ModuleAPIHandler(module: module, cacheFlavour : .NO_CACHE).getZCRMCustomView(cvDetails: moduleDetails.getDictionary(key: ResponseJSONKeys.customView))
         }
         if (moduleDetails.hasValue( forKey : ResponseJSONKeys.kanbanView ))
         {
-            module.isKanbanView = moduleDetails.getBoolean(key: ResponseJSONKeys.kanbanView)
+            module.isKanbanViewEnabled = try moduleDetails.getBoolean(key: ResponseJSONKeys.kanbanView)
         }
         if moduleDetails.hasValue( forKey : ResponseJSONKeys.filterStatus )
         {
-            module.filterStatus = moduleDetails.getBoolean(key: ResponseJSONKeys.filterStatus)
+            module.filterStatus = try moduleDetails.getBoolean( key : ResponseJSONKeys.filterStatus )
         }
         if moduleDetails.hasValue( forKey : ResponseJSONKeys.presenceSubMenu )
         {
-            module.isSubMenuPresent = moduleDetails.getBoolean(key: ResponseJSONKeys.presenceSubMenu)
+            module.isSubMenuPresent = try moduleDetails.getBoolean( key : ResponseJSONKeys.presenceSubMenu )
         }
         if moduleDetails.hasValue( forKey : ResponseJSONKeys.perPage )
         {
-            module.perPage = moduleDetails.getInt(key: ResponseJSONKeys.perPage)
+            module.perPage = try moduleDetails.getInt( key : ResponseJSONKeys.perPage )
         }
-        if moduleDetails.hasValue( forKey : ResponseJSONKeys.filterSupported ) == false
+        module.filterStatus = try moduleDetails.getBoolean(key: ResponseJSONKeys.filterSupported)
+        module.isFeedsRequired = try moduleDetails.getBoolean(key: ResponseJSONKeys.feedsRequired)
+        if moduleDetails.hasValue(forKey: ResponseJSONKeys.emailTemplateSupported)
         {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.filterSupported ) is must not be nil" )
+            module.isEmailTemplateSupported = try moduleDetails.getBoolean(key: ResponseJSONKeys.emailTemplateSupported)
         }
-        module.filterStatus = moduleDetails.getBoolean(key: ResponseJSONKeys.filterSupported)
-        if moduleDetails.hasValue( forKey : ResponseJSONKeys.feedsRequired ) == false
-        {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.feedsRequired ) is must not be nil" )
-        }
-        module.isFeedsRequired = moduleDetails.getBoolean(key: ResponseJSONKeys.feedsRequired)
         return module
     }
 	
 	private func setRelatedListProperties(relatedList : ZCRMModuleRelation, relatedListDetails : [String : Any]) throws
 	{
-        if relatedListDetails.hasValue( forKey : ResponseJSONKeys.displayLabel ) == false
-        {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.displayLabel ) is must not be nil" )
-        }
-        relatedList.label = relatedListDetails.getString(key: ResponseJSONKeys.displayLabel)
-        if relatedListDetails.hasValue( forKey : ResponseJSONKeys.module ) == false
-        {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.module ) is must not be nil" )
-        }
-		relatedList.childModuleAPIName = relatedListDetails.getString(key: ResponseJSONKeys.module)
-        if relatedListDetails.hasValue( forKey : ResponseJSONKeys.id ) == false
-        {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.id ) is must not be nil" )
-        }
-		relatedList.id = relatedListDetails.getInt64(key: ResponseJSONKeys.id)
-        if relatedListDetails.hasValue( forKey : ResponseJSONKeys.visible ) == false
-        {
-            throw ZCRMError.InValidError( code : ErrorCode.VALUE_NIL, message : "\( ResponseJSONKeys.visible ) is must not be nil" )
-        }
-		relatedList.visible = relatedListDetails.getBoolean(key: ResponseJSONKeys.visible)
-        relatedList.isDefault = (ResponseJSONKeys.defaultString == relatedListDetails.optString(key: ResponseJSONKeys.type)) 
+        relatedList.label = try relatedListDetails.getString(key: ResponseJSONKeys.displayLabel)
+		relatedList.module = try relatedListDetails.getString(key: ResponseJSONKeys.module)
+		relatedList.id = try relatedListDetails.getInt64(key: ResponseJSONKeys.id)
+		relatedList.isVisible = try relatedListDetails.getBoolean(key: ResponseJSONKeys.visible)
+        relatedList.isDefault = (ResponseJSONKeys.defaultString == relatedListDetails.optString(key: ResponseJSONKeys.type))
 	}
     
     internal override func getJSONRootKey() -> String {
@@ -246,6 +222,7 @@ fileprivate extension MetaDataAPIHandler
         static let perPage = "per_page"
         static let filterSupported = "filter_supported"
         static let feedsRequired = "feeds_required"
+        static let emailTemplateSupported = "emailTemplate_support"
         
         static let displayLabel = "display_label"
         static let module = "module"

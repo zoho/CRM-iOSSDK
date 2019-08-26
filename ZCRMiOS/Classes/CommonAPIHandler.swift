@@ -15,37 +15,55 @@ internal protocol APIHandler : class
 	
 	func getRequestHeaders() -> [ String : String ]
 	
-	func getRequestBody() -> [ String : Any ]
+	func getRequestBody() -> [ String : Any? ]
 	
 	func getRequestParams() -> [ String : String ]
 	
 	func getRequestType() -> Bool
     
     func getJSONRootKey() -> String
-	
+    
+    func getIsCacheable() -> Bool
 }
 
 internal class CommonAPIHandler : APIHandler
 {
-
 	private var url : URL?
 	private var urlPath : String?
-	private var requestMethod : RequestMethod?
-	private var requestBody : [String : Any ] = [ String : Any ]()
+	private var requestMethod : RequestMethod = RequestMethod.UNDEFINED
+	private var requestBody : [String : Any? ] = [ String : Any? ]()
 	private var requestParams : [ String : String ] = [String : String]()
 	private var requestHeaders : [ String : String ] = [String : String]()
 	private var isOAuthRequest : Bool = true
     private var jsonRootKey : String = JSONRootKey.DATA  // most handlers use DATA as root key
-
-	internal func setUrl( url : URL )
-	{
-		self.url = url
-	}
+    private var isCacheable : Bool = false
+    private var isEmail : Bool = false
 	
 	internal func getUrl() -> URL?
 	{
-		return self.url
+        if let path = self.urlPath
+        {
+            if isEmail
+            {
+                let urlBuilder = ZCRMURLBuilder(path: "/\(CRM)/\(EMAIL)/\(ZCRMSDKClient.shared.apiVersion)/\(path)", queryItems: self.getQueryItems())
+                return urlBuilder.url
+            }
+            let urlBuilder = ZCRMURLBuilder(path: "/\(CRM)/\(ZCRMSDKClient.shared.apiVersion)/\(path)", queryItems: self.getQueryItems())
+            return urlBuilder.url
+        }
+        return nil
 	}
+    
+    internal func getQueryItems() -> [URLQueryItem]
+    {
+        var queryItems : [URLQueryItem] = [URLQueryItem]()
+        for (key, value) in requestParams
+        {
+            let queryItem : URLQueryItem = URLQueryItem(name: key, value: value)
+            queryItems.append(queryItem)
+        }
+        return queryItems
+    }
 	
 	internal func setUrlPath( urlPath : String )
 	{
@@ -64,7 +82,7 @@ internal class CommonAPIHandler : APIHandler
 	
 	internal func getRequestMethod() -> RequestMethod
 	{
-		return self.requestMethod!
+		return self.requestMethod
 	}
 	
 	internal func addRequestHeader( header : String , value : String)
@@ -77,12 +95,12 @@ internal class CommonAPIHandler : APIHandler
 		return self.requestHeaders
 	}
 	
-	internal func setRequestBody( requestBody : [ String : Any ] )
+	internal func setRequestBody( requestBody : [ String : Any? ] )
 	{
 		self.requestBody = requestBody
 	}
 	
-	internal func getRequestBody() -> [String : Any]
+	internal func getRequestBody() -> [String : Any?]
 	{
 		return self.requestBody
 	}
@@ -113,5 +131,20 @@ internal class CommonAPIHandler : APIHandler
     
     internal func getJSONRootKey() -> String {
         return self.jsonRootKey
+    }
+    
+    internal func setIsCacheable( _ isCacheable : Bool )
+    {
+        self.isCacheable = isCacheable
+    }
+    
+    internal func getIsCacheable() -> Bool
+    {
+        return self.isCacheable
+    }
+    
+    internal func setIsEmail( _ isEmail : Bool )
+    {
+        self.isEmail = isEmail
     }
 }

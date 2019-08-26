@@ -15,15 +15,35 @@ public class CommonAPIResponse
     internal var httpStatusCode : HTTPStatusCode?
     internal var info : ResponseInfo?
     internal var responseJSONRootKey = String()
+    internal var responseHeaders : ResponseHeaders?
     
-    init(response : HTTPURLResponse, responseData : Data?, responseJSONRootKey : String) throws
+    init( responseJSON : Dictionary< String, Any >, responseJSONRootKey : String ) throws
+    {
+        self.responseJSONRootKey = responseJSONRootKey
+        self.responseJSON = responseJSON
+        try self.setInfo()
+    }
+    
+    init( response : HTTPURLResponse, responseJSONRootKey : String ) throws
     {
         self.response = response
-        self.httpStatusCode = HTTPStatusCode(rawValue: response.statusCode)!
+        self.httpStatusCode = HTTPStatusCode( statusCodeValue : response.statusCode )
+        self.responseJSONRootKey = responseJSONRootKey
+        try setResponseJSON(responseData: nil)
+        try processResponse()
+        try self.setInfo()
+        responseHeaders = ResponseHeaders(response: response)
+    }
+    
+    init(response : HTTPURLResponse, responseData : Data, responseJSONRootKey : String) throws
+    {
+        self.response = response
+        self.httpStatusCode = HTTPStatusCode( statusCodeValue : response.statusCode )
         self.responseJSONRootKey = responseJSONRootKey
         try setResponseJSON(responseData: responseData)
         try processResponse()
-        self.setInfo()
+        try self.setInfo()
+        responseHeaders = ResponseHeaders(response: response)
     }
     
     init()
@@ -32,19 +52,26 @@ public class CommonAPIResponse
     
     internal func setResponseJSON(responseData : Data?) throws
     {
-        if(httpStatusCode != HTTPStatusCode.NO_CONTENT)
+        if httpStatusCode != HTTPStatusCode.NO_CONTENT
         {
-            let jsonStr : Any? = try? JSONSerialization.jsonObject(with: responseData!, options: [])
-            if let tempJSON = jsonStr as? [String : Any]
+            if let respData = responseData
             {
-                responseJSON = tempJSON
+                let jsonStr : Any? = try? JSONSerialization.jsonObject(with: respData, options: [])
+                if let tempJSON = jsonStr as? [String : Any]
+                {
+                    responseJSON = tempJSON
+                }
+            }
+            else
+            {
+                throw ZCRMError.ProcessingError( code : ErrorCode.INTERNAL_ERROR, message : "Response data is nil", details : nil )
             }
         }
     }
     
     internal func processResponse() throws
     {
-        if(faultyStatusCodes.contains(httpStatusCode!))
+        if let statusCode = httpStatusCode, faultyStatusCodes.contains(statusCode)
         {
             try handleForFaultyResponses()
         }
@@ -64,19 +91,19 @@ public class CommonAPIResponse
         
     }
     
-    internal func setInfo()
+    internal func setInfo() throws
     {
         if( self.responseJSON.hasValue( forKey : APIConstants.INFO ) && self.responseJSON.hasValue( forKey : APIConstants.PRIVATE_FIELDS ) )
         {
-            self.info = ResponseInfo( infoObj : self.responseJSON.getDictionary( key : APIConstants.INFO ), privateFieldsDetails : self.responseJSON.getArrayOfDictionaries( key : APIConstants.PRIVATE_FIELDS ) )
+            self.info = try ResponseInfo( infoDetails : self.responseJSON.getDictionary( key : APIConstants.INFO ), privateFieldsDetails : self.responseJSON.getArrayOfDictionaries( key : APIConstants.PRIVATE_FIELDS ) )
         }
         else if( self.responseJSON.hasValue( forKey : APIConstants.INFO ) )
         {
-            self.info = ResponseInfo( infoObj : self.responseJSON.getDictionary( key : APIConstants.INFO ) )
+            self.info = try ResponseInfo( infoDetails : self.responseJSON.getDictionary( key : APIConstants.INFO ) )
         }
         else if( self.responseJSON.hasValue( forKey : APIConstants.PRIVATE_FIELDS ) )
         {
-            self.info = ResponseInfo( privateFields : self.responseJSON.getArrayOfDictionaries( key : APIConstants.PRIVATE_FIELDS ) )
+            self.info = try ResponseInfo( privateFields : self.responseJSON.getArrayOfDictionaries( key : APIConstants.PRIVATE_FIELDS ) )
         }
     }
     
@@ -90,53 +117,60 @@ public class CommonAPIResponse
         return self.responseJSON
     }
     
-    public func getHTTPStatusCode() -> Int
+    public func getHTTPStatusCode() -> Int?
     {
-        return self.httpStatusCode!.rawValue
+        return self.httpStatusCode?.rawValue
     }
     
     public func toString() -> String
     {
-        return "STATUS_CODE = \( self.getHTTPStatusCode() ), RESPONSE_JSON = \( self.getResponseJSON().description )"
+        if let statusCode = self.getHTTPStatusCode()
+        {
+            return "STATUS_CODE = \( statusCode ), RESPONSE_JSON = \( self.getResponseJSON().description )"
+        }
+        else
+        {
+            ZCRMLogger.logError(message: "Status code is NIL")
+            return "RESPONSE_JSON = \( self.getResponseJSON().description )"
+        }
     }
     
-    public func getResponseHeaders() -> String
+    public func getResponseHeaders() -> ResponseHeaders?
     {
-        return ResponseHeaders( response : self.response! ).toString()
+        return self.responseHeaders
     }
 }
 
 public class ResponseHeaders
 {
-    private var remainingCountForThisDay : Int
-    private var remainingCountForThisWindow : Int
-    private var remainingTimeForWindowReset : Int
+    public var remainingCountForThisDay : Int = Int()
+    public var remainingCountForThisWindow : Int = Int()
+    public var remainingTimeForWindowReset : Int = Int()
+    public var date : String = String()
     
     init(response : HTTPURLResponse)
     {
-        remainingCountForThisDay = Int( response.allHeaderFields[APIConstants.REMAINING_COUNT_FOR_THIS_DAY] as! String )!
-        remainingCountForThisWindow = Int( response.allHeaderFields[APIConstants.REMAINING_COUNT_FOR_THIS_WINDOW] as! String )!
-        remainingTimeForWindowReset = Int( response.allHeaderFields[APIConstants.REMAINING_TIME_FOR_THIS_WINDOW_RESET] as! String )!
-    }
-    
-    public func getRemainingAPICountForThisDay() -> Int
-    {
-        return self.remainingCountForThisDay
-    }
-    
-    public func getRemainingCountForThisWindow() -> Int
-    {
-        return self.remainingCountForThisWindow
-    }
-    
-    public func getRemainingTimeForThisWindowReset() -> Int
-    {
-        return self.remainingTimeForWindowReset
+        if let remainingCountForThisDay = response.allHeaderFields[APIConstants.REMAINING_COUNT_FOR_THIS_DAY] as? String, let countForThisDay = Int( remainingCountForThisDay )
+        {
+            self.remainingCountForThisDay = countForThisDay
+        }
+        if let remainingCountForThisWindow = response.allHeaderFields[APIConstants.REMAINING_COUNT_FOR_THIS_WINDOW] as? String, let countForThisWindow = Int( remainingCountForThisWindow )
+        {
+            self.remainingCountForThisWindow = countForThisWindow
+        }
+        if let remainingTimeForWindowReset = response.allHeaderFields[APIConstants.REMAINING_TIME_FOR_THIS_WINDOW_RESET] as? String, let countForWindowReset = Int( remainingTimeForWindowReset )
+        {
+            self.remainingTimeForWindowReset = countForWindowReset
+        }
+        if let date = response.allHeaderFields[APIConstants.DATE] as? String
+        {
+            self.date = date
+        }
     }
     
     public func toString() -> String
     {
-        return "\(APIConstants.REMAINING_COUNT_FOR_THIS_DAY) = \(remainingCountForThisDay) \n \(APIConstants.REMAINING_COUNT_FOR_THIS_WINDOW) = \(remainingCountForThisWindow) \n \(APIConstants.REMAINING_TIME_FOR_THIS_WINDOW_RESET) = \(remainingTimeForWindowReset)"
+        return "\(APIConstants.REMAINING_COUNT_FOR_THIS_DAY) = \(remainingCountForThisDay) \n \(APIConstants.REMAINING_COUNT_FOR_THIS_WINDOW) = \(remainingCountForThisWindow) \n \(APIConstants.REMAINING_TIME_FOR_THIS_WINDOW_RESET) = \(remainingTimeForWindowReset) \n \(APIConstants.DATE) = \(date)"
     }
 }
 
@@ -149,37 +183,37 @@ public class ResponseInfo
     private var fieldNameVsValue : [ String : Any ]?
     private var privateFields : [ ZCRMField ]?
     
-    convenience init( infoObj : [ String : Any ] )
+    convenience init( infoDetails : [ String : Any ] ) throws
     {
-        self.init( infoObj : infoObj, privateFieldsDetails : nil )
+        try self.init( infoDetails : infoDetails, privateFieldsDetails : nil )
     }
     
-    convenience init( privateFields : [ [ String : Any ] ] )
+    convenience init( privateFields : [ [ String : Any ] ] ) throws
     {
-        self.init( infoObj : nil, privateFieldsDetails : privateFields )
+        try self.init( infoDetails : nil, privateFieldsDetails : privateFields )
     }
     
-    init( infoObj : [ String : Any ]?, privateFieldsDetails : [ [ String : Any ] ]? )
+    init( infoDetails : [ String : Any ]?, privateFieldsDetails : [ [ String : Any ] ]? ) throws
     {
-        if let infoDetails = infoObj
+        if let infoDetails = infoDetails
         {
             for fieldAPIName in infoDetails.keys
             {
                 if( APIConstants.MORE_RECORDS == fieldAPIName )
                 {
-                    self.moreRecords = infoDetails.optBoolean( key : APIConstants.MORE_RECORDS )!
+                    self.moreRecords = try infoDetails.getBoolean( key : APIConstants.MORE_RECORDS )
                 }
                 else if( APIConstants.COUNT == fieldAPIName )
                 {
-                    self.recordCount = infoDetails.optInt( key : APIConstants.COUNT )!
+                    self.recordCount = try infoDetails.getInt( key : APIConstants.COUNT )
                 }
                 else if( APIConstants.PAGE == fieldAPIName )
                 {
-                    self.pageNo = infoDetails.optInt( key : APIConstants.PAGE )!
+                    self.pageNo = try infoDetails.getInt( key : APIConstants.PAGE )
                 }
                 else if( APIConstants.PER_PAGE == fieldAPIName )
                 {
-                    self.perPage = infoDetails.optInt( key : APIConstants.PER_PAGE )!
+                    self.perPage = try infoDetails.getInt( key : APIConstants.PER_PAGE )
                 }
                 else
                 {
@@ -187,28 +221,28 @@ public class ResponseInfo
                     {
                         self.fieldNameVsValue = [ String : Any ]()
                     }
-                    self.fieldNameVsValue![ fieldAPIName ] = infoDetails.optValue( key : fieldAPIName )
+                    self.fieldNameVsValue?[ fieldAPIName ] = infoDetails.optValue( key : fieldAPIName )
                 }
             }
         }
-        if( privateFieldsDetails != nil )
+        if let privateFieldsDetails = privateFieldsDetails
         {
             if( self.privateFields == nil )
             {
                 self.privateFields = [ ZCRMField ]()
             }
-            for privateFieldDetails in privateFieldsDetails!
+            for privateFieldDetails in privateFieldsDetails
             {
-                let field : ZCRMField = ZCRMField( apiName : privateFieldDetails.getString( key : "api_name" ) )
-                field.id = privateFieldDetails.getInt64( key : "id" )
+                let field : ZCRMField = ZCRMField( apiName : try privateFieldDetails.getString( key : "api_name" ) )
+                field.id = try privateFieldDetails.getInt64( key : "id" )
                 if( privateFieldDetails.hasValue( forKey : "private" ) )
                 {
-                    let fieldPrivateDetails = privateFieldDetails.getDictionary( key : "private" )
-                    field.isSupportExport = fieldPrivateDetails.getBoolean( key : "export" )
-                    field.isRestricted = fieldPrivateDetails.getBoolean( key : "restricted" )
-                    field.type = fieldPrivateDetails.getString( key : "type" )
+                    let fieldPrivateDetails = try privateFieldDetails.getDictionary( key : "private" )
+                    field.isSupportExport = try fieldPrivateDetails.getBoolean( key : "export" )
+                    field.isRestricted = try fieldPrivateDetails.getBoolean( key : "restricted" )
+                    field.dataType = try fieldPrivateDetails.getString( key : "type" )
                 }
-                self.privateFields!.append( field )
+                self.privateFields?.append( field )
             }
         }
     }

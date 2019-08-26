@@ -8,40 +8,56 @@
 
 internal class UserAPIHandler : CommonAPIHandler
 {
-    var user : ZCRMUser?
-    var userDelegate : ZCRMUserDelegate?
-    
-    internal init( user : ZCRMUser )
-    {
-        self.user = user
-    }
+    private let cache : CacheFlavour
+    private var userDelegate : ZCRMUserDelegate?
+    private var fileUploadDelegate : FileUploadDelegate?
     
     internal init( userDelegate : ZCRMUserDelegate )
     {
+        self.cache = CacheFlavour.NO_CACHE
         self.userDelegate = userDelegate
     }
     
-    internal override init()
-    { }
+    internal init( userDelegate : ZCRMUserDelegate, cacheFlavour : CacheFlavour )
+    {
+        self.cache = cacheFlavour
+        self.userDelegate = userDelegate
+    }
     
-    private func getUsers(type : String?, modifiedSince : String?, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal init( cacheFlavour : CacheFlavour )
+    {
+        self.cache = cacheFlavour
+    }
+    
+    internal override init()
+    {
+        self.cache = CacheFlavour.NO_CACHE
+    }
+    
+    private func getUsers(type : String?, modifiedSince : String?, page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
         var allUsers : [ZCRMUser] = [ZCRMUser]()
-        setUrlPath(urlPath: "/users" )
+        setUrlPath(urlPath: "users" )
         setRequestMethod(requestMethod: .GET )
-        if(type != nil)
+        if let type = type
         {
-            addRequestParam(param: RequestParamKeys.type , value: type! )
+            addRequestParam(param: RequestParamKeys.type , value: type )
         }
         if ( modifiedSince.notNilandEmpty)
         {
-            addRequestHeader(header: "If-Modified-Since" , value: modifiedSince! )
+            addRequestHeader(header: RequestParamKeys.ifModifiedSince , value: modifiedSince! )
         }
-        addRequestParam( param : "page", value : String( page ) )
-        addRequestParam( param : "per_page", value : String( perPage ) )
-        let request : APIRequest = APIRequest(handler: self)
-        print( "Request : \( request.toString() )" )
+        if let page = page
+        {
+            addRequestParam( param : RequestParamKeys.page, value : String( page ) )
+        }
+        if let perPage = perPage
+        {
+            addRequestParam( param : RequestParamKeys.perPage, value : String( perPage ) )
+        }
+		let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getBulkAPIResponse { ( resultType ) in
             do{
@@ -49,21 +65,25 @@ internal class UserAPIHandler : CommonAPIHandler
                 let responseJSON = bulkResponse.getResponseJSON()
                 if responseJSON.isEmpty == false
                 {
-                    let usersList:[[String:Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                    let usersList:[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if usersList.isEmpty == true
                     {
-                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG ) ) )
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_NIL) : \(ErrorMessage.RESPONSE_JSON_NIL_MSG)")
+                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
                         return
                     }
-                    for user in usersList
+                    for userList in usersList
                     {
-                        allUsers.append(try self.getZCRMUser(userDict: user))
+                        let user = try self.getZCRMUser( userDict : userList )
+                        user.upsertJSON = [ String : Any? ]()
+                        allUsers.append( user )
                     }
                 }
                 bulkResponse.setData(data: allUsers)
                 completion( .success( allUsers, bulkResponse ) )
             }
             catch{
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -73,10 +93,10 @@ internal class UserAPIHandler : CommonAPIHandler
     {
         setJSONRootKey( key : JSONRootKey.PROFILES )
         var allProfiles : [ ZCRMProfile ] = [ ZCRMProfile ] ()
-        setUrlPath(urlPath: "/settings/profiles" )
-        setRequestMethod(requestMethod: .GET)
-        let request : APIRequest = APIRequest(handler: self)
-        print( "Request : \( request.toString() )" )
+		setUrlPath(urlPath: "settings/profiles" )
+		setRequestMethod(requestMethod: .GET)
+		let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getBulkAPIResponse { ( resultType ) in
             do{
@@ -84,10 +104,11 @@ internal class UserAPIHandler : CommonAPIHandler
                 let responseJSON = bulkResponse.getResponseJSON()
                 if responseJSON.isEmpty == false
                 {
-                    let profileList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                    let profileList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if profileList.isEmpty == true
                     {
-                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG ) ) )
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_NIL) : \(ErrorMessage.RESPONSE_JSON_NIL_MSG)")
+                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
                         return
                     }
                     for profile in profileList
@@ -99,6 +120,7 @@ internal class UserAPIHandler : CommonAPIHandler
                 completion( .success( allProfiles, bulkResponse ) )
             }
             catch{
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -108,10 +130,10 @@ internal class UserAPIHandler : CommonAPIHandler
     {
         setJSONRootKey( key : JSONRootKey.ROLES )
         var allRoles : [ ZCRMRole ] = [ ZCRMRole ]()
-        setUrlPath(urlPath:  "/settings/roles" )
-        setRequestMethod(requestMethod: .GET)
-        let request : APIRequest = APIRequest(handler: self)
-        print( "Request : \( request.toString() )" )
+		setUrlPath(urlPath:  "settings/roles" )
+		setRequestMethod(requestMethod: .GET)
+		let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getBulkAPIResponse { ( resultType ) in
             do{
@@ -119,10 +141,11 @@ internal class UserAPIHandler : CommonAPIHandler
                 let responseJSON = bulkResponse.getResponseJSON()
                 if responseJSON.isEmpty == false
                 {
-                    let rolesList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                    let rolesList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if rolesList.isEmpty == true
                     {
-                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG ) ) )
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_NIL) : \(ErrorMessage.RESPONSE_JSON_NIL_MSG)")
+                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
                         return
                     }
                     for role in rolesList
@@ -134,6 +157,7 @@ internal class UserAPIHandler : CommonAPIHandler
                 completion( .success( allRoles, bulkResponse ) )
             }
             catch{
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -143,28 +167,30 @@ internal class UserAPIHandler : CommonAPIHandler
     {
         setJSONRootKey( key : JSONRootKey.USERS )
         setRequestMethod(requestMethod: .GET )
-        if(userId != nil)
+        if let userId = userId
         {
-            setUrlPath(urlPath: "/users/\(userId!)" )
+            setUrlPath(urlPath: "users/\(userId)" )
         }
         else
         {
-            setUrlPath(urlPath: "/users" )
+            setUrlPath(urlPath: "users" )
             addRequestParam(param: RequestParamKeys.type , value:  RequestParamKeys.currentUser)
         }
-        let request : APIRequest = APIRequest(handler: self)
-        print( "Request : \( request.toString() )" )
+		let request : APIRequest = APIRequest(handler: self, cacheFlavour: self.cache)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
             do{
                 let response = try resultType.resolve()
                 let responseJSON = response.getResponseJSON()
-                let usersList:[[String : Any]] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                let usersList:[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                 let user = try self.getZCRMUser(userDict: usersList[0])
-                response.setData(data: user )
+                user.upsertJSON = [ String : Any? ]()
+                response.setData( data : user )
                 completion( .success( user, response ) )
             }
             catch{
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -174,26 +200,34 @@ internal class UserAPIHandler : CommonAPIHandler
     {
         setJSONRootKey( key : JSONRootKey.USERS )
         setRequestMethod( requestMethod : .POST )
-        setUrlPath( urlPath : "/users" )
-        var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
-        var dataArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
-        dataArray.append( self.getZCRMUserAsJSON( user : user ) )
+        setUrlPath( urlPath : "users" )
+        var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
+        var dataArray : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
+        dataArray.append(user.upsertJSON)
         reqBodyObj[JSONRootKey.USERS] = dataArray
         setRequestBody( requestBody : reqBodyObj )
         let request = APIRequest( handler : self )
-        print( "Request : \( request.toString() )" )
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
             do{
                 let response = try resultType.resolve()
-                let responseJSONArray  = response.getResponseJSON().getArrayOfDictionaries( key : self.getJSONRootKey() )
+                let responseJSON = response.getResponseJSON()
+                let responseJSONArray  = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                 let responseJSONData = responseJSONArray[ 0 ]
-                let responseDetails : [ String : Any ] = responseJSONData[ APIConstants.DETAILS ] as! [ String : Any ]
-                user.id = responseDetails.getInt64( key : "id" )
+                let responseDetails : [ String : Any ] = try responseJSONData.getDictionary( key : APIConstants.DETAILS )
+                user.id = try responseDetails.getInt64( key : ResponseJSONKeys.id )
+                user.data.updateValue( user.id, forKey : ResponseJSONKeys.id )
+                for ( key, value ) in user.upsertJSON
+                {
+                    user.data.updateValue( value, forKey : key )
+                }
+                user.upsertJSON = [ String : Any? ]()
                 response.setData( data : user )
                 completion( .success( user, response ) )
             }
             catch{
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -202,41 +236,48 @@ internal class UserAPIHandler : CommonAPIHandler
     internal func updateUser( user : ZCRMUser, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
-        setRequestMethod( requestMethod : .PUT )
-        setUrlPath( urlPath : "/users/\( user.id )" )
-        var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
-        var dataArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
-        dataArray.append( self.getZCRMUserAsJSON( user : user ) )
+        setRequestMethod( requestMethod : .PATCH )
+        setUrlPath( urlPath : "users/\( user.id )" )
+        var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
+        var dataArray : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
+        dataArray.append(user.upsertJSON)
         reqBodyObj[ getJSONRootKey() ] = dataArray
         setRequestBody( requestBody : reqBodyObj )
         let request = APIRequest( handler : self )
-        print( "Request : \( request.toString() )" )
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
             do{
                 let response = try resultType.resolve()
+                for ( key, value ) in user.upsertJSON
+                {
+                    user.data.updateValue( value, forKey : key )
+                }
+                user.upsertJSON = [ String : Any? ]()
                 completion( .success( response ) )
             }
             catch{
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
     }
     
+    @available(*, deprecated, message: "Use the method with user object" )
     internal func updateUser( userDetails : [String:Any], completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         if let userDelegate = self.userDelegate
         {
             setJSONRootKey(key: JSONRootKey.USERS)
-            setRequestMethod(requestMethod: .PUT)
-            setUrlPath( urlPath : "/users/\( userDelegate.id )" )
+            setRequestMethod(requestMethod: .PATCH)
+            setUrlPath( urlPath : "users/\( userDelegate.id )" )
             var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
             var dataArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
             dataArray.append(userDetails)
             reqBodyObj[ getJSONRootKey() ] = dataArray
             setRequestBody(requestBody: reqBodyObj)
             let request = APIRequest(handler: self)
-            print( "Request : \( request.toString() )" )
+            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
             
             request.getAPIResponse { ( resultType ) in
                 do
@@ -246,13 +287,15 @@ internal class UserAPIHandler : CommonAPIHandler
                 }
                 catch
                 {
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "USER DELEGATE must not be nil" ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : USER ID must not be nil")
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "USER ID must not be nil", details : nil ) ) )
         }
     }
     
@@ -260,9 +303,9 @@ internal class UserAPIHandler : CommonAPIHandler
     {
         setJSONRootKey( key : JSONRootKey.USERS )
         setRequestMethod( requestMethod : .DELETE )
-        setUrlPath( urlPath : "/users/\( userId )" )
+        setUrlPath( urlPath : "users/\( userId )" )
         let request = APIRequest( handler : self )
-        print( "Request : \( request.toString() )" )
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
             do{
@@ -270,31 +313,41 @@ internal class UserAPIHandler : CommonAPIHandler
                 completion( .success( response ) )
             }
             catch{
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
     }
     
-    internal func searchUsers( criteria : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal func searchUsers( criteria : String, page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
-        setRequestMethod( requestMethod : .PUT )
-        setUrlPath( urlPath : "/users" )
+        setRequestMethod( requestMethod : .PATCH )
+        setUrlPath( urlPath : "users" )
         addRequestParam( param : RequestParamKeys.filters, value : criteria )
-        addRequestParam( param : "page", value : String( page ) )
-        addRequestParam( param : "per_page", value : String( perPage ) )
+        if let page = page
+        {
+            addRequestParam( param : RequestParamKeys.page, value : String( page ) )
+        }
+        if let perPage = perPage
+        {
+            addRequestParam( param : RequestParamKeys.perPage, value : String( perPage ) )
+        }
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
-        APIRequest( handler : self ).getBulkAPIResponse { ( resultType ) in
+        request.getBulkAPIResponse { ( resultType ) in
             do{
                 let bulkResponse = try resultType.resolve()
                 let responseJSON = bulkResponse.getResponseJSON()
                 var userList : [ ZCRMUser ] = [ ZCRMUser ]()
                 if responseJSON.isEmpty == false
                 {
-                    let userDetailsList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                    let userDetailsList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if userDetailsList.isEmpty == true
                     {
-                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG ) ) )
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_NIL) : \(ErrorMessage.RESPONSE_JSON_NIL_MSG)")
+                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
                         return
                     }
                     for userDetail in userDetailsList
@@ -307,6 +360,7 @@ internal class UserAPIHandler : CommonAPIHandler
                 completion( .success( userList, bulkResponse ) )
             }
             catch{
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -315,21 +369,22 @@ internal class UserAPIHandler : CommonAPIHandler
     internal func getProfile( profileId : Int64, completion : @escaping( Result.DataResponse< ZCRMProfile, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.PROFILES)
-        setUrlPath(urlPath:  "/settings/profiles/\(profileId)" )
-        setRequestMethod(requestMethod: .GET )
-        let request : APIRequest = APIRequest(handler: self)
-        print( "Request : \( request.toString() )" )
+		setUrlPath(urlPath:  "settings/profiles/\(profileId)" )
+		setRequestMethod(requestMethod: .GET )
+		let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
             do{
                 let response = try resultType.resolve()
                 let responseJSON = response.getResponseJSON()
-                let profileList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                let profileList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                 let profile = try self.getZCRMProfile( profileDetails: profileList[ 0 ] )
                 response.setData( data : profile )
                 completion( .success( profile, response ) )
             }
             catch{
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -338,21 +393,22 @@ internal class UserAPIHandler : CommonAPIHandler
     internal func getRole( roleId : Int64, completion : @escaping( Result.DataResponse< ZCRMRole, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.ROLES )
-        setUrlPath(urlPath: "/settings/roles/\(roleId)" )
+        setUrlPath(urlPath: "settings/roles/\(roleId)" )
         setRequestMethod(requestMethod: .GET )
         let request : APIRequest = APIRequest(handler: self)
-        print( "Request : \( request.toString() )" )
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
             do{
                 let response = try resultType.resolve()
                 let responseJSON = response.getResponseJSON()
-                let rolesList : [ [ String : Any ] ] = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                let rolesList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                 let role = try self.getZCRMRole( roleDetails : rolesList[ 0 ] )
                 response.setData( data : role )
                 completion( .success( role, response ) )
             }
             catch{
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -363,14 +419,14 @@ internal class UserAPIHandler : CommonAPIHandler
         if let userDelegate = self.userDelegate
         {
             setJSONRootKey( key : JSONRootKey.NIL )
-            setUrlPath(urlPath: "/users/\(userDelegate.id)/photo")
+            setUrlPath(urlPath: "users/\(userDelegate.id)/photo")
             setRequestMethod(requestMethod: .GET)
             if let photoSize = size
             {
                 addRequestParam(param: RequestParamKeys.photoSize , value: photoSize.rawValue )
             }
-            let request : APIRequest = APIRequest(handler: self)
-            print( "Request : \(request.toString())" )
+            let request : FileAPIRequest = FileAPIRequest(handler: self)
+            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
             
             request.downloadFile { ( resultType ) in
                 do
@@ -380,136 +436,199 @@ internal class UserAPIHandler : CommonAPIHandler
                 }
                 catch
                 {
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "USER DELEGATE must not be nil" ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : USER ID must not be nil")
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "USER ID must not be nil", details : nil ) ) )
         }
     }
     
-    internal func uploadPhotoWithPath( filePath : String, completion : @escaping(  Result.Response< APIResponse > ) -> () )
+    internal func downloadPhoto( size : PhotoSize?, fileDownloadDelegate : FileDownloadDelegate ) throws
     {
         if let userDelegate = self.userDelegate
         {
             setJSONRootKey( key : JSONRootKey.NIL )
-            setUrlPath(urlPath: "/users/\(userDelegate.id)/photo")
-            setRequestMethod(requestMethod: .POST)
-            let request : APIRequest = APIRequest(handler: self)
-            print( "Request : \(request.toString())" )
-            
-            request.uploadFile(filePath: filePath, content: nil) { ( resultType ) in
-                do
-                {
-                    let response = try resultType.resolve()
-                    completion( .success( response ) )
-                }
-                catch
-                {
-                    completion( .failure( typeCastToZCRMError( error ) ) )
-                }
+            setUrlPath(urlPath: "users/\(userDelegate.id)/photo")
+            setRequestMethod(requestMethod: .GET)
+            if let photoSize = size
+            {
+                addRequestParam(param: RequestParamKeys.photoSize , value: photoSize.rawValue )
             }
+            let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate)
+            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+            request.downloadFile()
         }
         else
         {
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "USER DELEGATE must not be nil" ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : USER ID must not be nil")
+            throw ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "USER ID must not be nil", details : nil )
         }
     }
     
-    internal func uploadPhotoWithData( fileName : String, data : Data, completion : @escaping(   Result.Response< APIResponse > ) -> () )
+    internal func uploadPhoto( filePath : String?, fileName : String?, fileData : Data?, completion : @escaping(  Result.Response< APIResponse > ) -> () )
     {
         if let userDelegate = self.userDelegate
         {
+            do
+            {
+                try fileDetailCheck( filePath : filePath, fileData : fileData )
+            }
+            catch
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+                return
+            }
             setJSONRootKey( key : JSONRootKey.NIL )
-            setUrlPath(urlPath: "/users/\(userDelegate.id)/photo")
+            setUrlPath(urlPath: "users/\(userDelegate.id)/photo")
             setRequestMethod(requestMethod: .POST)
-            let request : APIRequest = APIRequest(handler: self)
-            print( "Request : \(request.toString())" )
+            let request : FileAPIRequest = FileAPIRequest(handler: self)
+            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
             
-            request.uploadFileWithData(fileName: fileName, content: nil, data: data){ ( resultType ) in
-                do
-                {
-                    let response = try resultType.resolve()
-                    completion( .success( response ) )
+            if let filePath = filePath
+            {
+                request.uploadFile( filePath : filePath, entity : nil ) { ( resultType ) in
+                    do
+                    {
+                        let response = try resultType.resolve()
+                        completion( .success( response ) )
+                    }
+                    catch
+                    {
+                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                        completion( .failure( typeCastToZCRMError( error ) ) )
+                    }
                 }
-                catch
-                {
-                    completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+            else if let fileName = fileName, let fileData = fileData
+            {
+                request.uploadFile( fileName : fileName, entity : nil, fileData : fileData ){ ( resultType ) in
+                    do
+                    {
+                        let response = try resultType.resolve()
+                        completion( .success( response ) )
+                    }
+                    catch
+                    {
+                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                        completion( .failure( typeCastToZCRMError( error ) ) )
+                    }
                 }
             }
         }
         else
         {
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "USER DELEGATE must not be nil" ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : USER ID must not be nil")
+            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "USER ID must not be nil", details : nil ) ) )
         }
     }
     
+    internal func uploadPhoto( filePath : String?, fileName : String?, fileData : Data?, fileUploadDelegate : FileUploadDelegate )
+    {
+        if let userDelegate = self.userDelegate
+        {
+            do
+            {
+                try fileDetailCheck( filePath : filePath, fileData : fileData )
+            }
+            catch
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                self.fileUploadDelegate?.didFail( typeCastToZCRMError( error ) )
+                return
+            }
+            setJSONRootKey( key : JSONRootKey.NIL )
+            setUrlPath(urlPath: "users/\(userDelegate.id)/photo")
+            setRequestMethod(requestMethod: .POST)
+            let request : FileAPIRequest = FileAPIRequest( handler : self, fileUploadDelegate : fileUploadDelegate )
+            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+            
+            if let filePath = filePath
+            {
+                request.uploadFile( filePath : filePath, entity : nil )
+            }
+            else if let fileName = fileName, let fileData = fileData
+            {
+                request.uploadFile( fileName : fileName, entity : nil, fileData : fileData )
+            }
+        }
+        else
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : USER ID must not be nil")
+            self.fileUploadDelegate?.didFail( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "USER ID must not be nil", details : nil ) )
+        }
+    }
+
     internal func getCurrentUser( completion : @escaping( Result.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
+        setIsCacheable(true)
         self.getUser( userId : nil) { ( result ) in
             completion( result )
         }
     }
     
-    internal func getAllUsers( modifiedSince : String?, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal func getAllUsers( modifiedSince : String?, page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         self.getUsers( type: nil, modifiedSince : modifiedSince, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
     
-    internal func getAllActiveUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal func getAllActiveUsers( page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         self.getUsers( type : RequestParamValues.activeUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
     
-    internal func getAllDeactiveUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal func getAllDeactiveUsers( page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         self.getUsers( type : RequestParamValues.deactiveUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
     
-    internal func getAllUnConfirmedUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal func getAllUnConfirmedUsers( page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         self.getUsers( type : RequestParamValues.notConfirmedUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
     
-    internal func getAllConfirmedUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal func getAllConfirmedUsers( page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         self.getUsers( type : RequestParamValues.confirmedUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
-    
-    internal func getAllActiveConfirmedUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+
+    internal func getAllActiveConfirmedUsers( page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         self.getUsers( type: RequestParamValues.activeConfirmedUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
     
-    internal func getAllDeletedUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal func getAllDeletedUsers( page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         self.getUsers( type: RequestParamValues.deletedUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
     
-    internal func getAllAdminUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal func getAllAdminUsers( page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         self.getUsers( type: RequestParamValues.adminUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
     
-    internal func getAllActiveConfirmedAdmins( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal func getAllActiveConfirmedAdmins( page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         self.getUsers( type: RequestParamValues.activeConfirmedAdmins, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
@@ -518,308 +637,200 @@ internal class UserAPIHandler : CommonAPIHandler
     
     private func getZCRMUser(userDict : [String : Any]) throws -> ZCRMUser
     {
-        try userDict.valueCheck(forKey: ResponseJSONKeys.fullName)
-        let fullName : String = userDict.getString( key : ResponseJSONKeys.fullName )
-        try userDict.valueCheck(forKey: ResponseJSONKeys.id)
-        let userId : Int64 = userDict.getInt64( key : ResponseJSONKeys.id )
-        var role : ZCRMRoleDelegate = ROLE_MOCK
-        var profile : ZCRMProfileDelegate = PROFILE_MOCK
-        try userDict.valueCheck(forKey: ResponseJSONKeys.lastName)
-        let lastName = userDict.getString(key: ResponseJSONKeys.lastName)
-        try userDict.valueCheck(forKey: ResponseJSONKeys.email)
-        let email = userDict.getString(key: ResponseJSONKeys.email)
+        let lastName = try userDict.getString( key : ResponseJSONKeys.lastName )
+        let email = try userDict.getString( key : ResponseJSONKeys.email )
+        let user = ZCRMUser( lastName : lastName, emailId : email )
+        user.data.updateValue( lastName, forKey : ResponseJSONKeys.lastName )
+        user.data.updateValue( email, forKey : ResponseJSONKeys.email )
+        user.id = try userDict.getInt64( key : ResponseJSONKeys.id )
+        user.data.updateValue( user.id, forKey : ResponseJSONKeys.id )
+        user.name = try userDict.getString( key : ResponseJSONKeys.fullName )
+        user.data.updateValue( user.name, forKey : ResponseJSONKeys.fullName )
         if ( userDict.hasValue( forKey : ResponseJSONKeys.profile ) )
         {
-            let profileObj : [String : Any] = userDict.getDictionary(key: ResponseJSONKeys.profile)
-            try profileObj.valueCheck(forKey: ResponseJSONKeys.id)
-            try profileObj.valueCheck(forKey: ResponseJSONKeys.name)
-            profile = ZCRMProfileDelegate(profileId: profileObj.getInt64( key : ResponseJSONKeys.id ), profileName: profileObj.getString( key : ResponseJSONKeys.name ))
+            let profileObj : [ String : Any ] = try userDict.getDictionary( key : ResponseJSONKeys.profile )
+            let profile = ZCRMProfileDelegate( id : try profileObj.getInt64( key : ResponseJSONKeys.id ), name : try profileObj.getString( key : ResponseJSONKeys.name ) )
+            user.profile = profile
+            user.data.updateValue( profile, forKey : ResponseJSONKeys.profile )
         }
         if ( userDict.hasValue( forKey : ResponseJSONKeys.role ) )
         {
-            let roleObj : [String : Any] = userDict.getDictionary(key: ResponseJSONKeys.role)
-            try roleObj.valueCheck(forKey: ResponseJSONKeys.id)
-            try roleObj.valueCheck(forKey: ResponseJSONKeys.name)
-            role = ZCRMRoleDelegate(roleId: roleObj.getInt64( key : ResponseJSONKeys.id ), roleName: roleObj.getString( key : ResponseJSONKeys.name ))
+            let roleObj : [ String : Any ] = try userDict.getDictionary( key : ResponseJSONKeys.role )
+            let role  = ZCRMRoleDelegate( id : try roleObj.getInt64( key : ResponseJSONKeys.id ), name : try roleObj.getString( key : ResponseJSONKeys.name ) )
+            user.role = role
+            user.data.updateValue( role, forKey : ResponseJSONKeys.role )
         }
-        let user = ZCRMUser(lastName: lastName, emailId: email, role: role, profile: profile)
-        user.id = userId
-        user.fullName = fullName
-        user.firstName = userDict.optString(key: ResponseJSONKeys.firstName)
-        user.mobile = userDict.optString(key: ResponseJSONKeys.mobile)
-        try userDict.valueCheck(forKey: ResponseJSONKeys.language)
-        user.language = userDict.getString(key: ResponseJSONKeys.language)
-        try userDict.valueCheck(forKey: ResponseJSONKeys.status)
-        user.status = userDict.getString(key: ResponseJSONKeys.status)
-        user.zuId = userDict.optInt64(key: ResponseJSONKeys.ZUID)
-        
-        user.alias = userDict.optString( key : ResponseJSONKeys.alias )
-        user.city = userDict.optString( key : ResponseJSONKeys.city )
-        try userDict.valueCheck(forKey: ResponseJSONKeys.confirm)
-        user.confirm = userDict.getBoolean( key : ResponseJSONKeys.confirm )
-        try userDict.valueCheck(forKey: ResponseJSONKeys.countryLocale)
-        user.countryLocale = userDict.getString(key : ResponseJSONKeys.countryLocale )
-        try userDict.valueCheck(forKey: ResponseJSONKeys.dateFormat)
-        user.dateFormat = userDict.getString( key : ResponseJSONKeys.dateFormat )
-        user.dateOfBirth = userDict.optString( key : ResponseJSONKeys.dob )
-        if userDict.hasValue( forKey : ResponseJSONKeys.country )
+        if let firstName = userDict.optString( key : ResponseJSONKeys.firstName )
         {
-            user.country = userDict.getString( key : ResponseJSONKeys.country )
+            user.firstName = firstName
+            user.data.updateValue( firstName, forKey : ResponseJSONKeys.firstName )
         }
-        user.fax = userDict.optString( key : ResponseJSONKeys.fax )
-        try userDict.valueCheck(forKey: ResponseJSONKeys.locale)
-        user.locale = userDict.getString( key : ResponseJSONKeys.locale )
-        if userDict.hasValue( forKey : ResponseJSONKeys.nameFormat )
+        if let mobile = userDict.optString( key : ResponseJSONKeys.mobile )
         {
-            user.nameFormat = userDict.getString( key : ResponseJSONKeys.nameFormat )
+            user.mobile = mobile
+            user.data.updateValue( mobile, forKey : ResponseJSONKeys.mobile )
         }
-        user.phone = userDict.optString( key : ResponseJSONKeys.phone )
-        user.website = userDict.optString( key : ResponseJSONKeys.website )
-        user.street = userDict.optString( key : ResponseJSONKeys.street )
-        try userDict.valueCheck(forKey: ResponseJSONKeys.timeZone)
-        user.timeZone = userDict.getString( key : ResponseJSONKeys.timeZone )
-        user.state = userDict.optString( key : ResponseJSONKeys.state)
-        if( userDict.hasValue( forKey : ResponseJSONKeys.CreatedBy))
+        if let language = userDict.optString( key : ResponseJSONKeys.language )
         {
-            let createdByObj : [String:Any] = userDict.getDictionary(key: ResponseJSONKeys.CreatedBy)
-            user.createdBy = try getUserDelegate(userJSON : createdByObj)
-            try userDict.valueCheck(forKey: ResponseJSONKeys.CreatedTime)
-            user.createdTime = userDict.getString( key : ResponseJSONKeys.CreatedTime)
+            user.language = language
+            user.data.updateValue( language, forKey : ResponseJSONKeys.language )
+        }
+        user.status = try userDict.getString( key : ResponseJSONKeys.status )
+        user.data.updateValue( user.status, forKey : ResponseJSONKeys.status )
+        if let zuId = userDict.optInt64( key : ResponseJSONKeys.ZUID )
+        {
+            user.zuId = zuId
+            user.data.updateValue( zuId, forKey : ResponseJSONKeys.ZUID )
+        }
+        if let alias = userDict.optString( key : ResponseJSONKeys.alias )
+        {
+            user.alias = userDict.optString( key : ResponseJSONKeys.alias )
+            user.data.updateValue( alias, forKey : ResponseJSONKeys.alias )
+        }
+        if let city = userDict.optString( key : ResponseJSONKeys.city )
+        {
+            user.city = city
+            user.data.updateValue( city, forKey : ResponseJSONKeys.city)
+        }
+        user.isConfirmed = try userDict.getBoolean( key : ResponseJSONKeys.confirm )
+        user.data.updateValue( user.isConfirmed, forKey : ResponseJSONKeys.confirm )
+        if let countryLocale = userDict.optString( key :  ResponseJSONKeys.countryLocale )
+        {
+            user.countryLocale = countryLocale
+            user.data.updateValue( countryLocale, forKey : ResponseJSONKeys.countryLocale )
+        }
+        if let dateFormat = userDict.optString( key : ResponseJSONKeys.dateFormat )
+        {
+            user.dateFormat = dateFormat
+            user.data.updateValue( dateFormat, forKey : ResponseJSONKeys.dateFormat )
+        }
+        if let dob = userDict.optString( key : ResponseJSONKeys.dob )
+        {
+            user.dateOfBirth = userDict.optString( key : ResponseJSONKeys.dob )
+            user.data.updateValue( dob, forKey : ResponseJSONKeys.dob )
+        }
+        if let zip = userDict.optInt64( key : ResponseJSONKeys.zip )
+        {
+            user.zip = zip
+            user.data.updateValue( zip, forKey : ResponseJSONKeys.zip )
+        }
+        if let timeFormat = userDict.optString( key : ResponseJSONKeys.timeFormat )
+        {
+            user.timeFormat = timeFormat
+            user.data.updateValue( timeFormat, forKey : ResponseJSONKeys.timeFormat )
+        }
+        if let country = userDict.optString( key : ResponseJSONKeys.country )
+        {
+            user.country = country
+            user.data.updateValue( country, forKey : ResponseJSONKeys.country )
+        }
+        if let fax = userDict.optString( key : ResponseJSONKeys.fax )
+        {
+            user.fax = fax
+            user.data.updateValue( fax, forKey : ResponseJSONKeys.fax )
+        }
+        if let locale = userDict.optString( key : ResponseJSONKeys.locale )
+        {
+            user.locale = locale
+            user.data.updateValue( locale, forKey : ResponseJSONKeys.locale )
+        }
+        if let nameFormat = userDict.optString( key : ResponseJSONKeys.nameFormat )
+        {
+            user.nameFormat = nameFormat
+            user.data.updateValue( nameFormat, forKey : ResponseJSONKeys.nameFormat )
+        }
+        if let phone = userDict.optString( key : ResponseJSONKeys.phone )
+        {
+            user.phone = phone
+            user.data.updateValue( phone, forKey : ResponseJSONKeys.phone )
+        }
+        if let website = userDict.optString( key : ResponseJSONKeys.website )
+        {
+            user.website = website
+            user.data.updateValue( website, forKey : ResponseJSONKeys.website )
+        }
+        if let street = userDict.optString( key : ResponseJSONKeys.street )
+        {
+            user.street = street
+            user.data.updateValue( street, forKey : ResponseJSONKeys.street )
+        }
+        if let timeZone = userDict.optString( key : ResponseJSONKeys.timeZone )
+        {
+            user.timeZone = timeZone
+            user.data.updateValue( timeZone, forKey : ResponseJSONKeys.timeZone )
+        }
+        if let state = userDict.optString( key : ResponseJSONKeys.state )
+        {
+            user.state = state
+            user.data.updateValue( state, forKey : ResponseJSONKeys.state )
+        }
+        if( userDict.hasValue( forKey : ResponseJSONKeys.createdBy ) )
+        {
+            let createdByObj : [ String :Any ] = try userDict.getDictionary( key : ResponseJSONKeys.createdBy )
+            user.createdBy = try getUserDelegate( userJSON : createdByObj )
+            user.data.updateValue( user.createdBy, forKey : ResponseJSONKeys.createdBy )
+            user.createdTime = try userDict.getString( key : ResponseJSONKeys.createdTime )
+            user.data.updateValue( user.createdTime, forKey : ResponseJSONKeys.createdTime )
         }
         if( userDict.hasValue( forKey : ResponseJSONKeys.ModifiedBy ) )
         {
-            let modifiedByObj : [ String : Any ] = userDict.getDictionary( key : ResponseJSONKeys.ModifiedBy)
-            user.modifiedBy = try getUserDelegate(userJSON : modifiedByObj)
-            try userDict.valueCheck(forKey: ResponseJSONKeys.ModifiedTime)
-            user.modifiedTime = userDict.getString( key : ResponseJSONKeys.ModifiedTime )
+            let modifiedByObj : [ String : Any ] = try userDict.getDictionary( key : ResponseJSONKeys.ModifiedBy )
+            user.modifiedBy = try getUserDelegate( userJSON : modifiedByObj )
+            user.data.updateValue( user.modifiedBy, forKey : ResponseJSONKeys.ModifiedBy )
+            user.modifiedTime = try userDict.getString( key : ResponseJSONKeys.ModifiedTime )
+            user.data.updateValue( user.modifiedTime, forKey : ResponseJSONKeys.ModifiedTime )
         }
         if ( userDict.hasValue( forKey : ResponseJSONKeys.ReportingTo ) )
         {
-            let reportingObj : [ String : Any ] = userDict.getDictionary( key : ResponseJSONKeys.ReportingTo )
-            user.reportingTo = try getUserDelegate(userJSON : reportingObj)
+            let reportingObj : [ String : Any ] = try userDict.getDictionary( key : ResponseJSONKeys.ReportingTo )
+            user.reportingTo = try getUserDelegate( userJSON : reportingObj )
+            user.data.updateValue( user.reportingTo, forKey : ResponseJSONKeys.ReportingTo )
         }
+        user.isCreate = false
         return user
     }
     
     private func getZCRMRole( roleDetails : [ String : Any ] ) throws -> ZCRMRole
     {
-        try roleDetails.valueCheck(forKey: ResponseJSONKeys.name)
-        let role = ZCRMRole(name: roleDetails.getString( key : ResponseJSONKeys.name ))
-        try roleDetails.valueCheck(forKey: ResponseJSONKeys.id)
-        role.roleId = roleDetails.getInt64( key : ResponseJSONKeys.id )
-        try roleDetails.valueCheck(forKey: ResponseJSONKeys.displayLabel)
-        role.label = roleDetails.getString( key : ResponseJSONKeys.displayLabel )
-        try roleDetails.valueCheck(forKey: ResponseJSONKeys.adminUser)
-        role.isAdminUser = roleDetails.getBoolean( key : ResponseJSONKeys.adminUser )
+        let role = ZCRMRole( name : try roleDetails.getString( key : ResponseJSONKeys.name ) )
+        role.id = try roleDetails.getInt64( key : ResponseJSONKeys.id )
+        role.label = try roleDetails.getString( key : ResponseJSONKeys.displayLabel )
+        role.isAdminUser = try roleDetails.getBoolean( key : ResponseJSONKeys.adminUser )
         if ( roleDetails.hasValue(forKey: ResponseJSONKeys.reportingTo) )
         {
-            let reportingToObj : [String : Any] = roleDetails.getDictionary( key : ResponseJSONKeys.reportingTo )
-            try reportingToObj.valueCheck(forKey: ResponseJSONKeys.id)
-            try reportingToObj.valueCheck(forKey: ResponseJSONKeys.name)
-            role.reportingTo = ZCRMRoleDelegate(roleId: reportingToObj.getInt64( key : ResponseJSONKeys.id ), roleName: reportingToObj.getString( key : ResponseJSONKeys.name ))
+            let reportingToObj : [ String : Any ] = try roleDetails.getDictionary( key : ResponseJSONKeys.reportingTo )
+            role.reportingTo = ZCRMRoleDelegate( id : try reportingToObj.getInt64( key : ResponseJSONKeys.id ), name : try reportingToObj.getString( key : ResponseJSONKeys.name ) )
         }
         return role
     }
     
     private func getZCRMProfile( profileDetails : [ String : Any ] ) throws -> ZCRMProfile
     {
-        try profileDetails.valueCheck(forKey: ResponseJSONKeys.name)
-        let profile = ZCRMProfile(name: profileDetails.getString( key : ResponseJSONKeys.name ) )
-        try profileDetails.valueCheck(forKey: ResponseJSONKeys.id)
-        profile.profileId = profileDetails.getInt64( key : ResponseJSONKeys.id )
-        try profileDetails.valueCheck(forKey: ResponseJSONKeys.category)
-        profile.category = profileDetails.getBoolean( key : ResponseJSONKeys.category )
+        let profile = ZCRMProfile( name : try profileDetails.getString( key : ResponseJSONKeys.name ) )
+        profile.id = try profileDetails.getInt64( key : ResponseJSONKeys.id )
+        profile.category = try profileDetails.getBoolean( key : ResponseJSONKeys.category )
         if ( profileDetails.hasValue( forKey : ResponseJSONKeys.description ) )
         {
-            profile.description = profileDetails.getString( key : ResponseJSONKeys.description )
+            profile.description = try profileDetails.getString( key : ResponseJSONKeys.description )
         }
         if ( profileDetails.hasValue( forKey : ResponseJSONKeys.modifiedBy ) )
         {
-            let modifiedUserObj : [ String : Any ] = profileDetails.getDictionary( key : ResponseJSONKeys.modifiedBy )
+            let modifiedUserObj : [ String : Any ] = try profileDetails.getDictionary( key : ResponseJSONKeys.modifiedBy )
             profile.modifiedBy = try getUserDelegate(userJSON : modifiedUserObj)
-            try profileDetails.valueCheck(forKey: ResponseJSONKeys.modifiedTime)
-            profile.modifiedTime = profileDetails.getString( key : ResponseJSONKeys.modifiedTime )
+            profile.modifiedTime = try profileDetails.getString( key : ResponseJSONKeys.modifiedTime )
         }
         if ( profileDetails.hasValue( forKey : ResponseJSONKeys.createdBy ) )
         {
-            let createdUserObj : [ String : Any ] = profileDetails.getDictionary( key : ResponseJSONKeys.createdBy )
+            let createdUserObj : [ String : Any ] = try profileDetails.getDictionary( key : ResponseJSONKeys.createdBy )
             profile.createdBy = try getUserDelegate(userJSON : createdUserObj)
-            try profileDetails.valueCheck(forKey: ResponseJSONKeys.createdTime)
-            profile.createdTime = profileDetails.getString( key : ResponseJSONKeys.createdTime )
+            profile.createdTime = try profileDetails.getString( key : ResponseJSONKeys.createdTime )
         }
         return profile
     }
-    
-    private func getZCRMUserAsJSON( user : ZCRMUser ) -> [ String : Any ]
-    {
-        var userJSON : [ String : Any ] = [ String : Any ]()
-        let id = user.id
-        if id != APIConstants.INT64_MOCK
-        {
-            userJSON[ ResponseJSONKeys.id ] = id
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.id ] = nil
-        }
-        userJSON[ ResponseJSONKeys.firstName ] = user.firstName
-        let lastName = user.lastName
-        if lastName != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.lastName ] = lastName
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.lastName ] = nil
-        }
-        let fullName = user.fullName
-        if fullName != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.fullName ] = fullName
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.fullName ] = nil
-        }
-        userJSON[ ResponseJSONKeys.alias ] = user.alias
-        userJSON[ ResponseJSONKeys.dob ] = user.dateOfBirth
-        userJSON[ ResponseJSONKeys.mobile ] = user.mobile
-        userJSON[ ResponseJSONKeys.phone ] = user.phone
-        userJSON[ ResponseJSONKeys.fax ] = user.fax
-        let email = user.emailId
-        if email != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.email ] = email
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.email ] = nil
-        }
-        userJSON[ ResponseJSONKeys.zip ] = user.zip
-        userJSON[ ResponseJSONKeys.country ] = user.country
-        userJSON[ ResponseJSONKeys.state ] = user.state
-        userJSON[ ResponseJSONKeys.city ] = user.city
-        userJSON[ ResponseJSONKeys.street ] = user.street
-        let locale = user.locale
-        if locale != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.locale ] = locale
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.locale ] = nil
-        }
-        let countryLocale = user.countryLocale
-        if countryLocale != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.countryLocale ] = countryLocale
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.countryLocale ] = nil
-        }
-        userJSON[ ResponseJSONKeys.nameFormat ] = user.nameFormat
-        let dateFormat = user.dateFormat
-        if dateFormat != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.dateFormat ] = dateFormat
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.dateFormat ] = nil
-        }
-        let timeFormat = user.timeFormat
-        if timeFormat != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.timeFormat ] = timeFormat
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.timeFormat ] = nil
-        }
-        let timeZone = user.timeZone
-        if timeZone != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.timeZone ] = timeZone
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.timeZone ] = nil
-        }
-        userJSON[ ResponseJSONKeys.website ] = user.website
-        let confirm = user.confirm
-        userJSON[ ResponseJSONKeys.confirm ] = confirm
-        let status = user.status
-        if status != APIConstants.STRING_MOCK
-        {
-            userJSON[ ResponseJSONKeys.status ] = status
-        }
-        else
-        {
-            userJSON[ ResponseJSONKeys.status ] = nil
-        }
-        let profile = user.profile
-        if profile.profileId != APIConstants.INT64_MOCK
-        {
-            userJSON[ ResponseJSONKeys.profile ] = String( profile.profileId )
-        }
-        else
-        {
-            print( "User must have PROFILE" )
-        }
-        let role = user.role
-        if role.roleId != APIConstants.INT64_MOCK
-        {
-            userJSON[ ResponseJSONKeys.role ] = role.roleId
-        }
-        else
-        {
-            print( "User must have ROLE" )
-        }
-        
-        if user.getData().isEmpty == false
-        {
-            var userData : [ String : Any ] = user.getData()
-            
-            for fieldAPIName in userData.keys
-            {
-                var value = userData[ fieldAPIName ]
-                if( value != nil && value is ZCRMRecord )
-                {
-                    value = String( ( value as! ZCRMRecord ).recordId )
-                }
-                else if( value != nil && value is ZCRMUser )
-                {
-                    value = String( ( value as! ZCRMUser ).id )
-                }
-                else if( value != nil && value is [ [ String : Any ] ] )
-                {
-                    var valueDict = [ [ String : Any ] ]()
-                    let valueList = ( value as! [ [ String : Any ] ] )
-                    for valueDetail in valueList
-                    {
-                        valueDict.append( valueDetail )
-                    }
-                    value = valueDict
-                }
-                userJSON[ fieldAPIName ] = value
-            }
-        }
-        
-        return userJSON
-    }
 }
 
-fileprivate extension UserAPIHandler
+internal extension UserAPIHandler
 {
-    struct RequestParamKeys
-    {
-        static let type = "type"
-        static let currentUser = "CurrentUser"
-        static let filters = "filters"
-        static let photoSize = "photo_size"
-    }
-    
     struct RequestParamValues
     {
         static let activeUsers = "ActiveUsers"
@@ -881,4 +892,10 @@ fileprivate extension UserAPIHandler
         static let zip = "zip"
         static let timeFormat = "time_format"
     }
+}
+
+extension RequestParamKeys
+{
+    static let currentUser = "CurrentUser"
+    static let photoSize = "photo_size"
 }

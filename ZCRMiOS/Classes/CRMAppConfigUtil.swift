@@ -26,34 +26,14 @@ public class CRMAppConfigUtil
         self.appConfigDict[ "ClientID" ] = id
     }
     
-    internal func getClientID() -> String
-    {
-        return self.appConfigDict.getString( key : "ClientID" )
-    }
-    
     internal func setClientSecretID( id : String )
     {
         self.appConfigDict[ "ClientSecretID" ] = id
     }
     
-    internal func getClientSecretID() -> String
-    {
-        return self.appConfigDict.getString( key : "ClientSecretID" )
-    }
-    
     internal func setRedirectURLScheme( scheme : String )
     {
         self.appConfigDict[ "RedirectURLScheme" ] = scheme
-    }
-    
-    internal func getRedirectURLScheme() -> String
-    {
-        return self.appConfigDict.getString( key : "RedirectURLScheme" )
-    }
-    
-    internal func getAuthscopes() -> [ Any ]
-    {
-        return self.appConfigDict.getArray( key : "OAuthScopes" )
     }
     
     internal func setOauthScopes( scopes : [ Any ] )
@@ -66,19 +46,9 @@ public class CRMAppConfigUtil
         self.appConfigDict[ "AccountsURL" ] = url
     }
     
-    internal func getAccountsURL() -> String
-    {
-        return self.appConfigDict.getString( key : "AccountsURL" )
-    }
-    
     public func setAppType( type : String )
     {
         self.appType = type
-    }
-    
-    internal func getAppType() -> String
-    {
-        return self.appType!
     }
     
     internal func setPortalID( id : String )
@@ -86,34 +56,64 @@ public class CRMAppConfigUtil
         self.appConfigDict[ "PortalID" ] = id
     }
     
-    public func getPortalID() -> String
+    internal func getClientID() throws -> String
     {
-        return self.appConfigDict.getString( key : "PortalID" )
+        return try self.appConfigDict.getString( key : "ClientID" )
     }
     
-    internal func getApiBaseURL() -> String
+    internal func getClientSecretID() throws -> String
     {
-        return self.appConfigDict.getString( key : "ApiBaseURL" )
+        return try self.appConfigDict.getString( key : "ClientSecretID" )
     }
     
-    internal func getApiVersion() -> String
+    internal func getRedirectURLScheme() throws -> String
     {
-        return self.appConfigDict.getString( key : "ApiVersion" )
+        return try self.appConfigDict.getString( key : "RedirectURLScheme" )
     }
     
-    internal func getCountryDomain() -> String
+    internal func getAuthscopes() throws -> [ Any ]
     {
-        return self.appConfigDict.getString( key : "DomainSuffix" )
+        return try self.appConfigDict.getArray( key : "OAuthScopes" )
     }
     
-    internal func getAccessType() -> String
+    internal func getAccountsURL() throws -> String
     {
-        return self.appConfigDict.getString( key : "AccessType" )
+        return try self.appConfigDict.getString( key : "AccountsURL" )
     }
     
-    internal func getShowSignUp() -> String
+    internal func getAppType() -> String
     {
-        return self.appConfigDict.getString( key : "ShowSignUp" )
+        return self.appType!
+    }
+    
+    public func getPortalID() throws -> String
+    {
+        return try self.appConfigDict.getString( key : "PortalID" )
+    }
+    
+    internal func getApiBaseURL() throws -> String
+    {
+        return try self.appConfigDict.getString( key : "ApiBaseURL" )
+    }
+    
+    internal func getApiVersion() throws -> String
+    {
+        return try self.appConfigDict.getString( key : "ApiVersion" )
+    }
+    
+    internal func getCountryDomain() throws -> String
+    {
+        return try self.appConfigDict.getString( key : "DomainSuffix" )
+    }
+    
+    internal func getAccessType() throws -> String
+    {
+        return try self.appConfigDict.getString( key : "AccessType" )
+    }
+    
+    internal func getShowSignUp() throws -> String
+    {
+        return try self.appConfigDict.getString( key : "ShowSignUp" )
     }
     
     internal func getAppConfigurations() -> Dictionary< String, Any >
@@ -123,11 +123,17 @@ public class CRMAppConfigUtil
     
     internal func isLoginCustomized() -> Bool
     {
-        if ( self.appConfigDict.getString( key : "LoginCustomization" ) == "true" )
-        {
-            return true
+        do {
+            if ( try self.appConfigDict.getString( key : "LoginCustomization" ) == "true" )
+            {
+                return true
+            }
+            else
+            {
+                return false
+            }
         }
-        else
+        catch
         {
             return false
         }

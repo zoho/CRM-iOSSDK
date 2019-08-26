@@ -18,9 +18,18 @@ public class  APIResponse : CommonAPIResponse
         super.init()
     }
     
-    override init( response : HTTPURLResponse, responseData : Data?, responseJSONRootKey : String ) throws
+    override init( response : HTTPURLResponse, responseJSONRootKey : String ) throws
+    {
+        try super.init( response : response, responseJSONRootKey : responseJSONRootKey )
+    }
+    
+    override init( response : HTTPURLResponse, responseData : Data, responseJSONRootKey : String ) throws
     {
         try super.init( response : response, responseData : responseData, responseJSONRootKey : responseJSONRootKey )
+    }
+    
+    override init( responseJSON : Dictionary<String, Any>, responseJSONRootKey : String ) throws {
+        try super.init( responseJSON : responseJSON, responseJSONRootKey : responseJSONRootKey )
     }
     
     internal func setData(data : ZCRMEntity)
@@ -28,9 +37,9 @@ public class  APIResponse : CommonAPIResponse
         self.data = data
     }
     
-    public func getData() -> ZCRMEntity
+    public func getData() -> ZCRMEntity?
     {
-        return self.data!
+        return self.data
     }
     
     internal func setStatus( status : String )
@@ -38,9 +47,9 @@ public class  APIResponse : CommonAPIResponse
         self.status = status
     }
     
-    public func getStatus() -> String
+    public func getStatus() -> String?
     {
-        return self.status!
+        return self.status
     }
     
     internal func setMessage( message : String )
@@ -48,42 +57,42 @@ public class  APIResponse : CommonAPIResponse
         self.message = message
     }
     
-    public func getMessage() -> String
+    public func getMessage() -> String?
     {
-        return self.message!
+        return self.message
     }
     
     override func handleForFaultyResponses() throws
     {
         if(httpStatusCode == HTTPStatusCode.NO_CONTENT)
         {
-            throw ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : ErrorMessage.INVALID_ID_MSG )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.INVALID_DATA) : \(ErrorMessage.INVALID_ID_MSG)")
+            throw ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : ErrorMessage.INVALID_ID_MSG, details : nil )
+        }
+        else if httpStatusCode == HTTPStatusCode.FORBIDDEN
+        {
+            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA ) : \( responseJSON[ APIConstants.MESSAGE ] as? String ?? ErrorMessage.RESPONSE_NIL_MSG )" )
+            throw ZCRMError.UnAuthenticatedError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.RESPONSE_NIL_MSG, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
         }
         else
         {
-            throw ZCRMError.ProcessingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA, message : responseJSON[APIConstants.MESSAGE] as? String ?? "Response is nil" )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.RESPONSE_NIL_MSG)")
+            throw ZCRMError.ProcessingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.RESPONSE_NIL_MSG, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
         }
     }
     
     override func processDataResponse() throws
     {
-        
         var msgJSON : [ String : Any ] = responseJSON
-        
-        if( responseJSON.hasValue( forKey : responseJSONRootKey ) )
+        if responseJSON.hasValue( forKey : responseJSONRootKey ),
+            let recordsArray : [ [ String : Any ] ] = responseJSON[responseJSONRootKey] as? [ [ String : Any ] ]
         {
-            let recordsArray : [ [ String : Any? ] ] =
-                responseJSON[responseJSONRootKey] as! [ [ String : Any? ] ]
-            
-            msgJSON = recordsArray[ 0 ] as Any as! [ String : Any ]
+            msgJSON = recordsArray[ 0 ]
         }
-        
         if ( msgJSON.hasValue( forKey : APIConstants.MESSAGE ) )
         {
             message = msgJSON[ APIConstants.MESSAGE ] as? String
         }
-        
-        
         if( msgJSON.hasValue( forKey : APIConstants.STATUS ) )
         {
             status = msgJSON[ APIConstants.STATUS ] as? String
@@ -91,15 +100,14 @@ public class  APIResponse : CommonAPIResponse
             {
                 if( msgJSON.hasValue( forKey : APIConstants.DETAILS ) )
                 {
-                    throw ZCRMError.ProcessingError( code :( msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA ), message : ( "\( message ?? "Empty Message" ) - \( msgJSON[ APIConstants.DETAILS] ?? [:] )" ) )
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA) : \(message ?? "Empty Message")")
+                    throw ZCRMError.ProcessingError( code :( msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA ), message : message ?? "Empty Message" , details :  msgJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? [ String : Any ]()  )
                 }
-                throw ZCRMError.ProcessingError( code : msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA, message: message ?? "Empty Message" )
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA) : \(message ?? "Empty Message")")
+                throw ZCRMError.ProcessingError( code : msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA, message: message ?? "Empty Message", details : nil )
             }
         } 
-        
-    } 
-    
-    
+    }
 } // end of class
 
 public class FileAPIResponse : APIResponse
@@ -109,29 +117,33 @@ public class FileAPIResponse : APIResponse
     
     init(response: HTTPURLResponse, tempLocalUrl: URL?) throws
     {
-        self.tempLocalUrl = tempLocalUrl!
-        try super.init(response: response,responseData: nil,
-                       responseJSONRootKey: JSONRootKey.NIL)
+        self.tempLocalUrl = tempLocalUrl
+        try super.init( response : response,
+                       responseJSONRootKey : JSONRootKey.NIL )
     }
     
-    public func getFileName() -> String
+    public func getFileName() -> String?
     {
-        return response!.suggestedFilename!
+        return fileName
     }
     
-    public func getFileData() throws -> Data
+    public func getFileData() -> Data?
     {
-        return try Data( contentsOf : self.tempLocalUrl! )
+        guard let url = self.tempLocalUrl else
+        {
+            return nil
+        }
+        return try? Data( contentsOf : url )
     }
     
-    public func getTempLocalUrl() -> URL
+    public func getTempLocalUrl() -> URL?
     {
-        return self.tempLocalUrl!
+        return self.tempLocalUrl
     }
     
-    public func getTempLocalFilePath() -> String
+    public func getTempLocalFilePath() -> String?
     {
-        return self.tempLocalUrl!.path
+        return self.tempLocalUrl?.path
     }
     
     override func setResponseJSON(responseData: Data?) throws
@@ -146,12 +158,17 @@ public class FileAPIResponse : APIResponse
         }
         else
         {
-            let respStr: String = try String(contentsOf: tempLocalUrl!)
-            let stringData : Data = respStr.data(using: .utf8)!
-            let jsonStr : Any? = try? JSONSerialization.jsonObject(with: stringData, options: [])
-            if let tempJSON = jsonStr as? [String : Any]
+            if let url = tempLocalUrl
             {
-                responseJSON = tempJSON
+                let respStr = try String(contentsOf: url)
+                if let stringData = respStr.data(using: .utf8)
+                {
+                    let jsonStr : Any? = try? JSONSerialization.jsonObject(with: stringData, options: [])
+                    if let tempJSON = jsonStr as? [String : Any]
+                    {
+                        responseJSON = tempJSON
+                    }
+                }
             }
             self.tempLocalUrl = nil
         }
@@ -159,6 +176,19 @@ public class FileAPIResponse : APIResponse
     
     override func processDataResponse() throws
     {
+    }
+    
+    override func handleForFaultyResponses() throws {
+        if let statusCode = httpStatusCode, !( statusCode == HTTPStatusCode.NO_CONTENT )
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.RESPONSE_NIL_MSG)")
+            throw ZCRMError.ProcessingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.RESPONSE_NIL_MSG, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+        }
+        else if httpStatusCode == HTTPStatusCode.FORBIDDEN
+        {
+            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA ) : \( responseJSON[ APIConstants.MESSAGE ] as? String ?? ErrorMessage.RESPONSE_NIL_MSG )" )
+            throw ZCRMError.UnAuthenticatedError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.RESPONSE_NIL_MSG, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+        }
     }
     
 }
@@ -173,9 +203,18 @@ public class BulkAPIResponse : CommonAPIResponse
         super.init()
     }
     
-    override init( response : HTTPURLResponse, responseData : Data?, responseJSONRootKey : String ) throws
+    override init( response : HTTPURLResponse, responseJSONRootKey : String ) throws
+    {
+        try super.init( response : response, responseJSONRootKey : responseJSONRootKey )
+    }
+    
+    override init( response : HTTPURLResponse, responseData : Data, responseJSONRootKey : String ) throws
     {
         try super.init( response : response, responseData : responseData, responseJSONRootKey : responseJSONRootKey )
+    }
+    
+    override init( responseJSON : Dictionary<String, Any>, responseJSONRootKey : String ) throws {
+        try super.init( responseJSON : responseJSON, responseJSONRootKey : responseJSONRootKey )
     }
     
     public func getEntityResponses() -> [EntityResponse]
@@ -197,19 +236,39 @@ public class BulkAPIResponse : CommonAPIResponse
     {
         if(self.responseJSON.hasValue( forKey : responseJSONRootKey ) )
         {
-            let recordsArray : [[String:Any?]] = responseJSON.optArray(key: responseJSONRootKey) as! [[String:Any?]]
-            for recordJSON in recordsArray
+            if let recordsArray : [ [ String : Any ] ] = responseJSON.optArray( key : responseJSONRootKey ) as? [ [ String : Any ] ]
             {
-                if(recordJSON.hasValue(forKey: APIConstants.STATUS) && recordJSON.hasValue(forKey: APIConstants.MESSAGE))
+                for recordJSON in recordsArray
                 {
-                    let individualResponse : EntityResponse = EntityResponse(entityResponseJSON: recordJSON as Any as! [ String : Any ])
-                    self.bulkEntityResponses.append(individualResponse)
+                    if( recordJSON.hasValue( forKey : APIConstants.STATUS ) && recordJSON.hasValue( forKey : APIConstants.MESSAGE ) ) && recordJSON.hasValue( forKey : APIConstants.CODE )
+                    {
+                        let individualResponse : EntityResponse = try EntityResponse( entityResponseJSON : recordJSON )
+                        self.bulkEntityResponses.append(individualResponse)
+                    }
+                }
+            }
+            else if let recordJSON : [String:Any] = responseJSON.optDictionary(key: responseJSONRootKey)
+            {
+                for key in recordJSON.keys
+                {
+                    if let recordsArray : [ [ String : Any ] ] = responseJSON.optArray( key : key ) as? [ [ String : Any ] ]
+                    {
+                        for recordJSON in recordsArray
+                        {
+                            if( recordJSON.hasValue( forKey : APIConstants.STATUS ) && recordJSON.hasValue( forKey : APIConstants.MESSAGE ) ) && recordJSON.hasValue( forKey : APIConstants.CODE )
+                            {
+                                let individualResponse : EntityResponse = try EntityResponse( entityResponseJSON : recordJSON )
+                                self.bulkEntityResponses.append(individualResponse)
+                            }
+                        }
+                    }
                 }
             }
         }
         else
         {
-            throw ZCRMError.ProcessingError( code : ErrorCode.RESPONSE_ROOT_KEY_NIL, message : "Response root key is nil." )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_ROOT_KEY_NIL) : Response root key is nil.")
+            throw ZCRMError.ProcessingError( code : ErrorCode.RESPONSE_ROOT_KEY_NIL, message : "Response root key is nil.", details : nil )
         }
     }
     
@@ -219,9 +278,15 @@ public class BulkAPIResponse : CommonAPIResponse
         {
             self.responseJSON = [String:Any]()
         }
+        else if httpStatusCode == HTTPStatusCode.FORBIDDEN
+        {
+            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA ) : \( responseJSON[ APIConstants.MESSAGE ] as? String ?? ErrorMessage.RESPONSE_NIL_MSG )" )
+            throw ZCRMError.UnAuthenticatedError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.RESPONSE_NIL_MSG, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+        }
         else
         {
-            throw ZCRMError.ProcessingError( code : ( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA ), message : ( responseJSON[APIConstants.MESSAGE] as? String ?? "Response is nil" ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.RESPONSE_NIL_MSG)")
+            throw ZCRMError.ProcessingError( code : ( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA ), message : ( responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.RESPONSE_NIL_MSG ), details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
         }
     }
 }
@@ -235,12 +300,12 @@ public class EntityResponse
     private var data : ZCRMEntity?
     private var upsertedDetails : [ String : String ] = [ String : String ]()
     
-    init(entityResponseJSON: [String:Any])
+    init( entityResponseJSON : [ String : Any ] ) throws
     {
         self.responseJSON = entityResponseJSON
-        self.status = entityResponseJSON[APIConstants.STATUS] as! String
-        self.code = entityResponseJSON[APIConstants.CODE] as! String
-        self.message = entityResponseJSON[APIConstants.MESSAGE] as! String
+        self.status = try entityResponseJSON.getString( key : APIConstants.STATUS )
+        self.code = try entityResponseJSON.getString( key : APIConstants.CODE )
+        self.message = try entityResponseJSON.getString( key : APIConstants.MESSAGE )
         if entityResponseJSON.hasValue( forKey : APIConstants.ACTION )
         {
             self.upsertedDetails[ "\( APIConstants.ACTION )" ] = entityResponseJSON[ APIConstants.ACTION ] as? String
