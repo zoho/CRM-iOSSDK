@@ -124,7 +124,7 @@ internal class APIRequest
         {
             request?.setValue(value, forHTTPHeaderField: key)
         }
-		if(self.requestBody != nil && (self.requestBody as! [ String : Any? ] ).isEmpty == false )
+		if(self.requestBody != nil && (self.requestBody )?.isEmpty == false )
         {
             let reqBody = try? JSONSerialization.data(withJSONObject: self.requestBody!, options: [])
             self.request?.httpBody = reqBody
@@ -172,6 +172,11 @@ internal class APIRequest
         var responseData : Data?
         var error : Error? = nil
         URLSession.shared.dataTask(with: self.request!, completionHandler: { data, response, err in
+            guard err == nil else
+            {
+                error = err
+                return
+            }
             responseData = data
             urlResponse = response as! HTTPURLResponse
             sema.signal()

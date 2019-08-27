@@ -108,7 +108,7 @@ internal class UserAPIHandler : CommonAPIHandler
         setUrlPath( urlPath : "/users" )
         var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
         var dataArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
-        dataArray.append( self.getZCRMUserAsJSON( user : user ) )
+        dataArray.append( self.getZCRMUserAsJSON( user : user ) as [String : Any] )
         reqBodyObj[ "users" ] = dataArray
         setRequestBody( requestBody : reqBodyObj )
         let request = APIRequest( handler : self )
@@ -129,7 +129,7 @@ internal class UserAPIHandler : CommonAPIHandler
         setUrlPath( urlPath : "/users/\( user.getId()! )" )
         var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
         var dataArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
-        dataArray.append( self.getZCRMUserAsJSON( user : user ) )
+        dataArray.append( self.getZCRMUserAsJSON( user : user ) as [String : Any] )
         reqBodyObj[ "users" ] = dataArray
         setRequestBody( requestBody : reqBodyObj )
         let request = APIRequest( handler : self )
