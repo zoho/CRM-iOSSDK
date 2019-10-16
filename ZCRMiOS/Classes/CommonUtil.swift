@@ -575,12 +575,18 @@ internal struct APIConstants
     static let REMAINING_COUNT_FOR_THIS_DAY : String = "X-RATELIMIT-LIMIT"
     static let REMAINING_COUNT_FOR_THIS_WINDOW : String = "X-RATELIMIT-REMAINING"
     static let REMAINING_TIME_FOR_THIS_WINDOW_RESET : String = "X-RATELIMIT-RESET"
+    static let DATE : String = "Date"
     
     static let STRING_MOCK : String = "SDK_NIL"
     static let INT_MOCK : Int = -555
     static let INT64_MOCK : Int64 = -555
     static let DOUBLE_MOCK : Double = -55.5555555555555555
     static let BOOL_MOCK : Bool = false
+    
+    static let SETTINGS : String = "settings"
+    static let EMAILS : String = "emails"
+    static let ORG_EMAILS : String = "org_emails"
+    static let TRIGGER : String = "trigger"
     
     static let MAX_ALLOWED_FILE_SIZE_IN_MB : Int = 20
 }

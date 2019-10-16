@@ -26,10 +26,17 @@ internal class OrganizationAPIHandler : CommonAPIHandler
             do{
                 let response = try resultType.resolve()
                 let responseJSON : [ String :  Any ] = response.responseJSON
-                let orgArray = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
-                let org = self.getZCRMOrganization( orgDetails : orgArray[ 0 ] )
-                response.setData( data : org )
-                completion( .success( org, response ) )
+                if responseJSON.isEmpty == false
+                {
+                    let orgArray = responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                    let org = self.getZCRMOrganization( orgDetails : orgArray[ 0 ] )
+                    response.setData( data : org )
+                    completion( .success( org, response ) )
+                }
+                else
+                {
+                    completion( .failure( ZCRMError.ProcessingError(code: ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG ) ) )
+                }
             }
             catch{
                 completion( .failure( typeCastToZCRMError( error ) ) )

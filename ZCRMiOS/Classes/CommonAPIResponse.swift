@@ -15,15 +15,35 @@ public class CommonAPIResponse
     internal var httpStatusCode : HTTPStatusCode?
     internal var info : ResponseInfo?
     internal var responseJSONRootKey = String()
+    internal var responseHeaders : ResponseHeaders?
     
-    init(response : HTTPURLResponse, responseData : Data?, responseJSONRootKey : String) throws
+    init( responseJSON : Dictionary< String, Any >, responseJSONRootKey : String ) throws
+    {
+        self.responseJSONRootKey = responseJSONRootKey
+        self.responseJSON = responseJSON
+        self.setInfo()
+    }
+    
+    init( response : HTTPURLResponse, responseJSONRootKey : String ) throws
     {
         self.response = response
-        self.httpStatusCode = HTTPStatusCode(rawValue: response.statusCode)!
+        self.httpStatusCode = HTTPStatusCode( rawValue : response.statusCode )
+        self.responseJSONRootKey = responseJSONRootKey
+        try setResponseJSON(responseData: nil)
+        try processResponse()
+        self.setInfo()
+        responseHeaders = ResponseHeaders(response: response)
+    }
+    
+    init(response : HTTPURLResponse, responseData : Data, responseJSONRootKey : String) throws
+    {
+        self.response = response
+        self.httpStatusCode = HTTPStatusCode( rawValue : response.statusCode )
         self.responseJSONRootKey = responseJSONRootKey
         try setResponseJSON(responseData: responseData)
         try processResponse()
         self.setInfo()
+        responseHeaders = ResponseHeaders(response: response)
     }
     
     init()
@@ -108,35 +128,34 @@ public class CommonAPIResponse
 
 public class ResponseHeaders
 {
-    private var remainingCountForThisDay : Int
-    private var remainingCountForThisWindow : Int
-    private var remainingTimeForWindowReset : Int
+    public var remainingCountForThisDay : Int = Int()
+    public var remainingCountForThisWindow : Int = Int()
+    public var remainingTimeForWindowReset : Int = Int()
+    public var date : String = String()
     
     init(response : HTTPURLResponse)
     {
-        remainingCountForThisDay = Int( response.allHeaderFields[APIConstants.REMAINING_COUNT_FOR_THIS_DAY] as! String )!
-        remainingCountForThisWindow = Int( response.allHeaderFields[APIConstants.REMAINING_COUNT_FOR_THIS_WINDOW] as! String )!
-        remainingTimeForWindowReset = Int( response.allHeaderFields[APIConstants.REMAINING_TIME_FOR_THIS_WINDOW_RESET] as! String )!
-    }
-    
-    public func getRemainingAPICountForThisDay() -> Int
-    {
-        return self.remainingCountForThisDay
-    }
-    
-    public func getRemainingCountForThisWindow() -> Int
-    {
-        return self.remainingCountForThisWindow
-    }
-    
-    public func getRemainingTimeForThisWindowReset() -> Int
-    {
-        return self.remainingTimeForWindowReset
+        if let remainingCountForThisDay = response.allHeaderFields[APIConstants.REMAINING_COUNT_FOR_THIS_DAY] as? String, let countForThisDay = Int( remainingCountForThisDay )
+        {
+            self.remainingCountForThisDay = countForThisDay
+        }
+        if let remainingCountForThisWindow = response.allHeaderFields[APIConstants.REMAINING_COUNT_FOR_THIS_WINDOW] as? String, let countForThisWindow = Int( remainingCountForThisWindow )
+        {
+            self.remainingCountForThisWindow = countForThisWindow
+        }
+        if let remainingTimeForWindowReset = response.allHeaderFields[APIConstants.REMAINING_TIME_FOR_THIS_WINDOW_RESET] as? String, let countForWindowReset = Int( remainingTimeForWindowReset )
+        {
+            self.remainingTimeForWindowReset = countForWindowReset
+        }
+        if let date = response.allHeaderFields[APIConstants.DATE] as? String
+        {
+            self.date = date
+        }
     }
     
     public func toString() -> String
     {
-        return "\(APIConstants.REMAINING_COUNT_FOR_THIS_DAY) = \(remainingCountForThisDay) \n \(APIConstants.REMAINING_COUNT_FOR_THIS_WINDOW) = \(remainingCountForThisWindow) \n \(APIConstants.REMAINING_TIME_FOR_THIS_WINDOW_RESET) = \(remainingTimeForWindowReset)"
+        return "\(APIConstants.REMAINING_COUNT_FOR_THIS_DAY) = \(remainingCountForThisDay) \n \(APIConstants.REMAINING_COUNT_FOR_THIS_WINDOW) = \(remainingCountForThisWindow) \n \(APIConstants.REMAINING_TIME_FOR_THIS_WINDOW_RESET) = \(remainingTimeForWindowReset) \n \(APIConstants.DATE) = \(date)"
     }
 }
 

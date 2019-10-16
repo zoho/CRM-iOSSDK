@@ -1,4 +1,4 @@
- //
+//
 //  APIRequest.swift
 //  ZCRMiOS
 //
@@ -224,8 +224,17 @@ internal enum RequestMethod : String
                     {
                         do
                         {
-                            let response = try APIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
-                            completion(.success(response))
+                            
+                            if let respData = responseData
+                            {
+                                let response = try APIResponse( response : urlResponse, responseData : respData, responseJSONRootKey : self.jsonRootKey )
+                                completion(.success(response))
+                            }
+                            else
+                            {
+                                let response = try APIResponse( response : urlResponse, responseJSONRootKey : self.jsonRootKey )
+                                completion(.success(response))
+                            }
                         }
                         catch
                         {
@@ -260,8 +269,16 @@ internal enum RequestMethod : String
                     {
                         do
                         {
-                            let response = try BulkAPIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
-                            completion(.success(response))
+                            if let respData = responseData
+                            {
+                                let response = try BulkAPIResponse( response : urlResponse, responseData : respData, responseJSONRootKey : self.jsonRootKey )
+                                completion(.success(response))
+                            }
+                            else
+                            {
+                                let response = try BulkAPIResponse( response : urlResponse, responseJSONRootKey : self.jsonRootKey )
+                                completion(.success(response))
+                            }
                         }
                         catch
                         {
@@ -292,11 +309,11 @@ internal enum RequestMethod : String
                     completion( .failure( typeCastToZCRMError( err ) ) )
                     return
                 }
-                else if let urlResponse = urlResp
+                else if let urlResponse = urlResp,  let respData = responseData
                 {
                     do
                     {
-                        let response = try APIResponse( response : urlResponse, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+                        let response = try APIResponse( response : urlResponse, responseData : respData, responseJSONRootKey : self.jsonRootKey )
                         completion( .success( response ) )
                     }
                     catch
@@ -330,11 +347,11 @@ internal enum RequestMethod : String
                     completion( .failure( typeCastToZCRMError( err ) ) )
                     return
                 }
-                else if let urlResp = urlResponse
+                else if let urlResp = urlResponse, let respData = responseData
                 {
                     do
                     {
-                        let response = try APIResponse( response : urlResp, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+                        let response = try APIResponse( response : urlResp, responseData : respData, responseJSONRootKey : self.jsonRootKey )
                         completion( .success( response ) )
                     }
                     catch{
@@ -366,11 +383,11 @@ internal enum RequestMethod : String
                     completion( .failure( typeCastToZCRMError( err ) ) )
                     return
                 }
-                else if let urlResp = urlResponse
+                else if let urlResp = urlResponse, let respData = responseData
                 {
                     do
                     {
-                        let response = try APIResponse( response : urlResp, responseData : responseData, responseJSONRootKey : self.jsonRootKey )
+                        let response = try APIResponse( response : urlResp, responseData : respData, responseJSONRootKey : self.jsonRootKey )
                         completion( .success( response ) )
                     }
                     catch

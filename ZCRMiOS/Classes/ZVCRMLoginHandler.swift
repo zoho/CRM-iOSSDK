@@ -64,25 +64,25 @@ public class ZVCRMLoginHandler
                 {
                 // SFSafari Dismissed
                 case 205 :
-                    print( "Error Detail : \( error!.description ), code : \( error!.code )" )
+                    print( "Present Zoho Portal Login - Error Detail : \( error!.description ), code : \( error!.code )" )
                     completion( false )
-                    self.handleLogin( completion : { _ in
-                        
-                    })
+//                    self.handleLogin( completion : { _ in
+//
+//                    })
                     break
 
                 // access_denied
                 case 905 :
-                    print( "Error Detail : \( error!.description ), code : \( error!.code )" )
+                    print( "Present Zoho Portal Login - Error Detail : \( error!.description ), code : \( error!.code )" )
                     completion( false )
-                    self.handleLogin( completion : { _ in
-                        
-                    })
+//                    self.handleLogin( completion : { _ in
+//
+//                    })
                     break
 
                 default :
                     completion( false )
-                    print( "Error : \( error! )" )
+                    print( "Present Zoho Portal Login - Error : \( error! )" )
                 }
             }
             else
