@@ -235,11 +235,9 @@ public enum LogLevels : Int
 
 public enum AppType : String
 {
-    case ZCRM = "zcrm"
-    case SOLUTIONS = "solutions"
-    case BIGIN = "bigin"
-    case ZVCRM = "zvcrm"
-    case ZCRMCP = "zcrmcp"
+    case ZCRM = "ZCRM"
+    case ZVCRM = "ZVCRM"
+    case ZCRMCP = "ZCRMCP"
 }
 
 public enum ComponentPeriod : String

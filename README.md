@@ -15,9 +15,9 @@ To run the example project, clone the repo, and run `pod install` from the Examp
 
 ## Requirements
 
-Xcode 8 and Above
+Xcode 10 and Above
 
-Swift 3.2
+Swift 4.2
 
 ## SDK Responsibilities
 
@@ -39,7 +39,7 @@ ZCRMiOS is available through [CocoaPods](http://cocoapods.org). To install
 it, simply add the following line to your Podfile:
 
 ```ruby
-pod 'ZCRMiOS', :git => 'https://github.com/zoho/CRM-iOSSDK.git'
+pod 'ZCRMiOS', :git => 'https://github.com/zoho/CRM-iOSSDK.git', :branch =>  'V2_ALPHA'
 ```
 
 ## Author

@@ -16,7 +16,7 @@ public class CRMAppConfigUtil
     public init( appConfigDict : Dictionary< String, Any> )
     {
         self.appConfigDict = appConfigDict
-        print( "App Configuration : \( appConfigDict.description )" )
+        ZCRMLogger.logDebug( message: "App Configuration : \( appConfigDict.description )" )
     }
     
     public init() {}

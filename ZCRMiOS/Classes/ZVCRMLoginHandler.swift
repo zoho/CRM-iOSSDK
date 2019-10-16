@@ -57,7 +57,7 @@ public class ZVCRMLoginHandler
         }
         catch
         {
-            print("Error occured initIAMLogin() -> \(error)")
+            ZCRMLogger.logDebug( message:"Error occured in ZVCRMLoginHandler.initIAMLogin(). Details -> \(error)")
         }
         
     }
@@ -71,25 +71,19 @@ public class ZVCRMLoginHandler
                 {
                 // SFSafari Dismissed
                 case 205 :
-                    print( "Error Detail : \( error!.description ), code : \( error!.code )" )
+                    ZCRMLogger.logDebug( message: "Login view dismissed. Detail : \( error!.description ), code : \( error!.code )" )
                     completion( false )
-                    self.handleLogin( completion : { _ in
-                        
-                    })
                     break
 
                 // access_denied
                 case 905 :
-                    print( "Error Detail : \( error!.description ), code : \( error!.code )" )
+                    ZCRMLogger.logDebug( message: "User denied the access. Detail : \( error!.description ), code : \( error!.code )" )
                     completion( false )
-                    self.handleLogin( completion : { _ in
-                        
-                    })
                     break
 
                 default :
                     completion( false )
-                    print( "Error : \( error! )" )
+                    ZCRMLogger.logDebug( message: "Error occured while present login screen. Details : \( error! )" )
                 }
             }
             else
@@ -122,16 +116,18 @@ public class ZVCRMLoginHandler
             { ( error ) in
                 if( error != nil )
                 {
-                    print( "Error occured in logout() : \(error!)" )
+                    ZCRMLogger.logDebug( message: "Error occured in logout() : \(error!)" )
                     completion( false )
                 }
                 else
                 {
                     self.clearIAMLoginFirstLaunch()
-                    print( "removed AllScopesWithSuccess!" )
-                    self.handleLogin( completion : { _ in
-                            
-                    })
+                    URLCache.shared.removeAllCachedResponses()
+                    ZCRMLogger.logDebug( message: "removed AllScopesWithSuccess!" )
+                    ZCRMSDKClient.shared.clearAllCache()
+//                    self.handleLogin( completion : { _ in
+//
+//                    })
                     ZCRMSDKClient.shared.requestHeaders?.removeAll()
                     URLCache.shared.removeAllCachedResponses()
                     if let cookies = HTTPCookieStorage.shared.cookies {
@@ -140,7 +136,7 @@ public class ZVCRMLoginHandler
                         }
                     }
                     completion( true )
-                    print( "logout ZVCRM successful!" )
+                    ZCRMLogger.logDebug( message: "logout ZVCRM successful!" )
                 }
         })
     }

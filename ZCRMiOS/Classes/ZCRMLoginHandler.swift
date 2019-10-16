@@ -52,13 +52,13 @@ public class ZCRMLoginHandler
         {
             self.setAppConfigurations()
             try self.updateBaseURL( countryDomain : COUNTRYDOMAIN )
-            print( "Country Domain : \( COUNTRYDOMAIN )" )
+            ZCRMLogger.logDebug( message: "Country Domain : \( COUNTRYDOMAIN )" )
             ZohoAuth.initWithClientID( try appConfigurationUtil.getClientID(), clientSecret : try appConfigurationUtil.getClientSecretID(), scope : try appConfigurationUtil.getAuthscopes(), urlScheme : try appConfigurationUtil.getRedirectURLScheme(), mainWindow : window, accountsURL : try appConfigurationUtil.getAccountsURL() )
-            print( "redirectURL : \( try appConfigurationUtil.getRedirectURLScheme() )")
+            ZCRMLogger.logDebug( message: "redirectURL : \( try appConfigurationUtil.getRedirectURLScheme() )")
         }
         catch
         {
-            print( "Error : \( error )" )
+            ZCRMLogger.logDebug( message: "Error occured in ZCRMLoginHandler.initIAMLogin() : \( error )" )
         }
         
     }
@@ -78,7 +78,7 @@ public class ZCRMLoginHandler
         }
         catch
         {
-            print("Error occured > \(error)")
+            ZCRMLogger.logDebug( message:"Error occured in ZCRMLoginHandler.setAppConfigurations(). Details : \(error)")
         }
     }
     
@@ -101,7 +101,7 @@ public class ZCRMLoginHandler
         switch ( countryDomain )
         {
         case ( "com" ), ( "us" ) :
-            ZCRMSDKClient.shared.apiBaseURL = "https://\( domain ).zohoapis.com"
+            ZCRMSDKClient.shared.apiBaseURL = "\( domain ).zohoapis.com"
             ACCOUNTSURL = "https://accounts.zoho.com"
             break
             
@@ -116,10 +116,10 @@ public class ZCRMLoginHandler
             break
             
         default :
-            print( "Country domain is invalid. \( domain )" )
+            ZCRMLogger.logDebug( message:  "Country domain is invalid. \( domain )" )
             throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message :  "Country domain is invalid.", details: nil )
         }
-        print( "API Base URL : \(ZCRMSDKClient.shared.apiBaseURL)")
+        ZCRMLogger.logDebug( message: "API Base URL : \(ZCRMSDKClient.shared.apiBaseURL)")
     }
     
     public func clearIAMLoginFirstLaunch()
@@ -146,25 +146,19 @@ public class ZCRMLoginHandler
                 {
                 // SFSafari Dismissed
                 case 205 :
-                    print( "Error Detail : \( error!.description ), code : \( error!.code )" )
+                    ZCRMLogger.logDebug( message: "Login view dismissed. Detail : \( error!.description ), code : \( error!.code )" )
                     completion( false )
-                    self.handleLogin( completion : { _ in
-                        
-                    })
                     break
                     
                 // access_denied
                 case 905 :
-                    print( "Error Detail : \( error!.description ), code : \( error!.code )" )
+                    ZCRMLogger.logDebug( message: "User denied the access : \( error!.description ), code : \( error!.code )" )
                     completion( false )
-                    self.handleLogin( completion : { _ in
-                        
-                    })
                     break
                     
                 default :
                     completion( false )
-                    print( "Error : \( error! )" )
+                    ZCRMLogger.logDebug( message: "Error occured while present sign in page. Detail : \( error! )" )
                 }
             }
             else
@@ -180,30 +174,31 @@ public class ZCRMLoginHandler
             { (error) in
                 if( error != nil )
                 {
-                    print( "Error occured in removeAllScopesWithSuccess() : \(error!)" )
+                    ZCRMLogger.logDebug( message: "Error occured in removeAllScopesWithSuccess() : \(error!)" )
                     completion( false )
                 }
                 else
                 {
                     self.clearIAMLoginFirstLaunch()
-                    print( "removed AllScopesWithSuccess!" )
+                    ZCRMLogger.logDebug( message: "removed AllScopesWithSuccess!" )
                     URLCache.shared.removeAllCachedResponses()
+                    ZCRMSDKClient.shared.clearAllCache()
                     if let cookies = HTTPCookieStorage.shared.cookies {
                         for cookie in cookies {
                             HTTPCookieStorage.shared.deleteCookie( cookie )
                         }
                     }
-                    if( self.appConfigurationUtil.isLoginCustomized() == false )
-                    {
-                        self.handleLogin( completion : { success in
-                            if success == true
-                            {
-                                print( "login screen loaded successfully on Logout call!")
-                            }
-                        })
-                    }
+//                    if( self.appConfigurationUtil.isLoginCustomized() == false )
+//                    {
+//                        self.handleLogin( completion : { success in
+//                            if success == true
+//                            {
+//                                print( "login screen loaded successfully on Logout call!")
+//                            }
+//                        })
+//                    }
                     completion( true )
-                    print( "logout ZCRM!" )
+                    ZCRMLogger.logDebug( message: "logout ZCRM!" )
                 }
         })
     }
@@ -241,9 +236,9 @@ public class ZCRMLoginHandler
         }
         catch
         {
-            print("Error occured in getLoginScreenParams() \(error)")
+            ZCRMLogger.logDebug( message:"Error occured in getLoginScreenParams() \(error)")
         }
-        print( "login screen params = \( loginScreenParams )" )
+        ZCRMLogger.logDebug( message: "login screen params = \( loginScreenParams )" )
         return loginScreenParams
     }
 }

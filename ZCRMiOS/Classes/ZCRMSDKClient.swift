@@ -22,77 +22,73 @@ public class ZCRMSDKClient
     internal static var nonPersistentDB : CacheDBHandler?
     
     private var isVerticalCRM: Bool = false
-    private var zcrmLoginHandler: ZCRMLoginHandler = ZCRMLoginHandler.init()
-    private var zvcrmLoginHandler: ZVCRMLoginHandler = ZVCRMLoginHandler.init()
+    internal var zcrmLoginHandler: ZCRMLoginHandler?
+    internal var zvcrmLoginHandler: ZVCRMLoginHandler?
     private var crmAppConfigs : CRMAppConfigUtil!
     
     private init() {}
     
-    public func initialise( window : UIWindow, appType : String? =  nil, apiBaseURL : String? = nil, oauthScopes : [ Any ]? = nil, clientID : String? = nil, clientSecretID : String? = nil, redirectURLScheme : String? = nil, accountsURL : String? = nil, portalID : String? = nil ) throws
+    public func initSDK( window : UIWindow, appType : String? =  nil, apiBaseURL : String? = nil, oauthScopes : [ Any ]? = nil, clientID : String? = nil, clientSecretID : String? = nil, redirectURLScheme : String? = nil, accountsURL : String? = nil, portalID : String? = nil ) throws
     {
-        self.crmAppConfigs = CRMAppConfigUtil(appConfigDict: Dictionary< String, Any >() )
-        if let file = Bundle.main.path(forResource : "AppConfiguration", ofType: "plist" )
+        guard let appConfigPlist = Bundle.main.path( forResource : "AppConfiguration", ofType : "plist" ) else
         {
-            if let appConfiguration = NSDictionary( contentsOfFile : file ) as? [String : Any]
+            throw ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: "AppConfiguration.plist is not foud.", details: nil)
+        }
+        if let appConfiguration = NSDictionary( contentsOfFile : appConfigPlist ) as? [String : Any]
+        {
+            self.crmAppConfigs = CRMAppConfigUtil( appConfigDict : appConfiguration )
+            if let baseURL = apiBaseURL
             {
-                crmAppConfigs = CRMAppConfigUtil( appConfigDict : appConfiguration )
-                if let baseURL = apiBaseURL
+                ZCRMSDKClient.shared.apiBaseURL = baseURL
+                if ZCRMSDKClient.shared.apiBaseURL.isEmpty == true
                 {
-                    ZCRMSDKClient.shared.apiBaseURL = baseURL
-                    if ZCRMSDKClient.shared.apiBaseURL.isEmpty == true
-                    {
-                        throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "API Base URL is empty", details : nil )
-                    }
+                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "API Base URL is empty", details : nil )
                 }
-                if let scopes = oauthScopes
-                {
-                    crmAppConfigs.setOauthScopes( scopes : scopes )
-                }
-                if let accountURL = accountsURL
-                {
-                    crmAppConfigs.setAccountsURL( url : accountURL )
-                }
-                if let clientId = clientID
-                {
-                    crmAppConfigs.setClientID( id : clientId )
-                }
-                if let clientSecretId = clientSecretID {
-                    crmAppConfigs.setClientSecretID(id: clientSecretId)
-                }
-                if let portalId = portalID
-                {
-                    crmAppConfigs.setPortalID(id: portalId)
-                }
-                if let redirectURLScheme = redirectURLScheme {
-                    crmAppConfigs.setRedirectURLScheme(scheme: redirectURLScheme)
-                }
-                if let bundleID = Bundle.main.bundleIdentifier
-                {
-                    self.userAgent = "ZCRMiOS_\(bundleID)"
-                }
-                if let type = appType
-                {
-                    try self.handleAppType( appType : type, appConfigurations : crmAppConfigs )
-                    ZCRMSDKClient.shared.appType = type
-                }
-                else if let type = appConfiguration[ "Type" ] as? String
-                {
-                    try self.handleAppType( appType : type, appConfigurations : crmAppConfigs )
-                    ZCRMSDKClient.shared.appType = type
-                }
-                else
-                {
-                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "appType is not specified", details: nil )
-                }
+            }
+            if let scopes = oauthScopes
+            {
+                crmAppConfigs.setOauthScopes( scopes : scopes )
+            }
+            if let accountURL = accountsURL
+            {
+                crmAppConfigs.setAccountsURL( url : accountURL )
+            }
+            if let clientId = clientID
+            {
+                crmAppConfigs.setClientID( id : clientId )
+            }
+            if let clientSecretId = clientSecretID {
+                crmAppConfigs.setClientSecretID(id: clientSecretId)
+            }
+            if let portalId = portalID
+            {
+                crmAppConfigs.setPortalID(id: portalId)
+            }
+            if let redirectURLScheme = redirectURLScheme {
+                crmAppConfigs.setRedirectURLScheme(scheme: redirectURLScheme)
+            }
+            if let bundleID = Bundle.main.bundleIdentifier
+            {
+                self.userAgent = "ZCRMiOS_\(bundleID)"
+            }
+            if let type = appType
+            {
+                try self.handleAppType( appType : type, appConfigurations : crmAppConfigs )
+                ZCRMSDKClient.shared.appType = type
+            }
+            else if let type = appConfiguration[ "Type" ] as? String
+            {
+                try self.handleAppType( appType : type, appConfigurations : crmAppConfigs )
+                ZCRMSDKClient.shared.appType = type
             }
             else
             {
-                throw ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: "AppConfiguration.plist has no data.", details: nil)
+                throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "appType is not specified", details: nil )
             }
         }
         else
         {
-            throw ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: "AppConfiguration.plist is not foud.", details: nil)
+            throw ZCRMError.SDKError(code: ErrorCode.INTERNAL_ERROR, message: "AppConfiguration.plist has no data.", details: nil)
         }
         do
         {
@@ -103,7 +99,6 @@ public class ZCRMSDKClient
         {
             ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : Table creation failed!")
         }
-        
         self.initIAMLogin( appType : ZCRMSDKClient.shared.appType, window : window, apiBaseURL : apiBaseURL )
     }
     
@@ -213,23 +208,23 @@ public class ZCRMSDKClient
         let alreadyLaunched = UserDefaults.standard.bool(forKey:"first")
         if !alreadyLaunched{
             if self.isVerticalCRM {
-                self.zvcrmLoginHandler.clearIAMLoginFirstLaunch()
+                self.zvcrmLoginHandler?.clearIAMLoginFirstLaunch()
             } else {
-                self.zcrmLoginHandler.clearIAMLoginFirstLaunch()
+                self.zcrmLoginHandler?.clearIAMLoginFirstLaunch()
             }
             UserDefaults.standard.set(true, forKey: "first")
         }
     }
     
-    public func handleUrl( url : URL, sourceApplication : String?, annotation : Any )
+    public func handle( url : URL, sourceApplication : String?, annotation : Any )
     {
         if self.isVerticalCRM
         {
-            self.zvcrmLoginHandler.iamLoginHandleURL(url: url, sourceApplication: sourceApplication, annotation: annotation)
+            self.zvcrmLoginHandler?.iamLoginHandleURL(url: url, sourceApplication: sourceApplication, annotation: annotation)
         }
         else
         {
-            self.zcrmLoginHandler.iamLoginHandleURL(url: url, sourceApplication: sourceApplication, annotation: annotation)
+            self.zcrmLoginHandler?.iamLoginHandleURL(url: url, sourceApplication: sourceApplication, annotation: annotation)
         }
     }
     
@@ -237,22 +232,22 @@ public class ZCRMSDKClient
     {
         if self.isVerticalCRM
         {
-            self.zvcrmLoginHandler.initIAMLogin(window: window)
+            self.zvcrmLoginHandler?.initIAMLogin(window: window)
         }
         else
         {
-            self.zcrmLoginHandler.initIAMLogin(window: window)
+            self.zcrmLoginHandler?.initIAMLogin(window: window)
             guard let baseURL = apiBaseURL else
             {
                 do
                 {
-                    ZCRMSDKClient.shared.zcrmLoginHandler.setAppConfigurations()
-                    try ZCRMSDKClient.shared.zcrmLoginHandler.updateBaseURL( countryDomain : COUNTRYDOMAIN )
-                    print( "Country Domain : \( COUNTRYDOMAIN )" )
+                    ZCRMSDKClient.shared.zcrmLoginHandler?.setAppConfigurations()
+                    try ZCRMSDKClient.shared.zcrmLoginHandler?.updateBaseURL( countryDomain : COUNTRYDOMAIN )
+                    ZCRMLogger.logDebug( message : "Country Domain : \( COUNTRYDOMAIN )")
                 }
                 catch
                 {
-                    print( "Error : \( error )" )
+                    ZCRMLogger.logDebug( message : "Error in initIAMLogin(): \( error )" )
                 }
                 return
             }
@@ -265,7 +260,7 @@ public class ZCRMSDKClient
         appConfigurations.setAppType( type : appType )
         do
         {
-            if appType == "ZCRM"
+            if appType == AppType.ZCRM.rawValue
             {
                 self.zcrmLoginHandler = try ZCRMLoginHandler( appConfigUtil : appConfigurations )
                 self.isVerticalCRM = false
@@ -288,19 +283,20 @@ public class ZCRMSDKClient
         self.isUserSignedIn { (isUserSignedIn) in
             if isUserSignedIn
             {
+                ZCRMLogger.logDebug(message: "User already signed in.")
                 completion(true)
             }
             else
             {
                 if self.isVerticalCRM
                 {
-                    self.zvcrmLoginHandler.handleLogin { (success) in
+                    self.zvcrmLoginHandler?.handleLogin { (success) in
                         completion(success)
                     }
                 }
                 else
                 {
-                    self.zcrmLoginHandler.handleLogin(completion: { (success) in
+                    self.zcrmLoginHandler?.handleLogin(completion: { (success) in
                         completion(success)
                     })
                 }
@@ -313,7 +309,7 @@ public class ZCRMSDKClient
     {
         if self.isVerticalCRM
         {
-            self.zvcrmLoginHandler.getOauth2Token { (token, error) in
+            self.zvcrmLoginHandler?.getOauth2Token { (token, error) in
                 if error != nil
                 {
                     completion(false)
@@ -324,7 +320,7 @@ public class ZCRMSDKClient
         }
         else
         {
-            self.zcrmLoginHandler.getOauth2Token { (token, error) in
+            self.zcrmLoginHandler?.getOauth2Token { (token, error) in
                 if error != nil
                 {
                     completion(false)
@@ -339,13 +335,13 @@ public class ZCRMSDKClient
     {
         if self.isVerticalCRM
         {
-            self.zvcrmLoginHandler.logout { (success) in
+            self.zvcrmLoginHandler?.logout { (success) in
                 completion(success)
             }
         }
         else
         {
-            self.zcrmLoginHandler.logout { (success) in
+            self.zcrmLoginHandler?.logout { (success) in
                 completion(success)
             }
         }

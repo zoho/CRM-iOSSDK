@@ -102,12 +102,12 @@
             }
             catch
             {
-                print("Error occured in authenticateRequest() >>> \(error)")
+                ZCRMLogger.logDebug( message:"Error occured in authenticateRequest() >>> \(error)")
             }
         }
-        if( ZCRMSDKClient.shared.appType == "ZCRM" )
+        if( ZCRMSDKClient.shared.appType == AppType.ZCRM.rawValue )
         {
-            ZCRMLoginHandler().getOauth2Token { ( token, error ) in
+            ZCRMSDKClient.shared.zcrmLoginHandler?.getOauth2Token { ( token, error ) in
                 if let err = error
                 {
                     completion(ZCRMError.SDKError(code: ErrorCode.OAUTH_FETCH_ERROR, message: err.description, details: nil))
@@ -121,15 +121,15 @@
                 }
                 else
                 {
-                    print( "oAuthtoken is nil." )
+                    ZCRMLogger.logDebug( message: "oAuthtoken is nil." )
                     completion(ZCRMError.SDKError(code: ErrorCode.OAUTHTOKEN_NIL, message: ErrorMessage.OAUTHTOKEN_NIL_MSG, details: nil))
                 }
             }
         }
         else
         {
-            ZVCRMLoginHandler().getOauth2Token { ( token, error ) in
-                if( ZCRMSDKClient.shared.appType == "ZCRMCP"  && self.headers.hasValue( forKey : "X-CRMPORTAL" ) == false )
+            ZCRMSDKClient.shared.zcrmLoginHandler?.getOauth2Token { ( token, error ) in
+                if( ZCRMSDKClient.shared.appType == AppType.ZCRMCP.rawValue  && self.headers.hasValue( forKey : "X-CRMPORTAL" ) == false )
                 {
                     self.addHeader( headerName : "X-CRMPORTAL", headerVal : "SDKCLIENT" )
                 }
@@ -152,53 +152,6 @@
             }
         }
     }
-    
-//    private func authenticateRequest( completion : @escaping( ZCRMError? ) -> () )
-//    {
-//        ZCRMSDKClient.shared.getAccessToken( completion : { ( token, error ) in
-//            if let err = error, let zcrmError = err.ZCRMErrordetails
-//            {
-//                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( zcrmError.code ) : \( zcrmError )" )
-//                completion(err)
-//                return
-//            }
-//            if token.isEmpty == true
-//            {
-//                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.OAUTHTOKEN_NIL) : \(ErrorMessage.OAUTHTOKEN_NIL_MSG)")
-//                completion( ZCRMError.UnAuthenticatedError( code : ErrorCode.OAUTHTOKEN_NIL, message : ErrorMessage.OAUTHTOKEN_NIL_MSG, details : nil ) )
-//                return
-//            }
-//            else
-//            {
-//                self.addHeader( headerName : AUTHORIZATION, headerVal : "\(ZOHO_OAUTHTOKEN) \( token )" )
-//                self.addHeader( headerName : USER_AGENT, headerVal : ZCRMSDKClient.shared.userAgent )
-//                if let headers = ZCRMSDKClient.shared.requestHeaders
-//                {
-//                    for headerName in headers.keys
-//                    {
-//                        if headers.hasValue( forKey : headerName )
-//                        {
-//                            do
-//                            {
-//                                try self.addHeader( headerName : headerName, headerVal : headers.getString( key : headerName ) )
-//                            }
-//                            catch
-//                            {
-//                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-//                                completion( typeCastToZCRMError( error ) )
-//                                return
-//                            }
-//                        }
-//                    }
-//                }
-//                if ZCRMSDKClient.shared.appType == AppType.BIGIN.rawValue, let portalId = ZCRMSDKClient.shared.portalId
-//                {
-//                    self.addHeader( headerName : X_CRM_ORG, headerVal : String(portalId) )
-//                }
-//                completion( nil )
-//            }
-//        })
-//    }
     
     private func addHeader(headerName : String, headerVal : String)
     {
