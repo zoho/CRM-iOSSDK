@@ -59,7 +59,7 @@ Your client app is now registered. The Client ID and Client Secret of the newly 
 
 ## Configuration 
 
-1. Download the AppConfiguration.plist file from this link [AppConfiguration property list file](https://github.com/zoho/CRM-iOSSDK/blob/V2_ALPHA/AppConfiguration.plist)
+1. Download the AppConfiguration.plist file from this link [AppConfiguration](https://github.com/zoho/CRM-iOSSDK/blob/V2_ALPHA/AppConfiguration.plist)
 
 2. Add downloaded AppConfiguration.plist file into your project
 
