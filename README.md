@@ -42,6 +42,89 @@ it, simply add the following line to your Podfile:
 pod 'ZCRMiOS', :git => 'https://github.com/zoho/CRM-iOSSDK.git', :branch =>  'V2_ALPHA'
 ```
 
+## Register a Zoho Client
+
+Since Zoho CRM APIs are authenticated with OAuth2 standards, it is necessary to register your app with Zoho.
+
+1. Visit https://accounts.zoho.com/developerconsole.
+
+2. Click “Add Client ID”.
+
+3. Enter the Client Name, Client Domain & Redirect URI
+    > Sample Redirect URI : zohoapp://
+    
+4. Select the Client Type as Mobile.
+Your client app is now registered. The Client ID and Client Secret of the newly registered app will be found under Options > Edit in the above mentioned website.
+5. Click Create
+
+## Configuration 
+
+1. Download the AppConfiguration.plist file from this link [AppConfiguration property list file](https://github.com/zoho/CRM-iOSSDK/blob/V2_ALPHA/AppConfiguration.plist)
+
+2. Add downloaded AppConfiguration.plist file into your project
+
+3. Edit AppConfiguration.plist file with created Client ID, Client Secret ID and Redirect URI(The Redirect URI must be your application’s custom URL Scheme)
+
+4. Add the Redirect URI Scheme into your app Info.plist too
+
+## Initialise the SDK
+Add the following code in your project AppDelegate.swift file
+```ruby
+func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+        // Override point for customization after application launch.
+        do {
+            let window = UIApplication.shared.windows.first
+            try ZCRMSDKClient.shared.initSDK(window: window)
+        }
+        catch {
+            print("unable to init ZCRMiOS SDK : \(error)")
+        }
+        return true
+    }
+```
+
+## Handle Sign in/ Sign out
+
+In the ViewController class of your custom launch screen, add this code as the sign in button's action
+```ruby
+ZCRMSDKClient.shared.showLogin { ( success ) in
+            if( success == true )
+            {
+                print( "Login successful" )
+            }
+            else{
+                print( "unable to show login")
+            }
+        }
+```
+Add this code as the sign out button's action
+```ruby
+ZCRMSDKClient.shared.logout { ( success ) in
+            if success {
+                print("logout successful")
+            }
+        }
+```
+
+## In the AppConfiguration.plist file
+
+1. **OAuthscopes** (mandatory) - Samples scopes are already mentioned in the created property file, you can change the scopes as per your need.[Learn more](https://www.zoho.com/crm/developer/docs/api/v1-overview.html#OAuth2_0).
+
+2. **AccessType** (optional) - Type of environment in CRM
+  * Production - Environment that have active paying users accessing critical business data.
+  * Development - Environments where you can extend, integrate and develop without affecting your production environments.
+  * Sandbox - Environments specifically used for testing application functionality before deploying to production or releasing to customers.
+  
+3. **DomainSuffix** (optional) - Multi DC support.
+  * us - www.zohoapis.com
+  * eu - www.zohoapis.eu
+  * cn - www.zohoapis.com.cn
+  
+4. **PortalID** (optional) - Mention your CRM PortalID (Ex : 65468393). No need to mention "PortalID" within properties file, if you do not have one.
+
+5. **ShowSignUp** (optional) - Give the value as true if you provide signup facility in your app, else give false.
+This file contains values of certain configurations that are needed to run the app. Please do not change the property names or values that already exist, as they are needed for the smooth functioning of the SDK and the app
+
 ## Author
 
 Zohocorp
