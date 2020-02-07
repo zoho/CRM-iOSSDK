@@ -129,7 +129,8 @@ internal class APIRequest
             let reqBody = try? JSONSerialization.data(withJSONObject: self.requestBody!, options: [])
             self.request?.httpBody = reqBody
         }
-        print( "Request : \( self.toString() )" )
+      
+        ZohoLogger.debug( "Request : \( self.toString() )" )
     }
     
     internal func getResponse() throws -> ([String : Any])
