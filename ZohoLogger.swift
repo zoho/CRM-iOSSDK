@@ -16,11 +16,26 @@ import Foundation
 /// - warning: Log type warning
 /// - severe: Log type severe
 enum LogEvent: String {
-  case error = "[🟥]" // error
-  case info = "[🟦]" // info
-  case debug = "[🟩]" // debug
   case verbose = "[🔔]" // verbose
+  case debug = "[🟩]" // debug
+  case info = "[🟦]" // info
   case warning = "[🟧]" // warning
+  case error = "[🟥]" // error
+  
+  func value() -> Int {
+    switch(self) {
+    case .verbose:
+      return 1
+    case .debug:
+      return 2
+    case .info:
+      return 3
+    case .warning:
+      return 4
+    case .error:
+      return 5
+    }
+  }
 }
 
 
@@ -39,7 +54,8 @@ func print(_ object: Any) {
 
 class ZohoLogger {
   
-  static var dateFormat = "yyyy-MM-dd hh:mm:ssSSS"
+  public static var dateFormat = "yyyy-MM-dd hh:mm:ssSSS"
+  public static var logLevel: LogEvent = .info
   static var dateFormatter: DateFormatter {
     let formatter = DateFormatter()
     formatter.dateFormat = dateFormat
@@ -68,7 +84,7 @@ class ZohoLogger {
   ///   - column: Column number of the log message
   ///   - funcName: Name of the function from where the logging is done
   class func error( _ object: Any, filename: String = #file, line: Int = #line, column: Int = #column, funcName: String = #function) {
-    if isLoggingEnabled {
+    if isLoggingEnabled && logLevel.value() <= LogEvent.error.value() {
       print("\(Date().toString()) \(LogEvent.error.rawValue)[\(sourceFileName(filePath: filename))]:\(line) \(column) \(funcName) -> \(object)")
     }
   }
@@ -82,7 +98,7 @@ class ZohoLogger {
   ///   - column: Column number of the log message
   ///   - funcName: Name of the function from where the logging is done
   class func info ( _ object: Any, filename: String = #file, line: Int = #line, column: Int = #column, funcName: String = #function) {
-    if isLoggingEnabled {
+    if isLoggingEnabled && logLevel.value() <= LogEvent.info.value() {
       print("\(Date().toString()) \(LogEvent.info.rawValue)[\(sourceFileName(filePath: filename))]:\(line) \(column) \(funcName) -> \(object)")
     }
   }
@@ -96,7 +112,7 @@ class ZohoLogger {
   ///   - column: Column number of the log message
   ///   - funcName: Name of the function from where the logging is done
   class func debug( _ object: Any, filename: String = #file, line: Int = #line, column: Int = #column, funcName: String = #function) {
-    if isLoggingEnabled {
+    if isLoggingEnabled && logLevel.value() <= LogEvent.debug.value() {
       print("\(Date().toString()) \(LogEvent.debug.rawValue)[\(sourceFileName(filePath: filename))]:\(line) \(column) \(funcName) -> \(object)")
     }
   }
@@ -110,7 +126,7 @@ class ZohoLogger {
   ///   - column: Column number of the log message
   ///   - funcName: Name of the function from where the logging is done
   class func verbose( _ object: Any, filename: String = #file, line: Int = #line, column: Int = #column, funcName: String = #function) {
-    if isLoggingEnabled {
+    if isLoggingEnabled && logLevel.value() <= LogEvent.verbose.value() {
       print("\(Date().toString()) \(LogEvent.verbose.rawValue)[\(sourceFileName(filePath: filename))]:\(line) \(column) \(funcName) -> \(object)")
     }
   }
@@ -124,7 +140,7 @@ class ZohoLogger {
   ///   - column: Column number of the log message
   ///   - funcName: Name of the function from where the logging is done
   class func warning( _ object: Any, filename: String = #file, line: Int = #line, column: Int = #column, funcName: String = #function) {
-    if isLoggingEnabled {
+    if isLoggingEnabled && logLevel.value() <= LogEvent.warning.value() {
       print("\(Date().toString()) \(LogEvent.warning.rawValue)[\(sourceFileName(filePath: filename))]:\(line) \(column) \(funcName) -> \(object)")
     }
   }

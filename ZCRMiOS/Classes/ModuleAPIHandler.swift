@@ -29,7 +29,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
 			
 		}
 		let request : APIRequest = APIRequest(handler: self )
-        print( "Request : \( request.toString() )" )
+        ZohoLogger.debug( "Request : \( request.toString() )" )
 		
         let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
@@ -48,7 +48,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param: "module" , value: self.module.getAPIName())
 		let request : APIRequest = APIRequest(handler: self )
-		print( "Request : \( request.toString() )" )
+		ZohoLogger.debug( "Request : \( request.toString() )" )
 		
         let response = try request.getAPIResponse()
         let responseJSON = response.getResponseJSON()
@@ -68,7 +68,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
 			
 		}
 		let request : APIRequest = APIRequest(handler: self)
-        print( "Request : \( request.toString() )" )
+        ZohoLogger.debug( "Request : \( request.toString() )" )
 		
         let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
@@ -90,7 +90,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
 			
 		}
 		let request : APIRequest = APIRequest(handler: self)
-        print( "Request : \( request.toString() )" )
+        ZohoLogger.debug( "Request : \( request.toString() )" )
 		
         let response = try request.getBulkAPIResponse()
         let responseJSON = response.getResponseJSON()
@@ -110,7 +110,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
 		setRequestMethod(requestMethod: .GET )
 		addRequestParam(param: "module" , value: self.module.getAPIName() )
 		let request : APIRequest = APIRequest(handler: self )
-        print( "Request : \( request.toString() )" )
+        ZohoLogger.debug( "Request : \( request.toString() )" )
         
         let response = try request.getAPIResponse()
         let cvArray : [ [ String : Any ] ] = response.getResponseJSON().getArrayOfDictionaries( key : "custom_views" )
@@ -227,7 +227,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
             for pickListValueDict in pickListValues
             {
                 let pickListValue = ZCRMPickListValue()
-                print( "pickListValueDict : \( pickListValueDict)" )
+                ZohoLogger.debug( "pickListValueDict : \( pickListValueDict)" )
                 pickListValue.setMaps( maps : pickListValueDict.optArrayOfDictionaries( key : "maps" ) )
                 pickListValue.setSequenceNumer( number : pickListValueDict.optInt(key : "sequence_number" ) )
                 pickListValue.setActualName( actualName : pickListValueDict.optString( key : "actual_value" ) )
