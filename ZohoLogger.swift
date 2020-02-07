@@ -3,13 +3,7 @@
 //  ZCRMiOS
 //
 //  Created by Michael Vieth on 2/7/20.
-//
-//
-//  Logger.swift
-//  SwiftLogger
-//
-//  Created by Sauvik Dolui on 03/05/2017.
-//  Copyright © 2016 Innofied Solutions Pvt. Ltd. All rights reserved.
+//  Code from Sauvik Dolui on 03/05/2017
 //
 import Foundation
 
