@@ -29,30 +29,40 @@ public class ZVCRMLoginHandler
             {
                 if( dict.keys.contains( key ) == false )
                 {
-                    throw ZCRMSDKError.InternalError( "\( key ) not present in the App configuration plist!" )
+                    throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "\( key ) not present in the App configuration plist!", details: nil )
                 }
             }
             for key in dict.keys
             {
                 if( dict[ key ] == nil )
                 {
-                    throw ZCRMSDKError.InternalError( "\( key ) is nil. It should have value" )
+                    throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "\( key ) is nil. It should have value", details: nil )
                 }
             }
         }
         else
         {
-            throw ZCRMSDKError.InternalError( "App configuration property list is empty!" )
+            throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "App configuration property list is empty!", details: nil )
         }
     }
 
     public func initIAMLogin( window : UIWindow? )
     {
-        APPTYPE = appConfigurationUtil.getAppType()
-        APIBASEURL = appConfigurationUtil.getApiBaseURL()
-        APIVERSION = appConfigurationUtil.getApiVersion()
-
-        ZohoPortalAuth.initWithClientID( appConfigurationUtil.getClientID(), clientSecret : appConfigurationUtil.getClientSecretID(), portalID : appConfigurationUtil.getPortalID(), scope : appConfigurationUtil.getAuthscopes(), urlScheme : appConfigurationUtil.getRedirectURLScheme(), mainWindow : window, accountsPortalURL : appConfigurationUtil.getAccountsURL()  )
+        do {
+            if let appType = AppType( rawValue : appConfigurationUtil.getAppType() )
+            {
+                ZCRMSDKClient.shared.appType = appType
+            }
+            ZCRMSDKClient.shared.apiBaseURL = try appConfigurationUtil.getApiBaseURL()
+            ZCRMSDKClient.shared.apiVersion = try appConfigurationUtil.getApiVersion()
+            
+            ZohoPortalAuth.initWithClientID( try appConfigurationUtil.getClientID(), clientSecret : try appConfigurationUtil.getClientSecretID(), portalID : try appConfigurationUtil.getPortalID(), scope : try appConfigurationUtil.getAuthscopes(), urlScheme : try appConfigurationUtil.getRedirectURLScheme(), mainWindow : window, accountsPortalURL : try appConfigurationUtil.getAccountsURL()  )
+        }
+        catch
+        {
+            print("Error occured initIAMLogin() -> \(error)")
+        }
+        
     }
 
     public func handleLogin( completion : @escaping( Bool ) -> () )
@@ -97,25 +107,11 @@ public class ZVCRMLoginHandler
         ZohoPortalAuth.handleURL( url, sourceApplication : sourceApplication, annotation : annotation )
     }
 
-    internal func getOauth2Token() -> String
+    internal func getOauth2Token( completion : @escaping( String?, Error? ) -> () )
     {
-        var oAuth2Token : String = String()
-        ZohoPortalAuth.getOauth2Token { ( accessToken, error ) in
-            if( accessToken == nil )
-            {
-                print( "Unable to get oAuthToken!" )
-            }
-            else
-            {
-                oAuth2Token = accessToken!
-                print( "Got the oAuthtoken!" )
-            }
-            if( error != nil )
-            {
-                print( "Error occured in getOauth2Token(): \(error!)" )
-            }
+        ZohoPortalAuth.getOauth2Token { ( token, error ) in
+            completion( token, error )
         }
-        return oAuth2Token
     }
 
     public func clearIAMLoginFirstLaunch()
@@ -139,6 +135,7 @@ public class ZVCRMLoginHandler
                     self.handleLogin( completion : { _ in
                             
                     })
+                    ZCRMSDKClient.shared.requestHeaders?.removeAll()
                     URLCache.shared.removeAllCachedResponses()
                     if let cookies = HTTPCookieStorage.shared.cookies {
                         for cookie in cookies {
@@ -150,5 +147,4 @@ public class ZVCRMLoginHandler
                 }
         })
     }
-    
 }

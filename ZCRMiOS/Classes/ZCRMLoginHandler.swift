@@ -7,12 +7,13 @@
 //
 
 import Foundation
+import UIKit
 
 public class ZCRMLoginHandler
 {
     private var appConfigurationUtil : CRMAppConfigUtil = CRMAppConfigUtil()
     private var accessType : String = String()
-    private var configurationKeys : [ String ] = [ "DomainSuffix", "ApiVersion", "ClientID", "ClientSecretID", "RedirectURLScheme", "AccountsURL", "OAuthScopes", "AccessType" ]
+    private var configurationKeys : [ String ] = [ "DomainSuffix", "ApiVersion", "ClientID", "ClientSecretID", "RedirectURLScheme", "AccountsURL", "OAuthScopes", "AccessType", "LoginCustomization" ]
     public init(){}
     
     public init( appConfigUtil : CRMAppConfigUtil ) throws
@@ -29,20 +30,20 @@ public class ZCRMLoginHandler
             {
                 if( dict.keys.contains( key ) == false )
                 {
-                    throw ZCRMSDKError.InternalError( "\( key ) not present in the App configuration plist!" )
+                    throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "\( key ) not present in the App configuration plist!", details: nil )
                 }
             }
             for key in dict.keys
             {
                 if( dict[ key ] == nil )
                 {
-                    throw ZCRMSDKError.InternalError( "\( key ) is nil. It should have value" )
+                    throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "\( key ) is nil. It should have value", details: nil )
                 }
             }
         }
         else
         {
-            throw ZCRMSDKError.InternalError( "App configuration property list is empty!" )
+            throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "App configuration property list is empty!", details: nil )
         }
     }
     
@@ -51,40 +52,49 @@ public class ZCRMLoginHandler
         do
         {
             self.setAppConfigurations()
-            try self.updateBaseURL( countryDomain : COUNTRYDOMAIN )
-            print( "Country Domain : \( COUNTRYDOMAIN )" )
+            ZCRMLogger.logDebug( message: "Country Domain : \( COUNTRYDOMAIN )" )
+            ZohoAuth.initWithClientID( try appConfigurationUtil.getClientID(), clientSecret : try appConfigurationUtil.getClientSecretID(), scope : try appConfigurationUtil.getAuthscopes(), urlScheme : try appConfigurationUtil.getRedirectURLScheme(), mainWindow : window, accountsURL : try appConfigurationUtil.getAccountsURL() )
+            ZCRMLogger.logDebug( message: "redirectURL : \( try appConfigurationUtil.getRedirectURLScheme() )")
         }
         catch
         {
-            print( "Error : \( error )" )
+            ZCRMLogger.logDebug( message: "Error occured in ZCRMLoginHandler.initIAMLogin() : \( error )" )
         }
         
-        ZohoAuth.initWithClientID( appConfigurationUtil.getClientID(), clientSecret : appConfigurationUtil.getClientSecretID(), scope : appConfigurationUtil.getAuthscopes(), urlScheme : appConfigurationUtil.getRedirectURLScheme(), mainWindow : window, accountsURL : appConfigurationUtil.getAccountsURL() )
-        print( "redirectURL : \( appConfigurationUtil.getRedirectURLScheme() )")
     }
     
-    private func setAppConfigurations()
+    internal func setAppConfigurations()
     {
-        APPTYPE = appConfigurationUtil.getAppType()
-        APIVERSION = appConfigurationUtil.getApiVersion()
-        if( APIVERSION.isEmpty == true )
+        do
         {
-            APIVERSION = "v2"
+            if let appType = AppType( rawValue : appConfigurationUtil.getAppType() )
+            {
+                ZCRMSDKClient.shared.appType = appType
+            }
+            ZCRMSDKClient.shared.apiVersion = try appConfigurationUtil.getApiVersion()
+            if( ZCRMSDKClient.shared.apiVersion.isEmpty == true )
+            {
+                ZCRMSDKClient.shared.apiVersion = "v2"
+            }
+                COUNTRYDOMAIN = try appConfigurationUtil.getCountryDomain()
+                accessType = try appConfigurationUtil.getAccessType()
         }
-        COUNTRYDOMAIN = appConfigurationUtil.getCountryDomain()
-        accessType = appConfigurationUtil.getAccessType()
+        catch
+        {
+            ZCRMLogger.logDebug( message:"Error occured in ZCRMLoginHandler.setAppConfigurations(). Details : \(error)")
+        }
     }
     
-    private func updateBaseURL( countryDomain : String ) throws
+    internal func updateBaseURL( countryDomain : String ) throws
     {
         var domain : String = String()
         switch accessType
         {
-        case AccessType.DEVELOPMENT.rawValue :
+        case AccessType.development.rawValue :
             domain = "developer"
             break
             
-        case AccessType.SANDBOX.rawValue :
+        case AccessType.sandBox.rawValue :
             domain = "sandbox"
             break
             
@@ -94,27 +104,35 @@ public class ZCRMLoginHandler
         switch ( countryDomain )
         {
         case ( "com" ), ( "us" ) :
-            APIBASEURL = "https://\( domain ).zohoapis.com"
+            ZCRMSDKClient.shared.apiBaseURL = "\( domain ).zohoapis.com"
+            ACCOUNTSURL = "https://accounts.zoho.com"
             break
             
         case "eu" :
-            APIBASEURL = "https://\( domain ).zohoapis.eu"
+            ZCRMSDKClient.shared.apiBaseURL = "https://\( domain ).zohoapis.eu"
+            ACCOUNTSURL = "https://accounts.zoho.eu"
             break
             
         case "cn" :
-            APIBASEURL = "https://\( domain ).zohoapis.com.cn"
+            ZCRMSDKClient.shared.apiBaseURL = "https://\( domain ).zohoapis.com.cn"
+            ACCOUNTSURL = "https://accounts.zoho.com.cn"
             break
             
         default :
-            print( "Country domain is invalid. \( domain )" )
-            throw ZCRMSDKError.InternalError( "Country domain is invalid." )
+            ZCRMLogger.logDebug( message:  "Country domain is invalid. \( domain )" )
+            throw ZCRMError.sdkError( code : ErrorCode.internalError, message :  "Country domain is invalid.", details: nil )
         }
-        print( "API Base URL : \(APIBASEURL)")
+        ZCRMLogger.logDebug( message: "API Base URL : \(ZCRMSDKClient.shared.apiBaseURL)")
     }
     
     public func clearIAMLoginFirstLaunch()
     {
         ZohoAuth.clearDetailsForFirstLaunch()
+    }
+    
+    public func getBaseURL() -> String
+    {
+        return ZCRMSDKClient.shared.apiBaseURL
     }
     
     public func iamLoginHandleURL( url : URL, sourceApplication : String?, annotation : Any )
@@ -124,32 +142,26 @@ public class ZCRMLoginHandler
     
     public func handleLogin( completion: @escaping ( Bool ) -> () )
     {
-        ZohoAuth.presentZohoSign(inHavingCustomParams: getLoginScreenParams()) { (success, error) in
+        ZohoAuth.presentZohoSign(inHavingCustomParams: self.getLoginScreenParams()) { (success, error) in
             if( error != nil )
             {
                 switch( error!.code )
                 {
-                // SFSafari Dismissed
-                case 205 :
-                    print( "Error Detail : \( error!.description ), code : \( error!.code )" )
-                    completion( false )
-                    self.handleLogin( completion : { _ in
+                    // SFSafari Dismissed
+                    case 205 :
+                        ZCRMLogger.logDebug( message: "Login view dismissed. Detail : \( error!.description ), code : \( error!.code )" )
+                        completion( false )
+                        break
                         
-                    })
-                    break
-                    
-                // access_denied
-                case 905 :
-                    print( "Error Detail : \( error!.description ), code : \( error!.code )" )
-                    completion( false )
-                    self.handleLogin( completion : { _ in
+                    // access_denied
+                    case 905 :
+                        ZCRMLogger.logDebug( message: "User denied the access : \( error!.description ), code : \( error!.code )" )
+                        completion( false )
+                        break
                         
-                    })
-                    break
-                    
-                default :
-                    completion( false )
-                    print( "Error : \( error! )" )
+                    default :
+                        completion( false )
+                        ZCRMLogger.logDebug( message: "Error occured while present sign in page. Detail : \( error! )" )
                 }
             }
             else
@@ -161,79 +173,73 @@ public class ZCRMLoginHandler
     
     public func logout( completion : @escaping ( Bool ) -> () )
     {
-        ZohoAuth.revokeAccessToken(
-            { (error) in
-                if( error != nil )
-                {
-                    print( "Error occured in removeAllScopesWithSuccess() : \(error!)" )
-                    completion( false )
-                }
-                else
-                {
-                    self.clearIAMLoginFirstLaunch()
-                    print( "removed AllScopesWithSuccess!" )
-                    if( self.appConfigurationUtil.isLoginCustomized() == false )
-                    {
-                        self.handleLogin( completion : { _ in
-                            
-                        })
-                    }
-                    URLCache.shared.removeAllCachedResponses()
-                    if let cookies = HTTPCookieStorage.shared.cookies {
-                        for cookie in cookies {
-                            HTTPCookieStorage.shared.deleteCookie( cookie )
-                        }
-                    }
-                    completion( true )
-                    print( "logout ZCRM!" )
-                }
-        })
-    }
-    
-    internal func getOauth2Token() -> String
-    {
-        var oAuth2Token : String = String()
-        
-        ZohoAuth.getOauth2Token { (accessToken, error) in
-            if( accessToken == nil )
+        ZohoAuth.revokeAccessToken( { ( error ) in
+            if( error != nil )
             {
-                print( "Unable to get oAuthToken!" )
+                ZCRMLogger.logDebug( message: "Error occured in removeAllScopesWithSuccess() : \(error!)" )
+                completion( false )
             }
             else
             {
-                oAuth2Token = accessToken!
-                print( "Got the oAuthtoken!" )
+                self.clearIAMLoginFirstLaunch()
+                ZCRMLogger.logDebug( message: "removed AllScopesWithSuccess!" )
+                URLCache.shared.removeAllCachedResponses()
+                ZCRMSDKClient.shared.clearAllCache()
+                if let cookies = HTTPCookieStorage.shared.cookies {
+                    for cookie in cookies {
+                        HTTPCookieStorage.shared.deleteCookie( cookie )
+                    }
+                }
+                if( self.appConfigurationUtil.isLoginCustomized() == false )
+                {
+                    self.handleLogin( completion : { success in
+                        if success == true
+                        {
+                            print( "login screen loaded successfully on Logout call!")
+                        }
+                    })
+                }
+                completion( true )
+                ZCRMLogger.logDebug( message: "logout ZCRM!" )
             }
-            if( error != nil )
-            {
-                print( "Error occured in getOauth2Token(): \(error!)" )
-            }
+        } )
+    }
+    
+    internal func getOauth2Token( completion : @escaping( String?, Error? ) -> () )
+    {
+        ZohoAuth.getOauth2Token { ( token, error ) in
+            completion( token, error )
         }
-        return oAuth2Token
     }
     
     internal func getLoginScreenParams() -> String
     {
         var loginScreenParams : String = ""
-        if( appConfigurationUtil.getAppConfigurations().hasKey( forKey : "ShowSignUp" ) && appConfigurationUtil.getShowSignUp() == "true" )
+        do
         {
-            loginScreenParams = "hide_signup=false"
+            let showSignUp = try appConfigurationUtil.getShowSignUp()
+            if( appConfigurationUtil.getAppConfigurations().hasKey( forKey : "ShowSignUp" ) && showSignUp == "true" )
+            {
+                loginScreenParams = "hide_signup=false"
+            }
+//            let portalID = try appConfigurationUtil.getPortalID()
+//            if( appConfigurationUtil.getAppConfigurations().hasKey( forKey : "PortalID" ) && portalID.isEmpty == false )
+//            {
+//                if( loginScreenParams != "" && !loginScreenParams.contains( "PortalID" ) )
+//                {
+//                    loginScreenParams = loginScreenParams + "&portal_id=" + portalID
+//                }
+//                else
+//                {
+//                    loginScreenParams = "portal_id=" + portalID
+//                }
+//            }
         }
-        
-        if( appConfigurationUtil.getAppConfigurations().hasKey( forKey : "PortalID" ) && appConfigurationUtil.getPortalID().isEmpty == false )
+        catch
         {
-            let portalID = appConfigurationUtil.getPortalID()
-            if( loginScreenParams != "" && !loginScreenParams.contains( "PortalID" ) )
-            {
-                loginScreenParams = loginScreenParams + "&portal_id=" + portalID
-            }
-            else
-            {
-                loginScreenParams = "portal_id=" + portalID
-            }
+            ZCRMLogger.logDebug( message : "Error occured in getLoginScreenParams() \( error )" )
         }
-        print( "login screen params = \( loginScreenParams )" )
+        ZCRMLogger.logDebug( message : "login screen params = \( loginScreenParams )" )
         return loginScreenParams
     }
-    
 }

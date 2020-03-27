@@ -1,81 +1,229 @@
  //
-//  APIRequest.swift
-//  ZCRMiOS
-//
-//  Created by Vijayakrishna on 09/11/16.
-//  Copyright © 2016 zohocrm. All rights reserved.
-//
+ //  APIRequest.swift
+ //  ZCRMiOS
+ //
+ //  Created by Vijayakrishna on 09/11/16.
+ //  Copyright © 2016 zohocrm. All rights reserved.
+ //
+ 
+ import Foundation
+ import MobileCoreServices
+ 
+ internal extension URLSession {
+    func dataTask(with request : URLRequest, completion : @escaping (Result.DataURLResponse<Data, HTTPURLResponse>) -> Void) -> URLSessionDataTask {
+        return dataTask(with: request) { (data, response, error) in
 
-import Foundation
-import MobileCoreServices
-internal enum HTTPStatusCode : Int
-{
-    case OK = 200
-    case CREATED = 201
-    case ACCEPTED = 202
-    case NO_CONTENT = 204
-    case MOVED_PERMANENTLY = 301
-    case MOVED_TEMPORARILY = 302
-    case NOT_MODIFIED = 304
-    case BAD_REQUEST = 400
-    case AUTHORIZATION_ERROR = 401
-    case FORBIDDEN = 403
-    case NOT_FOUND = 404
-    case METHOD_NOT_ALLOWED = 405
-    case REQUEST_ENTITY_TOO_LARGE = 413
-    case UNSUPPORTED_MEDIA_TYPE = 415
-    case TOO_MANY_REQUEST = 429
-    case INTERNAL_SERVER_ERROR = 500
-}
-
-internal let faultyStatusCodes : [HTTPStatusCode] = [HTTPStatusCode.AUTHORIZATION_ERROR, HTTPStatusCode.BAD_REQUEST, HTTPStatusCode.FORBIDDEN, HTTPStatusCode.INTERNAL_SERVER_ERROR, HTTPStatusCode.METHOD_NOT_ALLOWED, HTTPStatusCode.MOVED_TEMPORARILY, HTTPStatusCode.MOVED_PERMANENTLY, HTTPStatusCode.REQUEST_ENTITY_TOO_LARGE, HTTPStatusCode.TOO_MANY_REQUEST, HTTPStatusCode.UNSUPPORTED_MEDIA_TYPE, HTTPStatusCode.NO_CONTENT, HTTPStatusCode.NOT_FOUND]
-
-internal enum RequestMethod : String
-{
-    case GET = "GET"
-    case POST = "POST"
-    case PUT = "PUT"
-    case DELETE = "DELETE"
-}
-
-internal class APIRequest 
-{
-    private var baseUrl : String = "\( APIBASEURL )/crm/\( APIVERSION )"
-    private var urlPath : String = ""
-    private var requestMethod : RequestMethod
-    private var headers : [String : String] = [String : String]()
-    private var params : [String : String] = [String : String]()
-    private var requestBody : [ String : Any ]?
-    private var request : URLRequest?
-    private var url : URL?
-	private var isOAuth : Bool = true
-	
-	init( handler : APIHandler)
-	{
-		if let urlPath = handler.getUrlPath()
-		{
-			self.urlPath = urlPath
-		}
-		else if let url = handler.getUrl()
-		{
-			self.url = url
-		}
-		self.requestMethod = handler.getRequestMethod()
-		self.params = handler.getRequestParams()
-		self.headers = handler.getRequestHeaders()
-		self.requestBody = handler.getRequestBody()
-		self.isOAuth = handler.getRequestType()
-	}
-	
-    private func authenticateRequest()
+            if let error = error {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+                return
+            }
+            
+            guard let data = data else {
+                return
+            }
+            
+            guard let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse else {
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
+                completion( .failure( ZCRMError.sdkError(code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details : nil) ) )
+                return
+            }
+            
+            completion( .success(data, httpResponse) )
+        }
+    }
+    
+    func uploadTask(with request : URLRequest, fromFile url : URL, completion : @escaping (Result.DataURLResponse<Data, HTTPURLResponse>) -> Void) -> URLSessionUploadTask {
+        return uploadTask(with: request, fromFile: url) { (data, response, error) in
+            if let error = error {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+                return
+            }
+            
+            guard let data = data else {
+                return
+            }
+            
+            guard let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse else {
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
+                completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details : nil ) ) )
+                return
+            }
+            
+            completion( .success(data, httpResponse) )
+        }
+    }
+    
+    func downloadTask(with request : URLRequest, completion : @escaping (Result.DataURLResponse<Any, HTTPURLResponse>) -> Void) -> URLSessionDownloadTask {
+        return downloadTask(with: request) { (tempLocalURL, response, error) in
+            if let error = error {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+                return
+            }
+            
+            guard let localURL = tempLocalURL else {
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.unableToConstructURL ) : \( ErrorMessage.unableToConstructURLMsg ), \( APIConstants.DETAILS ) : -")
+                completion( .failure( ZCRMError.sdkError(code: ErrorCode.unableToConstructURL, message: ErrorMessage.unableToConstructURLMsg, details: nil) ) )
+                return
+            }
+            
+            guard let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse  else {
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
+                completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details : nil ) ) )
+                return
+            }
+            completion( .success(localURL, httpResponse) )
+        }
+    }
+ }
+ internal enum HTTPStatusCode : Int
+ {
+    case ok = 200
+    case created = 201
+    case accepted = 202
+    case noContent = 204
+    case movedPermanently = 301
+    case movedTemporarily = 302
+    case notModified = 304
+    case badRequest = 400
+    case authorizationError = 401
+    case forbidden = 403
+    case notFound = 404
+    case methodNotAllowed = 405
+    case requestEntityTooLarge = 413
+    case unsupportedMediaType = 415
+    case tooManyRequest = 429
+    case internalServerError = 500
+    case badGateway = 502
+    case unhandled
+    
+    init( statusCodeValue : Int )
     {
-        if( APPTYPE == "ZCRM" )
+        if let code = HTTPStatusCode( rawValue: statusCodeValue )
         {
-            self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( ZCRMLoginHandler().getOauth2Token() )" )
+            self = code
         }
         else
         {
-            self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( ZVCRMLoginHandler().getOauth2Token() )" )
+            ZCRMLogger.logInfo(message: "UNHANDLED -> HTTP status code : \( statusCodeValue )")
+            self = .unhandled
+        }
+    }
+ }
+ 
+ internal let faultyStatusCodes : [HTTPStatusCode] = [HTTPStatusCode.authorizationError, HTTPStatusCode.badRequest, HTTPStatusCode.forbidden, HTTPStatusCode.internalServerError, HTTPStatusCode.methodNotAllowed, HTTPStatusCode.movedTemporarily, HTTPStatusCode.movedPermanently, HTTPStatusCode.requestEntityTooLarge, HTTPStatusCode.tooManyRequest, HTTPStatusCode.unsupportedMediaType, HTTPStatusCode.noContent, HTTPStatusCode.notFound, HTTPStatusCode.badGateway, HTTPStatusCode.unhandled, HTTPStatusCode.notModified]
+ 
+ internal enum RequestMethod : String
+ {
+    case get = "GET"
+    case post = "POST"
+    case patch = "PATCH"
+    case put = "PUT"
+    case delete = "DELETE"
+    case undefined = "UNDEFINED"
+ }
+ 
+ internal class APIRequest : NSObject
+ {
+    private var requestMethod : RequestMethod
+    private var headers : [String : String] = [String : String]()
+    private var requestBody : Any?
+    internal var request : URLRequest?
+    private var url : URL?
+    private var isOAuth : Bool = true
+    internal var jsonRootKey = String()
+    private var cacheFlavour : CacheFlavour!
+    private var isCacheable : Bool
+    private static let configuration = URLSessionConfiguration.default
+    private static let session = URLSession( configuration : APIRequest.configuration )
+    private var requestedModule : String?
+    
+    init( handler : APIHandler, cacheFlavour : CacheFlavour )
+    {
+        self.url = handler.getUrl()
+        self.requestMethod = handler.getRequestMethod()
+        self.headers = handler.getRequestHeaders()
+        self.requestBody = handler.getRequestBody()
+        self.isOAuth = handler.getRequestType()
+        self.jsonRootKey = handler.getJSONRootKey()
+        self.cacheFlavour = cacheFlavour
+        self.isCacheable = handler.getIsCacheable()
+        self.requestedModule = handler.getModuleName()
+    }
+    
+    convenience init( handler : APIHandler)
+    {
+        self.init( handler : handler, cacheFlavour : .noCache )
+    }
+    
+    private func authenticateRequest( completion : @escaping( ZCRMError? ) -> () )
+    {
+        self.addHeader( headerName : "User-Agent", headerVal : ZCRMSDKClient.shared.userAgent )
+        if let headers = ZCRMSDKClient.shared.requestHeaders
+        {
+            do{
+                for headerName in headers.keys
+                {
+                    if headers.hasValue( forKey : headerName )
+                    {
+                        self.addHeader( headerName : headerName, headerVal : try headers.getString( key : headerName ) )
+                    }
+                }
+            }
+            catch
+            {
+                ZCRMLogger.logDebug( message:"Error occured in authenticateRequest() >>> \(error)")
+            }
+        }
+        if( ZCRMSDKClient.shared.appType == AppType.zcrm )
+        {
+            ZCRMSDKClient.shared.zcrmLoginHandler?.getOauth2Token { ( token, error ) in
+                if let err = error
+                {
+                    completion(ZCRMError.sdkError(code: ErrorCode.oauthFetchError, message: err.description, details: nil))
+                    return
+                }
+                if let oAuthtoken = token, token.notNilandEmpty
+                {
+                    self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( oAuthtoken )" )
+                    ZCRMLogger.logError(message: "Request >>> \( self.toString() )")
+                    ZCRMLogger.logError(message: "Access Token >>> \( oAuthtoken )")
+                    completion( nil )
+                    return
+                }
+                else
+                {
+                    ZCRMLogger.logDebug( message: "oAuthtoken is nil." )
+                    completion(ZCRMError.sdkError(code: ErrorCode.oauthTokenNil, message: ErrorMessage.oauthTokenNilMsg, details: nil))
+                }
+            }
+        }
+        else
+        {
+            ZCRMSDKClient.shared.zvcrmLoginHandler?.getOauth2Token { ( token, error ) in
+                if( ZCRMSDKClient.shared.appType == AppType.zcrmcp  && self.headers.hasValue( forKey : "X-CRMPORTAL" ) == false )
+                {
+                    self.addHeader( headerName : "X-CRMPORTAL", headerVal : "SDKCLIENT" )
+                }
+                if let err = error
+                {
+                    completion(ZCRMError.sdkError(code: ErrorCode.oauthFetchError, message: err.description, details: nil))
+                    return
+                }
+                if let oAuthtoken = token, token.notNilandEmpty
+                {
+                    self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( oAuthtoken )")
+                    completion( nil )
+                    return
+                }
+                else
+                {
+                    print( "oAuthtoken is empty." )
+                    completion(ZCRMError.sdkError(code: ErrorCode.oauthTokenNil, message: ErrorMessage.oauthTokenNilMsg, details: nil))
+                }
+            }
         }
     }
     
@@ -84,293 +232,437 @@ internal class APIRequest
         self.headers[headerName] = headerVal
     }
     
-    internal func addParam(paramName : String, paramVal : String)
+    internal func initialiseRequest( completion : @escaping( ZCRMError? ) -> () )
     {
-        self.params[paramName] = paramVal
-    }
-    
-    internal func setRequestBody( body : [ String : Any ] )
-    {
-        self.requestBody = body
-    }
-    
-    private func initialiseRequest()
-    {
-		if isOAuth == true
-		{
-			self.authenticateRequest()
-		}
-        if(!self.params.isEmpty)
+        if isOAuth == true
         {
-            self.urlPath += "?"
-            for (key, value) in self.params
-            {
-                self.urlPath += key + "=" + value + "&"
+            self.authenticateRequest { ( error ) in
+                if let err = error
+                {
+                    ZCRMLogger.logError( message : "Error Occured : \( err )" )
+                    completion( typeCastToZCRMError( err ) )
+                    return
+                }
+                else
+                {
+                    if let myUrl = self.url
+                    {
+                        self.request = URLRequest(url: myUrl )
+                        if self.requestMethod == RequestMethod.undefined
+                        {
+                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidOperation) : Invalid Request method!!!, \( APIConstants.DETAILS ) : -")
+                            completion( ZCRMError.inValidError( code : ErrorCode.invalidOperation, message: "Invalid Request method!!!", details: nil ) )
+                            return
+                        }
+                        self.request?.httpMethod = self.requestMethod.rawValue
+                        self.request?.cachePolicy = URLRequest.CachePolicy.reloadIgnoringLocalCacheData
+                        for (key, value) in self.headers
+                        {
+                            self.request?.setValue(value, forHTTPHeaderField: key)
+                        }
+                        if self.requestBody != nil, let requestBody = self.requestBody as? [ String : Any ], requestBody.isEmpty == false
+                        {
+                            let reqBody = try? JSONSerialization.data(withJSONObject: requestBody, options: [])
+                            self.request?.httpBody = reqBody
+                        }
+                        completion( nil )
+                        return
+                    }
+                    else
+                    {
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
+                        completion(ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil))
+                        return
+                    }
+                }
             }
-			self.urlPath = String(self.urlPath.dropLast())
-        }
-        if ( self.url?.absoluteString == nil )
-        {
-            self.url = URL(string: (self.baseUrl + self.urlPath))!
         }
         else
         {
-            let urlSting = self.url!.absoluteString
-            self.url = URL( string : ( urlSting + self.urlPath ) )!
+            completion(nil)
         }
-        self.request = URLRequest(url: self.url!)
-        self.request?.httpMethod = self.requestMethod.rawValue
-        for (key, value) in self.headers
-        {
-            request?.setValue(value, forHTTPHeaderField: key)
-        }
-		if(self.requestBody != nil && (self.requestBody )?.isEmpty == false )
-        {
-            let reqBody = try? JSONSerialization.data(withJSONObject: self.requestBody!, options: [])
-            self.request?.httpBody = reqBody
-        }
-        print( "Request : \( self.toString() )" )
     }
     
-    internal func getResponse() throws -> ([String : Any])
+    internal func getAPIResponse( completion : @escaping (Result.Response<APIResponse>) -> Void )
     {
-        let sema = DispatchSemaphore(value: 0)
-        self.initialiseRequest()
-        var urlResponse : URLResponse?
-        var responseData : Data?
-        var error : Error? = nil
-        URLSession.shared.dataTask(with: self.request!, completionHandler: { data, response, err in
-            guard err == nil else
+        self.initialiseRequest { ( err ) in
+            
+            if let error = err
             {
-                error = err
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion(.failure(error))
                 return
-            }
-            responseData = data
-            urlResponse = response
-            sema.signal()
-        }).resume()
-        sema.wait()
-        if error != nil
-        {
-            throw ZCRMSDKError.ProcessingError( "URLSession dataTask error : \( error!.description )" )
-        }
-        try self.checkForException(response: urlResponse, responseData: responseData)
-        let jsonStr : Any? = try? JSONSerialization.jsonObject(with: responseData!, options: [])
-        var responseJSON : [String : Any] = [String : Any]()
-        if let tempJSON = jsonStr as? [String : Any]
-        {
-            responseJSON = tempJSON
-        }
-        return responseJSON
-    }
-    
-    internal func getAPIResponse() throws -> APIResponse
-    {
-        let sema = DispatchSemaphore(value: 0)
-        self.initialiseRequest()
-        var urlResponse : HTTPURLResponse = HTTPURLResponse()
-        var responseData : Data?
-        var error : Error? = nil
-        URLSession.shared.dataTask(with: self.request!, completionHandler: { data, response, err in
-            guard err == nil else
-            {
-                error = err
-                return
-            }
-            responseData = data
-            urlResponse = response as! HTTPURLResponse
-            sema.signal()
-        }).resume()
-        sema.wait()
-        if error != nil
-        {
-            throw ZCRMSDKError.ProcessingError( "URLSession dataTask error : \( error!.description )" )
-        }
-        return try APIResponse(response: urlResponse, responseData: responseData)
-    }
-    
-    internal func getBulkAPIResponse() throws -> BulkAPIResponse
-    {
-        let sema = DispatchSemaphore(value: 0)
-        self.initialiseRequest()
-        var urlResponse : HTTPURLResponse = HTTPURLResponse()
-        var responseData : Data?
-        var error : Error?
-        URLSession.shared.dataTask(with: self.request!, completionHandler: { data, response, err in
-            guard err == nil else
-            {
-                error = err
-                return
-            }
-            responseData = data
-			urlResponse = response as! HTTPURLResponse
-            sema.signal()
-        }).resume()
-        sema.wait()
-        if error != nil
-        {
-            throw ZCRMSDKError.ProcessingError( "URLSession dataTask error : \( error!.description )" )
-        }
-        return try BulkAPIResponse(response: urlResponse, responseData: responseData)
-    }
-    
-    internal func uploadLink() throws -> APIResponse
-    {
-        let boundary = BOUNDARY
-        self.createMultipartRequest( bodyData : Data(), boundary : boundary )
-        var urlResponse : HTTPURLResponse = HTTPURLResponse()
-        var responseData : Data?
-        let sema = DispatchSemaphore( value : 0 )
-        var err : Error?
-        URLSession.shared.dataTask( with : self.request!, completionHandler : { data, response, error in
-            guard error == nil else
-            {
-                err = error
-                return
-            }
-            responseData = data
-            urlResponse = response as! HTTPURLResponse
-            sema.signal()
-        } ).resume()
-        sema.wait()
-        if err != nil {
-            throw ZCRMSDKError.ProcessingError( "URLSession dataTask error : \( err!.description )" )
-        }
-        return try APIResponse( response : urlResponse, responseData : responseData )
-    }
-    
-    internal func uploadFile( filePath : String ) throws -> APIResponse
-    {
-        let fileURL = URL( fileURLWithPath : filePath )
-        let boundary = BOUNDARY
-        let httpBodyData = getFilePart( fileURL : fileURL, boundary : boundary )
-        createMultipartRequest( bodyData : httpBodyData, boundary : boundary )
-        var urlResponse : HTTPURLResponse = HTTPURLResponse()
-        var responseData : Data?
-        let sema = DispatchSemaphore( value : 0 )
-        var err : Error?
-        URLSession.shared.dataTask( with : self.request!, completionHandler : { data, response, error in
-            guard error == nil else
-            {
-                err = error
-                return
-            }
-            responseData = data
-            urlResponse = response as! HTTPURLResponse
-            sema.signal()
-        } ).resume()
-        sema.wait()
-        if err != nil {
-            throw ZCRMSDKError.ProcessingError( "URLSession dataTask error : \( err!.description )" )
-        }
-        return try APIResponse( response : urlResponse, responseData : responseData )
-    }
-    
-    private func createMultipartRequest( bodyData : Data, boundary : String )
-    {
-        var httpBodyData = bodyData
-        httpBodyData.append( "\r\n--\(boundary)".data( using : String.Encoding.utf8 )! )
-        
-        self.initialiseRequest()
-        self.request!.setValue( "multipart/form-data; boundary=\(boundary)", forHTTPHeaderField : "Content-Type" )
-        
-        self.request!.setValue( "\(httpBodyData.count)", forHTTPHeaderField : "Content-Length" )
-        self.request!.httpBody = httpBodyData
-    }
-    
-    private func getFilePart( fileURL : URL, boundary : String ) -> Data
-    {
-        var filePartData : Data = Data()
-        filePartData.append( "\r\n--\(boundary)\r\n".data( using : String.Encoding.utf8 )! )
-        filePartData.append( "Content-Disposition: form-data; name=\"file\"; filename=\"\(fileURL.lastPathComponent)\"\r\n".data( using : String.Encoding.utf8 )! )
-        filePartData.append( "Content-Type: \(getMimeTypeFor( fileURL : fileURL ))\r\n\r\n".data( using : String.Encoding.utf8 )! )
-        filePartData.append( try! Data( contentsOf : fileURL ) )
-        return filePartData
-    }
-    
-    private func getMimeTypeFor( fileURL : URL ) -> String
-    {
-        let pathExtension = fileURL.pathExtension
-        if let uniformTypeIdentifier = UTTypeCreatePreferredIdentifierForTag( kUTTagClassFilenameExtension, pathExtension as CFString, nil )?.takeRetainedValue()
-        {
-            if let mimeType = UTTypeCopyPreferredTagWithClass( uniformTypeIdentifier, kUTTagClassMIMEType )?.takeRetainedValue()
-            {
-                return mimeType as String
-            }
-        }
-        return "application/octet-stream"
-    }
-    
-    internal func downloadFile() throws -> FileAPIResponse
-    {
-        let sema = DispatchSemaphore(value: 0)
-        self.initialiseRequest()
-        var fileResponse : HTTPURLResponse?
-        var localUrl : URL?
-        var error : Error?
-        URLSession.shared.downloadTask(with: self.request!, completionHandler: {tempLocalUrl, response, err in
-            guard err == nil else
-            {
-                error = err
-                return
-            }
-            fileResponse = response as? HTTPURLResponse
-            localUrl = tempLocalUrl!
-            sema.signal()
-        }).resume()
-        sema.wait()
-        if error != nil
-        {
-            throw ZCRMSDKError.ProcessingError( "URLSession dataTask error : \( error!.description )" )
-        }
-        return try FileAPIResponse(response: fileResponse!, tempLocalUrl: localUrl!)
-    }
-    
-    private func checkForException(response : URLResponse?, responseData : Data?) throws
-    {
-        let httpResponse = response as! HTTPURLResponse
-        let responseCode : HTTPStatusCode = HTTPStatusCode(rawValue: httpResponse.statusCode)!
-        if(faultyStatusCodes.contains(responseCode))
-        {
-            if(responseCode == HTTPStatusCode.NO_CONTENT)
-            {
-                throw ZCRMSDKError.InValidError("The given id seems to be invalid.")
             }
             else
             {
-                let responseJSON = try? JSONSerialization.jsonObject(with: responseData!, options: [])
-                let errJSON = (responseJSON as? [String:Any])!
-                let errMsg : String = "\(errJSON["status"]!) - \(errJSON["message"]!)"
-                throw ZCRMSDKError.ProcessingError(errMsg)
+                if self.useCache()
+                {
+                    self.getResponseFromDB { ( responseJSON, error ) in
+                        if let err = error
+                        {
+                            ZCRMLogger.logDebug( message : "ZCRM SDK - Error occured while response from DB. Details \( err )" )
+                            self.getAPIResponseFromServer { ( result ) in
+                                completion( result )
+                                return
+                            }
+                        }
+                        else if let respJSON = responseJSON
+                        {
+                            do
+                            {
+                                let response = try APIResponse( responseJSON : respJSON, responseJSONRootKey: self.jsonRootKey, requestAPIName: self.requestedModule )
+                                completion(.success(response))
+                                return
+                            }
+                            catch
+                            {
+                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                completion(.failure( typeCastToZCRMError( error ) ) )
+                                return
+                            }
+                        }
+                        else
+                        {
+                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
+                            completion(.failure(ZCRMError.sdkError(code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details : nil)))
+                            return
+                        }
+                    }
+                }
+                else
+                {
+                    self.getAPIResponseFromServer { ( result ) in
+                        completion( result )
+                        return
+                    }
+                }
             }
+        }
+    }
+    
+    private func getAPIResponseFromServer( completion : @escaping (Result.Response<APIResponse>) -> Void )
+    {
+        self.makeRequest() { result in
+            var response : APIResponse
+            do {
+                switch result {
+                case .success(let respdata, let resp) :
+                    if !respdata.isEmpty {
+                        response = try APIResponse( response : resp, responseData: respdata, responseJSONRootKey: self.jsonRootKey, requestAPIName: self.requestedModule)
+                        if !self.insertDataInDB(response: response, bulkResponse: nil)
+                        {
+                            ZCRMLogger.logDebug(message: "ZCRM SDK - Error occurred while inserting response into database.")
+                        }
+                        completion(.success(response))
+                    } else {
+                        response = try APIResponse( response : resp, responseJSONRootKey: self.jsonRootKey, requestAPIName: self.requestedModule)
+                        if !self.insertDataInDB(response: response, bulkResponse: nil)
+                        {
+                            ZCRMLogger.logDebug(message: "ZCRM SDK - Error occurred while inserting response into database.")
+                        }
+                        completion(.success(response))
+                    }
+                case .failure(let error) :
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            } catch {
+                do {
+                    try self.clearCacheData()
+                } catch {
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ))
+                    return
+                }
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion(.failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func getBulkAPIResponse( completion : @escaping(Result.Response<BulkAPIResponse>) -> () )
+    {
+        self.initialiseRequest { ( err ) in
+            
+            if let error = err
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion(.failure(error))
+                return
+            }
+            else
+            {
+                if self.useCache()
+                {
+                    self.getResponseFromDB { ( responseJSON, error ) in
+                        if let err = error
+                        {
+                            ZCRMLogger.logDebug( message : "ZCRM SDK - Error occured while response from DB. Details \( err )" )
+                            self.getBulkAPIResponseFromServer { ( result ) in
+                                completion( result )
+                                return
+                            }
+                        }
+                        else if let respJSON = responseJSON
+                        {
+                            do
+                            {
+                                let response = try BulkAPIResponse( responseJSON : respJSON, responseJSONRootKey: self.jsonRootKey, requestAPIName: self.requestedModule )
+                                completion(.success(response))
+                            }
+                            catch
+                            {
+                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                completion(.failure( typeCastToZCRMError( error ) ) )
+                            }
+                        }
+                        else
+                        {
+                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
+                            completion(.failure(ZCRMError.sdkError(code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details : nil)))
+                        }
+                    }
+                }
+                else
+                {
+                    self.getBulkAPIResponseFromServer { ( result ) in
+                        completion( result )
+                    }
+                }
+            }
+        }
+    }
+    
+    private func getBulkAPIResponseFromServer( completion : @escaping(Result.Response<BulkAPIResponse>) -> () )
+    {
+        self.makeRequest() { result in
+            var response : BulkAPIResponse
+            do {
+                switch result {
+                case .success(let respdata, let resp) :
+                    if !respdata.isEmpty {
+                        response = try BulkAPIResponse( response : resp, responseData: respdata, responseJSONRootKey: self.jsonRootKey, requestAPIName: self.requestedModule)
+                        if !self.insertDataInDB(response: nil, bulkResponse: response)
+                        {
+                            ZCRMLogger.logDebug(message: "ZCRM SDK - Error occurred while inserting response into database.")
+                        }
+                        completion(.success(response))
+                    } else {
+                        response = try BulkAPIResponse( response : resp, responseJSONRootKey: self.jsonRootKey, requestAPIName: self.requestedModule)
+                        if !self.insertDataInDB(response: nil, bulkResponse: response)
+                        {
+                            ZCRMLogger.logDebug(message: "ZCRM SDK - Error occurred while inserting response into database.")
+                        }
+                        completion(.success(response))
+                    }
+                case .failure(let error) :
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            } catch {
+                do {
+                    try self.clearCacheData()
+                } catch {
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ))
+                    return
+                }
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion(.failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    // yet to return success & failure
+    private func insertDataInDB( response : APIResponse?, bulkResponse : BulkAPIResponse? ) -> Bool
+    {
+        do
+        {
+            if self.cacheFlavour == CacheFlavour.forceCache
+            {
+                guard let url = self.request?.url?.absoluteString else {
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.unableToConstructURL ) : Unable to fetch url string from urlrequest")
+                    return false
+                }
+                if let resp = ( response != nil ? response : bulkResponse ), let respJSON = resp.getResponseJSON().toJSON()
+                {
+                    try ZCRMSDKClient.shared.getPersistentDB().insertData( withURL : url, data : respJSON, validity : DBConstant.VALIDITY_TIME )
+                }
+            }
+            else if self.useCache() || (self.cacheFlavour == CacheFlavour.noCache && ZCRMSDKClient.shared.isDBCacheEnabled && self.isCacheable)
+            {
+                guard let url = self.request?.url?.absoluteString else {
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.unableToConstructURL ) : Unable to fetch url string from urlrequest")
+                    return false
+                }
+                if let resp = ( response != nil ? response : bulkResponse ), let respJSON = resp.getResponseJSON().toJSON()
+                {
+                    try ZCRMSDKClient.shared.getNonPersistentDB().insertData( withURL : url, data : respJSON, validity : DBConstant.VALIDITY_TIME )
+                }
+            }
+            else
+            {
+                ZCRMLogger.logDebug(message: "Invalid cache type")
+                return false
+            }
+        }
+        catch
+        {
+            ZCRMLogger.logDebug( message : "Unable to insert data in db. error details : \( error )" )
+            return false
+        }
+        return true
+    }
+    
+    private func clearCacheData() throws  {
+        do {
+            if self.cacheFlavour == CacheFlavour.forceCache
+            {
+                guard let url = self.request?.url?.absoluteString else {
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.unableToConstructURL ) : Unable to fetch url string from urlrequest")
+                    return
+                }
+                try ZCRMSDKClient.shared.getPersistentDB().deleteData(withURL: url)
+            }
+            else if self.useCache() || (self.cacheFlavour == CacheFlavour.noCache && ZCRMSDKClient.shared.isDBCacheEnabled && self.isCacheable)
+            {
+                guard let url = self.request?.url?.absoluteString else {
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.unableToConstructURL ) : Unable to fetch url string from urlrequest")
+                    return
+                }
+                try ZCRMSDKClient.shared.getNonPersistentDB().deleteData(withURL: url)
+            }
+            else
+            {
+                ZCRMLogger.logDebug(message: "Invalid cache type")
+            }
+        } catch {
+            ZCRMLogger.logDebug( message : "Unable to Delete data in DB. Error Details : \( error )" )
+        }
+    }
+    
+    private func getResponseFromDB( completion : @escaping( Dictionary< String, Any>?, ZCRMError? ) -> Void )
+    {
+        guard let url = self.request?.url?.absoluteString else {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.unableToConstructURL) :  Unable to fetch url string from urlrequest, \( APIConstants.DETAILS ) : -")
+            completion( nil, ZCRMError.sdkError( code : ErrorCode.unableToConstructURL, message: "Unable to fetch url string from urlrequest", details : nil ) )
+            return
+        }
+        if let cacheType = self.cacheFlavour
+        {
+            switch cacheType
+            {
+            case .urlVsResponse :
+                do
+                {
+                    if let responseFromDB = try ZCRMSDKClient.shared.getNonPersistentDB().fetchData( withURL : url )
+                    {
+                        completion( responseFromDB, nil )
+                    }
+                    else
+                    {
+                        completion( nil, ZCRMError.sdkError( code : ErrorCode.responseNil, message: ErrorMessage.dbDataNotAvailable, details : nil ) )
+                    }
+                }
+                catch
+                {
+                    completion( nil, ZCRMError.sdkError( code : ErrorCode.responseNil, message: ErrorMessage.dbDataNotAvailable, details : nil ) )
+                }
+            case .forceCache :
+                do
+                {
+                    if let responseFromDB = try ZCRMSDKClient.shared.getPersistentDB().fetchData( withURL : url )
+                    {
+                        completion( responseFromDB, nil )
+                    }
+                    else
+                    {
+                        completion( nil, ZCRMError.sdkError( code : ErrorCode.responseNil, message: ErrorMessage.dbDataNotAvailable, details: nil ) )
+                    }
+                }
+                catch
+                {
+                    completion( nil, ZCRMError.sdkError( code : ErrorCode.responseNil, message: ErrorMessage.dbDataNotAvailable, details: nil ) )
+                }
+                
+            default :
+                ZCRMLogger.logDebug(message: "Invalid cache type")
+            }
+        }
+    }
+    
+    internal func makeRequest( completion : @escaping ( Result.DataURLResponse<Data, HTTPURLResponse> ) -> () )
+    {
+        if let request = self.request
+        {
+            APIRequest.configuration.timeoutIntervalForRequest = ZCRMSDKClient.shared.requestTimeout
+            APIRequest.session.dataTask(with: request) { resultType in
+                switch resultType
+                {
+                case .success(let data, let response) :
+                    completion( .success(data, response) )
+                case .failure(let error) :
+                    if error.ZCRMErrordetails?.code != ErrorCode.noInternetConnection && error.ZCRMErrordetails?.code != ErrorCode.requestTimeOut && error.ZCRMErrordetails?.code !=  ErrorCode.networkConnectionLost
+                    {
+                        do
+                        {
+                            try self.clearCacheData()
+                        }
+                        catch
+                        {
+                            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                            completion( .failure( typeCastToZCRMError( error ) ))
+                            return
+                        }
+                    }
+                    completion( .failure( error ) )
+                }
+            }.resume()
+        }
+        else
+        {
+            do {
+                try self.clearCacheData()
+            } catch {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ))
+                return
+            }
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Request is nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.sdkError(code: ErrorCode.internalError, message: "Request is nil", details : nil) ) )
+            return
         }
     }
     
     public func toString() -> String
     {
         var headers : [ String : String ] = self.headers
-        if headers.hasKey( forKey : "Authorization" )
+        if headers.hasKey( forKey : AUTHORIZATION )
         {
-            headers[ "Authorization" ] = "## ***** ##"
+            headers[ AUTHORIZATION ] = "## ***** ##"
         }
-        var params : [ String : String ] = self.params
-        if params.hasKey( forKey : "authtoken" )
-        {
-            params[ "authtoken" ] = "## ***** ##"
-        }
-        if( url?.absoluteString != nil )
-        {
-            return "URL : \( url!.absoluteString ), HEADERS : \( headers.description ) PARAMS : \( params.description ), METHOD : \( self.requestMethod.rawValue )"
-        }
-        else
-        {
-            return "URL : \( self.baseUrl + self.urlPath ), HEADERS : \( headers.description ) PARAMS : \( params.description ), METHOD : \( self.requestMethod.rawValue )"
-        }
+        return "\( self.url?.absoluteString  ??  "nil" ) \n HEADERS : \( headers.description )"
     }
     
-    public func getRequestBodyString() -> String
+    private func useCache() -> Bool
     {
-        return "BODY : \( self.requestBody.debugDescription )"
+        return ( cacheFlavour.rawValue ==  CacheFlavour.forceCache.rawValue || ( ZCRMSDKClient.shared.isDBCacheEnabled && cacheFlavour.rawValue != CacheFlavour.noCache.rawValue ) )
     }
-}
+ }
 
+ struct ZCRMURLBuilder
+ {
+    let path : String
+    var queryItems : [ URLQueryItem ]?
+    
+    var url : URL?{
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = ZCRMSDKClient.shared.apiBaseURL
+        components.path = path
+        if self.queryItems?.isEmpty == false
+        {
+            components.queryItems = queryItems
+        }
+        components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+        return components.url
+    }
+ }
