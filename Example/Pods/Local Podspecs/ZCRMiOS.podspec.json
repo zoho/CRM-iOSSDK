@@ -1,6 +1,6 @@
 {
   "name": "ZCRMiOS",
-  "version": "0.0.1",
+  "version": "2.0.1",
   "summary": "A short description of ZCRMiOS.",
   "description": "TODO: Add long description of the pod here.",
   "homepage": "https://github.com/zoho/CRM-iOSSDK",
@@ -13,11 +13,11 @@
   },
   "source": {
     "git": "https://github.com/zoho/CRM-iOSSDK.git",
-    "tag": "0.0.1"
+    "tag": "2.0.1"
   },
   "vendored_frameworks": [
     "Example/Pods/ZohoAuth/ZohoAuthKit.framework",
-    "ZohoPortalAuthKit.framework"
+    "Example/Pods/ZohoPortalAuth/ZohoPortalAuthKit.framework"
   ],
   "platforms": {
     "ios": "8.0"

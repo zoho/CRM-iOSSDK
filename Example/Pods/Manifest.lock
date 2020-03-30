@@ -1,5 +1,5 @@
 PODS:
-  - ZCRMiOS (0.0.1)
+  - ZCRMiOS (2.0.1)
   - ZohoAuth (0.0.1)
   - ZohoPortalAuth (0.0.1)
 
@@ -8,15 +8,20 @@ DEPENDENCIES:
   - ZohoAuth
   - ZohoPortalAuth
 
+SPEC REPOS:
+  trunk:
+    - ZohoAuth
+    - ZohoPortalAuth
+
 EXTERNAL SOURCES:
   ZCRMiOS:
-    :path: ../
+    :path: "../"
 
 SPEC CHECKSUMS:
-  ZCRMiOS: 7ca5615cdfad0608c561c38a58f235cad27146da
+  ZCRMiOS: 1f6c53cb4c759fee25af135559d8dbe3f52bb1e1
   ZohoAuth: f41ca40c3cbe2797a6e42f579883eb72b18e55af
   ZohoPortalAuth: 2ddc0af05a4cccf97e38668df78d83b8d94f20da
 
 PODFILE CHECKSUM: 34c014f38eaab18c62bc071cb3fa32382c9bfe18
 
-COCOAPODS: 1.4.0
+COCOAPODS: 1.8.4

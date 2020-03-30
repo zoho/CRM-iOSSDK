@@ -110,7 +110,6 @@
 				607FACE21AFB9204008FA782 /* Frameworks */,
 				607FACE31AFB9204008FA782 /* Resources */,
 				A40923F903CAE3DB010FD0BC /* [CP] Embed Pods Frameworks */,
-				16C0C98134D7054C21201CA2 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -169,21 +168,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		16C0C98134D7054C21201CA2 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-ZCRMiOS_Tests/Pods-ZCRMiOS_Tests-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		7A7734BE8C6CD6EC8867FEE8 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -208,7 +192,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-ZCRMiOS_Tests/Pods-ZCRMiOS_Tests-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-ZCRMiOS_Tests/Pods-ZCRMiOS_Tests-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/ZCRMiOS/ZCRMiOS.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
@@ -217,7 +201,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-ZCRMiOS_Tests/Pods-ZCRMiOS_Tests-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ZCRMiOS_Tests/Pods-ZCRMiOS_Tests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
