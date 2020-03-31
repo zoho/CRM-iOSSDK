@@ -1,5 +1,5 @@
-use_frameworks!
-p
+#use_frameworks!
+
 pod 'ZohoAuth', '1.2'
 pod 'ZohoPortalAuth', '0.0.2'
 
