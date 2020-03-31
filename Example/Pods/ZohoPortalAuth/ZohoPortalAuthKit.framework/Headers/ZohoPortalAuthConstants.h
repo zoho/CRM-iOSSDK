@@ -78,5 +78,24 @@ static const int k_ZohoPortalAuthRemoteTokenFetchNil = 702;
  * Unable to fetch remote token. Nothing was received.
  */
 static const int k_ZohoPortalAuthRemoteTokenFetchNothingReceived = 703;
+/**
+ * Unable to Enhance Scope.
+ */
+static const int k_ZohoPortalAuthEnhanceScopeError = 601;
+/**
+ * Fetches EnhanceScope
+ * Response is nil.
+ */
+static const int k_ZohoPortalAuthEnhanceScopeResultNil = 602;
+/**
+ * Fetches EnhanceScope
+ * Response is nil.
+ */
+static const int k_ZohoPortalAuthEnhanceScopeServerError = 603;
+/**
+ * Fetches EnhanceScope
+ * Nothing was received.
+ */
+static const int k_ZohoPortalAuthEnhanceScopeNothingReceived = 604;
 
 #endif /* ZohoPortalAuthConstants_h */
