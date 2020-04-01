@@ -28,14 +28,14 @@ open class ZCRMNote : ZCRMEntity
     public var isVoiceNote : Bool = APIConstants.BOOL_MOCK
     public var size : Int64?
     public var isEditable : Bool = APIConstants.BOOL_MOCK
-	
+    
     /// Initialize the instance of ZCRMNote with the given content
     ///
     /// - Parameter content: note content
     init( content : String )
-	{
+    {
         self.content = content
-	}
+    }
     
     init( content : String?, title : String )
     {
@@ -75,40 +75,14 @@ open class ZCRMNote : ZCRMEntity
         }
     }
     
-    @available(*, deprecated, message: "Use the method 'getAttachments'" )
-    public func getAllAttachmentsDetails( page : Int, per_page : Int, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
-    {
-        if self.isCreate
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : Note ID MUST NOT be nil")
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Entity ID MUST NOT be nil.", details : nil ) ) )
-        }
-        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : DefaultModuleAPINames.ATTACHMENTS ) ).getAllAttachmentsDetails( page : page, per_page : per_page, modifiedSince : nil ) { ( result ) in
-            completion( result )
-        }
-    }
-    
     public func getAttachments( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
     {
         if self.isCreate
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : Note ID MUST NOT be nil")
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Entity ID MUST NOT be nil.", details : nil ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : Note ID MUST NOT be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil.", details : nil ) ) )
         }
         RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : DefaultModuleAPINames.ATTACHMENTS ) ).getAttachments( page : page, perPage : perPage, modifiedSince : nil ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use the method 'getAttachments'" )
-    public func getAllAttachmentsDetails( page : Int, perPage : Int, modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
-    {
-        if self.isCreate
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : Note ID MUST NOT be nil")
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Entity ID MUST NOT be nil.", details : nil ) ) )
-        }
-        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : DefaultModuleAPINames.ATTACHMENTS ) ).getAllAttachmentsDetails( page : page, per_page : perPage, modifiedSince : modifiedSince ) { ( result ) in
             completion( result )
         }
     }
@@ -117,8 +91,8 @@ open class ZCRMNote : ZCRMEntity
     {
         if self.isCreate
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : Note ID MUST NOT be nil")
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Entity ID MUST NOT be nil.", details : nil ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : Note ID MUST NOT be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil.", details : nil ) ) )
         }
         RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : DefaultModuleAPINames.ATTACHMENTS ) ).getAttachments( page : page, perPage : perPage, modifiedSince : modifiedSince ) { ( result ) in
             completion( result )
@@ -137,9 +111,9 @@ open class ZCRMNote : ZCRMEntity
         }
     }
     
-    public func uploadAttachment( filePath : String, attachmentUploadDelegate : AttachmentUploadDelegate )
+    public func uploadAttachment( fileRefId : String, filePath : String, attachmentUploadDelegate : ZCRMAttachmentUploadDelegate )
     {
-        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.ATTACHMENTS ), attachmentUploadDelegate : attachmentUploadDelegate ).uploadAttachment( filePath : filePath, fileName : nil, fileData : nil, note : self )
+        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.ATTACHMENTS )).uploadAttachment( fileRefId : fileRefId, filePath : filePath, fileName : nil, fileData : nil, note : self , attachmentUploadDelegate : attachmentUploadDelegate )
     }
     
     public func uploadAttachment( fileName : String, fileData : Data, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
@@ -149,27 +123,14 @@ open class ZCRMNote : ZCRMEntity
         }
     }
     
-    public func uploadAttachment( fileName : String, fileData : Data, attachmentUploadDelegate : AttachmentUploadDelegate )
+    public func uploadAttachment( fileRefId : String, fileName : String, fileData : Data, attachmentUploadDelegate : ZCRMAttachmentUploadDelegate )
     {
-        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ), attachmentUploadDelegate : attachmentUploadDelegate ).uploadAttachment( filePath : nil, fileName : fileName, fileData : fileData, note : self )
+        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES )).uploadAttachment( fileRefId : fileRefId, filePath : nil, fileName : fileName, fileData : fileData, note : self, attachmentUploadDelegate : attachmentUploadDelegate  )
     }
     
     /// To download a Attachment from the note, it returns file as data, then it can be converted to a file.
     ///
-    /// - Parameter attachmentId: Id of the attachment to be downloaded
-    /// - Returns: FileAPIResponse containing the data of the file downloaded.
-    /// - Throws: ZCRMSDKError if failed to download the attachment
-    @available(*, deprecated, message: "Use the method 'downloadAttachment' with params id" )
-    public func downloadAttachment(attachmentId : Int64, completion : @escaping( Result.Response< FileAPIResponse > ) -> ())
-    {
-        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ) ).downloadAttachment( attachmentId : attachmentId ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    /// To download a Attachment from the note, it returns file as data, then it can be converted to a file.
-    ///
-    /// - Parameter attachmentId: Id of the attachment to be downloaded
+    /// - Parameter id: Id of the attachment to be downloaded
     /// - Returns: FileAPIResponse containing the data of the file downloaded.
     /// - Throws: ZCRMSDKError if failed to download the attachment
     public func downloadAttachment(id : Int64, completion : @escaping( Result.Response< FileAPIResponse > ) -> ())
@@ -179,47 +140,14 @@ open class ZCRMNote : ZCRMEntity
         }
     }
     
-    @available(*, deprecated, message: "Use the method 'downloadAttachment' with params id" )
-    public func downloadAttachment(attachmentId : Int64, fileDownloadDelegate : FileDownloadDelegate ) throws
-    {
-        try RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ) ).downloadAttachment( attachmentId : attachmentId, fileDownloadDelegate : fileDownloadDelegate )
-    }
-    
-    public func downloadAttachment(id : Int64, fileDownloadDelegate : FileDownloadDelegate ) throws
+    public func downloadAttachment(id : Int64, fileDownloadDelegate : ZCRMFileDownloadDelegate ) throws
     {
         try RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ) ).downloadAttachment( attachmentId : id, fileDownloadDelegate : fileDownloadDelegate )
     }
     
-    
     /// To delete a Attachment from the note.
     ///
-    /// - Parameter attachmentId: Id of the attachment to be deleted
-    /// - Returns: APIResponse of the file deleted.
-    /// - Throws: ZCRMSDKError if failed to delete the attachment
-    @available(*, deprecated, message: "Use the method 'deleteAttachment' with params id" )
-    public func deleteAttachment( attachmentId : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
-    {
-        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ) ).deleteAttachment( attachmentId : attachmentId ) { ( result ) in
-            do
-            {
-                let resp = try result.resolve()
-                if resp.getStatus() == APIConstants.CODE_SUCCESS
-                {
-                    self.removeAttachment(attachmentId: attachmentId)
-                }
-                completion( result )
-            }
-            catch
-            {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                completion( .failure( typeCastToZCRMError( error ) ) )
-            }
-        }
-    }
-    
-    /// To delete a Attachment from the note.
-    ///
-    /// - Parameter attachmentId: Id of the attachment to be deleted
+    /// - Parameter id: Id of the attachment to be deleted
     /// - Returns: APIResponse of the file deleted.
     /// - Throws: ZCRMSDKError if failed to delete the attachment
     public func deleteAttachment( id : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
@@ -261,6 +189,7 @@ extension ZCRMNote : NSCopying, Equatable
         copy.isEditable = self.isEditable
         copy.isVoiceNote = self.isVoiceNote
         copy.size = self.size
+        copy.isCreate = self.isCreate
         return copy
     }
     

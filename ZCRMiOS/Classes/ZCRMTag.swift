@@ -36,8 +36,8 @@ open class ZCRMTag : ZCRMEntity
     {
         if self.moduleAPIName == APIConstants.STRING_MOCK
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.MANDATORY_NOT_FOUND) : Tag Module API Name must not be nil")
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND , message: "Tag Module API Name must not be nil.", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : Tag Module API Name must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound , message: "Tag Module API Name must not be nil.", details : nil ) ) )
         }
         else
         {
@@ -65,7 +65,8 @@ open class ZCRMTag : ZCRMEntity
 extension ZCRMTag
 {
     public static func == (lhs: ZCRMTag, rhs: ZCRMTag) -> Bool {
-        let equals : Bool = lhs.createdBy == rhs.createdBy &&
+        let equals : Bool = lhs.name == rhs.name && lhs.moduleAPIName == rhs.moduleAPIName &&
+            lhs.id == rhs.id && lhs.createdBy == rhs.createdBy &&
             lhs.createdTime == rhs.createdTime &&
             lhs.modifiedTime == rhs.modifiedTime &&
             lhs.modifiedBy == rhs.modifiedBy

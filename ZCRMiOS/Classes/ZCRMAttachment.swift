@@ -22,16 +22,16 @@ open class ZCRMAttachment : ZCRMEntity
     public internal( set ) var linkURL : String?
     public internal( set ) var fileName : String?
     public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
-	
+    
     /// Initialise the instance of a attachment for the given record with given note attachment Id
     ///
     /// - Parameters:
     ///   - parentRecord: A record for which attachment instance is to be initialized
     ///   - fileName: name to get that attachment detail
     init( parentRecord : ZCRMRecordDelegate )
-	{
+    {
         self.parentRecord = parentRecord
-	}
+    }
     
     /// To download Attachment, it returns file as data, then it can be converted to a file.
     ///
@@ -50,10 +50,10 @@ open class ZCRMAttachment : ZCRMEntity
     ///   - fileDownloadDelegate: The object that confirmed to the file download delegate
     /// - Returns: The progress of the file being downloaded and the FileAPIResponse containing the data of the file downloaded.
     /// - Throws: ZCRMSDKError if failed to download the attachment
-    public func downloadFile( fileDownloadDelegate : FileDownloadDelegate ) throws
+    public func downloadFile( fileDownloadDelegate : ZCRMFileDownloadDelegate ) throws
     {
         try RelatedListAPIHandler( parentRecord : self.parentRecord, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames
-            .ATTACHMENTS, parentModuleAPIName : self.parentRecord.moduleAPIName ) ).downloadAttachment( attachmentId : self.id, fileDownloadDelegate : fileDownloadDelegate ) 
+            .ATTACHMENTS, parentModuleAPIName : self.parentRecord.moduleAPIName ) ).downloadAttachment( attachmentId : self.id, fileDownloadDelegate : fileDownloadDelegate )
     }
 }
 

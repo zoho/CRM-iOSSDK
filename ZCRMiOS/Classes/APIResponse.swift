@@ -5,7 +5,6 @@
 //  Created by Vijayakrishna on 3/7/17.
 //  Copyright © 2017 zohocrm. All rights reserved.
 //
-
 import Foundation
 
 public class  APIResponse : CommonAPIResponse
@@ -18,18 +17,18 @@ public class  APIResponse : CommonAPIResponse
         super.init()
     }
     
-    override init( response : HTTPURLResponse, responseJSONRootKey : String ) throws
+    override init( response : HTTPURLResponse, responseJSONRootKey : String, requestAPIName : String? ) throws
     {
-        try super.init( response : response, responseJSONRootKey : responseJSONRootKey )
+        try super.init( response : response, responseJSONRootKey : responseJSONRootKey, requestAPIName: requestAPIName )
     }
     
-    override init( response : HTTPURLResponse, responseData : Data, responseJSONRootKey : String ) throws
+    override init( response : HTTPURLResponse, responseData : Data, responseJSONRootKey : String, requestAPIName : String? ) throws
     {
-        try super.init( response : response, responseData : responseData, responseJSONRootKey : responseJSONRootKey )
+        try super.init( response : response, responseData : responseData, responseJSONRootKey : responseJSONRootKey, requestAPIName: requestAPIName )
     }
     
-    override init( responseJSON : Dictionary<String, Any>, responseJSONRootKey : String ) throws {
-        try super.init( responseJSON : responseJSON, responseJSONRootKey : responseJSONRootKey )
+    override init( responseJSON : Dictionary<String, Any>, responseJSONRootKey : String, requestAPIName : String? ) throws {
+        try super.init( responseJSON : responseJSON, responseJSONRootKey : responseJSONRootKey, requestAPIName: requestAPIName )
     }
     
     internal func setData(data : ZCRMEntity)
@@ -64,20 +63,34 @@ public class  APIResponse : CommonAPIResponse
     
     override func handleForFaultyResponses() throws
     {
-        if(httpStatusCode == HTTPStatusCode.NO_CONTENT)
+        try ZCRMSDKClient.shared.clearDBOnNoPermissionError( requestAPIName, responseJSON)
+        if(httpStatusCode == HTTPStatusCode.noContent)
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.INVALID_DATA) : \(ErrorMessage.INVALID_ID_MSG)")
-            throw ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : ErrorMessage.INVALID_ID_MSG, details : nil )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : \(ErrorMessage.invalidIdMsg), \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.inValidError( code : ErrorCode.invalidData, message : ErrorMessage.invalidIdMsg, details : nil )
         }
-        else if httpStatusCode == HTTPStatusCode.FORBIDDEN
+        else if httpStatusCode == HTTPStatusCode.forbidden
         {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA ) : \( responseJSON[ APIConstants.MESSAGE ] as? String ?? ErrorMessage.RESPONSE_NIL_MSG )" )
-            throw ZCRMError.UnAuthenticatedError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.RESPONSE_NIL_MSG, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData ) : \( responseJSON[ APIConstants.MESSAGE ] as? String ?? ErrorMessage.responseNilMsg )" )
+            throw ZCRMError.unAuthenticatedError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+        }
+        else if httpStatusCode == HTTPStatusCode.badRequest
+        {
+            if let details = self.responseJSON[ "details" ] as? [ String : Any ], let headerName = details[ "header_name" ] as? String, headerName == X_CRM_ORG
+            {
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.portalNotFound ) : \( ErrorMessage.invalidPortalType ), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                throw ZCRMError.processingError( code : ErrorCode.portalNotFound, message : ErrorMessage.invalidPortalType, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+            }
+            else
+            {
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                throw ZCRMError.processingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+            }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.RESPONSE_NIL_MSG)")
-            throw ZCRMError.ProcessingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.RESPONSE_NIL_MSG, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+            throw ZCRMError.processingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
         }
     }
     
@@ -100,13 +113,14 @@ public class  APIResponse : CommonAPIResponse
             {
                 if( msgJSON.hasValue( forKey : APIConstants.DETAILS ) )
                 {
-                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA) : \(message ?? "Empty Message")")
-                    throw ZCRMError.ProcessingError( code :( msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA ), message : message ?? "Empty Message" , details :  msgJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? [ String : Any ]()  )
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(message ?? "There is no description"), \( APIConstants.DETAILS ) : \((msgJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                    
+                    throw ZCRMError.processingError( code :( msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData ), message : message ?? "There is no message to display" , details :  msgJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? [ String : Any ]()  )
                 }
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA) : \(message ?? "Empty Message")")
-                throw ZCRMError.ProcessingError( code : msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA, message: message ?? "Empty Message", details : nil )
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(message ?? "There is no message to display"), \( APIConstants.DETAILS ) : -")
+                throw ZCRMError.processingError( code : msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message: message ?? "There is no message to display", details : nil )
             }
-        } 
+        }
     }
 } // end of class
 
@@ -115,11 +129,17 @@ public class FileAPIResponse : APIResponse
     private var tempLocalUrl : URL?
     private var fileName: String?
     
-    init(response: HTTPURLResponse, tempLocalUrl: URL?) throws
+    init(response: HTTPURLResponse, tempLocalUrl: URL?, requestAPIName : String?) throws
     {
         self.tempLocalUrl = tempLocalUrl
+        if let contentDisposition = response.allHeaderFields["Content-Disposition"] as? String
+        {
+            if contentDisposition.split(separator: "'").count > 1 {
+                self.fileName = String(contentDisposition.split(separator: "'")[1])
+            }
+        }
         try super.init( response : response,
-                       responseJSONRootKey : JSONRootKey.NIL )
+                        responseJSONRootKey : JSONRootKey.NIL, requestAPIName: requestAPIName )
     }
     
     public func getFileName() -> String?
@@ -148,10 +168,10 @@ public class FileAPIResponse : APIResponse
     
     override func setResponseJSON(responseData: Data?) throws
     {
-        if(httpStatusCode == HTTPStatusCode.OK || httpStatusCode == HTTPStatusCode.NO_CONTENT)
+        if(httpStatusCode == HTTPStatusCode.ok || httpStatusCode == HTTPStatusCode.noContent)
         {
             responseJSON = [String:Any]()
-            if( httpStatusCode == HTTPStatusCode.OK )
+            if( httpStatusCode == HTTPStatusCode.ok )
             {
                 status = APIConstants.CODE_SUCCESS
             }
@@ -179,15 +199,16 @@ public class FileAPIResponse : APIResponse
     }
     
     override func handleForFaultyResponses() throws {
-        if let statusCode = httpStatusCode, !( statusCode == HTTPStatusCode.NO_CONTENT )
+        try ZCRMSDKClient.shared.clearDBOnNoPermissionError( requestAPIName, responseJSON)
+        if let statusCode = httpStatusCode, !( statusCode == HTTPStatusCode.noContent )
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.RESPONSE_NIL_MSG)")
-            throw ZCRMError.ProcessingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.RESPONSE_NIL_MSG, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \(( responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] )?.description ?? "-")")
+            throw ZCRMError.processingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
         }
-        else if httpStatusCode == HTTPStatusCode.FORBIDDEN
+        else if httpStatusCode == HTTPStatusCode.forbidden
         {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA ) : \( responseJSON[ APIConstants.MESSAGE ] as? String ?? ErrorMessage.RESPONSE_NIL_MSG )" )
-            throw ZCRMError.UnAuthenticatedError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.RESPONSE_NIL_MSG, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData ) : \( responseJSON[ APIConstants.MESSAGE ] as? String ?? ErrorMessage.responseNilMsg ), \( APIConstants.DETAILS ) : \(( responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] )?.description ?? "-")" )
+            throw ZCRMError.unAuthenticatedError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
         }
     }
     
@@ -203,18 +224,18 @@ public class BulkAPIResponse : CommonAPIResponse
         super.init()
     }
     
-    override init( response : HTTPURLResponse, responseJSONRootKey : String ) throws
+    override init( response : HTTPURLResponse, responseJSONRootKey : String, requestAPIName : String? ) throws
     {
-        try super.init( response : response, responseJSONRootKey : responseJSONRootKey )
+        try super.init( response : response, responseJSONRootKey : responseJSONRootKey, requestAPIName: requestAPIName )
     }
     
-    override init( response : HTTPURLResponse, responseData : Data, responseJSONRootKey : String ) throws
+    override init( response : HTTPURLResponse, responseData : Data, responseJSONRootKey : String, requestAPIName : String? ) throws
     {
-        try super.init( response : response, responseData : responseData, responseJSONRootKey : responseJSONRootKey )
+        try super.init( response : response, responseData : responseData, responseJSONRootKey : responseJSONRootKey, requestAPIName: requestAPIName )
     }
     
-    override init( responseJSON : Dictionary<String, Any>, responseJSONRootKey : String ) throws {
-        try super.init( responseJSON : responseJSON, responseJSONRootKey : responseJSONRootKey )
+    override init( responseJSON : Dictionary<String, Any>, responseJSONRootKey : String, requestAPIName : String? ) throws {
+        try super.init( responseJSON : responseJSON, responseJSONRootKey : responseJSONRootKey, requestAPIName: requestAPIName )
     }
     
     public func getEntityResponses() -> [EntityResponse]
@@ -267,26 +288,40 @@ public class BulkAPIResponse : CommonAPIResponse
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_ROOT_KEY_NIL) : Response root key is nil.")
-            throw ZCRMError.ProcessingError( code : ErrorCode.RESPONSE_ROOT_KEY_NIL, message : "Response root key is nil.", details : nil )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseRootKeyNil) : Response root key is nil, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ErrorCode.responseRootKeyNil, message : "Response root key is nil.", details : nil )
         }
     }
     
     override func handleForFaultyResponses() throws
     {
-        if(self.httpStatusCode == HTTPStatusCode.NO_CONTENT)
+        try ZCRMSDKClient.shared.clearDBOnNoPermissionError( requestAPIName, responseJSON)
+        if( self.httpStatusCode == HTTPStatusCode.noContent || self.httpStatusCode == HTTPStatusCode.notModified )
         {
             self.responseJSON = [String:Any]()
         }
-        else if httpStatusCode == HTTPStatusCode.FORBIDDEN
+        else if httpStatusCode == HTTPStatusCode.forbidden
         {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA ) : \( responseJSON[ APIConstants.MESSAGE ] as? String ?? ErrorMessage.RESPONSE_NIL_MSG )" )
-            throw ZCRMError.UnAuthenticatedError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.RESPONSE_NIL_MSG, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData ) : \( responseJSON[ APIConstants.MESSAGE ] as? String ?? ErrorMessage.responseNilMsg ), \( APIConstants.DETAILS ) : \(( responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] )?.description ?? "-")" )
+            throw ZCRMError.unAuthenticatedError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+        }
+        else if httpStatusCode == HTTPStatusCode.badRequest
+        {
+            if let details = self.responseJSON[ "details" ] as? [ String : Any ], let headerName = details[ "header_name" ] as? String, headerName == X_CRM_ORG
+            {
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.portalNotFound ) : \( ErrorMessage.invalidPortalType ), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                throw ZCRMError.processingError( code : ErrorCode.portalNotFound, message : ErrorMessage.invalidPortalType, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+            }
+            else
+            {
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                throw ZCRMError.processingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+            }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.RESPONSE_NIL_MSG)")
-            throw ZCRMError.ProcessingError( code : ( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.INVALID_DATA ), message : ( responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.RESPONSE_NIL_MSG ), details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \(( responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] )?.description ?? "-")")
+            throw ZCRMError.processingError( code : ( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData ), message : ( responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg ), details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
         }
     }
 }

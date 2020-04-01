@@ -7,34 +7,9 @@
 
 public class ZCRMQuery
 {
-    @available(*, deprecated, message: "Use the struct 'GetRecordParams'" )
-    public struct GetRecords
-    {
-        public var modifiedSince : String?
-        public var fields : [String]?
-        public var includePrivateFields : Bool?
-        public var isConverted : Bool?
-        public var isApproved : Bool?
-        public var sortOrder : SortOrder?
-        public var sortBy : String?
-        public var page : Int?
-        public var perPage : Int?
-        public internal( set ) var startDateTime : String?
-        public internal( set ) var endDateTime : String?
-        public var filter : ZCRMCriteria?
-        
-        public init()
-        { }
-        
-        mutating public func setEventCriteria( startDateTime : String, endDateTime : String )
-        {
-            self.startDateTime = startDateTime
-            self.endDateTime = endDateTime
-        }
-    }
-    
     public struct GetRecordParams
     {
+        public var kanbanViewColumn : String?
         public var modifiedSince : String?
         public var fields : [String]?
         public var includePrivateFields : Bool?
@@ -55,54 +30,6 @@ public class ZCRMQuery
         {
             self.startDateTime = startDateTime
             self.endDateTime = endDateTime
-        }
-    }
-    
-    @available(*, deprecated, message: "Use the struct 'GetDrilldownDataParams'" )
-    public struct GetDrilldownData
-    {
-        public var criteria : ZCRMCriteria?
-        public var page : Int?
-        public var fromHierarchy : Bool?
-        public internal( set ) var drillBy : DrillBy?
-        public internal( set ) var hierarchyFilterId : Int64?
-        public var fromIndex : Int?
-        public var sortBy : String?
-        public var sortOrder : SortOrder?
-        
-        public init( criteria : ZCRMCriteria, page : Int )
-        {
-            self.criteria = criteria
-            self.page = page
-        }
-        
-        public init( page : Int = 1 )
-        {
-            self.page = page
-        }
-        
-        mutating public func setDrilldown( drillBy : DrillBy, hierarchyFilterId : Int64 )
-        {
-            self.drillBy = drillBy
-            self.hierarchyFilterId = hierarchyFilterId
-        }
-        
-        internal func getDrilldownAsString() -> String?
-        {
-            if self.drillBy != nil && self.hierarchyFilterId != nil
-            {
-                let drilldown = self.getDrilldownAsJSON()
-                return drilldown.toString()
-            }
-            return nil
-        }
-        
-        func getDrilldownAsJSON() -> [ String : Any ]
-        {
-            var drilldown : [ String : Any ] = [ String : Any ]()
-            drilldown[ "drill_by" ] = self.drillBy?.rawValue
-            drilldown[ "hierarchy_filter_id" ] = self.hierarchyFilterId
-            return drilldown
         }
     }
     
@@ -113,7 +40,7 @@ public class ZCRMQuery
         public var fromHierarchy : Bool?
         public internal( set ) var drillBy : DrillBy?
         public internal( set ) var hierarchyFilterId : Int64?
-        public var fromIndex : Int?
+        internal var fromIndex : Int?
         public var sortBy : String?
         public var sortOrder : SortOrder?
         
@@ -121,11 +48,13 @@ public class ZCRMQuery
         {
             self.criteria = criteria
             self.page = page
+            self.fromIndex = ( 101 * ( page - 1 ) ) + 1
         }
         
         public init( page : Int = 1 )
         {
             self.page = page
+            self.fromIndex = ( 101 * ( page - 1 ) ) + 1
         }
         
         mutating public func setDrilldown( drillBy : DrillBy, hierarchyFilterId : Int64 )
@@ -165,8 +94,7 @@ public class ZCRMQuery
         internal var filterJSON : [ String : Any ] = [ String : Any ]()
         internal var filterQuery : String?
         
-        public init( apiName : String, comparator : String, value : String )
-        {
+        internal init(apiName : String, comparator : String, value : String) {
             self.apiName = apiName
             self.comparator = comparator
             self.value = value
@@ -186,6 +114,11 @@ public class ZCRMQuery
             self.recordQuery = recordQuery
             self.drilldownQuery = self.criteriaJSON.toString()
             self.filterQuery = self.filterJSON.toString()
+        }
+        
+        public convenience init( apiName : String, comparator : Comparator, value : String )
+        {
+            self.init(apiName: apiName, comparator: comparator.criteria, value: value)
         }
         
         internal func getCriteriaAsJSON() -> [ String : Any ]
@@ -260,11 +193,97 @@ public class ZCRMQuery
                 lhs.comparator == rhs.comparator &&
                 lhs.value == rhs.value &&
                 lhs.type == rhs.type &&
-                lhs.recordQuery == rhs.recordQuery &&
-                lhs.drilldownQuery == rhs.drilldownQuery &&
                 NSDictionary( dictionary : lhs.criteriaJSON ).isEqual( to : rhs.criteriaJSON )
             return equals
         }
+    }
+    
+    public enum Comparator {
+        
+        case string( StringComparator )
+        case integer( IntegerComparator )
+        case array( ArrayComparator )
+        case id( IdComparator )
+        
+        var criteria : String {
+            switch self {
+            case .string(let str) :
+                return str.rawValue
+            case .id(let str) :
+                return str.rawValue
+            case .array(let str) :
+                return str.rawValue
+            case .integer(let str) :
+                return str.rawValue
+            }
+        }
+        
+        static func == (lhs : Comparator , rhs : Comparator) -> Bool
+        {
+            if case .string = lhs, case .string = rhs {
+                if lhs.criteria == rhs.criteria
+                {
+                    return true
+                }
+            }
+            else if case .array = lhs, case .array = rhs {
+                if lhs.criteria == rhs.criteria
+                {
+                    return true
+                }
+            }
+            else if case .integer = lhs, case .integer = rhs {
+                if lhs.criteria == rhs.criteria
+                {
+                    return true
+                }
+            }
+            else if case .id = lhs, case .id = rhs {
+                if lhs.criteria == rhs.criteria
+                {
+                    return true
+                }
+            }
+            return false
+        }
+    }
+
+    public enum StringComparator : String {
+        case equal = "equal"
+        case equals = "equals"
+        case notEqual = "not_equal"
+        case like = "like"
+        case notLike = "not_like"
+        case startsWith = "starts_with"
+        case endsWith = "ends_with"
+        case contains = "contains"
+        case notContains = "not_contains"
+        case between = "between"
+    }
+
+    public enum IntegerComparator : String {
+        case equal = "equal"
+        case notEqual = "not_equal"
+        case greaterThan = "greater_than"
+        case greaterEqual = "greater_equal"
+        case lessEqual = "less_equal"
+        case lessThan = "less_than"
+    }
+
+    public enum ArrayComparator : String {
+        case equal = "equal"
+        case notEqual = "not_equal"
+        case `in` = "in"
+        case notIn = "not_in"
+        case contains = "contains"
+        case notContains = "not_contains"
+        case startsWith = "starts_with"
+        case endsWith = "ends_with"
+    }
+
+    public enum IdComparator : String {
+        case equal = "equal"
+        case notEqual = "not_equal"
     }
 }
 
@@ -279,4 +298,100 @@ extension RequestParamKeys
     static let groupOperator = "group_operator"
     static let drillBy : String = "drill_by"
     static let hierarchyFilterId : String = "hierarchy_filter_id"
+}
+
+@available(*, deprecated, message: "Use ZCRMQuery.Comparator instead" )
+public enum Comparator {
+    
+    case string( StringComparator )
+    case integer( IntegerComparator )
+    case array( ArrayComparator )
+    case id( IdComparator )
+    
+    var criteria : String {
+        switch self {
+        case .string(let str) :
+            return str.rawValue
+        case .id(let str) :
+            return str.rawValue
+        case .array(let str) :
+            return str.rawValue
+        case .integer(let str) :
+            return str.rawValue
+        }
+    }
+}
+
+@available(*, deprecated, message: "Use ZCRMQuery.Comparator instead" )
+extension Comparator {
+    
+    static func == (lhs : Comparator , rhs : Comparator) -> Bool
+    {
+        if case .string = lhs, case .string = rhs {
+            if lhs.criteria == rhs.criteria
+            {
+                return true
+            }
+        }
+        else if case .array = lhs, case .array = rhs {
+            if lhs.criteria == rhs.criteria
+            {
+                return true
+            }
+        }
+        else if case .integer = lhs, case .integer = rhs {
+            if lhs.criteria == rhs.criteria
+            {
+                return true
+            }
+        }
+        else if case .id = lhs, case .id = rhs {
+            if lhs.criteria == rhs.criteria
+            {
+                return true
+            }
+        }
+        return false
+    }
+}
+
+@available(*, deprecated, message: "Use ZCRMQuery.StringComparator instead" )
+public enum StringComparator : String {
+    case equal = "equal"
+    case equals = "equals"
+    case notEqual = "not_equal"
+    case like = "like"
+    case notLike = "not_like"
+    case startsWith = "starts_with"
+    case endsWith = "ends_with"
+    case contains = "contains"
+    case notContains = "not_contains"
+}
+
+@available(*, deprecated, message: "Use ZCRMQuery.IntegerComparator instead" )
+public enum IntegerComparator : String {
+    case equal = "equal"
+    case notEqual = "not_equal"
+    case greaterThan = "greater_than"
+    case greaterEqual = "greater_equal"
+    case lessEqual = "less_equal"
+    case lessThan = "less_than"
+}
+
+@available(*, deprecated, message: "Use ZCRMQuery.ArrayComparator instead" )
+public enum ArrayComparator : String {
+    case equal = "equal"
+    case notEqual = "not_equal"
+    case `in` = "in"
+    case notIn = "not_in"
+    case contains = "contains"
+    case notContains = "not_contains"
+    case startsWith = "starts_with"
+    case endsWith = "ends_with"
+}
+
+@available(*, deprecated, message: "Use ZCRMQuery.IdComparator instead" )
+public enum IdComparator : String {
+    case equal = "equal"
+    case notEqual = "not_equal"
 }

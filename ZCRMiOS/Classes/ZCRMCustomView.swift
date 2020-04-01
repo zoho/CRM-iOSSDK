@@ -25,7 +25,7 @@ open class ZCRMCustomView : ZCRMEntity
     public internal( set ) var sharedType : String?
     public internal( set ) var criteria : [ String : Any ]?
     public internal( set ) var sharedDetails : String?
-	
+    
     /// Initialise the instance of a custom view with the given custom view Id.
     ///
     /// - Parameters:
@@ -39,22 +39,14 @@ open class ZCRMCustomView : ZCRMEntity
     
     public func getFilters( completion: @escaping( Result.DataResponse< [ ZCRMFilter ], BulkAPIResponse > ) -> () )
     {
-        ModuleAPIHandler( module : ZCRMModuleDelegate( apiName : self.moduleAPIName ), cacheFlavour : .URL_VS_RESPONSE ).getFilters( cvId : self.id ) { ( result ) in
+        ModuleAPIHandler( module : ZCRMModuleDelegate( apiName : self.moduleAPIName ), cacheFlavour : .urlVsResponse ).getFilters( cvId : self.id ) { ( result ) in
             completion( result )
         }
     }
     
     public func getFiltersFromServer( completion: @escaping( Result.DataResponse< [ ZCRMFilter ], BulkAPIResponse > ) -> () )
     {
-        ModuleAPIHandler( module : ZCRMModuleDelegate( apiName : self.moduleAPIName ), cacheFlavour : .NO_CACHE ).getFilters( cvId : self.id ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use the struct 'GetRecordParams'" )
-    public func getRecords( recordParams : ZCRMQuery.GetRecords, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
-    {
-        MassEntityAPIHandler( module : ZCRMModuleDelegate( apiName : self.moduleAPIName ) ).getRecords(cvId: self.id, filterId: nil, recordParams: recordParams) { ( result ) in
+        ModuleAPIHandler( module : ZCRMModuleDelegate( apiName : self.moduleAPIName ), cacheFlavour : .noCache ).getFilters( cvId : self.id ) { ( result ) in
             completion( result )
         }
     }
@@ -81,7 +73,7 @@ extension ZCRMCustomView : Equatable
         }
         else
         {
-            criteriaFlag = false
+            return false
         }
         let equals : Bool = lhs.moduleAPIName == rhs.moduleAPIName &&
             lhs.sysName == rhs.sysName &&

@@ -8,33 +8,33 @@
 
 open class ZCRMField : ZCRMEntity
 {
-	public internal( set ) var apiName : String
-	public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
-	public internal( set ) var displayLabel : String = APIConstants.STRING_MOCK
-	public internal( set ) var dataType : String = APIConstants.STRING_MOCK
+    public internal( set ) var apiName : String
+    public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
+    public internal( set ) var displayLabel : String = APIConstants.STRING_MOCK
+    public internal( set ) var dataType : String = APIConstants.STRING_MOCK
     public internal( set ) var isReadOnly : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isVisible : Bool = APIConstants.BOOL_MOCK
     public var isMandatory : Bool?
     public internal( set ) var isCustomField : Bool = APIConstants.BOOL_MOCK
-	public internal( set ) var defaultValue : Any?
-	public internal( set ) var maxLength : Int?
-	public internal( set ) var precision : Int?
-	public internal( set ) var sequenceNo : Int?
-	public internal( set ) var subLayoutsPresent : [String]?
-	public internal( set ) var pickListValues : [ ZCRMPickListValue ]?
-	public internal( set ) var formulaReturnType : String?
-	public internal( set ) var formulaExpression : String?
+    public internal( set ) var defaultValue : Any?
+    public internal( set ) var maxLength : Int?
+    public internal( set ) var currencyPrecision : Int?
+    public internal( set ) var sequenceNo : Int?
+    public internal( set ) var subLayoutsPresent : [String]?
+    public internal( set ) var pickListValues : [ ZCRMPickListValue ]?
+    public internal( set ) var formulaReturnType : String?
+    public internal( set ) var formulaExpression : String?
     
     public internal( set ) var tooltip : String?
     public internal( set ) var webhook : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isRestricted : Bool?
     public internal( set ) var restrictedType : String?
-    public internal( set ) var isSupportExport : Bool?
+    public internal( set ) var isExportable : Bool?
     public internal( set ) var createdSource : String = APIConstants.STRING_MOCK
-    public internal( set ) var bussinessCardSupported : Bool?
+    public internal( set ) var isBusinessCardSupported : Bool?
     
     public internal( set ) var roundingOption : CurrencyRoundingOption?
-    public internal( set ) var decimalPlace : Int?
+    public internal( set ) var precision : Int?
     public internal( set ) var lookup : [String : Any]?
     public internal( set ) var multiSelectLookup : [String : Any]?
     public internal( set ) var subFormTabId : Int64?
@@ -44,7 +44,7 @@ open class ZCRMField : ZCRMEntity
     {
         self.apiName = apiName
     }
-	    
+        
     /// Add the pick list value to the ZCRMField.
     ///
     /// - Parameter pickListValue: value to be added
@@ -56,30 +56,30 @@ open class ZCRMField : ZCRMEntity
         }
         self.pickListValues?.append( pickListValue )
     }
-	
+    
     /// Returns true if view type includes "create".
     ///
     /// - Returns: true if view type includes "create"
-	public func isPresentInCreateLayout() -> Bool?
-	{
-		return self.subLayoutsPresent?.contains("CREATE")
-	}
-	
+    public func isPresentInCreateLayout() -> Bool?
+    {
+        return self.subLayoutsPresent?.contains("CREATE")
+    }
+    
     /// Returns true if view type includes "view".
     ///
     /// - Returns: true if view type includes "view"
-	public func isPresentInViewLayout() -> Bool?
-	{
-		return self.subLayoutsPresent?.contains("VIEW")
-	}
-	
+    public func isPresentInViewLayout() -> Bool?
+    {
+        return self.subLayoutsPresent?.contains("VIEW")
+    }
+    
     /// Returns true if view type includes "quick create".
     ///
     /// - Returns: true if view type includes "quick create"
-	public func isPresentInQuickCreateLayout() -> Bool?
-	{
-		return self.subLayoutsPresent?.contains("QUICK_CREATE")
-	}
+    public func isPresentInQuickCreateLayout() -> Bool?
+    {
+        return self.subLayoutsPresent?.contains("QUICK_CREATE")
+    }
     
     /// Returns true if view type includes "edit".
     ///
@@ -106,7 +106,7 @@ extension ZCRMField : Equatable
         }
         else
         {
-            lookupFlag = false
+            return false
         }
         if lhs.multiSelectLookup == nil && rhs.multiSelectLookup == nil
         {
@@ -118,7 +118,7 @@ extension ZCRMField : Equatable
         }
         else
         {
-            multiSelectLookupFlag = false
+            return false
         }
         if lhs.subForm == nil && rhs.subForm == nil
         {
@@ -130,7 +130,7 @@ extension ZCRMField : Equatable
         }
         else
         {
-            subformFlag = false
+            return false
         }
         let equals : Bool = lhs.apiName == rhs.apiName &&
             lhs.id == rhs.id &&
@@ -141,7 +141,7 @@ extension ZCRMField : Equatable
             lhs.isMandatory == rhs.isMandatory &&
             lhs.isCustomField == rhs.isCustomField &&
             lhs.maxLength == rhs.maxLength &&
-            lhs.precision == rhs.precision &&
+            lhs.currencyPrecision == rhs.currencyPrecision &&
             lhs.sequenceNo == rhs.sequenceNo &&
             lhs.subLayoutsPresent == rhs.subLayoutsPresent &&
             lhs.pickListValues == rhs.pickListValues &&
@@ -151,11 +151,11 @@ extension ZCRMField : Equatable
             lhs.webhook == rhs.webhook &&
             lhs.isRestricted == rhs.isRestricted &&
             lhs.restrictedType == rhs.restrictedType &&
-            lhs.isSupportExport == rhs.isSupportExport &&
+            lhs.isExportable == rhs.isExportable &&
             lhs.createdSource == rhs.createdSource &&
-            lhs.bussinessCardSupported == rhs.bussinessCardSupported &&
+            lhs.isBusinessCardSupported == rhs.isBusinessCardSupported &&
             lhs.roundingOption == rhs.roundingOption &&
-            lhs.decimalPlace == rhs.decimalPlace &&
+            lhs.precision == rhs.precision &&
             lookupFlag &&
             multiSelectLookupFlag &&
             lhs.subFormTabId == rhs.subFormTabId &&

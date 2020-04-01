@@ -16,14 +16,6 @@ open class ZCRMUserDelegate : ZCRMEntity
         self.name = name
     }
     
-    @available(*, deprecated, message: "Use the method in ZCRMUser" )
-    public func update( userDetails : [String:Any], completion : @escaping( Result.Response< APIResponse > ) -> () )
-    {
-        UserAPIHandler(userDelegate: self).updateUser(userDetails: userDetails) { ( result ) in
-            completion( result )
-        }
-    }
-    
     public func delete( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         UserAPIHandler().deleteUser( userId : self.id ) { ( result ) in
@@ -38,9 +30,9 @@ open class ZCRMUserDelegate : ZCRMEntity
         }
     }
     
-    public func uploadProfilePhoto( filePath : String, fileUploadDelegate : FileUploadDelegate )
+    public func uploadProfilePhoto( fileRefId : String, filePath : String, fileUploadDelegate : ZCRMFileUploadDelegate )
     {
-        UserAPIHandler( userDelegate : self ).uploadPhoto(filePath: filePath, fileName: nil, fileData: nil, fileUploadDelegate: fileUploadDelegate)
+        UserAPIHandler( userDelegate : self ).uploadPhoto(fileRefId : fileRefId, filePath: filePath, fileName: nil, fileData: nil, fileUploadDelegate: fileUploadDelegate)
     }
     
     public func uploadProfilePhoto( fileName : String, fileData : Data, completion : @escaping( Result.Response< APIResponse > ) -> () )
@@ -50,9 +42,9 @@ open class ZCRMUserDelegate : ZCRMEntity
         }
     }
     
-    public func uploadProfilePhoto( fileName : String, fileData : Data, fileUploadDelegate : FileUploadDelegate )
+    public func uploadProfilePhoto( fileRefId : String, fileName : String, fileData : Data, fileUploadDelegate : ZCRMFileUploadDelegate )
     {
-        UserAPIHandler( userDelegate : self ).uploadPhoto( filePath : nil, fileName : fileName, fileData : fileData, fileUploadDelegate : fileUploadDelegate )
+        UserAPIHandler( userDelegate : self ).uploadPhoto( fileRefId : fileRefId, filePath : nil, fileName : fileName, fileData : fileData, fileUploadDelegate : fileUploadDelegate )
     }
     
     public func downloadProfilePhoto( completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
@@ -62,7 +54,7 @@ open class ZCRMUserDelegate : ZCRMEntity
         }
     }
     
-    public func downloadProfilePhoto( fileDownloadDelegate : FileDownloadDelegate ) throws
+    public func downloadProfilePhoto( fileDownloadDelegate : ZCRMFileDownloadDelegate ) throws
     {
         try UserAPIHandler(userDelegate: self).downloadPhoto(size: nil, fileDownloadDelegate: fileDownloadDelegate)
     }
@@ -74,7 +66,7 @@ open class ZCRMUserDelegate : ZCRMEntity
         }
     }
     
-    public func downloadProfilePhoto( size : PhotoSize, fileDownloadDelegate : FileDownloadDelegate ) throws
+    public func downloadProfilePhoto( size : PhotoSize, fileDownloadDelegate : ZCRMFileDownloadDelegate ) throws
     {
         try UserAPIHandler(userDelegate: self).downloadPhoto(size: size, fileDownloadDelegate: fileDownloadDelegate)
     }

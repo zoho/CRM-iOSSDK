@@ -56,7 +56,7 @@ open class ZCRMModule : ZCRMModuleDelegate
         self.singularLabel = singularLabel
         self.pluralLabel = pluralLabel
         super.init( apiName : apiName )
-	}
+    }
     
     func addAccessibleProfiles( profile : ZCRMProfileDelegate )
     {
@@ -80,8 +80,7 @@ open class ZCRMModule : ZCRMModuleDelegate
 extension ZCRMModule
 {
     public static func == (lhs: ZCRMModule, rhs: ZCRMModule) -> Bool {
-        var argumentsFlag : Bool = false
-        var count : Int = 0
+        var argumentsFlag : Bool = true
         if lhs.arguments == nil && rhs.arguments == nil
         {
             argumentsFlag = true
@@ -92,16 +91,20 @@ extension ZCRMModule
             {
                 for index in 0..<lhsArguments.count
                 {
-                    if NSDictionary(dictionary: lhsArguments[index]).isEqual(to: rhsArguments[index])
+                    if !NSDictionary(dictionary: lhsArguments[index]).isEqual(to: rhsArguments[index])
                     {
-                        count = count + 1
+                        return false
                     }
                 }
-                if count == lhsArguments.count
-                {
-                    argumentsFlag = true
-                }
             }
+            else
+            {
+                return false
+            }
+        }
+        else
+        {
+            return false
         }
         let equals : Bool = lhs.singularLabel == rhs.singularLabel &&
             lhs.pluralLabel == rhs.pluralLabel &&

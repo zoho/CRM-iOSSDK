@@ -7,7 +7,7 @@
 //
 
 
-open class ZCRMPriceBookPricing
+open class ZCRMPriceBookPricing : ZCRMEntity
 {
     public internal( set ) var id : Int64
     public var toRange : Double = APIConstants.DOUBLE_MOCK

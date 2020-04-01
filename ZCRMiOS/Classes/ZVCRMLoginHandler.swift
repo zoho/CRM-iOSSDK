@@ -29,27 +29,30 @@ public class ZVCRMLoginHandler
             {
                 if( dict.keys.contains( key ) == false )
                 {
-                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "\( key ) not present in the App configuration plist!", details: nil )
+                    throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "\( key ) not present in the App configuration plist!", details: nil )
                 }
             }
             for key in dict.keys
             {
                 if( dict[ key ] == nil )
                 {
-                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "\( key ) is nil. It should have value", details: nil )
+                    throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "\( key ) is nil. It should have value", details: nil )
                 }
             }
         }
         else
         {
-            throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "App configuration property list is empty!", details: nil )
+            throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "App configuration property list is empty!", details: nil )
         }
     }
 
     public func initIAMLogin( window : UIWindow? )
     {
         do {
-            ZCRMSDKClient.shared.appType = appConfigurationUtil.getAppType()
+            if let appType = AppType( rawValue : appConfigurationUtil.getAppType() )
+            {
+                ZCRMSDKClient.shared.appType = appType
+            }
             ZCRMSDKClient.shared.apiBaseURL = try appConfigurationUtil.getApiBaseURL()
             ZCRMSDKClient.shared.apiVersion = try appConfigurationUtil.getApiVersion()
             
@@ -57,7 +60,7 @@ public class ZVCRMLoginHandler
         }
         catch
         {
-            ZCRMLogger.logDebug( message:"Error occured in ZVCRMLoginHandler.initIAMLogin(). Details -> \(error)")
+            print("Error occured initIAMLogin() -> \(error)")
         }
         
     }
@@ -71,19 +74,25 @@ public class ZVCRMLoginHandler
                 {
                 // SFSafari Dismissed
                 case 205 :
-                    ZCRMLogger.logDebug( message: "Login view dismissed. Detail : \( error!.description ), code : \( error!.code )" )
+                    print( "Error Detail : \( error!.description ), code : \( error!.code )" )
                     completion( false )
+                    self.handleLogin( completion : { _ in
+                        
+                    })
                     break
 
                 // access_denied
                 case 905 :
-                    ZCRMLogger.logDebug( message: "User denied the access. Detail : \( error!.description ), code : \( error!.code )" )
+                    print( "Error Detail : \( error!.description ), code : \( error!.code )" )
                     completion( false )
+                    self.handleLogin( completion : { _ in
+                        
+                    })
                     break
 
                 default :
                     completion( false )
-                    ZCRMLogger.logDebug( message: "Error occured while present login screen. Details : \( error! )" )
+                    print( "Error : \( error! )" )
                 }
             }
             else
@@ -116,18 +125,16 @@ public class ZVCRMLoginHandler
             { ( error ) in
                 if( error != nil )
                 {
-                    ZCRMLogger.logDebug( message: "Error occured in logout() : \(error!)" )
+                    print( "Error occured in logout() : \(error!)" )
                     completion( false )
                 }
                 else
                 {
                     self.clearIAMLoginFirstLaunch()
-                    URLCache.shared.removeAllCachedResponses()
-                    ZCRMLogger.logDebug( message: "removed AllScopesWithSuccess!" )
-                    ZCRMSDKClient.shared.clearAllCache()
-//                    self.handleLogin( completion : { _ in
-//
-//                    })
+                    print( "removed AllScopesWithSuccess!" )
+                    self.handleLogin( completion : { _ in
+                            
+                    })
                     ZCRMSDKClient.shared.requestHeaders?.removeAll()
                     URLCache.shared.removeAllCachedResponses()
                     if let cookies = HTTPCookieStorage.shared.cookies {
@@ -136,7 +143,7 @@ public class ZVCRMLoginHandler
                         }
                     }
                     completion( true )
-                    ZCRMLogger.logDebug( message: "logout ZVCRM successful!" )
+                    print( "logout ZVCRM successful!" )
                 }
         })
     }

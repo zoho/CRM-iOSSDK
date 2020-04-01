@@ -7,9 +7,9 @@
 
 import Foundation
 
-open class ZCRMDataProcessBasisDetails
+open class ZCRMDataProcessBasisDetails : ZCRMEntity
 {
-    public var consentProcessThrough : [ String ]
+    public var communicationPreferences : [ CommunicationPreferences ]?
     public var owner : ZCRMUserDelegate = USER_MOCK
     public internal( set ) var modifiedTime : String = APIConstants.STRING_MOCK
     public internal( set ) var modifiedBy : ZCRMUserDelegate = USER_MOCK
@@ -23,25 +23,38 @@ open class ZCRMDataProcessBasisDetails
     public var consentDate : String?
     public var consentRemarks : String?
     public var consentEndsOn : String?
-    public var consentThrough : String?
+    public internal( set ) var consentThrough : ConsentThrough.Readable?
     
-    public init( dataProcessingBasis : String, consentProcessThrough : [ String ] ) {
+    public init( dataProcessingBasis : String) {
         self.dataProcessingBasis = dataProcessingBasis
-        self.consentProcessThrough = consentProcessThrough
     }
     
-    internal init( id : Int64, dataProcessingBasis : String, consentProcessThrough : [ String ] )
+    internal init( id : Int64, dataProcessingBasis : String, communicationPreferences : [ CommunicationPreferences ]? )
     {
         self.id = id
         self.dataProcessingBasis = dataProcessingBasis
-        self.consentProcessThrough = consentProcessThrough
+        self.communicationPreferences = communicationPreferences
+    }
+    
+    public func setConsentThrough(_ consentThrough : ConsentThrough.Writable)
+    {
+        self.consentThrough = consentThrough.toReadable()
+    }
+    
+    internal func parseConsentFromAPI(consentAPIString : String) throws -> ConsentThrough.Readable?
+    {
+        guard let consent = ConsentThrough.Readable(rawValue: consentAPIString) else {
+            ZCRMLogger.logError(message: "New consent type encountered in API - \( consentAPIString )")
+            throw ZCRMError.sdkError(code: ErrorCode.unhandled, message: "New consent type encountered in API - \( consentAPIString )", details: nil)
+        }
+        return consent
     }
 }
 
 extension ZCRMDataProcessBasisDetails : Equatable
 {
     public static func == (lhs: ZCRMDataProcessBasisDetails, rhs: ZCRMDataProcessBasisDetails) -> Bool {
-        let equals : Bool = lhs.consentProcessThrough == rhs.consentProcessThrough &&
+        let equals : Bool = lhs.communicationPreferences == rhs.communicationPreferences &&
             lhs.owner == rhs.owner &&
             lhs.modifiedTime == rhs.modifiedTime &&
             lhs.modifiedBy == rhs.modifiedBy &&

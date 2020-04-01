@@ -9,7 +9,7 @@ import os.log
 
 open class ZCRMLogger
 {
-    internal static var minLogLevel : LogLevels = LogLevels.ERROR
+    internal static var minLogLevel : LogLevels = LogLevels.error
     internal static var isLogEnabled : Bool = true
     
     internal static func initLogger( isLogEnabled : Bool )
@@ -25,27 +25,27 @@ open class ZCRMLogger
     
     public static func logDefault( file : String = #file, function : String = #function, line : Int = #line, column : Int = #column, message : String )
     {
-        self.configLog(file: file, function: function, line: line, column: column, message: message, logLevel: .DEFAULT)
+        self.configLog(file: file, function: function, line: line, column: column, message: message, logLevel: .byDefault)
     }
     
     public static func logInfo( file : String = #file, function : String = #function, line : Int = #line, column : Int = #column, message : String )
     {
-        self.configLog(file: file, function: function, line: line, column: column, message: message, logLevel: .INFO)
+        self.configLog(file: file, function: function, line: line, column: column, message: message, logLevel: .info)
     }
     
     public static func logDebug( file : String = #file, function : String = #function, line : Int = #line, column : Int = #column, message : String )
     {
-        self.configLog(file: file, function: function, line: line, column: column, message: message, logLevel: .DEBUG)
+        self.configLog(file: file, function: function, line: line, column: column, message: message, logLevel: .debug)
     }
     
     public static func logError( file : String = #file, function : String = #function, line : Int = #line, column : Int = #column, message : String )
     {
-        self.configLog(file: file, function: function, line: line, column: column, message: message, logLevel: .ERROR)
+        self.configLog(file: file, function: function, line: line, column: column, message: message, logLevel: .error)
     }
     
     public static func logFault( file : String = #file, function : String = #function, line : Int = #line, column : Int = #column, message : String )
     {
-        self.configLog(file: file, function: function, line: line, column: column, message: message, logLevel: .FAULT)
+        self.configLog(file: file, function: function, line: line, column: column, message: message, logLevel: .fault)
     }
     
     private static func configLog( file : String, function : String, line : Int, column : Int, message : String, logLevel : LogLevels )
@@ -58,15 +58,15 @@ open class ZCRMLogger
                 var osType : OSLogType = OSLogType.error
                 switch logLevel
                 {
-                    case .DEFAULT:
+                    case .byDefault:
                         osType = OSLogType.default
-                    case .INFO:
+                    case .info:
                         osType = OSLogType.info
-                    case .DEBUG:
+                    case .debug:
                         osType = OSLogType.debug
-                    case .ERROR:
+                    case .error:
                         osType = OSLogType.error
-                    case .FAULT:
+                    case .fault:
                         osType = OSLogType.fault
                 }
                 os_log("%s%s ::: %s", log: OSLog.default, type: osType, APIConstants.EXCEPTION_LOG_MSG, configMsg, message)

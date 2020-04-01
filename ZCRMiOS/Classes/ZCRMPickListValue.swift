@@ -8,7 +8,7 @@
 
 import Foundation
 
-open class ZCRMPickListValue
+open class ZCRMPickListValue : ZCRMEntity
 {
     public internal( set ) var displayName : String
     public internal( set ) var actualName : String
@@ -25,26 +25,23 @@ open class ZCRMPickListValue
 extension ZCRMPickListValue : Equatable
 {
     public static func == (lhs: ZCRMPickListValue, rhs: ZCRMPickListValue) -> Bool {
-        var mapsFlag : Bool = false
-        var count : Int = 0
         if lhs.maps.count == rhs.maps.count
         {
             for index in 0..<lhs.maps.count
             {
-                if NSDictionary(dictionary: lhs.maps[index]).isEqual(to: rhs.maps[index])
+                if !NSDictionary(dictionary: lhs.maps[index]).isEqual(to: rhs.maps[index])
                 {
-                    count = count + 1
+                    return false
                 }
             }
-            if count == lhs.maps.count
-            {
-                mapsFlag = true
-            }
+        }
+        else
+        {
+            return false
         }
         let equals : Bool = lhs.displayName == rhs.displayName &&
             lhs.actualName == rhs.actualName &&
-            lhs.sequenceNumber == rhs.sequenceNumber &&
-        mapsFlag
+            lhs.sequenceNumber == rhs.sequenceNumber
         return equals
     }
 }

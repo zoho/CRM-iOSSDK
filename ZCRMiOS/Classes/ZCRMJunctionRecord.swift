@@ -8,7 +8,7 @@
 
 import Foundation
 
-open class ZCRMJunctionRecord
+open class ZCRMJunctionRecord : ZCRMEntity
 {
     var apiName : String
     public internal( set ) var id : Int64
@@ -28,14 +28,8 @@ open class ZCRMJunctionRecord
     /// To set the related details between the records
     ///
     /// - Parameters:
-    ///   - fieldAPIName: fieldAPIName to which the field value is mapped
+    ///   - ofField: fieldAPIName to which the field value is mapped
     ///   - value: the field value to be mapped
-    @available(*, deprecated, message: "Use the method 'setValue'" )
-    public func setField( fieldAPIName : String, value : Any? )
-    {
-        self.relatedDetails.updateValue( value, forKey : fieldAPIName )
-    }
-    
     public func setValue( ofField : String, value : Any? )
     {
         self.relatedDetails.updateValue( value, forKey : ofField )
@@ -45,28 +39,28 @@ open class ZCRMJunctionRecord
 extension ZCRMJunctionRecord : Equatable
 {
     public static func == ( lhs : ZCRMJunctionRecord, rhs : ZCRMJunctionRecord ) -> Bool {
-        var isRelatedDetailsEqual : Bool = false
-        for ( key, value ) in lhs.relatedDetails
-        {
-            if rhs.relatedDetails.hasKey( forKey : key )
+        if lhs.relatedDetails.count == rhs.relatedDetails.count {
+            for ( key, value ) in lhs.relatedDetails
             {
-                if isEqual( lhs : value, rhs : rhs.relatedDetails[ key ] as Any? )
+                if rhs.relatedDetails.hasKey( forKey : key )
                 {
-                    isRelatedDetailsEqual = true
+                    if !isEqual( lhs : value, rhs : rhs.relatedDetails[ key ] as Any? )
+                    {
+                        return false
+                    }
                 }
                 else
                 {
                     return false
                 }
             }
-            else
-            {
-                return false
-            }
+        }
+        else
+        {
+            return false
         }
         let equals : Bool = lhs.apiName == rhs.apiName &&
-            lhs.id == rhs.id &&
-            isRelatedDetailsEqual
+            lhs.id == rhs.id
         return equals
     }
 }

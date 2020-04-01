@@ -8,7 +8,7 @@
 
 public class ZCRMUser : ZCRMUserDelegate
 {
-    public var lastName : String{
+    public var lastName : String? {
         didSet
         {
             upsertJSON.updateValue(lastName, forKey: UserAPIHandler.ResponseJSONKeys.lastName)
@@ -188,23 +188,20 @@ public class ZCRMUser : ZCRMUserDelegate
     internal var upsertJSON : [ String : Any? ] = [ String : Any? ]()
     internal var isCreate : Bool = APIConstants.BOOL_MOCK
     
-    internal init( lastName : String, emailId : String, role : ZCRMRoleDelegate, profile : ZCRMProfileDelegate )
+    internal init( emailId : String, role : ZCRMRoleDelegate, profile : ZCRMProfileDelegate )
     {
-        self.lastName = lastName
         self.emailId = emailId
         self.role = role
         self.profile = profile
         self.isCreate = true
-        upsertJSON.updateValue(lastName, forKey: UserAPIHandler.ResponseJSONKeys.lastName)
         upsertJSON.updateValue(emailId, forKey: UserAPIHandler.ResponseJSONKeys.email)
         upsertJSON.updateValue(String( role.id ), forKey: UserAPIHandler.ResponseJSONKeys.role)
         upsertJSON.updateValue(String( profile.id ), forKey: UserAPIHandler.ResponseJSONKeys.profile)
         super.init( id : APIConstants.INT64_MOCK, name : APIConstants.STRING_MOCK )
     }
     
-    internal init( lastName : String, emailId : String )
+    internal init( emailId : String )
     {
-        self.lastName = lastName
         self.emailId = emailId
         super.init(id: APIConstants.INT64_MOCK, name: APIConstants.STRING_MOCK)
     }
@@ -303,33 +300,9 @@ public class ZCRMUser : ZCRMUserDelegate
         self.upsertJSON = [ String : Any? ]()
     }
     
-    @available(*, deprecated, message: "Use the method 'setValue' with param 'ofFieldAPIName'" )
-    public func setValue( fieldAPIName : String, value : Any? )
-    {
-        self.upsertJSON.updateValue( value, forKey : fieldAPIName)
-    }
-    
     public func setValue( ofFieldAPIName : String, value : Any? )
     {
         self.upsertJSON.updateValue( value, forKey : ofFieldAPIName )
-    }
-
-    @available(*, deprecated, message: "Use the method 'getValue' with param 'ofFieldAPIName'" )
-    public func getValue( fieldAPIName : String ) throws -> Any?
-    {
-        if self.upsertJSON.hasValue( forKey : fieldAPIName )
-        {
-            return self.upsertJSON.optValue( key : fieldAPIName )
-        }
-        else if ( self.data.hasKey( forKey : fieldAPIName ) )
-        {
-            return self.data.optValue( key : fieldAPIName )
-        }
-        else
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.FIELD_NOT_FOUND) : The given field is not present in this user - \( fieldAPIName )")
-            throw ZCRMError.ProcessingError( code : ErrorCode.FIELD_NOT_FOUND, message : "The given field is not present in this user - \( fieldAPIName )", details : nil )
-        }
     }
     
     public func getValue( ofFieldAPIName : String ) throws -> Any?
@@ -344,8 +317,8 @@ public class ZCRMUser : ZCRMUserDelegate
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.FIELD_NOT_FOUND) : The given field is not present in this user - \( ofFieldAPIName )")
-            throw ZCRMError.ProcessingError( code : ErrorCode.FIELD_NOT_FOUND, message : "The given field is not present in this user - \( ofFieldAPIName )", details : nil )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.fieldNotFound) : The given field is not present in this user - \( ofFieldAPIName ), \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ErrorCode.fieldNotFound, message : "The given field is not present in this user - \( ofFieldAPIName )", details : nil )
         }
     }
     
@@ -380,7 +353,8 @@ extension ZCRMUser : NSCopying
 {
     public func copy( with zone : NSZone? = nil ) -> Any
     {
-        let copy = ZCRMUser( lastName : self.lastName, emailId : self.emailId )
+        let copy = ZCRMUser( emailId : self.emailId )
+        copy.lastName = self.lastName
         copy.role = self.role
         copy.profile = self.profile
         copy.zuId = self.zuId
@@ -417,24 +391,25 @@ extension ZCRMUser : NSCopying
     }
     
     public static func == (lhs: ZCRMUser, rhs: ZCRMUser) -> Bool {
-        var isDataEqual : Bool = false
-        for ( key, value ) in lhs.data
-        {
-            if rhs.data.hasKey( forKey : key )
+        if lhs.data.count == rhs.data.count {
+            for ( key, value ) in lhs.data
             {
-                if isEqual( lhs : value, rhs : rhs.data[ key ] as Any? )
+                if rhs.data.hasKey( forKey : key )
                 {
-                    isDataEqual = true
+                    if !isEqual( lhs : value, rhs : rhs.data[ key ] as Any? )
+                    {
+                        return false
+                    }
                 }
                 else
                 {
                     return false
                 }
             }
-            else
-            {
-                return false
-            }
+        }
+        else
+        {
+            return false
         }
         let equals : Bool = lhs.lastName == rhs.lastName &&
             lhs.emailId == rhs.emailId &&
@@ -466,8 +441,7 @@ extension ZCRMUser : NSCopying
             lhs.createdTime == rhs.createdTime &&
             lhs.modifiedBy == rhs.modifiedBy &&
             lhs.modifiedTime == rhs.modifiedTime &&
-            lhs.reportingTo == rhs.reportingTo &&
-            isDataEqual
+            lhs.reportingTo == rhs.reportingTo
         return equals
     }
 }

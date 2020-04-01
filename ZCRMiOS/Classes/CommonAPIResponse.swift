@@ -16,17 +16,20 @@ public class CommonAPIResponse
     internal var info : ResponseInfo?
     internal var responseJSONRootKey = String()
     internal var responseHeaders : ResponseHeaders?
+    internal var requestAPIName : String?
     
-    init( responseJSON : Dictionary< String, Any >, responseJSONRootKey : String ) throws
+    init( responseJSON : Dictionary< String, Any >, responseJSONRootKey : String, requestAPIName : String? ) throws
     {
         self.responseJSONRootKey = responseJSONRootKey
         self.responseJSON = responseJSON
+        self.requestAPIName = requestAPIName
         try self.setInfo()
     }
     
-    init( response : HTTPURLResponse, responseJSONRootKey : String ) throws
+    init( response : HTTPURLResponse, responseJSONRootKey : String, requestAPIName : String? ) throws
     {
         self.response = response
+        self.requestAPIName = requestAPIName
         self.httpStatusCode = HTTPStatusCode( statusCodeValue : response.statusCode )
         self.responseJSONRootKey = responseJSONRootKey
         try setResponseJSON(responseData: nil)
@@ -35,9 +38,10 @@ public class CommonAPIResponse
         responseHeaders = ResponseHeaders(response: response)
     }
     
-    init(response : HTTPURLResponse, responseData : Data, responseJSONRootKey : String) throws
+    init(response : HTTPURLResponse, responseData : Data, responseJSONRootKey : String, requestAPIName : String? ) throws
     {
         self.response = response
+        self.requestAPIName = requestAPIName
         self.httpStatusCode = HTTPStatusCode( statusCodeValue : response.statusCode )
         self.responseJSONRootKey = responseJSONRootKey
         try setResponseJSON(responseData: responseData)
@@ -52,7 +56,7 @@ public class CommonAPIResponse
     
     internal func setResponseJSON(responseData : Data?) throws
     {
-        if httpStatusCode != HTTPStatusCode.NO_CONTENT
+        if httpStatusCode != HTTPStatusCode.noContent && httpStatusCode != HTTPStatusCode.notModified
         {
             if let respData = responseData
             {
@@ -64,7 +68,7 @@ public class CommonAPIResponse
             }
             else
             {
-                throw ZCRMError.ProcessingError( code : ErrorCode.INTERNAL_ERROR, message : "Response data is nil", details : nil )
+                throw ZCRMError.processingError( code : ErrorCode.internalError, message : "Response data is nil", details : nil )
             }
         }
     }
@@ -75,7 +79,7 @@ public class CommonAPIResponse
         {
             try handleForFaultyResponses()
         }
-        else if(httpStatusCode == HTTPStatusCode.ACCEPTED || httpStatusCode == HTTPStatusCode.OK || httpStatusCode == HTTPStatusCode.CREATED )
+        else if(httpStatusCode == HTTPStatusCode.accepted || httpStatusCode == HTTPStatusCode.ok || httpStatusCode == HTTPStatusCode.created )
         {
             try processDataResponse()
         }
@@ -238,7 +242,7 @@ public class ResponseInfo
                 if( privateFieldDetails.hasValue( forKey : "private" ) )
                 {
                     let fieldPrivateDetails = try privateFieldDetails.getDictionary( key : "private" )
-                    field.isSupportExport = try fieldPrivateDetails.getBoolean( key : "export" )
+                    field.isExportable = try fieldPrivateDetails.getBoolean( key : "export" )
                     field.isRestricted = try fieldPrivateDetails.getBoolean( key : "restricted" )
                     field.dataType = try fieldPrivateDetails.getString( key : "type" )
                 }

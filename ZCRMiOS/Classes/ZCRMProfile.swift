@@ -14,11 +14,11 @@ open class ZCRMProfile : ZCRMProfileDelegate
     public internal( set ) var createdBy : ZCRMUserDelegate?
     public internal( set ) var modifiedTime : String?
     public internal( set ) var createdTime : String?
-	
-	internal init( name : String )
-	{
+    
+    internal init( name : String )
+    {
         super.init( id : APIConstants.INT64_MOCK, name : name )
-	}
+    }
 }
 
 extension ZCRMProfile

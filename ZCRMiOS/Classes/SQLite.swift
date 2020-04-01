@@ -7,6 +7,7 @@
 //
 
 import Foundation
+
 public class SQLite
 {
     private var dbURL : URL
@@ -26,8 +27,8 @@ public class SQLite
         ZCRMLogger.logInfo(message: "db path : \( dbURL.absoluteString )")
         if sqlite3_open_v2( dbURL.absoluteString, &database, SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX, nil) != SQLITE_OK
         {
-            ZCRMLogger.logDebug(message: "\(ErrorCode.INTERNAL_ERROR) : \( dbURL.absoluteString ) - Unable to open database")
-            throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "\( dbURL.absoluteString ) - Unable to open database", details : nil )
+            ZCRMLogger.logDebug(message: "\(ErrorCode.internalError) : \( dbURL.absoluteString ) - Unable to open database")
+            throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "\( dbURL.absoluteString ) - Unable to open database", details : nil )
         }
         ZCRMLogger.logInfo(message: "DB opened successfully!!")
     }
@@ -35,6 +36,12 @@ public class SQLite
     func execSQL( dbCommand : String ) throws
     {
         var prepareStatement : OpaquePointer?
+        
+        defer {
+            sqlite3_finalize(prepareStatement)
+            closeDB()
+        }
+        
         try serialQueue.sync {
             try openDB()
             ZCRMLogger.logDebug(message: "Command inside execSQL : \(dbCommand)")
@@ -46,26 +53,21 @@ public class SQLite
                 }
                 else
                 {
-                    sqlite3_finalize(prepareStatement)
                     try self.getDBError()
                 }
             }
             else
             {
-                sqlite3_finalize(prepareStatement)
                 try self.getDBError()
             }
-            sqlite3_finalize(prepareStatement)
-            closeDB()
         }
     }
     
     func getDBError() throws
     {
-        closeDB()
         let errmsg = String( cString : sqlite3_errmsg( database ) )
-        ZCRMLogger.logDebug(message: "\(ErrorCode.INTERNAL_ERROR) : \(errmsg)")
-        throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : errmsg, details : nil )
+        ZCRMLogger.logDebug(message: "\(ErrorCode.internalError) : \(errmsg)")
+        throw ZCRMError.sdkError( code : ErrorCode.internalError, message : errmsg, details : nil )
     }
     
     func rawQuery( dbCommand : String ) throws -> OpaquePointer?
@@ -89,7 +91,7 @@ public class SQLite
     
     func insert(tableName: String, contentValues: Dictionary <String, Any>) throws
     {
-        var statement = "\(DBConstant.DML_INSERT) \(DBConstant.KEYS_INTO) "+tableName
+        var statement = "\(DBConstant.DML_INSERT) \(DBConstant.KEYS_INTO) " + tableName
         var keys = [String]()
         var values = [Any]()
         
@@ -112,8 +114,12 @@ public class SQLite
     {
         guard let prepareStatement = try self.rawQuery(dbCommand: "\(DBConstant.KEYS_SELECT) * \(DBConstant.KEYS_FROM) \(tableName)") else
         {
-            ZCRMLogger.logDebug(message: "\(ErrorCode.INTERNAL_ERROR) : \(ErrorMessage.DB_DATA_NOT_AVAILABLE)")
-            throw ZCRMError.InValidError(code : ErrorCode.INTERNAL_ERROR, message : ErrorMessage.DB_DATA_NOT_AVAILABLE, details : nil )
+            ZCRMLogger.logDebug(message: "\(ErrorCode.internalError) : \(ErrorMessage.dbDataNotAvailable)")
+            throw ZCRMError.inValidError(code : ErrorCode.internalError, message : ErrorMessage.dbDataNotAvailable, details : nil )
+        }
+        defer {
+            sqlite3_finalize( prepareStatement )
+            closeDB()
         }
         return getRowCount(prepareStatement: prepareStatement)
     }
@@ -124,7 +130,6 @@ public class SQLite
         while sqlite3_step(prepareStatement) == SQLITE_ROW {
             count += 1
         }
-        closeDB()
         return count
     }
     
@@ -133,20 +138,20 @@ public class SQLite
         guard let prepareStatement = try self.rawQuery(dbCommand: "\(DBConstant.KEYS_SELECT) name \(DBConstant.KEYS_FROM) sqlite_master \(DBConstant.CLAUSE_WHERE) type = 'table' \(DBConstant.KEYS_AND) name = '\(tableName)'") else
         {
             closeDB()
-            ZCRMLogger.logDebug(message: "\(ErrorCode.INTERNAL_ERROR) : \(ErrorMessage.DB_DATA_NOT_AVAILABLE)")
+            ZCRMLogger.logDebug(message: "\(ErrorCode.internalError) : \(ErrorMessage.dbDataNotAvailable)")
             return false
+        }
+        defer {
+            sqlite3_finalize( prepareStatement )
+            self.closeDB()
         }
         if sqlite3_step(prepareStatement) == SQLITE_ROW {
             if let tblName = sqlite3_column_text( prepareStatement, 0 ), tableName == String( cString: tblName )
             {
-                sqlite3_finalize(prepareStatement)
-                self.closeDB()
                 ZCRMLogger.logDebug(message: "Table exists...")
                 return true
             }
         }
-        sqlite3_finalize(prepareStatement)
-        self.closeDB()
         return false
     }
     
@@ -188,7 +193,7 @@ public class SQLite
         }
         catch
         {
-            ZCRMLogger.logDebug(message: "\(ErrorCode.INTERNAL_ERROR) : unable to delete Database. Error -> \( error )")
+            ZCRMLogger.logDebug(message: "\(ErrorCode.internalError) : unable to delete Database. Error -> \( error )")
         }
     }
 }

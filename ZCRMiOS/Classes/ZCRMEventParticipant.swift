@@ -8,7 +8,7 @@
 
 import Foundation
 
-open class ZCRMEventParticipant
+open class ZCRMEventParticipant : ZCRMEntity
 {
     public var email : String?
     public internal( set ) var id : Int64 = APIConstants.INT64_MOCK

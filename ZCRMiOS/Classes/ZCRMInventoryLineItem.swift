@@ -6,10 +6,10 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
-public class ZCRMInventoryLineItem
+public class ZCRMInventoryLineItem : ZCRMEntity
 {
-	public var product : ZCRMRecordDelegate = RECORD_MOCK
-	public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
+    public var product : ZCRMRecordDelegate = RECORD_MOCK
+    public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
     public var listPrice : Double = APIConstants.DOUBLE_MOCK{
         didSet
         {
@@ -18,27 +18,29 @@ public class ZCRMInventoryLineItem
     }
     internal var isListPriceSet : Bool = APIConstants.BOOL_MOCK
     public var unitPrice : Double = APIConstants.DOUBLE_MOCK
-	public var quantity : Double = APIConstants.DOUBLE_MOCK
-	public var description : String?
-	public var total : Double = APIConstants.DOUBLE_MOCK
-	public var discount : Double = 0.0
-	public var discountPercentage : Double?
-	public var totalAfterDiscount : Double = APIConstants.DOUBLE_MOCK
-	public var tax : Double = APIConstants.DOUBLE_MOCK
-	public var lineTaxes : [ ZCRMLineTax ] = [ ZCRMLineTax ]()
-	public var netTotal : Double = APIConstants.DOUBLE_MOCK
-	public var deleteFlag : Bool = APIConstants.BOOL_MOCK
+    public var quantity : Double = APIConstants.DOUBLE_MOCK
+    public var description : String?
+    public var total : Double = APIConstants.DOUBLE_MOCK
+    public var discount : Double = 0.0
+    public var discountPercentage : Double?
+    public var totalAfterDiscount : Double = APIConstants.DOUBLE_MOCK
+    public var tax : Double = APIConstants.DOUBLE_MOCK
+    public var lineTaxes : [ ZCRMLineTax ] = [ ZCRMLineTax ]()
+    public var netTotal : Double = APIConstants.DOUBLE_MOCK
+    public var deleteFlag : Bool = APIConstants.BOOL_MOCK
+    public var priceBookId : Int64?
+    public var quantityInStock : Double = APIConstants.DOUBLE_MOCK
     
-	
+    
     /// Initialise the instance of a ZCRMInventoryLineItem with the given record.
     ///
     /// - Parameter product: record for which ZCRMInventoryLineItem instance is to be initialised
     public init( product : ZCRMRecordDelegate, quantity : Double )
-	{
-		self.product = product
+    {
+        self.product = product
         self.quantity = quantity
-	}
-	
+    }
+    
     /// Initialise the instance of a ZCRMInventoryLineItem with the given record and line item ID.
     ///
     /// - Parameters:
@@ -47,7 +49,7 @@ public class ZCRMInventoryLineItem
     {
         self.id = id
     }
-	
+    
     /// Add tax to the ZCRMInventoryLineItem.
     ///
     /// - Parameter tax: ZCRMTax for the ZCRMInventoryLineItem

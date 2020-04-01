@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 
 public class ZCRMLoginHandler
 {
@@ -29,20 +30,20 @@ public class ZCRMLoginHandler
             {
                 if( dict.keys.contains( key ) == false )
                 {
-                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "\( key ) not present in the App configuration plist!", details: nil )
+                    throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "\( key ) not present in the App configuration plist!", details: nil )
                 }
             }
             for key in dict.keys
             {
                 if( dict[ key ] == nil )
                 {
-                    throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "\( key ) is nil. It should have value", details: nil )
+                    throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "\( key ) is nil. It should have value", details: nil )
                 }
             }
         }
         else
         {
-            throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message : "App configuration property list is empty!", details: nil )
+            throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "App configuration property list is empty!", details: nil )
         }
     }
     
@@ -51,7 +52,6 @@ public class ZCRMLoginHandler
         do
         {
             self.setAppConfigurations()
-            try self.updateBaseURL( countryDomain : COUNTRYDOMAIN )
             ZCRMLogger.logDebug( message: "Country Domain : \( COUNTRYDOMAIN )" )
             ZohoAuth.initWithClientID( try appConfigurationUtil.getClientID(), clientSecret : try appConfigurationUtil.getClientSecretID(), scope : try appConfigurationUtil.getAuthscopes(), urlScheme : try appConfigurationUtil.getRedirectURLScheme(), mainWindow : window, accountsURL : try appConfigurationUtil.getAccountsURL() )
             ZCRMLogger.logDebug( message: "redirectURL : \( try appConfigurationUtil.getRedirectURLScheme() )")
@@ -67,7 +67,10 @@ public class ZCRMLoginHandler
     {
         do
         {
-            ZCRMSDKClient.shared.appType = appConfigurationUtil.getAppType()
+            if let appType = AppType( rawValue : appConfigurationUtil.getAppType() )
+            {
+                ZCRMSDKClient.shared.appType = appType
+            }
             ZCRMSDKClient.shared.apiVersion = try appConfigurationUtil.getApiVersion()
             if( ZCRMSDKClient.shared.apiVersion.isEmpty == true )
             {
@@ -87,11 +90,11 @@ public class ZCRMLoginHandler
         var domain : String = String()
         switch accessType
         {
-        case AccessType.DEVELOPMENT.rawValue :
+        case AccessType.development.rawValue :
             domain = "developer"
             break
             
-        case AccessType.SANDBOX.rawValue :
+        case AccessType.sandBox.rawValue :
             domain = "sandbox"
             break
             
@@ -117,7 +120,7 @@ public class ZCRMLoginHandler
             
         default :
             ZCRMLogger.logDebug( message:  "Country domain is invalid. \( domain )" )
-            throw ZCRMError.SDKError( code : ErrorCode.INTERNAL_ERROR, message :  "Country domain is invalid.", details: nil )
+            throw ZCRMError.sdkError( code : ErrorCode.internalError, message :  "Country domain is invalid.", details: nil )
         }
         ZCRMLogger.logDebug( message: "API Base URL : \(ZCRMSDKClient.shared.apiBaseURL)")
     }
@@ -139,26 +142,26 @@ public class ZCRMLoginHandler
     
     public func handleLogin( completion: @escaping ( Bool ) -> () )
     {
-        ZohoAuth.presentZohoSign(inHavingCustomParams: getLoginScreenParams()) { (success, error) in
+        ZohoAuth.presentZohoSign(inHavingCustomParams: self.getLoginScreenParams()) { (success, error) in
             if( error != nil )
             {
                 switch( error!.code )
                 {
-                // SFSafari Dismissed
-                case 205 :
-                    ZCRMLogger.logDebug( message: "Login view dismissed. Detail : \( error!.description ), code : \( error!.code )" )
-                    completion( false )
-                    break
-                    
-                // access_denied
-                case 905 :
-                    ZCRMLogger.logDebug( message: "User denied the access : \( error!.description ), code : \( error!.code )" )
-                    completion( false )
-                    break
-                    
-                default :
-                    completion( false )
-                    ZCRMLogger.logDebug( message: "Error occured while present sign in page. Detail : \( error! )" )
+                    // SFSafari Dismissed
+                    case 205 :
+                        ZCRMLogger.logDebug( message: "Login view dismissed. Detail : \( error!.description ), code : \( error!.code )" )
+                        completion( false )
+                        break
+                        
+                    // access_denied
+                    case 905 :
+                        ZCRMLogger.logDebug( message: "User denied the access : \( error!.description ), code : \( error!.code )" )
+                        completion( false )
+                        break
+                        
+                    default :
+                        completion( false )
+                        ZCRMLogger.logDebug( message: "Error occured while present sign in page. Detail : \( error! )" )
                 }
             }
             else
@@ -170,37 +173,36 @@ public class ZCRMLoginHandler
     
     public func logout( completion : @escaping ( Bool ) -> () )
     {
-        ZohoAuth.revokeAccessToken(
-            { (error) in
-                if( error != nil )
-                {
-                    ZCRMLogger.logDebug( message: "Error occured in removeAllScopesWithSuccess() : \(error!)" )
-                    completion( false )
-                }
-                else
-                {
-                    self.clearIAMLoginFirstLaunch()
-                    ZCRMLogger.logDebug( message: "removed AllScopesWithSuccess!" )
-                    URLCache.shared.removeAllCachedResponses()
-                    ZCRMSDKClient.shared.clearAllCache()
-                    if let cookies = HTTPCookieStorage.shared.cookies {
-                        for cookie in cookies {
-                            HTTPCookieStorage.shared.deleteCookie( cookie )
-                        }
+        ZohoAuth.revokeAccessToken( { ( error ) in
+            if( error != nil )
+            {
+                ZCRMLogger.logDebug( message: "Error occured in removeAllScopesWithSuccess() : \(error!)" )
+                completion( false )
+            }
+            else
+            {
+                self.clearIAMLoginFirstLaunch()
+                ZCRMLogger.logDebug( message: "removed AllScopesWithSuccess!" )
+                URLCache.shared.removeAllCachedResponses()
+                ZCRMSDKClient.shared.clearAllCache()
+                if let cookies = HTTPCookieStorage.shared.cookies {
+                    for cookie in cookies {
+                        HTTPCookieStorage.shared.deleteCookie( cookie )
                     }
-//                    if( self.appConfigurationUtil.isLoginCustomized() == false )
-//                    {
-//                        self.handleLogin( completion : { success in
-//                            if success == true
-//                            {
-//                                print( "login screen loaded successfully on Logout call!")
-//                            }
-//                        })
-//                    }
-                    completion( true )
-                    ZCRMLogger.logDebug( message: "logout ZCRM!" )
                 }
-        })
+                if( self.appConfigurationUtil.isLoginCustomized() == false )
+                {
+                    self.handleLogin( completion : { success in
+                        if success == true
+                        {
+                            print( "login screen loaded successfully on Logout call!")
+                        }
+                    })
+                }
+                completion( true )
+                ZCRMLogger.logDebug( message: "logout ZCRM!" )
+            }
+        } )
     }
     
     internal func getOauth2Token( completion : @escaping( String?, Error? ) -> () )
@@ -220,25 +222,24 @@ public class ZCRMLoginHandler
             {
                 loginScreenParams = "hide_signup=false"
             }
-            
-            let portalID = try appConfigurationUtil.getPortalID()
-            if( appConfigurationUtil.getAppConfigurations().hasKey( forKey : "PortalID" ) && portalID.isEmpty == false )
-            {
-                if( loginScreenParams != "" && !loginScreenParams.contains( "PortalID" ) )
-                {
-                    loginScreenParams = loginScreenParams + "&portal_id=" + portalID
-                }
-                else
-                {
-                    loginScreenParams = "portal_id=" + portalID
-                }
-            }
+//            let portalID = try appConfigurationUtil.getPortalID()
+//            if( appConfigurationUtil.getAppConfigurations().hasKey( forKey : "PortalID" ) && portalID.isEmpty == false )
+//            {
+//                if( loginScreenParams != "" && !loginScreenParams.contains( "PortalID" ) )
+//                {
+//                    loginScreenParams = loginScreenParams + "&portal_id=" + portalID
+//                }
+//                else
+//                {
+//                    loginScreenParams = "portal_id=" + portalID
+//                }
+//            }
         }
         catch
         {
-            ZCRMLogger.logDebug( message:"Error occured in getLoginScreenParams() \(error)")
+            ZCRMLogger.logDebug( message : "Error occured in getLoginScreenParams() \( error )" )
         }
-        ZCRMLogger.logDebug( message: "login screen params = \( loginScreenParams )" )
+        ZCRMLogger.logDebug( message : "login screen params = \( loginScreenParams )" )
         return loginScreenParams
     }
 }

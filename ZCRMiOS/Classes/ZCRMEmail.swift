@@ -16,7 +16,7 @@ open class ZCRMEmail : ZCRMEntity
     public var bcc : [ User ]?
     public var replyTo : User?
     public var subject : String?
-    public var mailFormat : MailFormat = MailFormat.HTML
+    public var mailFormat : MailFormat = MailFormat.html
     public var content : String?
     public var attachments : [ Attachment ]?
     public var isOrgEmail : Bool?
@@ -32,14 +32,15 @@ open class ZCRMEmail : ZCRMEntity
     public var sentimentDetails : SentimentDetails?
     public var isEditable : Bool = APIConstants.BOOL_MOCK
     public var sentTime : String = APIConstants.STRING_MOCK
-    internal var isSend : Bool = APIConstants.BOOL_MOCK
+    public var inlineImageIds : [String]?
+    internal var didSend : Bool = APIConstants.BOOL_MOCK
     
     init( record : ZCRMRecordDelegate, from : User, to : [User] )
     {
         self.record = record
         self.from = from
         self.to = to
-        self.isSend = true
+        self.didSend = false
     }
     
     public struct User : Equatable
@@ -83,40 +84,40 @@ open class ZCRMEmail : ZCRMEntity
     
     public enum MailFormat : String
     {
-        case HTML = "html"
-        case TEXT = "text"
+        case html = "html"
+        case text = "text"
     }
     
     public enum ServiceName : String
     {
-        case ZOHODOCS = "zohodocs"
-        case GOOGLE_DRIVE = "google_drive"
-        case DOCUMENTS = "documents"
+        case zohoDocs = "zohodocs"
+        case googleDrive = "google_drive"
+        case documents = "documents"
     }
     
     public enum SentimentDetails : String
     {
-        case POSITIVE = "Positive"
-        case NEGATIVE = "Negative"
+        case positive = "Positive"
+        case negative = "Negative"
     }
     
     public enum PaperType : String
     {
-        case USLETTER = "USLetter"
-        case DEFAULT = "default"
-        case A4 = "A4"
+        case usLetter = "USLetter"
+        case defaultType = "default"
+        case a4 = "A4"
     }
     
     public enum ViewType : String
     {
-        case LANDSCAPE = "landscape"
-        case PORTRAIT = "portrait"
+        case landscape = "landscape"
+        case portrait = "portrait"
     }
     
     public func send( completion : @escaping( Result.DataResponse< ZCRMEmail, APIResponse > ) -> () )
     {
         EmailAPIHandler(email: self).sendMail { ( result ) in
-            self.isSend = false
+            self.didSend = true
             completion( result )
         }
     }
@@ -128,9 +129,9 @@ open class ZCRMEmail : ZCRMEntity
         }
     }
     
-    public func uploadAttachment( filePath : String, emailAttachmentUploadDelegate : EmailAttachmentUploadDelegate )
+    public func uploadAttachment( fileRefId : String, filePath : String, emailAttachmentUploadDelegate : ZCRMEmailAttachmentUploadDelegate )
     {
-        EmailAPIHandler( emailAttachmentUploadDelegate : emailAttachmentUploadDelegate ).uploadAttachment( filePath : filePath, fileName : nil, fileData : nil, inline : false, sendMail : false )
+        EmailAPIHandler().uploadAttachment( fileRefId : fileRefId, filePath : filePath, fileName : nil, fileData : nil, inline : false, sendMail : false, emailAttachmentUploadDelegate: emailAttachmentUploadDelegate )
     }
     
     public func uploadAttachment( fileName : String, fileData : Data, completion : @escaping( Result.DataResponse< String, APIResponse > ) -> () )
@@ -140,9 +141,9 @@ open class ZCRMEmail : ZCRMEntity
         }
     }
     
-    public func uploadAttachment( fileName : String, fileData : Data, emailAttachmentUploadDelegate : EmailAttachmentUploadDelegate )
+    public func uploadAttachment( fileRefId : String, fileName : String, fileData : Data, emailAttachmentUploadDelegate : ZCRMEmailAttachmentUploadDelegate )
     {
-        EmailAPIHandler( emailAttachmentUploadDelegate : emailAttachmentUploadDelegate ).uploadAttachment( filePath : nil, fileName : fileName, fileData : fileData, inline : false, sendMail : false )
+        EmailAPIHandler().uploadAttachment( fileRefId : fileRefId, filePath : nil, fileName : fileName, fileData : fileData, inline : false, sendMail : false, emailAttachmentUploadDelegate: emailAttachmentUploadDelegate )
     }
     
     public func uploadInlineAttachment( filePath : String, completion : @escaping( Result.DataResponse< String, APIResponse > ) -> () )
@@ -152,9 +153,9 @@ open class ZCRMEmail : ZCRMEntity
         }
     }
     
-    public func uploadInlineAttachment( filePath : String, emailAttachmentUploadDelegate : EmailAttachmentUploadDelegate )
+    public func uploadInlineAttachment( fileRefId : String, filePath : String, emailAttachmentUploadDelegate : ZCRMEmailAttachmentUploadDelegate )
     {
-        EmailAPIHandler( emailAttachmentUploadDelegate : emailAttachmentUploadDelegate ).uploadAttachment( filePath : filePath, fileName : nil, fileData : nil, inline : true, sendMail : true )
+        EmailAPIHandler().uploadAttachment( fileRefId : fileRefId, filePath : filePath, fileName : nil, fileData : nil, inline : true, sendMail : true, emailAttachmentUploadDelegate: emailAttachmentUploadDelegate )
     }
     
     public func uploadInlineAttachment( fileName : String, fileData : Data, completion : @escaping( Result.DataResponse< String, APIResponse > ) -> () )
@@ -164,9 +165,9 @@ open class ZCRMEmail : ZCRMEntity
         }
     }
     
-    public func uploadInlineAttachment( fileName : String, fileData : Data, emailAttachmentUploadDelegate : EmailAttachmentUploadDelegate )
+    public func uploadInlineAttachment( fileRefId : String, fileName : String, fileData : Data, emailAttachmentUploadDelegate : ZCRMEmailAttachmentUploadDelegate )
     {
-        EmailAPIHandler( emailAttachmentUploadDelegate : emailAttachmentUploadDelegate ).uploadAttachment( filePath : nil, fileName : fileName, fileData : fileData, inline : true, sendMail : true )
+        EmailAPIHandler().uploadAttachment( fileRefId : fileRefId, filePath : nil, fileName : fileName, fileData : fileData, inline : true, sendMail : true, emailAttachmentUploadDelegate: emailAttachmentUploadDelegate )
     }
     
     public func downloadAttachment( attachmentId : String, fileName : String, completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
@@ -176,7 +177,7 @@ open class ZCRMEmail : ZCRMEntity
         }
     }
     
-    public func downloadAttachment( attachmentId : String, fileName : String, fileDownloadDelegate : FileDownloadDelegate ) throws
+    public func downloadAttachment( attachmentId : String, fileName : String, fileDownloadDelegate : ZCRMFileDownloadDelegate ) throws
     {
         try EmailAPIHandler(email: self).downloadAttachment(attachmentId: attachmentId, fileName: fileName, fileDownloadDelegate: fileDownloadDelegate)
     }
@@ -188,9 +189,21 @@ open class ZCRMEmail : ZCRMEntity
         }
     }
     
-    public func downloadAllAttachments( fileDownloadDelegate : FileDownloadDelegate ) throws
+    public func downloadAllAttachments( fileDownloadDelegate : ZCRMFileDownloadDelegate ) throws
     {
         try EmailAPIHandler(email: self).downloadAttachment(attachmentId: nil, fileName: nil, fileDownloadDelegate: fileDownloadDelegate)
+    }
+    
+    public func downloadInlineImage( imageId : String, completion : @escaping (Result.Response< FileAPIResponse >) -> () )
+    {
+        EmailAPIHandler(email: self).downloadInlineImage(imageId: imageId) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func downloadInlineImage( imageId : String, fileDownloadDelegate : ZCRMFileDownloadDelegate ) throws
+    {
+        try EmailAPIHandler(email : self).downloadInlineImage(imageId: imageId, fileDownloadDelegate: fileDownloadDelegate)
     }
 }
 

@@ -8,13 +8,12 @@
 
 internal class UserAPIHandler : CommonAPIHandler
 {
-    private let cache : CacheFlavour
+    let cache : CacheFlavour
     private var userDelegate : ZCRMUserDelegate?
-    private var fileUploadDelegate : FileUploadDelegate?
     
     internal init( userDelegate : ZCRMUserDelegate )
     {
-        self.cache = CacheFlavour.NO_CACHE
+        self.cache = CacheFlavour.noCache
         self.userDelegate = userDelegate
     }
     
@@ -31,18 +30,18 @@ internal class UserAPIHandler : CommonAPIHandler
     
     internal override init()
     {
-        self.cache = CacheFlavour.NO_CACHE
+        self.cache = CacheFlavour.noCache
     }
     
-    private func getUsers(type : String?, modifiedSince : String?, page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal func getUsers( ofType : UserTypes?, modifiedSince : String?, page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
         var allUsers : [ZCRMUser] = [ZCRMUser]()
-        setUrlPath(urlPath: "users" )
-        setRequestMethod(requestMethod: .GET )
-        if let type = type
+        setUrlPath(urlPath: "\( URLPathConstants.users )" )
+        setRequestMethod(requestMethod: .get )
+        if let type = ofType
         {
-            addRequestParam(param: RequestParamKeys.type , value: type )
+            addRequestParam(param: RequestParamKeys.type , value: type.rawValue )
         }
         if ( modifiedSince.notNilandEmpty)
         {
@@ -56,7 +55,7 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             addRequestParam( param : RequestParamKeys.perPage, value : String( perPage ) )
         }
-		let request : APIRequest = APIRequest(handler: self)
+        let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getBulkAPIResponse { ( resultType ) in
@@ -68,8 +67,8 @@ internal class UserAPIHandler : CommonAPIHandler
                     let usersList:[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if usersList.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_NIL) : \(ErrorMessage.RESPONSE_JSON_NIL_MSG)")
-                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                     for userList in usersList
@@ -93,9 +92,9 @@ internal class UserAPIHandler : CommonAPIHandler
     {
         setJSONRootKey( key : JSONRootKey.PROFILES )
         var allProfiles : [ ZCRMProfile ] = [ ZCRMProfile ] ()
-		setUrlPath(urlPath: "settings/profiles" )
-		setRequestMethod(requestMethod: .GET)
-		let request : APIRequest = APIRequest(handler: self)
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.profiles )" )
+        setRequestMethod(requestMethod: .get)
+        let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getBulkAPIResponse { ( resultType ) in
@@ -107,8 +106,8 @@ internal class UserAPIHandler : CommonAPIHandler
                     let profileList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if profileList.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_NIL) : \(ErrorMessage.RESPONSE_JSON_NIL_MSG)")
-                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                     for profile in profileList
@@ -130,9 +129,9 @@ internal class UserAPIHandler : CommonAPIHandler
     {
         setJSONRootKey( key : JSONRootKey.ROLES )
         var allRoles : [ ZCRMRole ] = [ ZCRMRole ]()
-		setUrlPath(urlPath:  "settings/roles" )
-		setRequestMethod(requestMethod: .GET)
-		let request : APIRequest = APIRequest(handler: self)
+        setUrlPath(urlPath:  "\( URLPathConstants.settings )/\( URLPathConstants.roles )" )
+        setRequestMethod(requestMethod: .get)
+        let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getBulkAPIResponse { ( resultType ) in
@@ -144,8 +143,8 @@ internal class UserAPIHandler : CommonAPIHandler
                     let rolesList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if rolesList.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_NIL) : \(ErrorMessage.RESPONSE_JSON_NIL_MSG)")
-                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                     for role in rolesList
@@ -166,17 +165,17 @@ internal class UserAPIHandler : CommonAPIHandler
     internal func getUser( userId : Int64?, completion : @escaping( Result.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
-        setRequestMethod(requestMethod: .GET )
+        setRequestMethod(requestMethod: .get )
         if let userId = userId
         {
-            setUrlPath(urlPath: "users/\(userId)" )
+            setUrlPath(urlPath: "\( URLPathConstants.users )/\(userId)" )
         }
         else
         {
-            setUrlPath(urlPath: "users" )
+            setUrlPath(urlPath: "\( URLPathConstants.users )" )
             addRequestParam(param: RequestParamKeys.type , value:  RequestParamKeys.currentUser)
         }
-		let request : APIRequest = APIRequest(handler: self, cacheFlavour: self.cache)
+        let request : APIRequest = APIRequest(handler: self, cacheFlavour: self.cache)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
@@ -199,8 +198,8 @@ internal class UserAPIHandler : CommonAPIHandler
     internal func addUser( user : ZCRMUser, completion : @escaping( Result.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
-        setRequestMethod( requestMethod : .POST )
-        setUrlPath( urlPath : "users" )
+        setRequestMethod( requestMethod : .post )
+        setUrlPath( urlPath : "\( URLPathConstants.users )" )
         var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
         var dataArray : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
         dataArray.append(user.upsertJSON)
@@ -236,8 +235,8 @@ internal class UserAPIHandler : CommonAPIHandler
     internal func updateUser( user : ZCRMUser, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
-        setRequestMethod( requestMethod : .PATCH )
-        setUrlPath( urlPath : "users/\( user.id )" )
+        setRequestMethod( requestMethod : .patch )
+        setUrlPath( urlPath : "\( URLPathConstants.users )/\( user.id )" )
         var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
         var dataArray : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
         dataArray.append(user.upsertJSON)
@@ -263,47 +262,11 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    @available(*, deprecated, message: "Use the method with user object" )
-    internal func updateUser( userDetails : [String:Any], completion : @escaping( Result.Response< APIResponse > ) -> () )
-    {
-        if let userDelegate = self.userDelegate
-        {
-            setJSONRootKey(key: JSONRootKey.USERS)
-            setRequestMethod(requestMethod: .PATCH)
-            setUrlPath( urlPath : "users/\( userDelegate.id )" )
-            var reqBodyObj : [ String : [ [ String : Any ] ] ] = [ String : [ [ String : Any ] ] ]()
-            var dataArray : [ [ String : Any ] ] = [ [ String : Any ] ]()
-            dataArray.append(userDetails)
-            reqBodyObj[ getJSONRootKey() ] = dataArray
-            setRequestBody(requestBody: reqBodyObj)
-            let request = APIRequest(handler: self)
-            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-            
-            request.getAPIResponse { ( resultType ) in
-                do
-                {
-                    let response = try resultType.resolve()
-                    completion( .success( response ) )
-                }
-                catch
-                {
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                    completion( .failure( typeCastToZCRMError( error ) ) )
-                }
-            }
-        }
-        else
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : USER ID must not be nil")
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "USER ID must not be nil", details : nil ) ) )
-        }
-    }
-    
     internal func deleteUser( userId : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
-        setRequestMethod( requestMethod : .DELETE )
-        setUrlPath( urlPath : "users/\( userId )" )
+        setRequestMethod( requestMethod : .delete )
+        setUrlPath( urlPath : "\( URLPathConstants.users )/\( userId )" )
         let request = APIRequest( handler : self )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
@@ -319,12 +282,16 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func searchUsers( criteria : String, page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal func searchUsers(ofType : UserTypes?, criteria : String, page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
-        setRequestMethod( requestMethod : .PATCH )
-        setUrlPath( urlPath : "users" )
-        addRequestParam( param : RequestParamKeys.filters, value : criteria )
+        setRequestMethod( requestMethod : .get )
+        setUrlPath( urlPath : "\( URLPathConstants.users )/\( URLPathConstants.search )" )
+        addRequestParam( param : RequestParamKeys.criteria, value : criteria )
+        if let type = ofType
+        {
+            addRequestParam( param : RequestParamKeys.type, value : type.rawValue )
+        }
         if let page = page
         {
             addRequestParam( param : RequestParamKeys.page, value : String( page ) )
@@ -346,8 +313,8 @@ internal class UserAPIHandler : CommonAPIHandler
                     let userDetailsList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if userDetailsList.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_NIL) : \(ErrorMessage.RESPONSE_JSON_NIL_MSG)")
-                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                     for userDetail in userDetailsList
@@ -369,9 +336,9 @@ internal class UserAPIHandler : CommonAPIHandler
     internal func getProfile( profileId : Int64, completion : @escaping( Result.DataResponse< ZCRMProfile, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.PROFILES)
-		setUrlPath(urlPath:  "settings/profiles/\(profileId)" )
-		setRequestMethod(requestMethod: .GET )
-		let request : APIRequest = APIRequest(handler: self)
+        setUrlPath(urlPath:  "\( URLPathConstants.settings )/\( URLPathConstants.profiles )/\(profileId)" )
+        setRequestMethod(requestMethod: .get )
+        let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
@@ -393,8 +360,8 @@ internal class UserAPIHandler : CommonAPIHandler
     internal func getRole( roleId : Int64, completion : @escaping( Result.DataResponse< ZCRMRole, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.ROLES )
-        setUrlPath(urlPath: "settings/roles/\(roleId)" )
-        setRequestMethod(requestMethod: .GET )
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.roles )/\(roleId)" )
+        setRequestMethod(requestMethod: .get )
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
@@ -419,8 +386,8 @@ internal class UserAPIHandler : CommonAPIHandler
         if let userDelegate = self.userDelegate
         {
             setJSONRootKey( key : JSONRootKey.NIL )
-            setUrlPath(urlPath: "users/\(userDelegate.id)/photo")
-            setRequestMethod(requestMethod: .GET)
+            setUrlPath(urlPath: "\( URLPathConstants.users )/\(userDelegate.id)/\( URLPathConstants.photo )")
+            setRequestMethod(requestMethod: .get)
             if let photoSize = size
             {
                 addRequestParam(param: RequestParamKeys.photoSize , value: photoSize.rawValue )
@@ -443,30 +410,30 @@ internal class UserAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : USER ID must not be nil")
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "USER ID must not be nil", details : nil ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : USER ID must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "USER ID must not be nil", details : nil ) ) )
         }
     }
     
-    internal func downloadPhoto( size : PhotoSize?, fileDownloadDelegate : FileDownloadDelegate ) throws
+    internal func downloadPhoto( size : PhotoSize?, fileDownloadDelegate : ZCRMFileDownloadDelegate ) throws
     {
         if let userDelegate = self.userDelegate
         {
             setJSONRootKey( key : JSONRootKey.NIL )
-            setUrlPath(urlPath: "users/\(userDelegate.id)/photo")
-            setRequestMethod(requestMethod: .GET)
+            setUrlPath(urlPath: "\( URLPathConstants.users )/\(userDelegate.id)/\( URLPathConstants.photo )")
+            setRequestMethod(requestMethod: .get)
             if let photoSize = size
             {
                 addRequestParam(param: RequestParamKeys.photoSize , value: photoSize.rawValue )
             }
-            let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate)
+            let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate, "\( userDelegate.id )")
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
             request.downloadFile()
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : USER ID must not be nil")
-            throw ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "USER ID must not be nil", details : nil )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : USER ID must not be nil, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "USER ID must not be nil", details : nil )
         }
     }
     
@@ -476,7 +443,8 @@ internal class UserAPIHandler : CommonAPIHandler
         {
             do
             {
-                try fileDetailCheck( filePath : filePath, fileData : fileData )
+                try fileDetailCheck( filePath : filePath, fileData : fileData, maxFileSize: MaxFileSize.profilePhoto )
+                try imageTypeValidation( filePath )
             }
             catch
             {
@@ -485,8 +453,8 @@ internal class UserAPIHandler : CommonAPIHandler
                 return
             }
             setJSONRootKey( key : JSONRootKey.NIL )
-            setUrlPath(urlPath: "users/\(userDelegate.id)/photo")
-            setRequestMethod(requestMethod: .POST)
+            setUrlPath(urlPath: "\( URLPathConstants.users )/\(userDelegate.id)/\( URLPathConstants.photo )")
+            setRequestMethod(requestMethod: .post)
             let request : FileAPIRequest = FileAPIRequest(handler: self)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
             
@@ -523,44 +491,38 @@ internal class UserAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : USER ID must not be nil")
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "USER ID must not be nil", details : nil ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : USER ID must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "USER ID must not be nil", details : nil ) ) )
         }
     }
     
-    internal func uploadPhoto( filePath : String?, fileName : String?, fileData : Data?, fileUploadDelegate : FileUploadDelegate )
+    internal func uploadPhoto(fileRefId : String, filePath : String?, fileName : String?, fileData : Data?, fileUploadDelegate : ZCRMFileUploadDelegate )
     {
         if let userDelegate = self.userDelegate
         {
             do
             {
-                try fileDetailCheck( filePath : filePath, fileData : fileData )
+                try fileDetailCheck( filePath : filePath, fileData : fileData, maxFileSize: MaxFileSize.profilePhoto )
+                try imageTypeValidation( filePath )
             }
             catch
             {
                 ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                self.fileUploadDelegate?.didFail( typeCastToZCRMError( error ) )
+                fileUploadDelegate.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
                 return
             }
             setJSONRootKey( key : JSONRootKey.NIL )
-            setUrlPath(urlPath: "users/\(userDelegate.id)/photo")
-            setRequestMethod(requestMethod: .POST)
-            let request : FileAPIRequest = FileAPIRequest( handler : self, fileUploadDelegate : fileUploadDelegate )
+            setUrlPath(urlPath: "\( URLPathConstants.users )/\(userDelegate.id)/\( URLPathConstants.photo )")
+            setRequestMethod(requestMethod: .post)
+            let request : FileAPIRequest = FileAPIRequest( handler : self, fileUploadDelegate : fileUploadDelegate , fileRefId: fileRefId)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
             
-            if let filePath = filePath
-            {
-                request.uploadFile( filePath : filePath, entity : nil )
-            }
-            else if let fileName = fileName, let fileData = fileData
-            {
-                request.uploadFile( fileName : fileName, entity : nil, fileData : fileData )
-            }
+            request.uploadFile(fileRefId: fileRefId, filePath: filePath, fileName: fileName, fileData: fileData, entity: nil) { _,_ in }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : USER ID must not be nil")
-            self.fileUploadDelegate?.didFail( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "USER ID must not be nil", details : nil ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : USER ID must not be nil, \( APIConstants.DETAILS ) : -")
+            fileUploadDelegate.didFail( fileRefId : fileRefId, ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "USER ID must not be nil", details : nil ) )
         }
     }
 
@@ -574,73 +536,71 @@ internal class UserAPIHandler : CommonAPIHandler
     
     internal func getAllUsers( modifiedSince : String?, page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
-        self.getUsers( type: nil, modifiedSince : modifiedSince, page : page, perPage : perPage) { ( result ) in
+        self.getUsers( ofType: nil, modifiedSince : modifiedSince, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
     
     internal func getAllActiveUsers( page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
-        self.getUsers( type : RequestParamValues.activeUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
+        self.getUsers( ofType : .activeUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
     
     internal func getAllDeactiveUsers( page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
-        self.getUsers( type : RequestParamValues.deactiveUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
+        self.getUsers( ofType : .deactiveUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
     
     internal func getAllUnConfirmedUsers( page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
-        self.getUsers( type : RequestParamValues.notConfirmedUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
+        self.getUsers( ofType : .notConfirmedUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
     
     internal func getAllConfirmedUsers( page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
-        self.getUsers( type : RequestParamValues.confirmedUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
+        self.getUsers( ofType : .confirmedUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
 
     internal func getAllActiveConfirmedUsers( page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
-        self.getUsers( type: RequestParamValues.activeConfirmedUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
+        self.getUsers( ofType: .activeConfirmedUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
     
     internal func getAllDeletedUsers( page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
-        self.getUsers( type: RequestParamValues.deletedUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
+        self.getUsers( ofType: .deletedUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
     
     internal func getAllAdminUsers( page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
-        self.getUsers( type: RequestParamValues.adminUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
+        self.getUsers( ofType: .adminUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
     
     internal func getAllActiveConfirmedAdmins( page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
-        self.getUsers( type: RequestParamValues.activeConfirmedAdmins, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
+        self.getUsers( ofType: .activeConfirmedAdmins, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
     
     private func getZCRMUser(userDict : [String : Any]) throws -> ZCRMUser
     {
-        let lastName = try userDict.getString( key : ResponseJSONKeys.lastName )
         let email = try userDict.getString( key : ResponseJSONKeys.email )
-        let user = ZCRMUser( lastName : lastName, emailId : email )
-        user.data.updateValue( lastName, forKey : ResponseJSONKeys.lastName )
+        let user = ZCRMUser( emailId : email )
         user.data.updateValue( email, forKey : ResponseJSONKeys.email )
         user.id = try userDict.getInt64( key : ResponseJSONKeys.id )
         user.data.updateValue( user.id, forKey : ResponseJSONKeys.id )
@@ -659,6 +619,11 @@ internal class UserAPIHandler : CommonAPIHandler
             let role  = ZCRMRoleDelegate( id : try roleObj.getInt64( key : ResponseJSONKeys.id ), name : try roleObj.getString( key : ResponseJSONKeys.name ) )
             user.role = role
             user.data.updateValue( role, forKey : ResponseJSONKeys.role )
+        }
+        if let lastName = userDict.optString( key : ResponseJSONKeys.lastName )
+        {
+            user.lastName = lastName
+            user.data.updateValue( lastName, forKey : ResponseJSONKeys.lastName )
         }
         if let firstName = userDict.optString( key : ResponseJSONKeys.firstName )
         {
@@ -831,18 +796,6 @@ internal class UserAPIHandler : CommonAPIHandler
 
 internal extension UserAPIHandler
 {
-    struct RequestParamValues
-    {
-        static let activeUsers = "ActiveUsers"
-        static let deactiveUsers = "DeactiveUsers"
-        static let notConfirmedUsers = "NotConfirmedUsers"
-        static let confirmedUsers = "ConfirmedUsers"
-        static let activeConfirmedUsers = "ActiveConfirmedUsers"
-        static let deletedUsers = "DeletedUsers"
-        static let adminUsers = "AdminUsers"
-        static let activeConfirmedAdmins = "ActiveConfirmedAdmins"
-    }
-    
     struct ResponseJSONKeys
     {
         static let fullName = "full_name"
@@ -891,6 +844,17 @@ internal extension UserAPIHandler
         
         static let zip = "zip"
         static let timeFormat = "time_format"
+    }
+    
+    struct URLPathConstants {
+        static let users = "users"
+        static let settings = "settings"
+        static let profiles = "profiles"
+        static let roles = "roles"
+        static let photo = "photo"
+        static let search = "search"
+        static let features = "features"
+        static let __internal = "__internal"
     }
 }
 

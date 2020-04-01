@@ -56,7 +56,7 @@ internal class CacheDBHandler
             {
                 guard let queryResult : OpaquePointer = try dbRequest.rawQuery( dbCommand : fetchStatement ) else
                 {
-                    throw ZCRMError.InValidError(code : ErrorCode.INTERNAL_ERROR, message : ErrorMessage.DB_DATA_NOT_AVAILABLE, details : nil )
+                    throw ZCRMError.inValidError(code : ErrorCode.internalError, message : ErrorMessage.dbDataNotAvailable, details : nil )
                 }
                 if sqlite3_step( queryResult ) == SQLITE_ROW
                 {
@@ -86,7 +86,7 @@ internal class CacheDBHandler
             {
                 guard let queryResult : OpaquePointer = try dbRequest.rawQuery( dbCommand : searchStatement ) else
                 {
-                    throw ZCRMError.InValidError(code : ErrorCode.INTERNAL_ERROR, message : ErrorMessage.DB_DATA_NOT_AVAILABLE, details : nil )
+                    throw ZCRMError.inValidError(code : ErrorCode.internalError, message : ErrorMessage.dbDataNotAvailable, details : nil )
                 }
                 while sqlite3_step( queryResult ) == SQLITE_ROW
                 {
@@ -123,6 +123,32 @@ internal class CacheDBHandler
         }
     }
     
+    func deleteZCRMDashboardComponent( id : String ) throws
+    {
+        try self.serialQueue.sync {
+            if try dbRequest.isTableExists(tableName: DBConstant.TABLE_RESPONSES)
+            {
+                let deleteStatement = responseTableStatement.deleteComponent( withId : id )
+                try dbRequest.execSQL( dbCommand : deleteStatement )
+            }
+            else
+            {
+                try self.createResponsesTable()
+            }
+        }
+    }
+    
+    func deleteZCRMRecords( withModuleName moduleName : String ) throws
+    {
+        try self.serialQueue.sync {
+            if try dbRequest.isTableExists(tableName: DBConstant.TABLE_RESPONSES)
+            {
+                let deleteStatement = responseTableStatement.deleteAllRecords(withModuleName: moduleName)
+                try dbRequest.execSQL( dbCommand : deleteStatement )
+            }
+        }
+    }
+    
     func deleteResponsesCache() throws
     {
         if try dbRequest.isTableExists(tableName: DBConstant.TABLE_RESPONSES)
@@ -154,7 +180,7 @@ internal class CacheDBHandler
             {
                 guard let queryResult : OpaquePointer = try dbRequest.rawQuery(dbCommand: fetchStatement) else
                 {
-                    throw ZCRMError.InValidError(code : ErrorCode.INTERNAL_ERROR, message : ErrorMessage.DB_DATA_NOT_AVAILABLE, details : nil )
+                    throw ZCRMError.inValidError(code : ErrorCode.internalError, message : ErrorMessage.dbDataNotAvailable, details : nil )
                 }
                 if sqlite3_step( queryResult ) == SQLITE_ROW
                 {
@@ -211,7 +237,7 @@ internal class CacheDBHandler
             {
                 guard let queryResult : OpaquePointer = try dbRequest.rawQuery(dbCommand: fetchStatement) else
                 {
-                    throw ZCRMError.InValidError(code : ErrorCode.INTERNAL_ERROR, message : ErrorMessage.DB_DATA_NOT_AVAILABLE, details : nil )
+                    throw ZCRMError.inValidError(code : ErrorCode.internalError, message : ErrorMessage.dbDataNotAvailable, details : nil )
                 }
                 if sqlite3_step( queryResult ) == SQLITE_ROW
                 {

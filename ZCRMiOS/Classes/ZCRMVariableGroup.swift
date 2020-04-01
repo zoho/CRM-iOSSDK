@@ -44,6 +44,8 @@ extension ZCRMVariableGroup : NSCopying, Equatable
     public func copy( with zone : NSZone? = nil ) -> Any
     {
         let copy = ZCRMVariableGroup( apiName : self.apiName, id : self.id )
+        copy.isApiNameSet = self.isApiNameSet
+        copy.isNameSet = self.isNameSet
         copy.name = self.name
         copy.displayLabel = self.displayLabel
         copy.description = self.description

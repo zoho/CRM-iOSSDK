@@ -14,6 +14,7 @@ public class ZCRMOrg : ZCRMOrgDelegate
     public internal( set ) var alias : String?
     public internal( set ) var primaryZUID : Int64 = APIConstants.INT64_MOCK
     public internal( set ) var zgid : Int64 = APIConstants.INT64_MOCK
+    public internal( set ) var ziaPortalId : Int64?
     
     public internal( set ) var primaryEmail : String = APIConstants.STRING_MOCK
     public internal( set ) var website : String?
@@ -71,14 +72,14 @@ public class ZCRMOrg : ZCRMOrgDelegate
     
     public func getCurrencies( completion : @escaping( Result.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> () )
     {
-        OrgAPIHandler( cacheFlavour : .URL_VS_RESPONSE ).getCurrencies { ( result ) in
+        OrgAPIHandler( cacheFlavour : .urlVsResponse ).getCurrencies { ( result ) in
             completion( result )
         }
     }
     
     public func getCurrenciesFromServer( completion : @escaping( Result.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> () )
     {
-        OrgAPIHandler( cacheFlavour : .NO_CACHE ).getCurrencies { ( result ) in
+        OrgAPIHandler( cacheFlavour : .noCache ).getCurrencies { ( result ) in
             completion( result )
         }
     }
@@ -87,7 +88,7 @@ public class ZCRMOrg : ZCRMOrgDelegate
     {
         if self.mcStatus
         {
-            OrgAPIHandler(cacheFlavour: .NO_CACHE).getBaseCurrency { ( result ) in
+            OrgAPIHandler(cacheFlavour: .noCache).getBaseCurrency { ( result ) in
                 completion( result )
             }
         }
@@ -101,8 +102,8 @@ public class ZCRMOrg : ZCRMOrgDelegate
             }
             else
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.INSUFFICIENT_DATA ) : BASE CURRENCY not found" )
-                completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.INSUFFICIENT_DATA, message : "BASE CURRENCY not found", details : nil) ) )
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.insufficientData ) : BASE CURRENCY not found" )
+                completion( .failure( ZCRMError.processingError( code : ErrorCode.insufficientData, message : "BASE CURRENCY not found", details : nil) ) )
             }
         }
     }

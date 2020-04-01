@@ -9,15 +9,15 @@
 internal class MetaDataAPIHandler : CommonAPIHandler
 {
     internal func getAllModules( modifiedSince : String?, completion: @escaping( Result.DataResponse< [ ZCRMModule ], BulkAPIResponse > ) -> () )
-	{
-		var allModules : [ZCRMModule] = [ZCRMModule]()
-		setUrlPath(urlPath: "settings/modules" )
-		setRequestMethod(requestMethod: .GET )
+    {
+        var allModules : [ZCRMModule] = [ZCRMModule]()
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.modules )" )
+        setRequestMethod(requestMethod: .get )
         if ( modifiedSince.notNilandEmpty)
         {
-			addRequestHeader(header: RequestParamKeys.ifModifiedSince , value: modifiedSince! )
+            addRequestHeader(header: RequestParamKeys.ifModifiedSince , value: modifiedSince! )
         }
-		let request : APIRequest = APIRequest(handler : self ) 
+        let request : APIRequest = APIRequest(handler : self )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getBulkAPIResponse { ( resultType ) in
@@ -29,8 +29,8 @@ internal class MetaDataAPIHandler : CommonAPIHandler
                     let modulesList:[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if modulesList.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_NIL) : \(ErrorMessage.RESPONSE_JSON_NIL_MSG)")
-                        completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.RESPONSE_NIL, message: ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                     for module in modulesList
@@ -46,13 +46,13 @@ internal class MetaDataAPIHandler : CommonAPIHandler
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
-	}
+    }
 
     internal func getModule( apiName : String, completion: @escaping( Result.DataResponse< ZCRMModule, APIResponse > ) -> () )
-	{
-		setUrlPath(urlPath: "settings/modules/\(apiName)" )
-		setRequestMethod(requestMethod: .GET )
-		let request : APIRequest = APIRequest(handler: self)
+    {
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.modules )/\(apiName)" )
+        setRequestMethod(requestMethod: .get )
+        let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
@@ -71,9 +71,9 @@ internal class MetaDataAPIHandler : CommonAPIHandler
             }
         }
     }
-	
-	private func getZCRMModule(moduleDetails : [String:Any]) throws -> ZCRMModule
-	{
+    
+    private func getZCRMModule(moduleDetails : [String:Any]) throws -> ZCRMModule
+    {
         let module : ZCRMModule = ZCRMModule( apiName : try moduleDetails.getString( key : ResponseJSONKeys.apiName ), singularLabel : try moduleDetails.getString( key : ResponseJSONKeys.singularLabel ), pluralLabel : try moduleDetails.getString( key : ResponseJSONKeys.pluralLabel ) )
         module.id = try moduleDetails.getInt64( key : ResponseJSONKeys.id )
         module.name = try moduleDetails.getString( key : ResponseJSONKeys.moduleName )
@@ -141,7 +141,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         }
         if(moduleDetails.hasValue(forKey: ResponseJSONKeys.customView))
         {
-            module.customView = try ModuleAPIHandler(module: module, cacheFlavour : .NO_CACHE).getZCRMCustomView(cvDetails: moduleDetails.getDictionary(key: ResponseJSONKeys.customView))
+            module.customView = try ModuleAPIHandler(module: module, cacheFlavour : .noCache).getZCRMCustomView(cvDetails: moduleDetails.getDictionary(key: ResponseJSONKeys.customView))
         }
         if (moduleDetails.hasValue( forKey : ResponseJSONKeys.kanbanView ))
         {
@@ -167,15 +167,15 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         }
         return module
     }
-	
-	private func setRelatedListProperties(relatedList : ZCRMModuleRelation, relatedListDetails : [String : Any]) throws
-	{
+    
+    private func setRelatedListProperties(relatedList : ZCRMModuleRelation, relatedListDetails : [String : Any]) throws
+    {
         relatedList.label = try relatedListDetails.getString(key: ResponseJSONKeys.displayLabel)
-		relatedList.module = try relatedListDetails.getString(key: ResponseJSONKeys.module)
-		relatedList.id = try relatedListDetails.getInt64(key: ResponseJSONKeys.id)
-		relatedList.isVisible = try relatedListDetails.getBoolean(key: ResponseJSONKeys.visible)
+        relatedList.module = try relatedListDetails.getString(key: ResponseJSONKeys.module)
+        relatedList.id = try relatedListDetails.getInt64(key: ResponseJSONKeys.id)
+        relatedList.isVisible = try relatedListDetails.getBoolean(key: ResponseJSONKeys.visible)
         relatedList.isDefault = (ResponseJSONKeys.defaultString == relatedListDetails.optString(key: ResponseJSONKeys.type))
-	}
+    }
     
     internal override func getJSONRootKey() -> String {
         return APIConstants.MODULES
@@ -229,5 +229,10 @@ fileprivate extension MetaDataAPIHandler
         static let visible = "visible"
         static let defaultString = "default"
         static let type = "type"
+    }
+    
+    struct URLPathConstants {
+        static let settings = "settings"
+        static let modules = "modules"
     }
 }

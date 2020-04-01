@@ -8,15 +8,15 @@
 internal class EmailAPIHandler : CommonAPIHandler
 {
     private var email : ZCRMEmail?
-    private var emailAttachmentUploadDelegate : EmailAttachmentUploadDelegate?
+    private var orgEmail : ZCRMOrgEmail?
     
     init( email : ZCRMEmail ) {
         self.email = email
     }
     
-    init( emailAttachmentUploadDelegate : EmailAttachmentUploadDelegate )
+    init( orgEmail : ZCRMOrgEmail )
     {
-        self.emailAttachmentUploadDelegate = emailAttachmentUploadDelegate
+        self.orgEmail = orgEmail
     }
     
     override init()
@@ -32,8 +32,8 @@ internal class EmailAPIHandler : CommonAPIHandler
             dataArray.append(self.getZCRMEmailAsJSON(email: email))
             reqBodyObj[getJSONRootKey()] = dataArray
             
-            setUrlPath( urlPath : "\( email.record.moduleAPIName )/\( email.record.id )/actions/send_mail" )
-            setRequestMethod(requestMethod: .POST)
+            setUrlPath( urlPath : "\( email.record.moduleAPIName )/\( email.record.id )/\( URLPathConstants.actions )/\( URLPathConstants.sendMail )" )
+            setRequestMethod(requestMethod: .post)
             setRequestBody(requestBody: reqBodyObj)
             let request : APIRequest = APIRequest(handler: self)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -48,8 +48,8 @@ internal class EmailAPIHandler : CommonAPIHandler
                     let responseDetails : [ String : Any ] = try responseJSONData.getDictionary( key : APIConstants.DETAILS )
                     if responseDetails.hasValue(forKey: ResponseJSONKeys.messageId) == false
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.VALUE_NIL) : \(ResponseJSONKeys.messageId) must not be nil")
-                        throw ZCRMError.InValidError(code: ErrorCode.VALUE_NIL, message: "\(ResponseJSONKeys.messageId) must not be nil", details : nil)
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.valueNil) : \(ResponseJSONKeys.messageId) must not be nil, \( APIConstants.DETAILS ) : -")
+                        throw ZCRMError.inValidError(code: ErrorCode.valueNil, message: "\(ResponseJSONKeys.messageId) must not be nil", details : nil)
                     }
                     email.messageId = try responseDetails.getString( key : ResponseJSONKeys.messageId )
                     response.setData( data : email )
@@ -64,18 +64,18 @@ internal class EmailAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : EMAIL must not be nil")
-            completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "EMAIL must not be nil", details : nil ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : EMAIL must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: "EMAIL must not be nil", details : nil ) ) )
         }
     }
     
     internal func viewMail( record : ZCRMRecordDelegate, userId : Int64, messageId : String, completion : @escaping( Result.DataResponse< ZCRMEmail, APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.EMAIL_RELATED_LIST)
-        setUrlPath( urlPath : "\( record.moduleAPIName )/\( record.id )/Emails" )
+        setUrlPath( urlPath : "\( record.moduleAPIName )/\( record.id )/\( URLPathConstants.Emails )" )
         addRequestParam(param: RequestParamKeys.userId, value: String(userId))
         addRequestParam(param: RequestParamKeys.messageId, value: messageId)
-        setRequestMethod(requestMethod: .GET)
+        setRequestMethod(requestMethod: .get)
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
@@ -100,39 +100,173 @@ internal class EmailAPIHandler : CommonAPIHandler
         }
     }
     
+    
+    internal func buildDownloadInlineImageRequest(imageId : String) throws {
+        guard let email = self.email else
+        {
+            throw ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: " EMAIL must not be nil", details : nil )
+        }
+        if !email.didSend {
+            throw ZCRMError.processingError( code: ErrorCode.processingError, message: "Only sent messages can be used to perform download operations", details : nil )
+        }
+        setJSONRootKey(key: JSONRootKey.NIL)
+        self.setIsEmail( true )
+        let urlString = "\( email.record.moduleAPIName )/\( email.record.id )/\( URLPathConstants.Emails )/\( URLPathConstants.inlineImages )"
+        addRequestParam(param: RequestParamKeys.userId, value: String( email.userId ))
+        addRequestParam(param: RequestParamKeys.messageId, value: email.messageId)
+        addRequestParam(param: RequestParamKeys.id, value: imageId)
+        setUrlPath(urlPath: urlString)
+        setRequestMethod(requestMethod: .get)
+    }
+    
+    internal func downloadInlineImage( imageId : String, completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
+    {
+        do {
+            try buildDownloadInlineImageRequest(imageId: imageId)
+            let request : FileAPIRequest = FileAPIRequest(handler : self)
+            ZCRMLogger.logDebug(message: "Request : \( request.toString() )")
+            
+            request.downloadFile { ( resultType ) in
+                do
+                {
+                    switch resultType
+                    {
+                    case .success(let response) :
+                        completion( .success( response ) )
+                    case .failure(let error) :
+                        completion( .failure( typeCastToZCRMError( error ) ) )
+                    }
+                }
+            }
+        } catch {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( error )")
+            completion( .failure( typeCastToZCRMError( error )))
+        }
+    }
+    
+    internal func downloadInlineImage( imageId : String, fileDownloadDelegate : ZCRMFileDownloadDelegate ) throws
+    {
+        do {
+            try buildDownloadInlineImageRequest(imageId: imageId)
+            let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate, imageId )
+            ZCRMLogger.logDebug(message: "Request : \( request.toString() )")
+            
+            request.downloadFile()
+        } catch {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( error )")
+            throw typeCastToZCRMError( error )
+        }
+    }
+    
+    func buildDownloadAttachmentRequest( email : ZCRMEmail, attachmentId : String?, fileName : String? ) throws
+    {
+        setJSONRootKey( key : JSONRootKey.NIL )
+        self.setIsEmail( true )
+        let urlString = "\( email.record.moduleAPIName )/\( email.record.id )/\( URLPathConstants.Emails )/\( URLPathConstants.attachments )"
+        guard email.didSend else
+        {
+            throw ZCRMError.processingError( code: ErrorCode.processingError, message: "Only sent messages can be used to perform download operations", details : nil )
+        }
+        addRequestParam(param: RequestParamKeys.messageId, value: email.messageId)
+        addRequestParam( param : RequestParamKeys.userId, value : String( email.userId ) )
+        if let attachmentId = attachmentId
+        {
+            addRequestParam(param: RequestParamKeys.id, value: attachmentId)
+        }
+        if let fileName = fileName
+        {
+            addRequestParam( param : RequestParamKeys.name, value : fileName )
+        }
+        setUrlPath(urlPath: urlString)
+        
+        setRequestMethod(requestMethod: .get )
+    }
+    
     internal func downloadAttachment( attachmentId : String?, fileName : String?, completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
     {
-        if let email = self.email
+        do
         {
-            setJSONRootKey( key : JSONRootKey.NIL )
-            self.setIsEmail( true )
-            let urlString = "\( email.record.moduleAPIName )/\( email.record.id )/Emails/attachments"
-            guard !email.isSend else
+            guard let email = self.email else
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : USER ID and MESSAGE ID must not be nil")
-                completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "USER ID and MESSAGE ID must not be nil", details : nil ) ) )
-                return
+                throw ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: " EMAIL must not be nil", details : nil )
             }
-            addRequestParam(param: RequestParamKeys.messageId, value: email.messageId)
-            addRequestParam( param : RequestParamKeys.userId, value : String( email.userId ) )
-            if let attachmentId = attachmentId
-            {
-                addRequestParam(param: RequestParamKeys.id, value: attachmentId)
-            }
-            if let fileName = fileName
-            {
-                addRequestParam( param : RequestParamKeys.name, value : fileName )
-            }
-            setUrlPath(urlPath: urlString)
-            
-            setRequestMethod(requestMethod: .GET )
+            try buildDownloadAttachmentRequest( email : email, attachmentId: attachmentId, fileName: fileName )
             let request : FileAPIRequest = FileAPIRequest(handler: self)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
             
             request.downloadFile { ( resultType ) in
+                switch resultType
+                {
+                case .success(let fileResponse) :
+                    completion( .success( fileResponse ) )
+                case .failure(let error) :
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+        }
+        catch
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( error )")
+            completion( .failure( typeCastToZCRMError( error )))
+        }
+    }
+    
+    internal func downloadAttachment( attachmentId : String?, fileName : String?, fileDownloadDelegate : ZCRMFileDownloadDelegate ) throws
+    {
+        do
+        {
+            guard let email = self.email else
+            {
+                throw ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: " EMAIL must not be nil", details : nil )
+            }
+            try buildDownloadAttachmentRequest( email : email, attachmentId: attachmentId, fileName: fileName )
+            let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate, attachmentId ?? fileName ?? email.messageId )
+            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+            
+            request.downloadFile()
+        }
+        catch
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( error )")
+            throw typeCastToZCRMError( error )
+        }
+    }
+    
+    internal func createOrgEmail( completion : @escaping( Result.DataResponse< ZCRMOrgEmail, APIResponse > ) -> () )
+    {
+        if let orgEmail = self.orgEmail
+        {
+            setJSONRootKey(key: JSONRootKey.ORG_EMAILS)
+            var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
+            var dataArray : [[String:Any]] = [[String:Any]]()
+            do
+            {
+                dataArray.append(try self.getZCRMOrgEmailAsJSON(orgEmail: orgEmail))
+            }
+            catch
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+            reqBodyObj[getJSONRootKey()] = dataArray
+            
+            setUrlPath(urlPath: "\(URLPathConstants.settings)/\(URLPathConstants.emails)/\(URLPathConstants.orgEmails)")
+            setRequestMethod(requestMethod: .post)
+            setRequestBody(requestBody: reqBodyObj)
+            
+            let request : APIRequest = APIRequest(handler: self)
+            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+            
+            request.getAPIResponse { ( resultType ) in
                 do{
                     let response = try resultType.resolve()
-                    completion( .success( response ) )
+                    let responseJSON = response.getResponseJSON()
+                    let responseJSONArray  = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                    let responseJSONData = responseJSONArray[ 0 ]
+                    let responseDetails : [ String : Any ] = try responseJSONData.getDictionary( key : APIConstants.DETAILS )
+                    let createdMail = try self.getZCRMOrgEmail(orgEmail: orgEmail, orgEmailDetails: responseDetails)
+                    response.setData( data : createdMail )
+                    completion( .success( createdMail, response ) )
                 }
                 catch{
                     ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
@@ -142,53 +276,154 @@ internal class EmailAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : EMAIL must not be nil")
-            completion( .failure( ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: " EMAIL must not be nil", details : nil ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : ORG EMAIL must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: "ORG EMAIL must not be nil", details : nil ) ) )
         }
     }
     
-    internal func downloadAttachment( attachmentId : String?, fileName : String?, fileDownloadDelegate : FileDownloadDelegate ) throws
+    //MARK:- To confirm the email id given
+    internal func confirmation( withCode : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        if let email = self.email
+        if let orgEmail = self.orgEmail
         {
-            setJSONRootKey( key : JSONRootKey.NIL )
-            self.setIsEmail( true )
-            let urlString = "\( email.record.moduleAPIName )/\( email.record.id )/Emails/attachments"
-            guard !email.isSend else
+            if !orgEmail.isCreate
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : USER ID and MESSAGE ID must not be nil")
-                throw ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: "USER ID and MESSAGE ID must not be nil", details : nil )
+                setJSONRootKey(key: JSONRootKey.ORG_EMAILS)
+                setUrlPath(urlPath: "\(URLPathConstants.settings)/\(URLPathConstants.emails)/\(URLPathConstants.orgEmails)/\(String(orgEmail.id))/\( URLPathConstants.actions )/\( URLPathConstants.confirm )")
+                addRequestParam(param: RequestParamKeys.code, value: withCode)
+                setRequestMethod(requestMethod: .post)
+                let request : APIRequest = APIRequest(handler: self)
+                ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+                
+                request.getAPIResponse { ( resultType ) in
+                    do{
+                        let response = try resultType.resolve()
+                        completion( .success( response ) )
+                    }
+                    catch{
+                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                        completion( .failure( typeCastToZCRMError( error ) ) )
+                    }
+                }
             }
-            addRequestParam(param: RequestParamKeys.messageId, value: email.messageId)
-            addRequestParam( param : RequestParamKeys.userId, value : String( email.userId ) )
-            if let attachmentId = attachmentId
+            else
             {
-                addRequestParam(param: RequestParamKeys.id, value: attachmentId)
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : ORG EMAIL ID must not be nil, \( APIConstants.DETAILS ) : -")
+                completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: "ORG EMAIL ID must not be nil", details : nil ) ) )
             }
-            if let fileName = fileName
-            {
-                addRequestParam( param : RequestParamKeys.name, value : fileName )
-            }
-            setUrlPath(urlPath: urlString)
-            
-            setRequestMethod(requestMethod: .GET )
-            let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate)
-            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-            
-            request.downloadFile()
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : EMAIL must not be nil")
-            throw ZCRMError.ProcessingError( code: ErrorCode.MANDATORY_NOT_FOUND, message: " EMAIL must not be nil", details : nil )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : ORG EMAIL must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: "ORG EMAIL must not be nil", details : nil ) ) )
+        }
+    }
+    
+    internal func resendConfirmationCode( completion : @escaping( Result.Response< APIResponse > ) -> () )
+    {
+        if let orgEmail = self.orgEmail
+        {
+            if !orgEmail.isCreate
+            {
+                setJSONRootKey(key: JSONRootKey.ORG_EMAILS)
+                setUrlPath(urlPath: "\(URLPathConstants.settings)/\(URLPathConstants.emails)/\(URLPathConstants.orgEmails)/\(String(orgEmail.id))/\( URLPathConstants.actions )/\( URLPathConstants.resendConfirmEmail )")
+                setRequestMethod(requestMethod: .post)
+                let request : APIRequest = APIRequest(handler: self)
+                ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+                
+                request.getAPIResponse { ( resultType ) in
+                    do{
+                        let response = try resultType.resolve()
+                        completion( .success( response ) )
+                    }
+                    catch{
+                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                        completion( .failure( typeCastToZCRMError( error ) ) )
+                    }
+                }
+            }
+            else
+            {
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : ORG EMAIL ID must not be nil, \( APIConstants.DETAILS ) : -")
+                completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: "ORG EMAIL ID must not be nil", details : nil ) ) )
+            }
+        }
+        else
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : ORG EMAIL must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: "ORG EMAIL must not be nil", details : nil ) ) )
+        }
+    }
+    
+    internal func getOrgEmail( id : Int64, completion : @escaping( Result.DataResponse< ZCRMOrgEmail, APIResponse > ) -> () )
+    {
+        setJSONRootKey(key: JSONRootKey.ORG_EMAILS)
+        setUrlPath(urlPath: "\(URLPathConstants.settings)/\(URLPathConstants.emails)/\(URLPathConstants.orgEmails)/\(String(id))")
+        setRequestMethod(requestMethod: .get)
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getAPIResponse { ( resultType ) in
+            do
+            {
+                let response = try resultType.resolve()
+                let responseJSON = response.getResponseJSON()
+                let orgEmailList:[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                var orgEmail : ZCRMOrgEmail = ZCRMOrgEmail( id : try orgEmailList[ 0 ].getInt64( key : ResponseJSONKeys.id ) )
+                orgEmail = try self.getZCRMOrgEmail(orgEmail: orgEmail, orgEmailDetails: orgEmailList[0])
+                response.setData(data: orgEmail )
+                completion( .success( orgEmail, response ) )
+            }
+            catch
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func getOrgEmails( completion : @escaping( Result.DataResponse< [ ZCRMOrgEmail ], BulkAPIResponse > ) -> () )
+    {
+        var orgEmails : [ZCRMOrgEmail] = [ZCRMOrgEmail]()
+        setJSONRootKey(key: JSONRootKey.ORG_EMAILS)
+        setUrlPath(urlPath: "\(URLPathConstants.settings)/\(URLPathConstants.emails)/\(URLPathConstants.orgEmails)")
+        setRequestMethod(requestMethod: .get)
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getBulkAPIResponse { ( resultType ) in
+            do{
+                let bulkResponse = try resultType.resolve()
+                let responseJSON = bulkResponse.getResponseJSON()
+                if responseJSON.isEmpty == false
+                {
+                    let orgEmailsList:[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                    if orgEmailsList.isEmpty == true
+                    {
+                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        return
+                    }
+                    for orgEmailList in orgEmailsList
+                    {
+                        let orgEmail = ZCRMOrgEmail( id : try orgEmailList.getInt64( key : ResponseJSONKeys.id ) )
+                        orgEmails.append( try self.getZCRMOrgEmail(orgEmail: orgEmail, orgEmailDetails: orgEmailList))
+                    }
+                }
+                bulkResponse.setData(data: orgEmails)
+                completion( .success( orgEmails, bulkResponse ) )
+            }
+            catch{
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
         }
     }
     
     internal func delete( id : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.ORG_EMAILS)
-        setUrlPath(urlPath: "\(APIConstants.SETTINGS)/\(APIConstants.EMAILS)/\(APIConstants.ORG_EMAILS)/\(String(id))" )
-        setRequestMethod(requestMethod: .DELETE )
+        setUrlPath(urlPath: "\(URLPathConstants.settings)/\(URLPathConstants.emails)/\(URLPathConstants.orgEmails)/\(String(id))" )
+        setRequestMethod(requestMethod: .delete )
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
@@ -245,6 +480,13 @@ internal class EmailAPIHandler : CommonAPIHandler
         if emailDetails.hasValue(forKey: ResponseJSONKeys.content)
         {
             email.content = try emailDetails.getString( key : ResponseJSONKeys.content )
+            
+            if let content = email.content {
+                let inlineImageIds = getIdsFromEmail( content )
+                if !inlineImageIds.isEmpty {
+                    email.inlineImageIds = inlineImageIds
+                }
+            }
         }
         if emailDetails.hasValue(forKey: ResponseJSONKeys.attachments)
         {
@@ -263,16 +505,16 @@ internal class EmailAPIHandler : CommonAPIHandler
             let sentimentDet = try emailDetails.getString( key : ResponseJSONKeys.sentimentDetails )
             guard let sentiment = ZCRMEmail.SentimentDetails(rawValue: sentimentDet) else
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.INVALID_DATA) : \(ResponseJSONKeys.sentimentDetails) has invalid value")
-                throw ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : "\(ResponseJSONKeys.sentimentDetails) has invalid value", details : nil )
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : \(ResponseJSONKeys.sentimentDetails) has invalid value, \( APIConstants.DETAILS ) : -")
+                throw ZCRMError.inValidError( code : ErrorCode.invalidData, message : "\(ResponseJSONKeys.sentimentDetails) has invalid value", details : nil )
             }
             email.sentimentDetails = sentiment
         }
         let mailFormat = try emailDetails.getString( key : ResponseJSONKeys.mailFormat )
         guard let format = ZCRMEmail.MailFormat(rawValue: mailFormat) else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.INVALID_DATA) : \(ResponseJSONKeys.mailFormat) has invalid value")
-            throw ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : "\(ResponseJSONKeys.mailFormat) has invalid value", details : nil )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : \(ResponseJSONKeys.mailFormat) has invalid value, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.inValidError( code : ErrorCode.invalidData, message : "\(ResponseJSONKeys.mailFormat) has invalid value", details : nil )
         }
         email.mailFormat = format
         if emailDetails.hasValue(forKey: ResponseJSONKeys.editable)
@@ -301,8 +543,8 @@ internal class EmailAPIHandler : CommonAPIHandler
             let paperType = try emailDetails.getString( key : ResponseJSONKeys.paperType )
             guard let paperTypeEnum = ZCRMEmail.PaperType(rawValue: paperType) else
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.INVALID_DATA) : \(ResponseJSONKeys.paperType) has invalid value")
-                throw ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : "\(ResponseJSONKeys.paperType) has invalid value", details : nil )
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : \(ResponseJSONKeys.paperType) has invalid value, \( APIConstants.DETAILS ) : -")
+                throw ZCRMError.inValidError( code : ErrorCode.invalidData, message : "\(ResponseJSONKeys.paperType) has invalid value", details : nil )
             }
             email.paperType = paperTypeEnum
         }
@@ -311,8 +553,8 @@ internal class EmailAPIHandler : CommonAPIHandler
             let viewType = try emailDetails.getString( key : ResponseJSONKeys.viewType )
             guard let viewTypeEnum = ZCRMEmail.ViewType(rawValue: viewType) else
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.INVALID_DATA) : \(ResponseJSONKeys.viewType) has invalid value")
-                throw ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : "\(ResponseJSONKeys.viewType) has invalid value", details : nil )
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : \(ResponseJSONKeys.viewType) has invalid value, \( APIConstants.DETAILS ) : -")
+                throw ZCRMError.inValidError( code : ErrorCode.invalidData, message : "\(ResponseJSONKeys.viewType) has invalid value", details : nil )
             }
             email.viewType = viewTypeEnum
         }
@@ -328,7 +570,7 @@ internal class EmailAPIHandler : CommonAPIHandler
         {
             email.scheduledTime = try emailDetails.getString( key : ResponseJSONKeys.scheduledTime )
         }
-        email.isSend = false
+        email.didSend = true
         return email
     }
     
@@ -351,6 +593,28 @@ internal class EmailAPIHandler : CommonAPIHandler
             user.name = try userJSON.getString(key: ResponseJSONKeys.userName)
         }
         return user
+    }
+    
+    private func getZCRMOrgEmail(orgEmail : ZCRMOrgEmail, orgEmailDetails : [String : Any]) throws -> ZCRMOrgEmail
+    {
+        orgEmail.id = try orgEmailDetails.getInt64( key : ResponseJSONKeys.id )
+        if orgEmailDetails.hasValue(forKey: ResponseJSONKeys.confirm)
+        {
+            orgEmail.isConfirmed = try orgEmailDetails.getBoolean(key: ResponseJSONKeys.confirm)
+        }
+        orgEmail.name = try orgEmailDetails.getString( key : ResponseJSONKeys.displayName )
+        if orgEmailDetails.hasValue(forKey: ResponseJSONKeys.email)
+        {
+            orgEmail.email = try orgEmailDetails.getString( key : ResponseJSONKeys.email )
+        }
+        let profilesDet : [ [ String : Any ] ] = try orgEmailDetails.getArrayOfDictionaries( key : ResponseJSONKeys.profiles )
+        for profileDet in profilesDet
+        {
+            var profile : ZCRMProfileDelegate
+            profile = ZCRMProfileDelegate( id : try profileDet.getInt64( key : ResponseJSONKeys.id ), name : try profileDet.getString( key : ResponseJSONKeys.name ) )
+            orgEmail.addAccessibleProfile(profile: profile)
+        }
+        return orgEmail
     }
     
     private func getZCRMEmailAsJSON( email : ZCRMEmail ) -> [String:Any]
@@ -463,15 +727,36 @@ internal class EmailAPIHandler : CommonAPIHandler
         }
         return attachmentsJSON
     }
+    
+    private func getZCRMOrgEmailAsJSON( orgEmail : ZCRMOrgEmail ) throws -> [String:Any]
+    {
+        var orgEmailDetails : [String:Any] = [String:Any]()
+        var profilesDetails : [[String:Any]] = [[String:Any]]()
+        orgEmailDetails.updateValue( orgEmail.name, forKey : ResponseJSONKeys.displayName )
+        orgEmailDetails.updateValue( orgEmail.email, forKey : ResponseJSONKeys.email )
+        if orgEmail.accessibleProfiles.isEmpty == true
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.valueNil) : \(ResponseJSONKeys.profiles) must not be nil, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.inValidError( code : ErrorCode.valueNil, message : "\( ResponseJSONKeys.profiles ) must not be nil", details : nil )
+        }
+        for profile in orgEmail.accessibleProfiles
+        {
+            var profileDetails : [String:Any] = [String:Any]()
+            profileDetails.updateValue( profile.id, forKey : ResponseJSONKeys.id )
+            profilesDetails.append(profileDetails)
+        }
+        orgEmailDetails.updateValue( profilesDetails, forKey : ResponseJSONKeys.profiles )
+        return orgEmailDetails
+    }
 }
 
-extension EmailAPIHandler : FileUploadDelegate
+extension EmailAPIHandler
 {
     internal func uploadAttachment( filePath : String?, fileName : String?, fileData : Data?, inline : Bool, sendMail : Bool, completion : @escaping( Result.DataResponse< String, APIResponse > ) -> () )
     {
         do
         {
-            try fileDetailCheck( filePath : filePath, fileData : fileData )
+            try fileDetailCheck( filePath : filePath, fileData : fileData, maxFileSize: MaxFileSize.emailAttachment )
         }
         catch
         {
@@ -480,8 +765,8 @@ extension EmailAPIHandler : FileUploadDelegate
             return
         }
         setJSONRootKey(key: JSONRootKey.NIL)
-        setUrlPath(urlPath: "emails/attachments/upload" )
-        setRequestMethod(requestMethod: .POST )
+        setUrlPath(urlPath: "\( URLPathConstants.emails )/\( URLPathConstants.attachments )/\( URLPathConstants.upload )" )
+        setRequestMethod(requestMethod: .post )
         if inline && sendMail
         {
             addRequestParam( param : RequestParamKeys.inline, value : String( inline ) )
@@ -520,55 +805,48 @@ extension EmailAPIHandler : FileUploadDelegate
         }
     }
     
-    internal func uploadAttachment( filePath : String?, fileName : String?, fileData : Data?, inline : Bool, sendMail : Bool )
+    internal func uploadAttachment( fileRefId : String, filePath : String?, fileName : String?, fileData : Data?, inline : Bool, sendMail : Bool, emailAttachmentUploadDelegate : ZCRMEmailAttachmentUploadDelegate )
     {
         do
         {
-            try fileDetailCheck( filePath : filePath, fileData : fileData )
+            try fileDetailCheck( filePath : filePath, fileData : fileData, maxFileSize: MaxFileSize.emailAttachment )
         }
         catch
         {
             ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-            self.emailAttachmentUploadDelegate?.didFail( typeCastToZCRMError( error ) )
+            emailAttachmentUploadDelegate.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
             return
         }
         setJSONRootKey(key: JSONRootKey.NIL)
-        setUrlPath(urlPath: "emails/attachments/upload" )
-        setRequestMethod(requestMethod: .POST )
+        setUrlPath(urlPath: "\( URLPathConstants.emails )/\( URLPathConstants.attachments )/\( URLPathConstants.upload )" )
+        setRequestMethod(requestMethod: .post )
         if inline && sendMail
         {
             addRequestParam( param : RequestParamKeys.inline, value : String( inline ) )
             addRequestParam( param : RequestParamKeys.sendMail, value : String( sendMail ) )
         }
-        let request : FileAPIRequest = FileAPIRequest( handler : self, fileUploadDelegate : self )
+        let request : FileAPIRequest = FileAPIRequest( handler : self, fileUploadDelegate : emailAttachmentUploadDelegate, fileRefId: fileRefId )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
-        if let filePath = filePath
-        {
-            request.uploadFile( filePath : filePath, entity : nil )
-        }
-        else if let fileName = fileName, let fileData = fileData
-        {
-            request.uploadFile( fileName : fileName, entity : nil, fileData : fileData )
-        }
-    }
-    
-    func progress( session : URLSession, sessionTask : URLSessionTask, progressPercentage : Double, totalBytesSent : Int64, totalBytesExpectedToSend : Int64 )
-    {
-        emailAttachmentUploadDelegate?.progress(session: session, sessionTask: sessionTask, progressPercentage: progressPercentage, totalBytesSent: totalBytesSent, totalBytesExpectedToSend: totalBytesExpectedToSend)
-    }
-    
-    func didFinish( _ apiResponse : APIResponse )
-    {
-        do
-        {
-            let attachmentId = try self.getAttachmentIdFrom( response : apiResponse )
-            emailAttachmentUploadDelegate?.didFinish( apiResponse )
-            emailAttachmentUploadDelegate?.getAttachmentId( id : attachmentId )
-        }
-        catch
-        {
-            emailAttachmentUploadDelegate?.didFail( typeCastToZCRMError( error ) )
+        var emailAPIHandler : EmailAPIHandler? = self
+        request.uploadFile(fileRefId: fileRefId, filePath: filePath, fileName: fileName, fileData: fileData, entity: nil) { result, response in
+            if result
+            {
+                guard let response = response else {
+                    emailAPIHandler = nil
+                    return
+                }
+                do
+                {
+                    guard let attachmentId = try emailAPIHandler?.getAttachmentIdFrom( response : response ) else { return }
+                    emailAttachmentUploadDelegate.getAttachmentId( attachmentId, fileRefId: fileRefId )
+                }
+                catch
+                {
+                    emailAttachmentUploadDelegate.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
+                }
+            }
+            emailAPIHandler = nil
         }
     }
     
@@ -577,11 +855,6 @@ extension EmailAPIHandler : FileUploadDelegate
         let responseJSON = response.getResponseJSON()
         let attachmentId = try responseJSON.getString( key : JSONRootKey.DATA )
         return attachmentId
-    }
-    
-    func didFail( _ withError : ZCRMError? )
-    {
-        emailAttachmentUploadDelegate?.didFail( withError )
     }
 }
 
@@ -622,11 +895,25 @@ extension EmailAPIHandler
         static let editable = "editable"
         static let sentTime = "sent_time"
     }
+    
+    struct URLPathConstants {
+        static let actions = "actions"
+        static let sendMail = "send_mail"
+        static let Emails = "Emails"
+        static let inlineImages = "inline_images"
+        static let attachments = "attachments"
+        static let resendConfirmEmail = "resend_confirm_email"
+        static let upload = "upload"
+        static let emails = "emails"
+        static let confirm = "confirm"
+        static let orgEmails = "org_emails"
+        static let settings = "settings"
+    }
 }
 
-public protocol EmailAttachmentUploadDelegate : FileUploadDelegate
+public protocol ZCRMEmailAttachmentUploadDelegate : ZCRMFileUploadDelegate
 {
-    func getAttachmentId( id : String )
+    func getAttachmentId( _ id : String, fileRefId : String )
 }
 
 extension RequestParamKeys
@@ -637,4 +924,50 @@ extension RequestParamKeys
     static let name = "name"
     static let userId = "user_id"
     static let messageId = "message_id"
+}
+
+/**
+ To seperate the inline image ids from the content of the email.
+ 
+ - parameters:
+    - content : Content of the email
+ 
+ - returns: An array of string containing the ids of the inline images
+ */
+internal func getIdsFromEmail(_ content : String) -> [String] {
+    let pattern = "(?<=(img_id:))[a-zA-Z0-9]+(?=(\"))"
+    let matched = findMatch(for: pattern, in: content)
+    var imageIds : [String] = [String]()
+    for match in matched {
+        imageIds.append(match)
+    }
+    return imageIds
+}
+
+/**
+ To find the matching pattern in the content of the email to get the array of inline image ids
+ 
+ - parameters:
+    - regex : The regex that needs to be matched
+    - text : The text from which the ids needs to be seperated
+ 
+ - returns: An array of string containing the inline image ids
+ */
+func findMatch(for regex: String, in text: String) -> [String] {
+    
+    do {
+        let regex = try NSRegularExpression(pattern: regex)
+        let results = regex.matches(in: text, range: NSRange(location: 0, length: text.utf8.count))
+        var inlineAttachmentIds : [String] = [String]()
+        _ = results.map {
+            guard let range = Range($0.range, in: text) else {
+                return
+            }
+            inlineAttachmentIds.append(String(text[range]))
+        }
+        return inlineAttachmentIds
+    } catch {
+        ZCRMLogger.logDebug(message: "ZCRM SDK - Invalid RegEx \(error)")
+        return []
+    }
 }

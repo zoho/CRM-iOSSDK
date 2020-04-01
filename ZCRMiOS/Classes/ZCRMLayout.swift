@@ -16,19 +16,33 @@ open class ZCRMLayout : ZCRMLayoutDelegate
     public internal( set ) var status : Int = APIConstants.INT_MOCK
     public internal( set ) var sections : [ ZCRMSection ] = [ ZCRMSection ]()
     public internal( set ) var accessibleProfiles : [ ZCRMProfileDelegate ] = [ ZCRMProfileDelegate ]()
-	
+    
     init( name : String )
     {
         super.init( id : APIConstants.INT64_MOCK, name : name )
     }
-	
+    
     /// Add ZCRMSection to the ZCRMLayout.
     ///
     /// - Parameter section: ZCRMSection to be added
-	internal func addSection(section : ZCRMSection)
-	{
+    internal func addSection(section : ZCRMSection)
+    {
         self.sections.append(section)
-	}
+    }
+    
+    public func getPipelines( completion : @escaping( Result.DataResponse< [ ZCRMPipeline ], BulkAPIResponse > ) -> () )
+    {
+        PipelineAPIHandler( cache : .urlVsResponse ).getPipelines( layoutId : self.id ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getPipelinesFromServer( completion : @escaping( Result.DataResponse< [ ZCRMPipeline ], BulkAPIResponse > ) -> () )
+    {
+        PipelineAPIHandler( cache : .noCache ).getPipelines( layoutId : self.id ) { ( result ) in
+            completion( result )
+        }
+    }
 }
 
 extension ZCRMLayout

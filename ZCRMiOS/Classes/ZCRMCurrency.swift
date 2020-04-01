@@ -35,4 +35,30 @@ open class ZCRMCurrency : ZCRMEntity
         public internal( set ) var thousandSeparator : String
         public internal( set ) var decimalPlaces : Int
     }
+    
+    
+    internal enum Separator: String {
+        case comma = "Comma"
+        case period = "Period"
+        case space = "Space"
+        
+        static func get(forValue value : String) throws -> String {
+            guard let symbol = Separator(rawValue: value)?.getSymbol else {
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : The Given Value Seems To Be Invalid")
+                throw ZCRMError.inValidError( code : ErrorCode.invalidData, message : "The Given Value Seems To Be Invalid", details : nil )
+            }
+            return symbol
+        }
+        
+        var getSymbol : String {
+            switch self {
+            case .comma:
+                return ","
+            case .period:
+                return "."
+            case .space:
+                return " "
+            }
+        }
+    }
 }

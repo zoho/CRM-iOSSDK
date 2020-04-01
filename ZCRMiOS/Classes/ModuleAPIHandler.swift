@@ -8,31 +8,35 @@
 
 internal class ModuleAPIHandler : CommonAPIHandler
 {
-    private let module : ZCRMModuleDelegate
-    private let cache : CacheFlavour
+    let module : ZCRMModuleDelegate
+    let cache : CacheFlavour
     
     init( module : ZCRMModuleDelegate, cacheFlavour : CacheFlavour )
     {
         self.module = module
         self.cache = cacheFlavour
     }
-	
-	// MARK: - Handler functions
+    
+    override func setModuleName() {
+        self.requestedModule = module.apiName
+    }
+    
+    // MARK: - Handler functions
     internal func getAllLayouts( modifiedSince : String?, completion: @escaping( Result.DataResponse< [ ZCRMLayout ], BulkAPIResponse > ) -> () )
     {
         setIsCacheable(true)
-		setJSONRootKey( key : JSONRootKey.LAYOUTS )
+        setJSONRootKey( key : JSONRootKey.LAYOUTS )
         var layouts : [ZCRMLayout] = [ZCRMLayout]()
-		setUrlPath(urlPath: "settings/layouts")
-		setRequestMethod(requestMethod: .GET )
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.layouts )")
+        setRequestMethod(requestMethod: .get )
         addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
-		if modifiedSince.notNilandEmpty, let modifiedSince = modifiedSince
-		{ 
-			addRequestHeader( header : RequestParamKeys.ifModifiedSince , value : modifiedSince )
-		}
-		let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+        if modifiedSince.notNilandEmpty, let modifiedSince = modifiedSince
+        {
+            addRequestHeader( header : RequestParamKeys.ifModifiedSince , value : modifiedSince )
+        }
+        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-		
+        
         request.getBulkAPIResponse { ( resultType ) in
             do{
                 let bulkResponse = try resultType.resolve()
@@ -42,8 +46,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
                     layouts = try self.getAllLayouts( layoutsList : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )
                     if layouts.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_NIL) : \(ErrorMessage.RESPONSE_JSON_NIL_MSG)")
-                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                 }
@@ -61,12 +65,12 @@ internal class ModuleAPIHandler : CommonAPIHandler
     {
         setIsCacheable(true)
         setJSONRootKey( key : JSONRootKey.LAYOUTS )
-		setUrlPath(urlPath:  "settings/layouts/\(layoutId)")
-		setRequestMethod(requestMethod: .GET )
-		addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
-		let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
-		ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-		
+        setUrlPath(urlPath:  "\( URLPathConstants.settings )/\( URLPathConstants.layouts )/\(layoutId)")
+        setRequestMethod(requestMethod: .get )
+        addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
+        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
         request.getAPIResponse { ( resultType ) in
             do{
                 let response = try resultType.resolve()
@@ -88,16 +92,16 @@ internal class ModuleAPIHandler : CommonAPIHandler
         setIsCacheable( true )
         setJSONRootKey( key : JSONRootKey.FIELDS )
         var fields : [ZCRMField] = [ZCRMField]()
-        setUrlPath(urlPath: "settings/fields")
-        setRequestMethod(requestMethod: .GET )
-		addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.fields )")
+        setRequestMethod(requestMethod: .get )
+        addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
         if modifiedSince.notNilandEmpty, let modifiedSince = modifiedSince
         {
             addRequestHeader( header : RequestParamKeys.ifModifiedSince , value : modifiedSince )
         }
-		let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-		
+        
         request.getBulkAPIResponse { ( resultType ) in
             do{
                 let bulkResponse = try resultType.resolve()
@@ -107,8 +111,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
                     fields = try self.getAllFields( allFieldsDetails : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )
                     if fields.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_NIL) : \(ErrorMessage.RESPONSE_JSON_NIL_MSG)")
-                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                 }
@@ -126,8 +130,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
     {
         setIsCacheable(true)
         setJSONRootKey( key : JSONRootKey.FIELDS )
-        setUrlPath( urlPath : "settings/fields/\( fieldId )" )
-        setRequestMethod( requestMethod : .GET )
+        setUrlPath( urlPath : "\( URLPathConstants.settings )/\( URLPathConstants.fields )/\( fieldId )" )
+        setRequestMethod( requestMethod : .get )
         addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
         let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -152,16 +156,16 @@ internal class ModuleAPIHandler : CommonAPIHandler
     {
         setIsCacheable(true)
         setJSONRootKey( key : JSONRootKey.CUSTOM_VIEWS )
-		setUrlPath(urlPath: "settings/custom_views")
-		setRequestMethod(requestMethod: .GET )
-		addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.customViews )")
+        setRequestMethod(requestMethod: .get )
+        addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
         if modifiedSince.notNilandEmpty, let modifiedSince = modifiedSince
         {
             addRequestHeader( header : RequestParamKeys.ifModifiedSince , value : modifiedSince )
         }
-		let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-		
+        
         request.getBulkAPIResponse { ( resultType ) in
             do{
                 let bulkResponse = try resultType.resolve()
@@ -172,8 +176,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
                     let allCVsList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if allCVsList.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_NIL) : \(ErrorMessage.RESPONSE_JSON_NIL_MSG)")
-                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                     for cvDetails in allCVsList
@@ -195,8 +199,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
     {
         setIsCacheable(true)
         setJSONRootKey( key : JSONRootKey.RELATED_LISTS )
-        setUrlPath( urlPath : "settings/related_lists/\(id)" )
-        setRequestMethod( requestMethod : .GET )
+        setUrlPath( urlPath : "\( URLPathConstants.settings )/\( URLPathConstants.relatedLists )/\(id)" )
+        setRequestMethod( requestMethod : .get )
         addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
         let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -221,8 +225,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
         setIsCacheable(true)
         setJSONRootKey( key : JSONRootKey.RELATED_LISTS )
         var relatedLists : [ZCRMModuleRelation] = [ZCRMModuleRelation]()
-        setUrlPath( urlPath : "settings/related_lists" )
-        setRequestMethod( requestMethod : .GET )
+        setUrlPath( urlPath : "\( URLPathConstants.settings )/\( URLPathConstants.relatedLists )" )
+        setRequestMethod( requestMethod : .get )
         addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
         let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -236,8 +240,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
                     relatedLists = try self.getAllRelatedLists( relatedListsDetails : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )
                     if relatedLists.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.RESPONSE_NIL) : \(ErrorMessage.RESPONSE_JSON_NIL_MSG)")
-                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                 }
@@ -255,10 +259,10 @@ internal class ModuleAPIHandler : CommonAPIHandler
     {
         setIsCacheable(true)
         setJSONRootKey( key :  JSONRootKey.CUSTOM_VIEWS )
-		setUrlPath(urlPath: "settings/custom_views/\(cvId)" )
-		setRequestMethod(requestMethod: .GET )
-		addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
-		let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.customViews )/\(cvId)" )
+        setRequestMethod(requestMethod: .get )
+        addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
+        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
@@ -280,8 +284,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
     internal func getActivitiesCVs( completion: @escaping( Result.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.CUSTOM_VIEWS)
-        setUrlPath(urlPath: "__internal/ignite/settings/activities/custom_views")
-        setRequestMethod(requestMethod: .GET )
+        setUrlPath(urlPath: "\( URLPathConstants.__internal )/\( URLPathConstants.ignite )/\( URLPathConstants.settings )/\( URLPathConstants.activities )/\( URLPathConstants.customViews )")
+        setRequestMethod(requestMethod: .get )
         let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
@@ -295,8 +299,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
                     let allCVsList : [ String : Any ] = try responseJSON.getDictionary( key : self.getJSONRootKey() )
                     if allCVsList.isEmpty == true
                     {
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.RESPONSE_NIL ) : \( ErrorMessage.RESPONSE_JSON_NIL_MSG )" )
-                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
+                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg ), \( APIConstants.DETAILS ) : -" )
+                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                     var CVsList : [[String:Any]] = [[String:Any]]()
@@ -322,11 +326,50 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
     }
     
+    func getDealStages( completion: @escaping( Result.DataResponse< [ ZCRMDealStage ], BulkAPIResponse > ) -> () )
+    {
+        setIsCacheable( true )
+        var stages : [ ZCRMDealStage ] = [ ZCRMDealStage ]()
+        setJSONRootKey( key : JSONRootKey.STAGES )
+        setUrlPath(urlPath: "settings/stages")
+        setRequestMethod( requestMethod : .get )
+        addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
+        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+        ZCRMLogger.logDebug( message : "Request : \( request.toString() )" )
+        
+        request.getBulkAPIResponse { ( resultType ) in
+            do{
+                let bulkResponse = try resultType.resolve()
+                let responseJSON = bulkResponse.getResponseJSON()
+                if responseJSON.isEmpty == false
+                {
+                    let stagesList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                    if stagesList.isEmpty == true
+                    {
+                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg)" )
+                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        return
+                    }
+                    for stageList in stagesList
+                    {
+                        stages.append( try PipelineAPIHandler( cache : self.cache ).getZCRMDealStage( stageDetails : stageList ) )
+                    }
+                }
+                bulkResponse.setData( data : stages )
+                completion( .success( stages, bulkResponse ) )
+            }
+            catch{
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
     internal func getFilters( cvId : Int64, completion: @escaping( Result.DataResponse< [ ZCRMFilter ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.FILTERS )
-        setUrlPath( urlPath : "settings/custom_views/\( cvId )/filters" )
-        setRequestMethod( requestMethod : .GET )
+        setUrlPath( urlPath : "\( URLPathConstants.settings )/\( URLPathConstants.customViews )/\( cvId )/\( URLPathConstants.filters )" )
+        setRequestMethod( requestMethod : .get )
         addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
         let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
         ZCRMLogger.logDebug( message : "Request : \(request.toString())" )
@@ -342,8 +385,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
                     let filtersDetails : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if filtersDetails.isEmpty == true
                     {
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.RESPONSE_NIL ) : \( ErrorMessage.RESPONSE_JSON_NIL_MSG )" )
-                        completion( .failure( ZCRMError.SDKError( code : ErrorCode.RESPONSE_NIL, message : ErrorMessage.RESPONSE_JSON_NIL_MSG, details : nil ) ) )
+                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg ), \( APIConstants.DETAILS ) : -" )
+                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                     filters = try self.getZCRMFilters( filtersDetails : filtersDetails, cvId : cvId )
@@ -358,8 +401,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
             }
         }
     }
-	
-	// MARK: - Utility functions
+    
+    // MARK: - Utility functions
     private func getAllRelatedLists( relatedListsDetails : [ [ String : Any ] ] ) throws -> [ ZCRMModuleRelation ]
     {
         var relatedLists : [ ZCRMModuleRelation ] = [ ZCRMModuleRelation ]()
@@ -370,7 +413,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         return relatedLists
     }
     
-	internal func getZCRMCustomView(cvDetails: [String:Any]) throws -> ZCRMCustomView
+    internal func getZCRMCustomView(cvDetails: [String:Any]) throws -> ZCRMCustomView
     {
         let customView : ZCRMCustomView = ZCRMCustomView( name : try cvDetails.getString( key : ResponseJSONKeys.name ), moduleAPIName : self.module.apiName )
         customView.id = try cvDetails.getInt64( key : ResponseJSONKeys.id )
@@ -532,7 +575,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
         field.dataType = try fieldDetails.getString(key: ResponseJSONKeys.dataType)
         field.isVisible = try fieldDetails.getBoolean(key: ResponseJSONKeys.visible)
-        field.decimalPlace = fieldDetails.optInt(key: ResponseJSONKeys.decimalPlace)
+        field.precision = fieldDetails.optInt(key: ResponseJSONKeys.decimalPlace)
         field.isReadOnly = try fieldDetails.getBoolean(key: ResponseJSONKeys.readOnly)
         field.isCustomField = try fieldDetails.getBoolean(key: ResponseJSONKeys.customField)
         field.defaultValue = fieldDetails.optValue(key: ResponseJSONKeys.defaultValue)
@@ -551,17 +594,17 @@ internal class ModuleAPIHandler : CommonAPIHandler
         if(fieldDetails.hasValue(forKey: ResponseJSONKeys.currency))
         {
             let currencyDetails : [ String : Any ] = try fieldDetails.getDictionary( key : ResponseJSONKeys.currency )
-            field.precision = currencyDetails.optInt(key: ResponseJSONKeys.precision)
+            field.currencyPrecision = currencyDetails.optInt(key: ResponseJSONKeys.precision)
             if let roundingOption = currencyDetails.optString(key: ResponseJSONKeys.roundingOption)
             {
                 guard let rounding = CurrencyRoundingOption(rawValue: roundingOption) else
                 {
-                    throw ZCRMError.InValidError( code : ErrorCode.INVALID_DATA, message : "\(ResponseJSONKeys.roundingOption) has invalid value", details : nil )
+                    throw ZCRMError.inValidError( code : ErrorCode.invalidData, message : "\(ResponseJSONKeys.roundingOption) has invalid value", details : nil )
                 }
                 field.roundingOption = rounding
             }
         }
-        field.bussinessCardSupported = fieldDetails.optBoolean(key: ResponseJSONKeys.businessCardSupported)
+        field.isBusinessCardSupported = fieldDetails.optBoolean(key: ResponseJSONKeys.businessCardSupported)
         if ( fieldDetails.hasValue( forKey : ResponseJSONKeys.pickListValues ) )
         {
             let pickListValues = try fieldDetails.getArrayOfDictionaries( key : ResponseJSONKeys.pickListValues )
@@ -587,26 +630,26 @@ internal class ModuleAPIHandler : CommonAPIHandler
         if(fieldDetails.hasValue(forKey: ResponseJSONKeys.currency))
         {
             let currencyDetails : [ String : Any ] = try fieldDetails.getDictionary( key : ResponseJSONKeys.currency )
-            field.precision = currencyDetails.optInt(key: ResponseJSONKeys.precision)
+            field.currencyPrecision = currencyDetails.optInt(key: ResponseJSONKeys.precision)
         }
         if fieldDetails.hasValue( forKey : ResponseJSONKeys.viewType ), let subLayouts : [ String : Bool ] = try fieldDetails.getDictionary( key : ResponseJSONKeys.viewType ) as? [ String : Bool ]
         {
             var layoutsPresent : [String] = [String]()
             if( try subLayouts.getBoolean( key : ResponseJSONKeys.create ) )
             {
-                layoutsPresent.append(SubLayoutViewType.CREATE.rawValue)
+                layoutsPresent.append(SubLayoutViewType.create.rawValue)
             }
             if( try subLayouts.getBoolean( key : ResponseJSONKeys.edit ) )
             {
-                layoutsPresent.append(SubLayoutViewType.EDIT.rawValue)
+                layoutsPresent.append(SubLayoutViewType.edit.rawValue)
             }
             if( try subLayouts.getBoolean( key : ResponseJSONKeys.view ) )
             {
-                layoutsPresent.append(SubLayoutViewType.VIEW.rawValue)
+                layoutsPresent.append(SubLayoutViewType.view.rawValue)
             }
             if( try subLayouts.getBoolean( key : ResponseJSONKeys.quickCreate ) )
             {
-                layoutsPresent.append(SubLayoutViewType.QUICK_CREATE.rawValue)
+                layoutsPresent.append(SubLayoutViewType.quickCreate.rawValue)
             }
             field.subLayoutsPresent = layoutsPresent
         }
@@ -614,7 +657,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         {
             let privateDetails : [ String : Any ] = try fieldDetails.getDictionary( key : ResponseJSONKeys.privateString )
             field.isRestricted = privateDetails.optBoolean( key : ResponseJSONKeys.restricted )
-            field.isSupportExport = privateDetails.optBoolean( key : ResponseJSONKeys.export )
+            field.isExportable = privateDetails.optBoolean( key : ResponseJSONKeys.export )
             field.restrictedType = privateDetails.optString( key : ResponseJSONKeys.type )
         }
         return field
@@ -637,8 +680,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.TYPECAST_ERROR) : Expected type -> INT")
-            throw ZCRMError.ProcessingError( code : ErrorCode.TYPECAST_ERROR, message : "Expected type -> INT", details : nil )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.typeCastError) : Expected type -> INT, \( APIConstants.DETAILS ) : nil")
+            throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "Expected type -> INT", details : nil )
         }
         if relationListDetails.hasValue( forKey : ResponseJSONKeys.href )
         {
@@ -791,12 +834,25 @@ fileprivate extension ModuleAPIHandler
         static let required = "required"
     }
     
+    struct URLPathConstants {
+        static let settings = "settings"
+        static let layouts = "layouts"
+        static let fields = "fields"
+        static let customViews = "custom_views"
+        static let relatedLists = "related_lists"
+        static let stages = "stages"
+        static let __internal = "__internal"
+        static let ignite = "ignite"
+        static let activities = "activities"
+        static let filters = "filters"
+    }
+
     enum SubLayoutViewType : String
     {
-        case CREATE = "CREATE"
-        case EDIT = "EDIT"
-        case VIEW = "VIEW"
-        case QUICK_CREATE = "QUICK_CREATE"
+        case create = "CREATE"
+        case edit = "EDIT"
+        case view = "VIEW"
+        case quickCreate = "QUICK_CREATE"
     }
 }
 

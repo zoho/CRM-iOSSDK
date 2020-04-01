@@ -14,8 +14,8 @@ public protocol ZCRMEntity
 open class ZCRMRecord : ZCRMRecordDelegate
 {
     internal var isCreate : Bool = APIConstants.BOOL_MOCK
-    internal var data : [ String : Any? ] = [ String : Any? ]()
-    public internal( set ) var properties : [ String : Any? ] = [ String : Any? ]()
+    internal var upsertJSON : [ String : Any? ] = [ String : Any? ]()
+    
     public var lineItems : [ZCRMInventoryLineItem]?{
         didSet
         {
@@ -88,7 +88,6 @@ open class ZCRMRecord : ZCRMRecordDelegate
     public internal( set ) var modifiedBy : ZCRMUserDelegate?
     public internal( set ) var createdTime : String?
     public internal( set ) var modifiedTime : String?
-    internal var upsertJSON : [ String : Any? ] = [ String : Any? ]()
     
     
     /// Initialize the ZCRMRecord with the given module.
@@ -155,17 +154,24 @@ open class ZCRMRecord : ZCRMRecordDelegate
     /// Set the field value to the specified field name is mapped.
     ///
     /// - Parameters:
-    ///   - forField: field name to which the field value is mapped
-    ///   - value: the filed value to be mapped
-    @available(*, deprecated, message: "Use the method 'setValue' with param 'ofFieldAPIName'" )
-    public func setValue(forField : String, value : Any?)
-    {
-        self.upsertJSON.updateValue( value, forKey : forField ) 
-    }
-    
+    ///   - ofFieldAPIName: field name to which the field value is mapped
+    ///   - value: the field value to be mapped
     public func setValue( ofFieldAPIName : String, value : Any? )
     {
         self.upsertJSON.updateValue( value, forKey : ofFieldAPIName )
+    }
+    
+    /**
+    To Set The Participants For An Event  And To Set Whether They Should Get Notified Or Not
+    
+    - parameters:
+       - participantsArray : Array Of ZCRMEventParticipants
+       - sendNotification : A Boolean To Set whether The Participant Should Get Notified About The Event Details Or Not
+    */
+    public func setParticipants( participantsArray : [ ZCRMEventParticipant ], sendNotification : Bool)
+    {
+        self.participants = participantsArray
+        self.upsertJSON.updateValue( sendNotification, forKey: EntityAPIHandler.ResponseJSONKeys.sendNotification )
     }
     
     /// Returns the field value to which the specified field name is mapped
@@ -185,15 +191,9 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.FIELD_NOT_FOUND) : The given field is not present in the record. Field Name -> \( ofFieldAPIName )")
-            throw ZCRMError.ProcessingError( code : ErrorCode.FIELD_NOT_FOUND, message : "The given field is not present in the record. Field Name -> \( ofFieldAPIName )", details : nil )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.fieldNotFound) : The given field is not present in the record. Field Name -> \( ofFieldAPIName )")
+            throw ZCRMError.processingError( code : ErrorCode.fieldNotFound, message : "The given field is not present in the record. Field Name -> \( ofFieldAPIName )", details : nil )
         }
-    }
-    
-    @available(*, deprecated, message: "Use the method 'getInt' with param 'ofFieldAPIName'" )
-    public func getInt( ofField :String ) throws -> Int?
-    {
-        return try self.getValue( ofFieldAPIName : ofField) as? Int
     }
     
     public func getInt( ofFieldAPIName : String ) throws -> Int?
@@ -201,21 +201,9 @@ open class ZCRMRecord : ZCRMRecordDelegate
         return try self.getValue( ofFieldAPIName : ofFieldAPIName ) as? Int
     }
     
-    @available(*, deprecated, message: "Use the method 'getInt64' with param 'ofFieldAPIName'" )
-    public func getInt64( ofField :String ) throws -> Int64?
-    {
-        return try self.getValue(ofFieldAPIName: ofField) as? Int64
-    }
-    
     public func getInt64( ofFieldAPIName : String ) throws -> Int64?
     {
         return try self.getValue( ofFieldAPIName : ofFieldAPIName ) as? Int64
-    }
-    
-    @available(*, deprecated, message: "Use the method 'getDouble' with param 'ofFieldAPIName'" )
-    public func getDouble( ofField :String ) throws -> Double?
-    {
-        return try self.getValue(ofFieldAPIName: ofField) as? Double
     }
     
     public func getDouble( ofFieldAPIName : String ) throws -> Double?
@@ -223,21 +211,9 @@ open class ZCRMRecord : ZCRMRecordDelegate
         return try self.getValue( ofFieldAPIName : ofFieldAPIName ) as? Double
     }
     
-    @available(*, deprecated, message: "Use the method 'getBoolean' with param 'ofFieldAPIName'" )
-    public func getBoolean( ofField :String ) throws -> Bool?
-    {
-        return try self.getValue(ofFieldAPIName: ofField) as? Bool
-    }
-    
     public func getBoolean( ofFieldAPIName : String ) throws -> Bool?
     {
         return try self.getValue( ofFieldAPIName : ofFieldAPIName ) as? Bool
-    }
-    
-    @available(*, deprecated, message: "Use the method 'getString' with param 'ofFieldAPIName'" )
-    public func getString( ofField :String ) throws -> String?
-    {
-        return try self.getValue(ofFieldAPIName: ofField) as? String
     }
     
     public func getString( ofFieldAPIName : String ) throws -> String?
@@ -245,21 +221,9 @@ open class ZCRMRecord : ZCRMRecordDelegate
         return try self.getValue( ofFieldAPIName : ofFieldAPIName ) as? String
     }
     
-    @available(*, deprecated, message: "Use the method 'getZCRMRecordDelegate' with param 'ofFieldAPIName'" )
-    public func getZCRMRecordDelegate( ofField :String ) throws -> ZCRMRecordDelegate?
-    {
-        return try self.getValue( ofFieldAPIName : ofField ) as? ZCRMRecordDelegate
-    }
-    
     public func getZCRMRecordDelegate( ofFieldAPIName : String ) throws -> ZCRMRecordDelegate?
     {
         return try self.getValue( ofFieldAPIName : ofFieldAPIName ) as? ZCRMRecordDelegate
-    }
-    
-    @available(*, deprecated, message: "Use the method 'getZCRMUserDelegate' with param 'ofFieldAPIName'" )
-    public func getZCRMUserDelegate( ofField :String ) throws -> ZCRMUserDelegate?
-    {
-        return try self.getValue( ofFieldAPIName : ofField ) as? ZCRMUserDelegate
     }
     
     public func getZCRMUserDelegate( ofFieldAPIName : String ) throws -> ZCRMUserDelegate?
@@ -279,25 +243,6 @@ open class ZCRMRecord : ZCRMRecordDelegate
             data.updateValue( value, forKey : key )
         }
         return data
-    }
-    
-    /// Set the properties of the ZCRMRecord.
-    ///
-    /// - Parameter properties: properties of the ZCRMRecord
-    @available(*, deprecated, message: "Use the property directly" )
-    internal func setProperties( properties : [ String : Any ] )
-    {
-        self.properties = properties
-    }
-    
-    /// Set the value of the ZCRMRecord's property.
-    ///
-    /// - Parameters:
-    ///   - ofProperty: property whose value is to be change.
-    ///   - value: value of the ZCRMRecord's property
-    public func setValue( ofProperty : String, value : Any? )
-    {
-        self.properties.updateValue( value, forKey : ofProperty )
     }
     
     public func getValue( ofProperty : String ) -> Any?
@@ -356,8 +301,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
         else
         {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \(ErrorCode.INVALID_OPERATION) : This feature is not supported for this module" )
-            throw ZCRMError.InValidError( code : ErrorCode.INVALID_OPERATION , message : "This feature is not supported for this module", details : nil )
+            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \(ErrorCode.invalidOperation) : This feature is not supported for this module" )
+            throw ZCRMError.inValidError( code : ErrorCode.invalidOperation , message : "This feature is not supported for this module", details : nil )
         }
     }
     
@@ -376,8 +321,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
         else
         {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \(ErrorCode.INVALID_OPERATION) : This feature is not supported for this module" )
-            throw ZCRMError.InValidError( code : ErrorCode.INVALID_OPERATION , message : "This feature is not supported for this module", details : nil )
+            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \(ErrorCode.invalidOperation) : This feature is not supported for this module" )
+            throw ZCRMError.inValidError( code : ErrorCode.invalidOperation , message : "This feature is not supported for this module", details : nil )
         }
     }
     
@@ -410,8 +355,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         guard let cloneRecord = self.copy() as? ZCRMRecord else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.INTERNAL_ERROR) : Unable to clone the record")
-            throw ZCRMError.InValidError( code : ErrorCode.INTERNAL_ERROR, message : "Unable to clone the record", details : nil )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to clone the record")
+            throw ZCRMError.inValidError( code : ErrorCode.internalError, message : "Unable to clone the record", details : nil )
         }
         cloneRecord.id = APIConstants.INT64_MOCK
         return cloneRecord
@@ -425,8 +370,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         if !self.isCreate
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.INVALID_DATA) : Entity ID MUST be nil for create operation")
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.INVALID_DATA, message : "Entity ID MUST be nil for create operation.", details : nil  ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : Entity ID MUST be nil for create operation")
+            completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidData, message : "Entity ID MUST be nil for create operation.", details : nil  ) ) )
         }
         else
         {
@@ -441,8 +386,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         if !self.isCreate
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.INVALID_DATA) : Entity ID MUST be nil for create operation")
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.INVALID_DATA, message : "Entity ID MUST be nil for create operation.", details : nil ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : Entity ID MUST be nil for create operation")
+            completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidData, message : "Entity ID MUST be nil for create operation.", details : nil ) ) )
         }
         else
         {
@@ -461,8 +406,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         if self.isCreate
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : Entity ID MUST NOT be nil for update operation")
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Entity ID MUST NOT be nil for update operation.", details : nil ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : Entity ID MUST NOT be nil for update operation")
+            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil for update operation.", details : nil ) ) )
         }
         else
         {
@@ -476,8 +421,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         if self.isCreate
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : Entity ID MUST NOT be nil for update operation")
-            completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Entity ID MUST NOT be nil for update operation.", details : nil ) ) )
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : Entity ID MUST NOT be nil for update operation")
+            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil for update operation.", details : nil ) ) )
         }
         else
         {
@@ -576,8 +521,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
             try callsModuleCheck(module: self.moduleAPIName)
             if self.isCreate
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : Entity ID MUST NOT be nil for reschedule call")
-                completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Entity ID MUST NOT be nil for reschedule call.", details : nil ) ) )
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : Entity ID MUST NOT be nil for reschedule call")
+                completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil for reschedule call.", details : nil ) ) )
             }
             EntityAPIHandler(record: self).rescheduleCall(triggers: nil) { ( result ) in
                 completion( result )
@@ -596,8 +541,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
             try callsModuleCheck(module: self.moduleAPIName)
             if self.isCreate
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : Entity ID MUST NOT be nil for reschedule call")
-                completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Entity ID MUST NOT be nil for reschedule call.", details : nil ) ) )
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : Entity ID MUST NOT be nil for reschedule call")
+                completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil for reschedule call.", details : nil ) ) )
             }
             EntityAPIHandler(record: self).rescheduleCall(triggers: triggers) { ( result ) in
                 completion( result )
@@ -616,8 +561,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
             try callsModuleCheck(module: self.moduleAPIName)
             if self.isCreate
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : Entity ID MUST NOT be nil for complete call")
-                completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Entity ID MUST NOT be nil for complete call.", details : nil ) ) )
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : Entity ID MUST NOT be nil for complete call")
+                completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil for complete call.", details : nil ) ) )
             }
             EntityAPIHandler(record: self).completeCall(triggers: nil) { ( result ) in
                 completion( result )
@@ -636,8 +581,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
             try callsModuleCheck(module: self.moduleAPIName)
             if self.isCreate
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : Entity ID MUST NOT be nil for complete call")
-                completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Entity ID MUST NOT be nil for complete call.", details : nil ) ) )
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : Entity ID MUST NOT be nil for complete call")
+                completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil for complete call.", details : nil ) ) )
             }
             EntityAPIHandler(record: self).completeCall(triggers: triggers) { ( result ) in
                 completion( result )
@@ -656,8 +601,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
             try callsModuleCheck(module: self.moduleAPIName)
             if self.isCreate
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : Entity ID MUST NOT be nil for cancel call")
-                completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Entity ID MUST NOT be nil for cancel call.", details : nil ) ) )
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : Entity ID MUST NOT be nil for cancel call")
+                completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil for cancel call.", details : nil ) ) )
             }
             EntityAPIHandler(record: self).cancelCall(triggers: nil) { ( result ) in
                 completion( result )
@@ -676,8 +621,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
             try callsModuleCheck(module: self.moduleAPIName)
             if self.isCreate
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.MANDATORY_NOT_FOUND) : Entity ID MUST NOT be nil for cancel call")
-                completion( .failure( ZCRMError.ProcessingError( code : ErrorCode.MANDATORY_NOT_FOUND, message : "Entity ID MUST NOT be nil for cancel call.", details : nil ) ) )
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : Entity ID MUST NOT be nil for cancel call")
+                completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil for cancel call.", details : nil ) ) )
             }
             EntityAPIHandler(record: self).cancelCall(triggers: triggers) { ( result ) in
                 completion( result )
@@ -689,33 +634,12 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
     }
     
-    public func addTags( tags : [ String ], completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
-    {
-        EntityAPIHandler( record : self ).addTags( tags : tags, overWrite : nil ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func addTags( tags : [ String ], overWrite : Bool?, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
-    {
-        EntityAPIHandler( record : self ).addTags( tags : tags, overWrite : overWrite ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func removeTags( tags : [ String ], completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
-    {
-        EntityAPIHandler( record : self ).removeTags( tags : tags ) { ( result ) in
-            completion( result )
-        }
-    }
-    
     private func createCheckIn( checkIn : ZCRMCheckIn ) throws
     {
         if self.moduleAPIName != DefaultModuleAPINames.EVENTS
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.NOT_SUPPORTED) : Check In is not supported for this module")
-            throw ZCRMError.InValidError(code: ErrorCode.NOT_SUPPORTED, message: "Check In is not supported for this module", details: nil)
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.notSupported) : Check In is not supported for this module")
+            throw ZCRMError.inValidError(code: ErrorCode.notSupported, message: "Check In is not supported for this module", details: nil)
         }
         else
         {
@@ -757,8 +681,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         if self.moduleAPIName != DefaultModuleAPINames.EVENTS
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.NOT_SUPPORTED) : Check In is not supported for this module")
-            throw ZCRMError.InValidError(code: ErrorCode.NOT_SUPPORTED, message: "Check In is not supported for this module", details: nil)
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.notSupported) : Check In is not supported for this module")
+            throw ZCRMError.inValidError(code: ErrorCode.notSupported, message: "Check In is not supported for this module", details: nil)
         }
         else
         {
@@ -777,8 +701,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
             }
             else
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.INVALID_OPERATION) : This record does not contain a ZCRMCheckIn")
-                throw ZCRMError.InValidError(code: ErrorCode.INVALID_OPERATION, message: "This record does not contain a ZCRMCheckIn", details: nil)
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidOperation) : This record does not contain a ZCRMCheckIn")
+                throw ZCRMError.inValidError(code: ErrorCode.invalidOperation, message: "This record does not contain a ZCRMCheckIn", details: nil)
             }
         }
     }
@@ -787,15 +711,15 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         if self.moduleAPIName != DefaultModuleAPINames.EVENTS
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.NOT_SUPPORTED) : Check In is not supported for this module")
-            throw ZCRMError.InValidError(code: ErrorCode.NOT_SUPPORTED, message: "Check In is not supported for this module", details: nil)
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.notSupported) : Check In is not supported for this module")
+            throw ZCRMError.inValidError(code: ErrorCode.notSupported, message: "Check In is not supported for this module", details: nil)
         }
         else
         {
             if self.isCreate
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.INVALID_OPERATION) : You haven't checked into the event")
-                throw ZCRMError.InValidError(code: ErrorCode.INVALID_OPERATION, message: "You haven't checked into the event", details: nil)
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidOperation) : You haven't checked into the event")
+                throw ZCRMError.inValidError(code: ErrorCode.invalidOperation, message: "You haven't checked into the event", details: nil)
             }
             else
             {
@@ -831,50 +755,52 @@ extension ZCRMRecord : NSCopying
         copy.owner = self.owner
         copy.upsertJSON = self.upsertJSON
         copy.id = self.id
+        copy.isCreate = self.isCreate
         return copy
     }
     
     public static func == (lhs: ZCRMRecord, rhs: ZCRMRecord) -> Bool {
-        var isDataEqual : Bool = false
-        for ( key, value ) in lhs.data
-        {
-            if rhs.data.hasKey( forKey : key )
+        if lhs.data.count == rhs.data.count {
+            for ( key, value ) in lhs.data
             {
-                if isEqual( lhs : value, rhs : rhs.data[ key ] as Any? )
+                if rhs.data.hasKey( forKey : key )
                 {
-                    isDataEqual = true
+                    if !isEqual( lhs : value, rhs : rhs.data[ key ] as Any? )
+                    {
+                        return false
+                    }
                 }
                 else
                 {
                     return false
                 }
             }
-            else
-            {
-                return false
-            }
         }
-        var isPropertiesEqual : Bool = false
-        for ( key, value ) in lhs.properties
+        else
         {
-            if rhs.properties.hasKey( forKey : key )
+            return false
+        }
+        if lhs.properties.count == rhs.properties.count {
+            for ( key, value ) in lhs.properties
             {
-                if isEqual( lhs : value, rhs : rhs.properties[ key ] as Any? )
+                if rhs.properties.hasKey( forKey : key )
                 {
-                    isPropertiesEqual = true
+                    if !isEqual( lhs : value, rhs : rhs.properties[ key ] as Any? )
+                    {
+                        return false
+                    }
                 }
                 else
                 {
                     return false
                 }
             }
-            else
-            {
-                return false
-            }
         }
-        let equals : Bool = isPropertiesEqual &&
-            isDataEqual &&
+        else
+        {
+            return false
+        }
+        let equals : Bool =
             lhs.lineItems == rhs.lineItems &&
             lhs.priceDetails == rhs.priceDetails &&
             lhs.participants == rhs.participants &&
