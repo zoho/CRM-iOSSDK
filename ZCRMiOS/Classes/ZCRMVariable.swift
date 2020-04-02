@@ -9,8 +9,8 @@ open class ZCRMVariable : ZCRMEntity
 {
     public var name : String = APIConstants.STRING_MOCK
     public var apiName : String = APIConstants.STRING_MOCK
-    public var variableGroup : ZCRMVariableGroup = VARIABLE_GROUP_MOCK
-    public var type : String = APIConstants.STRING_MOCK
+    public internal( set ) var variableGroup : ZCRMVariableGroup = VARIABLE_GROUP_MOCK
+    public internal( set ) var type : String = APIConstants.STRING_MOCK
     public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
     public var value : String?
     public var description : String?

@@ -555,7 +555,7 @@ internal class FileAPIRequest : APIRequest
                         }
                         else if let taskDetails = taskDetails
                         {
-                            fileDownloadDelegate?.progress( session: taskDetails.session, downloadTask: taskDetails.task, progressPercentage: taskDetails.progress, totalBytesWritten: taskDetails.totalBytesWritten, totalBytesExpectedToWrite: taskDetails.totalBytesExpectedToWrite )
+                            fileDownloadDelegate?.progress( fileRefId : self.fileRefId ?? "-", session: taskDetails.session, downloadTask: taskDetails.task, progressPercentage: taskDetails.progress, totalBytesWritten: taskDetails.totalBytesWritten, totalBytesExpectedToWrite: taskDetails.totalBytesExpectedToWrite )
                         }
                     }
                     
@@ -582,7 +582,7 @@ internal class FileAPIRequest : APIRequest
 
 public protocol ZCRMFileDownloadDelegate
 {
-    func progress( session: URLSession, downloadTask: URLSessionDownloadTask, progressPercentage : Double, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64 )
+    func progress( fileRefId : String, session: URLSession, downloadTask: URLSessionDownloadTask, progressPercentage : Double, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64 )
     
     func didFinish( _ fileAPIResponse : FileAPIResponse )
     
@@ -608,13 +608,23 @@ internal class FileAPIRequestDelegate : NSObject, URLSessionDataDelegate, URLSes
     
     func urlSession( _ session : URLSession, task : URLSessionTask, didCompleteWithError error : Error? )
     {
-        if let err = error
-        {
-            if let fileUploadTaskReference = uploadTaskWithFileRefIdDict[ task ] {
-                fileUploadTaskReference.uploadClosure( nil, nil, typeCastToZCRMError( err ))
-            }
-            
-        }
+         if let err = error
+         {
+             if let _ = task as? URLSessionDownloadTask
+             {
+                 if let fileDownloadTaskReference = downloadTaskWithFileRefIdDict[ task ]
+                 {
+                     fileDownloadTaskReference.downloadClosure( nil, nil, typeCastToZCRMError( err ))
+                 }
+             }
+             else if let _ = task as? URLSessionUploadTask
+             {
+                 if let fileUploadTaskReference = uploadTaskWithFileRefIdDict[ task ]
+                 {
+                     fileUploadTaskReference.uploadClosure( nil, nil, typeCastToZCRMError( err ))
+                 }
+             }
+         }
     }
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL)

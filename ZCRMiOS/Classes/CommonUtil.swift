@@ -288,7 +288,7 @@ public enum AppType : String
 public enum ComponentPeriod : String
 {
     case day = "day"
-    case week = "week"
+    case week = "fiscal_week"
     case month = "month"
 }
 
@@ -339,6 +339,13 @@ public enum UserTypes : String
     case activeConfirmedAdmins = "ActiveConfirmedAdmins"
 }
 
+public enum TrashRecordTypes : String
+{
+    case all
+    case recycle
+    case permanent
+}
+
 public enum DashboardFilter : String
 {
     case mine = "mine"
@@ -360,6 +367,23 @@ public enum ZiaNotificationType : String
     case anomaly = "anomaly"
     case workflow = "workflow"
     case featureName = "featurename"
+}
+
+public enum VariableType : String
+{
+    case singleLine = "text"
+    case currency = "currency"
+    case date = "date"
+    case datetime = "datetime"
+    case decimal = "double"
+    case email = "email"
+    case longInteger = "long"
+    case multiLine = "textarea"
+    case number = "integer"
+    case percent = "percent"
+    case phone = "phone"
+    case url = "website"
+    case checkbox = "checkbox"
 }
 
 internal extension Dictionary
@@ -604,7 +628,7 @@ internal extension Array
         let dup = stringArray.joined(separator: ",\"and\",")
         return dup
     }
-    
+	
 }
 
 public extension String
@@ -665,7 +689,7 @@ public extension String
         }
         return nil
     }
-    
+	
     func convertToDictionary() -> [String: String]? {
         if let data = self.data(using: .utf8)
         {
@@ -1192,6 +1216,7 @@ internal struct APIConstants
     static let CODE_SUCCESS : String = "success"
     static let INFO : String = "info"
     static let DETAILS : String = "details"
+    static let PERMISSIONS : String = "permissions"
     
     static let MODULES : String = "modules"
     static let PRIVATE_FIELDS = "private_fields"
@@ -1262,6 +1287,7 @@ var EMAIL : String = "email"
 var AUTHORIZATION : String = "Authorization"
 var USER_AGENT : String = "User-Agent"
 var X_CRM_ORG : String = "X-CRM-ORG"
+var X_ZOHO_SERVICE : String = "X_ZOHO_SERVICE"
 var ZOHO_OAUTHTOKEN = "Zoho-oauthtoken"
 
 struct JSONRootKey {
@@ -1613,7 +1639,7 @@ internal struct ResponsesTableStatement
     
     func searchData(_ withURL : String ) -> String
     {
-        return "\(DBConstant.DQL_SELECT) * \(DBConstant.KEYS_FROM) \(DBConstant.TABLE_RESPONSES) \(DBConstant.CLAUSE_WHERE) \(DBConstant.COLUMN_URL) LIKE \'\(withURL)?%\' AND \(DBConstant.COLUMN_VALIDITY) > \(DBConstant.CURRENT_TIME);"
+        return "\(DBConstant.DQL_SELECT) * \(DBConstant.KEYS_FROM) \(DBConstant.TABLE_RESPONSES) \(DBConstant.CLAUSE_WHERE) \(DBConstant.COLUMN_URL) LIKE \'\(withURL)\' OR \'\( withURL )?%\' AND \(DBConstant.COLUMN_VALIDITY) > \(DBConstant.CURRENT_TIME);"
     }
 }
     

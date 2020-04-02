@@ -158,20 +158,24 @@ extension DashboardAPIHandler
         }
     }
     
-    func getDashboards( fromPage page :Int?, withPerPageOf perPage : Int?, searchWord : String?, dashboardFilter : DashboardFilter?, then onCompletion : @escaping ArrayOfDashboards )
+    func getDashboards( _ params : GETRequestParams, searchWord : String?, dashboardFilter : DashboardFilter?, then onCompletion : @escaping ArrayOfDashboards )
     {
         setIsCacheable( true )
         let URLPath = "\( URLPathContants.analytics )"
         var arrayOfDashboardObj = [ ZCRMDashboard ]()
         setUrlPath( urlPath : URLPath )
         setRequestMethod( requestMethod : .get )
-        if let page = page
+        if let page = params.page
         {
             addRequestParam( param : RequestParamKeys.page, value : String( page ) )
         }
-        if let perPage = perPage
+        if let perPage = params.perPage
         {
             addRequestParam(param: RequestParamKeys.perPage, value: String( ( perPage > 200 ) ? 200 : perPage ))
+        }
+        if params.modifiedSince.notNilandEmpty, let modifiedSince = params.modifiedSince
+        {
+            addRequestHeader(header: RequestParamKeys.ifModifiedSince, value: modifiedSince)
         }
         if let searchWord = searchWord
         {

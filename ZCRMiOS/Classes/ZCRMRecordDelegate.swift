@@ -139,7 +139,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Returns: APIResponse of the note addition
     /// - Throws: ZCRMSDKError if Note id is not nil
     public func addNote(note: ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
-    {
+    { 
         if !note.isCreate
         {
             ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : Note ID must be nil for create operation, \( APIConstants.DETAILS ) : -")
@@ -282,7 +282,21 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to get notes of the ZCRMRecord
     public func getNotes( completion : @escaping( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
     {
-        RelatedListAPIHandler( parentRecord : self, relatedList :  ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).getNotes( page : nil, perPage : nil, sortByField : nil, sortOrder : nil, modifiedSince : nil ) { ( result ) in
+        RelatedListAPIHandler( parentRecord : self, relatedList :  ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).getNotes( withParams : ZCRMQuery.getEntityRequestParams ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    /**
+     Returns list of notes of the ZCRMRecord of a requested params.
+     
+     - Parameters:
+        - withParams : GetFieldParams Which defines the params required to get the records.
+        - completion : Returns an array of ZCRMNotes and a BulkAPIResponse
+     */
+    public func getNotes( withParams : GETEntityRequestParams, completion : @escaping ( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> Void )
+    {
+        RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).getNotes( withParams : withParams ) { ( result ) in
             completion( result )
         }
     }
@@ -294,9 +308,13 @@ open class ZCRMRecordDelegate : ZCRMEntity
     ///   - perPage: number of notes to be given for a single page
     /// - Returns: list of notes of the ZCRMRecord of a requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get notes of the ZCRMRecord
+    @available(*, deprecated, message: "Use the method getNotes( withParams : GETEntityRequestParams, completion : ) instead" )
     public func getNotes( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
     {
-        self.getNotes(page: page, perPage: perPage, sortByField: nil, sortOrder: nil, modifiedSince: nil) { ( result ) in
+        var params = ZCRMQuery.getEntityRequestParams
+        params.page = page
+        params.perPage = perPage
+        RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).getNotes( withParams : params ) { ( result ) in
             completion( result )
         }
     }
@@ -308,9 +326,13 @@ open class ZCRMRecordDelegate : ZCRMEntity
     ///   - sortOrder: sort order (asc, desc)
     /// - Returns: sorted list of notes of the ZCRMRecord
     /// - Throws: ZCRMSDKError if failed to get notes of the ZCRMRecord
+    @available(*, deprecated, message: "Use the method getNotes( withParams : GETEntityRequestParams, completion : ) instead" )
     public func getNotes( sortByField : String, sortOrder : SortOrder, completion : @escaping( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
     {
-        RelatedListAPIHandler( parentRecord : self, relatedList :  ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).getNotes( page : nil, perPage : nil, sortByField : sortByField, sortOrder : sortOrder, modifiedSince : nil ) { ( result ) in
+        var params = ZCRMQuery.getEntityRequestParams
+        params.sortBy = sortByField
+        params.sortOrder = sortOrder
+        RelatedListAPIHandler( parentRecord : self, relatedList :  ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).getNotes( withParams : params ) { ( result ) in
             completion( result )
         }
     }
@@ -325,9 +347,16 @@ open class ZCRMRecordDelegate : ZCRMEntity
     ///   - modifiedSince: modified timesorted list of notes of the ZCRMRecord of a requested page number with records of per_page count
     /// - Returns: <#return value description#>
     /// - Throws: ZCRMSDKError if failed to get notes of the ZCRMRecord
+    @available(*, deprecated, message: "Use the method getNotes( withParams : GETEntityRequestParams, completion : ) instead" )
     public func getNotes(page : Int, perPage : Int, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String?, completion : @escaping( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
     {
-        RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).getNotes( page : page, perPage : perPage, sortByField : sortByField, sortOrder : sortOrder, modifiedSince : modifiedSince ) { ( result ) in
+        var params = ZCRMQuery.getEntityRequestParams
+        params.page = page
+        params.perPage = perPage
+        params.sortBy = sortByField
+        params.sortOrder = sortOrder
+        params.modifiedSince = modifiedSince
+        RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).getNotes( withParams : params ) { ( result ) in
             completion( result )
         }
     }
@@ -345,7 +374,21 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to get the list of attachments
     public func getAttachments( completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> ())
     {
-        RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : self.moduleAPIName ) ).getAttachments( page : nil, perPage : nil, modifiedSince : nil ) { ( result ) in
+        RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : self.moduleAPIName ) ).getAttachments( withParams : ZCRMQuery.getEntityRequestParams ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    /**
+     To get list of all attachments of the ZCRMRecord of a requested params.
+     
+     - Parameters:
+        - withParams : GetFieldParams Which defines the params required to get the records.
+        - completion : Returns an array of ZCRMAttachment and a BulkAPIResponse
+     */
+    public func getAttachments( withParams : GETEntityRequestParams, completion : @escaping ( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> Void )
+    {
+        RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : self.moduleAPIName ) ).getAttachments( withParams : withParams ) { ( result ) in
             completion( result )
         }
     }
@@ -358,9 +401,14 @@ open class ZCRMRecordDelegate : ZCRMEntity
     ///   - modifiedSince: modified time
     /// - Returns: list of all attachments of the ZCRMRecord of a requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get the list of attachments
+    @available(*, deprecated, message: "Use the method getAttachments( withParams : GETEntityRequestParams, completion : ) instead" )
     public func getAttachments( page : Int, perPage : Int, modifiedSince : String?, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
     {
-        RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : self.moduleAPIName ) ).getAttachments( page : page, perPage : perPage, modifiedSince : modifiedSince ) { ( result ) in
+        var params = ZCRMQuery.getEntityRequestParams
+        params.page = page
+        params.perPage = perPage
+        params.modifiedSince = modifiedSince
+        RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : self.moduleAPIName ) ).getAttachments( withParams : params ) { ( result ) in
             completion( result )
         }
     }
@@ -571,16 +619,16 @@ open class ZCRMRecordDelegate : ZCRMEntity
         }
     }
     
-    public func getMail( userId : Int64, messageId : String, completion : @escaping( Result.DataResponse< ZCRMEmail, APIResponse > ) -> () )
+    private func markNotificationsAsRead( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        EmailAPIHandler().viewMail(record: self, userId: userId, messageId: messageId) { ( result ) in
+        NotificationAPIHandler().markNotificationsAsRead( recordId : self.id, notificationIds : nil ) { ( result ) in
             completion( result )
         }
     }
     
-    private func markNotificationsAsRead( completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func getMail( userId : Int64, messageId : String, completion : @escaping( Result.DataResponse< ZCRMEmail, APIResponse > ) -> () )
     {
-        NotificationAPIHandler().markNotificationsAsRead( recordId : self.id, notificationIds : nil ) { ( result ) in
+        EmailAPIHandler().viewMail(record: self, userId: userId, messageId: messageId) { ( result ) in
             completion( result )
         }
     }

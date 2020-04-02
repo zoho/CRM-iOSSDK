@@ -22,16 +22,16 @@ open class ZCRMAttachment : ZCRMEntity
     public internal( set ) var linkURL : String?
     public internal( set ) var fileName : String?
     public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
-    
+	
     /// Initialise the instance of a attachment for the given record with given note attachment Id
     ///
     /// - Parameters:
     ///   - parentRecord: A record for which attachment instance is to be initialized
     ///   - fileName: name to get that attachment detail
     init( parentRecord : ZCRMRecordDelegate )
-    {
+	{
         self.parentRecord = parentRecord
-    }
+	}
     
     /// To download Attachment, it returns file as data, then it can be converted to a file.
     ///

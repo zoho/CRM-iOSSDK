@@ -3,7 +3,7 @@
 //  Pods
 //
 //  Created by Kumareshwaran on 24/03/17.
-//
+//  Copyright (c) 2018 Zoho. All rights reserved.
 //
 
 #ifndef ZohoAuthConstants_h
@@ -15,7 +15,8 @@
  */
 static const int k_ZohoAuthTokenFetchError = 201;
 /**
- * Access token fetch:Response is nil.
+ * Fetches Access token
+ * Response is nil.
  */
 static const int k_ZohoAuthTokenFetchNil = 202;
 /**
@@ -27,7 +28,7 @@ static const int k_ZohoAuthTokenFetchNothingReceived = 204;
  */
 static const int k_ZohoAuthSFSafariDismissed = 205;
 /**
- * There is no access token.
+ * Access token doesn't exist.
  */
 static const int k_ZohoAuthNoAccessToken = 302;
 /**
@@ -35,11 +36,13 @@ static const int k_ZohoAuthNoAccessToken = 302;
  */
 static const int k_ZohoAuthRevokeTokenError = 801;
 /**
- * Revoke token fetch:Response is nil.
+ * Fetches Revoke token
+ * Response is nil.
  */
 static const int k_ZohoAuthRevokeTokenResultNil = 802;
 /**
- * Revoke token fetch. Nothing was received.
+ * Fetches Revoke token.
+ * Nothing was received.
  */
 static const int k_ZohoAuthRevokeTokenNothingReceived = 804;
 /**
@@ -51,7 +54,8 @@ static const int k_ZohoAuthGenericError = 901;
  */
 static const int k_ZohoAuthRefreshTokenFetchError = 901;
 /**
- * Refresh token fetch:Response is nil.
+ * Refresh token fetch.
+ * Response is nil.
  */
 static const int k_ZohoAuthRefreshTokenFetchNil = 902;
 /**
@@ -59,19 +63,20 @@ static const int k_ZohoAuthRefreshTokenFetchNil = 902;
  */
 static const int k_ZohoAuthRefreshTokenFetchNothingReceived = 904;
 /**
- * OAuth Server Error Occured during redirection
+ * OAuth Server Error occured during redirection.
  */
 static const int k_ZohoAuthOAuthServerError = 905;
 /**
- * There is no access token for the given scopes.
+ * Access token doesn't exist for the given scopes.
  */
 static const int k_ZohoAuthScopeNotFound = 906;
 /**
- * Unable to UpdatePhoto.
+ * Unable to update photo.
  */
 static const int k_ZohoAuthUpdatePhotoError = 1001;
 /**
- * UpdatePhoto fetch:Response is nil.
+ * UpdatePhoto fetch.
+ * Response is nil.
  */
 static const int k_ZohoAuthUpdatePhotoResultNil = 1002;
 /**
@@ -79,7 +84,7 @@ static const int k_ZohoAuthUpdatePhotoResultNil = 1002;
  */
 static const int k_ZohoAuthUpdatePhotoNothingReceived = 1003;
 /**
- * UpdatePhoto Server Error Occured.
+ * UpdatePhoto server error occured.
  */
 static const int k_ZohoAuthUpdatePhotoServerError = 1004;
 

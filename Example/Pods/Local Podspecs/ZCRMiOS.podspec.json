@@ -1,19 +1,19 @@
 {
   "name": "ZCRMiOS",
-  "version": "2.0.1",
+  "version": "1.2.20",
   "summary": "A short description of ZCRMiOS.",
   "description": "TODO: Add long description of the pod here.",
-  "homepage": "https://github.com/zoho/CRM-iOSSDK",
+  "homepage": "https://git.csez.zohocorpin.com/zoho-crm/ios-sdk-internal",
   "license": {
     "type": "MIT",
     "file": "LICENSE"
   },
   "authors": {
-    "boopathypsiva": "boopathy.p@zohocorp.com"
+    "boopathyparamasivan": "boopathy.p@zohocorp.com"
   },
   "source": {
-    "git": "https://github.com/zoho/CRM-iOSSDK.git",
-    "tag": "2.0.1"
+    "git": "https://git.csez.zohocorpin.com/zoho-crm/ios-sdk-internal.git",
+    "tag": "1.2.20"
   },
   "vendored_frameworks": [
     "Example/Pods/ZohoAuth/ZohoAuthKit.framework",

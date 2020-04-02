@@ -18,6 +18,13 @@
 #import "ZohoPortalAuthConstants.h"
 #import "ZohoPortalAuthRequestBlocks.h"
 #import "ZohoPortalAuthToken.h"
+#import "ZohoAuth.h"
+#import "ZohoAuthConstants.h"
+#import "ZohoAuthRequestBlocks.h"
+#import "ZohoPortalAuth.h"
+#import "ZohoPortalAuthConstants.h"
+#import "ZohoPortalAuthRequestBlocks.h"
+#import "ZohoPortalAuthToken.h"
 
 FOUNDATION_EXPORT double ZCRMiOSVersionNumber;
 FOUNDATION_EXPORT const unsigned char ZCRMiOSVersionString[];

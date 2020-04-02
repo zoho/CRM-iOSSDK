@@ -27,20 +27,20 @@ internal class OrgAPIHandler : CommonAPIHandler
         self.variable = variable
     }
     
-    override init() {
+	override init() {
         self.cache = CacheFlavour.noCache
-    }
+	}
     
     override func setModuleName() {
         self.requestedModule = "org"
     }
 
-    internal func getOrgDetails( completion : @escaping( Result.DataResponse< ZCRMOrg, APIResponse > ) -> () )
+    internal func getOrgDetails( _ id : Int64? = nil, completion : @escaping( Result.DataResponse< ZCRMOrg, APIResponse > ) -> () )
     {
         setIsCacheable( true )
         setJSONRootKey( key : JSONRootKey.ORG )
-        setUrlPath(urlPath:  "\( URLPathConstants.org )" )
-        setRequestMethod(requestMethod: .get)
+		setUrlPath(urlPath:  "\( URLPathConstants.org )" )
+		setRequestMethod(requestMethod: .get)
         let request : APIRequest = APIRequest(handler: self, cacheFlavour: self.cache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
@@ -63,6 +63,9 @@ internal class OrgAPIHandler : CommonAPIHandler
     internal func createVariables( variables : [ZCRMVariable], completion : @escaping( Result.DataResponse< [ZCRMVariable], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.VARIABLES)
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
+        setRequestMethod(requestMethod: .post)
+        
         var reqBodyObj : [String:[[String:Any?]]] = [String:[[String:Any?]]]()
         var dataArray : [[String:Any?]] = [[String:Any?]]()
         for variable in variables
@@ -74,8 +77,6 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
         reqBodyObj[getJSONRootKey()] = dataArray
         
-        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
-        setRequestMethod(requestMethod: .post)
         setRequestBody(requestBody: reqBodyObj)
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -127,13 +128,14 @@ internal class OrgAPIHandler : CommonAPIHandler
                 return
             }
             setJSONRootKey(key: JSONRootKey.VARIABLES)
+            setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
+            setRequestMethod(requestMethod: .post)
+            
             var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
             var dataArray : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
             dataArray.append( getZCRMVariableAsJSON( variable: variable ) )
             reqBodyObj[getJSONRootKey()] = dataArray
             
-            setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
-            setRequestMethod(requestMethod: .post)
             setRequestBody(requestBody: reqBodyObj)
             let request : APIRequest = APIRequest(handler: self)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -165,6 +167,9 @@ internal class OrgAPIHandler : CommonAPIHandler
     internal func updateVariables( variables : [ZCRMVariable], completion : @escaping( Result.DataResponse< [ZCRMVariable], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.VARIABLES)
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
+        setRequestMethod(requestMethod: .put)
+        
         var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
         var dataArray : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
         for variable in variables
@@ -176,8 +181,6 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
         reqBodyObj[getJSONRootKey()] = dataArray
         
-        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
-        setRequestMethod(requestMethod: .put)
         setRequestBody(requestBody: reqBodyObj)
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -229,13 +232,14 @@ internal class OrgAPIHandler : CommonAPIHandler
                 return
             }
             setJSONRootKey(key: JSONRootKey.VARIABLES)
+            setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
+            setRequestMethod(requestMethod: .put)
+            
             var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
             var dataArray : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
             dataArray.append( getZCRMVariableAsJSON( variable: variable ) )
             reqBodyObj[getJSONRootKey()] = dataArray
-            
-            setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
-            setRequestMethod(requestMethod: .put)
+
             setRequestBody(requestBody: reqBodyObj)
             let request : APIRequest = APIRequest(handler: self)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -760,11 +764,15 @@ internal class OrgAPIHandler : CommonAPIHandler
         var variableJSON : [ String : Any? ] = [ String : Any? ]()
         variableJSON.updateValue( variable.name, forKey : ResponseJSONKeys.name )
         variableJSON.updateValue( variable.apiName, forKey : ResponseJSONKeys.apiName )
-        if variable.variableGroup.isApiNameSet || variable.variableGroup.isNameSet
+        let requestMethod = getRequestMethod()
+        if requestMethod != .patch && requestMethod != .put
         {
-            variableJSON.updateValue( getZCRMVariableGroupAsJSON( variableGroup : variable.variableGroup ), forKey : ResponseJSONKeys.variableGroup )
+            if variable.variableGroup.isApiNameSet || variable.variableGroup.isNameSet
+            {
+                variableJSON.updateValue( getZCRMVariableGroupAsJSON( variableGroup : variable.variableGroup ), forKey : ResponseJSONKeys.variableGroup )
+            }
+            variableJSON.updateValue( variable.type, forKey : ResponseJSONKeys.type )
         }
-        variableJSON.updateValue( variable.type, forKey : ResponseJSONKeys.type )
         if !variable.isCreate
         {
             variableJSON.updateValue( variable.id, forKey : ResponseJSONKeys.id )

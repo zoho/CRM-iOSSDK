@@ -8,7 +8,7 @@
 
 public class ZCRMSDKClient
 {
-    public static let shared = ZCRMSDKClient()
+	public static let shared = ZCRMSDKClient()
     public var requestHeaders : Dictionary< String, String >?
     public var isDBCacheEnabled : Bool = true
    
@@ -412,17 +412,26 @@ public class ZCRMSDKClient
         {
             if( status == APIConstants.CODE_ERROR && code == ErrorCode.noPermission)
             {
-                if let moduleName = name
+                if let details = msgJSON[ APIConstants.DETAILS ] as? [ String : Any ], let permissions = details[ APIConstants.PERMISSIONS ] as? [ String ]
                 {
-                    do
+                    for permission in permissions
                     {
-                        try ZCRMSDKClient.shared.getPersistentDB().deleteZCRMRecords(withModuleName: moduleName)
-                        try ZCRMSDKClient.shared.getNonPersistentDB().deleteZCRMRecords(withModuleName: moduleName)
-                    }
-                    catch
-                    {
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                        throw error
+                        if permission.contains( "Crm_Implied_View_" )
+                        {
+                            if let moduleName = name
+                            {
+                                do
+                                {
+                                    try ZCRMSDKClient.shared.getPersistentDB().deleteZCRMRecords(withModuleName: moduleName)
+                                    try ZCRMSDKClient.shared.getNonPersistentDB().deleteZCRMRecords(withModuleName: moduleName)
+                                }
+                                catch
+                                {
+                                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                    throw error
+                                }
+                            }
+                        }
                     }
                 }
             }
