@@ -175,6 +175,7 @@ public class ZCRMUser : ZCRMUserDelegate
     public internal( set ) var modifiedBy : ZCRMUserDelegate?
     public internal( set ) var modifiedTime : String?
     public internal( set ) var reportingTo : ZCRMUserDelegate?
+    public internal( set ) var sortOrderPreference : String?
     
     internal var data : [ String : Any? ] = [ String : Any? ](){
         didSet
@@ -387,6 +388,7 @@ extension ZCRMUser : NSCopying
         copy.data = self.data
         copy.isCreate = self.isCreate
         copy.upsertJSON = self.upsertJSON
+        copy.sortOrderPreference = self.sortOrderPreference
         return copy
     }
     
@@ -441,7 +443,8 @@ extension ZCRMUser : NSCopying
             lhs.createdTime == rhs.createdTime &&
             lhs.modifiedBy == rhs.modifiedBy &&
             lhs.modifiedTime == rhs.modifiedTime &&
-            lhs.reportingTo == rhs.reportingTo
+            lhs.reportingTo == rhs.reportingTo &&
+            lhs.sortOrderPreference == rhs.sortOrderPreference
         return equals
     }
 }

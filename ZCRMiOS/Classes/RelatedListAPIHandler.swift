@@ -48,7 +48,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         {
             if let moduleName = relatedList.module
             {
-                setUrlPath(urlPath:  "\( parentRecord.moduleAPIName )/\( String(parentRecord.id))/\(relatedList.apiName)" )
+                setUrlPath(urlPath:  "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\(relatedList.apiName)" )
                 setRequestMethod(requestMethod: .get )
                 if let page = recordParams.page
                 {
@@ -66,9 +66,9 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                 {
                     addRequestParam( param : RequestParamKeys.sortOrder, value : sortOrder.rawValue )
                 }
-                if ( recordParams.modifiedSince.notNilandEmpty )
+                if ( recordParams.modifiedSince.notNilandEmpty ), let modifiedSince = recordParams.modifiedSince
                 {
-                    addRequestHeader( header : RequestParamKeys.ifModifiedSince, value : recordParams.modifiedSince! )
+                    addRequestHeader( header : RequestParamKeys.ifModifiedSince, value : modifiedSince )
                 }
                 let request : APIRequest = APIRequest(handler: self)
                 ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -150,32 +150,36 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getNotes( page : Int?, perPage : Int?, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String?, completion : @escaping( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
+    internal func getNotes( withParams : GETEntityRequestParams, completion : @escaping( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
             var notes : [ ZCRMNote ] = [ ZCRMNote ]()
-            setUrlPath( urlPath :  "\( parentRecord.moduleAPIName )/\( String( parentRecord.id ) )/\( relatedList.apiName )" )
+            setUrlPath( urlPath :  "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\( relatedList.apiName )" )
             setRequestMethod( requestMethod : .get )
-            if let page = page
+            if let page = withParams.page
             {
-               addRequestParam( param :  RequestParamKeys.page, value : String( page ) )
+               addRequestParam( param :  RequestParamKeys.page, value : String( page ))
             }
-            if let perPage = perPage
+            if let perPage = withParams.perPage
             {
-                addRequestParam( param : RequestParamKeys.perPage, value : String( perPage ) )
+                addRequestParam( param : RequestParamKeys.perPage, value : String( perPage ))
             }
-            if( sortByField.notNilandEmpty )
+            if let sortBy = withParams.sortBy
             {
-                addRequestParam( param : RequestParamKeys.sortBy, value : sortByField! )
+                addRequestParam( param : RequestParamKeys.sortBy, value : sortBy )
             }
-            if let sortOrder = sortOrder
+            if let sortOrder = withParams.sortOrder
             {
                 addRequestParam( param : RequestParamKeys.sortOrder, value : sortOrder.rawValue )
             }
-            if ( modifiedSince.notNilandEmpty )
+            if withParams.modifiedSince.notNilandEmpty, let modifiedSince = withParams.modifiedSince
             {
-                addRequestHeader( header : RequestParamKeys.ifModifiedSince , value : modifiedSince! )
+                addRequestHeader( header : RequestParamKeys.ifModifiedSince , value : modifiedSince )
+            }
+            if let fields = withParams.fields
+            {
+                addRequestParam(param: RequestParamKeys.fields, value: fields.joined(separator: ","))
             }
             let request : APIRequest = APIRequest( handler : self )
             ZCRMLogger.logDebug( message : "Request : \( request.toString() )" )
@@ -225,7 +229,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     {
         if let relatedList = self.relatedList
         {
-            setUrlPath( urlPath :  "\( parentRecord.moduleAPIName )/\( String( parentRecord.id ) )/\( relatedList.apiName )/\( noteId )" )
+            setUrlPath( urlPath :  "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\( relatedList.apiName )/\( noteId )" )
             setRequestMethod(requestMethod: .get)
             let request : APIRequest = APIRequest(handler: self)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -263,24 +267,36 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getAttachments( page : Int?, perPage : Int?, modifiedSince : String?, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
+    internal func getAttachments( withParams : GETEntityRequestParams, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
             var attachments : [ZCRMAttachment] = [ZCRMAttachment]()
-            setUrlPath( urlPath :  "\( parentRecord.moduleAPIName )/\( String( parentRecord.id ) )/\( relatedList.apiName )" )
+            setUrlPath( urlPath :  "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\( relatedList.apiName )" )
             setRequestMethod(requestMethod: .get )
-            if let page = page
+            if let page = withParams.page
             {
                 addRequestParam( param :  RequestParamKeys.page, value : String( page ) )
             }
-            if let perPage = perPage
+            if let perPage = withParams.perPage
             {
                 addRequestParam( param : RequestParamKeys.perPage, value : String( perPage ) )
             }
-            if ( modifiedSince.notNilandEmpty)
+            if withParams.modifiedSince.notNilandEmpty, let modifiedSince = withParams.modifiedSince
             {
-                addRequestHeader( header : RequestParamKeys.ifModifiedSince, value : modifiedSince! )
+                addRequestHeader( header : RequestParamKeys.ifModifiedSince, value : modifiedSince )
+            }
+            if let fields = withParams.fields
+            {
+                addRequestParam( param : RequestParamKeys.fields, value : fields.joined(separator: ",") )
+            }
+            if let sortBy = withParams.sortBy
+            {
+                addRequestParam(param: RequestParamKeys.sortBy, value: sortBy)
+            }
+            if let sortOrder = withParams.sortOrder
+            {
+                addRequestParam(param: RequestParamKeys.sortOrder, value: sortOrder.rawValue)
             }
             let request : APIRequest = APIRequest(handler: self)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -323,7 +339,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     {
         if let relatedList = self.relatedList
         {
-            setUrlPath( urlPath : "\( parentRecord.moduleAPIName )/\( String( parentRecord.id ) )/\( relatedList.apiName )" )
+            setUrlPath( urlPath : "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\( relatedList.apiName )" )
             addRequestParam( param :  RequestParamKeys.attachmentURL, value : attachmentURL )
             setRequestMethod(requestMethod: .post )
             let request : FileAPIRequest = FileAPIRequest(handler: self)
@@ -357,7 +373,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         if let relatedList = self.relatedList
         {
             setJSONRootKey( key : JSONRootKey.NIL )
-            setUrlPath( urlPath :  "\( parentRecord.moduleAPIName )/\( String( parentRecord.id ) )/\( relatedList.apiName )/\( attachmentId )" )
+            setUrlPath( urlPath :  "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\( relatedList.apiName )/\( attachmentId )" )
             setRequestMethod(requestMethod: .get )
             let request : FileAPIRequest = FileAPIRequest(handler: self)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -385,11 +401,11 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         if let relatedList = self.relatedList
         {
             setJSONRootKey( key : JSONRootKey.NIL )
-            setUrlPath( urlPath :  "\( parentRecord.moduleAPIName )/\( String( parentRecord.id ) )/\( relatedList.apiName )/\( attachmentId )" )
+            setUrlPath( urlPath :  "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\( relatedList.apiName )/\( attachmentId )" )
             setRequestMethod(requestMethod: .get )
-            let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate, "\( attachmentId )")
+            let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-            request.downloadFile()
+            request.downloadFile( fileRefId: String( attachmentId ) )
         }
         else
         {
@@ -403,7 +419,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         if let relatedList = self.relatedList
         {
             setJSONRootKey( key : JSONRootKey.NIL )
-            setUrlPath( urlPath : "\( parentRecord.moduleAPIName )/\( String( parentRecord.id ) )/\( relatedList.apiName )/\( attachmentId )" )
+            setUrlPath( urlPath : "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\( relatedList.apiName )/\( attachmentId )" )
             setRequestMethod(requestMethod: .delete )
             let request : APIRequest = APIRequest(handler: self)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -435,7 +451,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             dataArray.append( self.getZCRMNoteAsJSON(note: note) )
             reqBodyObj[getJSONRootKey()] = dataArray
             
-            setUrlPath( urlPath : "\( parentRecord.moduleAPIName )/\( String( parentRecord.id ) )/\( relatedList.apiName )" )
+            setUrlPath( urlPath : "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\( relatedList.apiName )" )
             setRequestMethod(requestMethod: .post )
             setRequestBody(requestBody: reqBodyObj )
             let request : APIRequest = APIRequest(handler: self)
@@ -483,7 +499,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                 dataArray.append(self.getZCRMNoteAsJSON(note: note))
                 reqBodyObj[getJSONRootKey()] = dataArray
                 
-                setUrlPath( urlPath : "\( parentRecord.moduleAPIName )/\( String( parentRecord.id ) )/\( relatedList.apiName )/\( noteId )")
+                setUrlPath( urlPath : "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\( relatedList.apiName )/\( noteId )")
                 setRequestMethod(requestMethod: .patch )
                 setRequestBody(requestBody: reqBodyObj)
                 let request : APIRequest = APIRequest(handler: self)
@@ -552,9 +568,9 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             addRequestHeader(header: "Accept", value: "audio/*")
             setRequestMethod(requestMethod: .get )
             
-            let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate, "\( noteId )" )
+            let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-            request.downloadFile()
+            request.downloadFile( fileRefId: String( noteId ) )
         }
         else
         {
@@ -568,8 +584,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         if let relatedList = self.relatedList
         {
             setJSONRootKey( key : JSONRootKey.NIL )
-            let noteIdString : String = String( noteId )
-            setUrlPath( urlPath :  "\( parentRecord.moduleAPIName )/\( String( parentRecord.id ) )/\( relatedList.apiName )/\( noteIdString )" )
+            setUrlPath( urlPath :  "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\( relatedList.apiName )/\( noteId )" )
             setRequestMethod(requestMethod: .delete )
             let request : APIRequest = APIRequest(handler: self)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -811,7 +826,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     {
         if let junctionRecord = self.junctionRecord
         {
-            setUrlPath( urlPath: "\( parentRecord.moduleAPIName )/\( String( parentRecord.id ) )/\( junctionRecord.apiName )/\( junctionRecord.id )" )
+            setUrlPath( urlPath: "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\( junctionRecord.apiName )/\( junctionRecord.id )" )
             setRequestMethod(requestMethod: .delete )
             let request : APIRequest = APIRequest(handler: self)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -836,18 +851,9 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     
     internal func deleteRelations( junctionRecords : [ ZCRMJunctionRecord ], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
     {
-        setUrlPath( urlPath : "\( parentRecord.moduleAPIName )/\( String( parentRecord.id ) )/\( junctionRecords[ 0 ].apiName )" )
+        setUrlPath( urlPath : "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\( junctionRecords[ 0 ].apiName )" )
         setRequestMethod(requestMethod: .delete )
-        var idString : String = String()
-        for index in 0..<junctionRecords.count
-        {
-            idString.append(String(junctionRecords[index].id))
-            if ( index != ( junctionRecords.count - 1 ) )
-            {
-                idString.append(",")
-            }
-        }
-        addRequestParam( param : RequestParamKeys.ids, value : idString )
+        addRequestParam(param: RequestParamKeys.ids, value: junctionRecords.map{ String( $0.id ) }.joined(separator: ","))
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
@@ -912,7 +918,7 @@ extension RelatedListAPIHandler
             {
                 throw error
             }
-            setUrlPath( urlPath : "\( self.parentRecord.moduleAPIName )/\( String( self.parentRecord.id ) )/\( relatedList.apiName )" )
+            setUrlPath( urlPath : "\( self.parentRecord.moduleAPIName )/\( self.parentRecord.id )/\( relatedList.apiName )" )
             setRequestMethod(requestMethod: .post )
         } else {
             throw ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil )
@@ -980,7 +986,7 @@ extension RelatedListAPIHandler
     {
         do {
             try buildFileUploadAttachmentRequest(filePath: filePath, fileName: fileName, fileData: fileData, note: note)
-            let request : FileAPIRequest = FileAPIRequest( handler : self, fileUploadDelegate : attachmentUploadDelegate, fileRefId: fileRefId )
+            let request : FileAPIRequest = FileAPIRequest( handler : self, fileUploadDelegate : attachmentUploadDelegate)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
             
             var relatedListAPIHandler : RelatedListAPIHandler? = self
@@ -1083,7 +1089,7 @@ extension RelatedListAPIHandler
         setUrlPath(urlPath: "\( URLPathConstants.voiceNotes )" )
         setRequestMethod(requestMethod: .post )
         self.voiceNote = note
-        let request : FileAPIRequest = FileAPIRequest( handler : self, fileUploadDelegate : voiceNoteUploadDelegate, fileRefId: fileRefId )
+        let request : FileAPIRequest = FileAPIRequest( handler : self, fileUploadDelegate : voiceNoteUploadDelegate)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         var relatedListAPIHandler : RelatedListAPIHandler? = self

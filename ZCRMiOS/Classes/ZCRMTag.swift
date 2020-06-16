@@ -62,8 +62,19 @@ open class ZCRMTag : ZCRMEntity
     }
 }
 
-extension ZCRMTag
+extension ZCRMTag : Hashable
 {
+    public func copy(with zone: NSZone? = nil) -> ZCRMTag {
+        let tag = ZCRMTag(name: self.name, moduleAPIName: self.moduleAPIName)
+        tag.isCreate = self.isCreate
+        tag.id = self.id
+        tag.createdBy = self.createdBy
+        tag.createdTime = self.createdTime
+        tag.modifiedBy = self.modifiedBy
+        tag.modifiedTime = self.modifiedTime
+        return tag
+    }
+    
     public static func == (lhs: ZCRMTag, rhs: ZCRMTag) -> Bool {
         let equals : Bool = lhs.name == rhs.name && lhs.moduleAPIName == rhs.moduleAPIName &&
             lhs.id == rhs.id && lhs.createdBy == rhs.createdBy &&
@@ -71,5 +82,9 @@ extension ZCRMTag
             lhs.modifiedTime == rhs.modifiedTime &&
             lhs.modifiedBy == rhs.modifiedBy
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }

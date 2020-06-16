@@ -23,7 +23,7 @@ open class ZCRMDealStage : ZCRMEntity
     }
 }
 
-extension ZCRMDealStage : Equatable
+extension ZCRMDealStage : Hashable
 {
     public static func == ( lhs : ZCRMDealStage, rhs : ZCRMDealStage ) -> Bool
     {
@@ -35,5 +35,9 @@ extension ZCRMDealStage : Equatable
             lhs.forecastType == rhs.forecastType &&
             lhs.sequenceNumber == rhs.sequenceNumber
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }

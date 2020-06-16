@@ -35,12 +35,18 @@ internal class OrgAPIHandler : CommonAPIHandler
         self.requestedModule = "org"
     }
 
-    internal func getOrgDetails( completion : @escaping( Result.DataResponse< ZCRMOrg, APIResponse > ) -> () )
+    internal func getOrgDetails( _ id : Int64? = nil, completion : @escaping( Result.DataResponse< ZCRMOrg, APIResponse > ) -> () )
     {
         setIsCacheable( true )
         setJSONRootKey( key : JSONRootKey.ORG )
         setUrlPath(urlPath:  "\( URLPathConstants.org )" )
         setRequestMethod(requestMethod: .get)
+        
+        if let id = id
+        {
+            addRequestHeader(header: X_CRM_ORG, value: "\( id )")
+        }
+        
         let request : APIRequest = APIRequest(handler: self, cacheFlavour: self.cache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
@@ -50,6 +56,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                 let responseJSON : [ String :  Any ] = response.responseJSON
                 let orgArray = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                 let org = try self.getZCRMOrg( orgDetails : orgArray[ 0 ] )
+                org.upsertJSON = [ String : Any? ]()
                 response.setData( data : org )
                 completion( .success( org, response ) )
             }
@@ -63,6 +70,9 @@ internal class OrgAPIHandler : CommonAPIHandler
     internal func createVariables( variables : [ZCRMVariable], completion : @escaping( Result.DataResponse< [ZCRMVariable], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.VARIABLES)
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
+        setRequestMethod(requestMethod: .post)
+        
         var reqBodyObj : [String:[[String:Any?]]] = [String:[[String:Any?]]]()
         var dataArray : [[String:Any?]] = [[String:Any?]]()
         for variable in variables
@@ -74,8 +84,6 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
         reqBodyObj[getJSONRootKey()] = dataArray
         
-        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
-        setRequestMethod(requestMethod: .post)
         setRequestBody(requestBody: reqBodyObj)
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -127,13 +135,14 @@ internal class OrgAPIHandler : CommonAPIHandler
                 return
             }
             setJSONRootKey(key: JSONRootKey.VARIABLES)
+            setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
+            setRequestMethod(requestMethod: .post)
+            
             var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
             var dataArray : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
             dataArray.append( getZCRMVariableAsJSON( variable: variable ) )
             reqBodyObj[getJSONRootKey()] = dataArray
             
-            setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
-            setRequestMethod(requestMethod: .post)
             setRequestBody(requestBody: reqBodyObj)
             let request : APIRequest = APIRequest(handler: self)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -165,6 +174,9 @@ internal class OrgAPIHandler : CommonAPIHandler
     internal func updateVariables( variables : [ZCRMVariable], completion : @escaping( Result.DataResponse< [ZCRMVariable], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.VARIABLES)
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
+        setRequestMethod(requestMethod: .put)
+        
         var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
         var dataArray : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
         for variable in variables
@@ -176,8 +188,6 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
         reqBodyObj[getJSONRootKey()] = dataArray
         
-        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
-        setRequestMethod(requestMethod: .put)
         setRequestBody(requestBody: reqBodyObj)
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -229,13 +239,14 @@ internal class OrgAPIHandler : CommonAPIHandler
                 return
             }
             setJSONRootKey(key: JSONRootKey.VARIABLES)
+            setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
+            setRequestMethod(requestMethod: .put)
+            
             var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
             var dataArray : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
             dataArray.append( getZCRMVariableAsJSON( variable: variable ) )
             reqBodyObj[getJSONRootKey()] = dataArray
-            
-            setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
-            setRequestMethod(requestMethod: .put)
+
             setRequestBody(requestBody: reqBodyObj)
             let request : APIRequest = APIRequest(handler: self)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -306,7 +317,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         setJSONRootKey(key: JSONRootKey.VARIABLE_GROUPS)
         if let id = id
         {
-            setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variableGroups )/\(String(id))")
+            setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variableGroups )/\( id )")
         }
         else if let apiName = apiName
         {
@@ -377,7 +388,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         setJSONRootKey(key: JSONRootKey.VARIABLES)
         if let variableId = variableId
         {
-            setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )/\(String(variableId))")
+            setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )/\( variableId )")
         }
         else if let variableAPIName = variableAPIName
         {
@@ -419,16 +430,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
         setJSONRootKey(key: JSONRootKey.VARIABLES)
         setRequestMethod(requestMethod: .delete)
-        var idString : String = String()
-        for index in 0..<ids.count
-        {
-            idString.append(String(ids[index]))
-            if ( index != ( ids.count - 1 ) )
-            {
-                idString.append(",")
-            }
-        }
-        addRequestParam( param : RequestParamKeys.ids, value : idString )
+        addRequestParam( param : RequestParamKeys.ids, value : ids.map{ String( $0 ) }.joined(separator: ",") )
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
@@ -447,7 +449,7 @@ internal class OrgAPIHandler : CommonAPIHandler
     internal func deleteVariable( id : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.VARIABLES)
-        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )/\(String(id))")
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )/\( id )")
         setRequestMethod(requestMethod: .delete)
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -461,6 +463,40 @@ internal class OrgAPIHandler : CommonAPIHandler
                 ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
+        }
+    }
+    
+    internal func update( _ org : ZCRMOrg, completion : @escaping( Result.DataResponse< ZCRMOrg, APIResponse > ) -> () )
+    {
+        if !org.upsertJSON.isEmpty
+        {
+            setJSONRootKey( key : JSONRootKey.ORG )
+            setRequestMethod( requestMethod : .patch )
+            setUrlPath( urlPath : "\( URLPathConstants.org )" )
+            var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
+            var dataArray : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
+            dataArray.append( org.upsertJSON )
+            reqBodyObj[ getJSONRootKey() ] = dataArray
+            setRequestBody( requestBody : reqBodyObj )
+            let request = APIRequest( handler : self )
+            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+            
+            request.getAPIResponse { ( resultType ) in
+                switch resultType
+                {
+                case .success(let response) :
+                    org.upsertJSON = [ String : Any? ]()
+                    completion( .success( org, response ) )
+                case .failure(let error) :
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+        }
+        else
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.notModified) : No changes have been made on the org to update, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.sdkError( code: ErrorCode.notModified, message: "No changes have been made on the org to update", details : nil ) ) )
         }
     }
     
@@ -616,6 +652,61 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
+    internal func isEmailInsightsEnabled( completion : @escaping ( Result.Data< Bool >) -> ())
+    {
+        setIsEmail( true )
+        setJSONRootKey(key: JSONRootKey.EMAIL_INSIGHTS )
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.emails )/\( URLPathConstants.insights )")
+        setRequestMethod(requestMethod: .get)
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getAPIResponse { result in
+            do
+            {
+                switch result
+                {
+                case .success(let response) :
+                    let responseJSON = response.getResponseJSON()
+                    let responseJSONData  = try responseJSON.getDictionary( key : self.getJSONRootKey() )
+                    let emailInsightStatus = try responseJSONData.getBoolean(key: ResponseJSONKeys.active)
+                    completion( .success( emailInsightStatus ) )
+                case .failure(let error) :
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( error )")
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+            catch
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func updateEmailInsight( status : Bool, completion : @escaping ( Result.Response< APIResponse > ) -> () )
+    {
+        setIsEmail( true )
+        setJSONRootKey( key : JSONRootKey.EMAIL_INSIGHTS )
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.emails )/\( URLPathConstants.insights )")
+        addRequestParam(param: ResponseJSONKeys.active, value: "\( status )")
+        setRequestMethod( requestMethod : .put )
+        
+        let request = APIRequest( handler : self )
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getAPIResponse { ( resultType ) in
+            switch resultType
+            {
+            case .success(let response) :
+                completion( .success( response ) )
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
     // check optional property in organisation API
     private func getZCRMOrg( orgDetails : [ String : Any ] ) throws -> ZCRMOrg
     {
@@ -625,21 +716,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         {
             org.fax = try orgDetails.getString( key : ResponseJSONKeys.fax )
         }
-        do
-        {
-            org.name = try orgDetails.getString( key : ResponseJSONKeys.companyName )
-        }
-        catch
-        {
-            if error.ZCRMErrordetails?.code == ErrorCode.valueNil
-            {
-                throw ZCRMError.inValidError(code: ErrorCode.mandatoryNotFound, message: error.ZCRMErrordetails?.description ?? "-", details: nil)
-            }
-            else
-            {
-                throw error
-            }
-        }
+        org.name = orgDetails.optString( key : ResponseJSONKeys.companyName )
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.alias ) )
         {
             org.alias = try orgDetails.getString( key : ResponseJSONKeys.alias)
@@ -718,6 +795,10 @@ internal class OrgAPIHandler : CommonAPIHandler
         {
             org.mcStatus = try orgDetails.getBoolean( key : ResponseJSONKeys.mcStatus )
         }
+        if( orgDetails.hasValue( forKey : ResponseJSONKeys.translationEnabled ) )
+        {
+            org.isTranslationEnabled = try orgDetails.getBoolean( key : ResponseJSONKeys.translationEnabled )
+        }
         if( orgDetails.hasValue( forKey : ResponseJSONKeys.gappsEnabled ) )
         {
             org.isGappsEnabled = try orgDetails.getBoolean( key : ResponseJSONKeys.gappsEnabled )
@@ -760,11 +841,15 @@ internal class OrgAPIHandler : CommonAPIHandler
         var variableJSON : [ String : Any? ] = [ String : Any? ]()
         variableJSON.updateValue( variable.name, forKey : ResponseJSONKeys.name )
         variableJSON.updateValue( variable.apiName, forKey : ResponseJSONKeys.apiName )
-        if variable.variableGroup.isApiNameSet || variable.variableGroup.isNameSet
+        let requestMethod = getRequestMethod()
+        if requestMethod != .patch && requestMethod != .put
         {
-            variableJSON.updateValue( getZCRMVariableGroupAsJSON( variableGroup : variable.variableGroup ), forKey : ResponseJSONKeys.variableGroup )
+            if variable.variableGroup.isApiNameSet || variable.variableGroup.isNameSet
+            {
+                variableJSON.updateValue( getZCRMVariableGroupAsJSON( variableGroup : variable.variableGroup ), forKey : ResponseJSONKeys.variableGroup )
+            }
+            variableJSON.updateValue( variable.type, forKey : ResponseJSONKeys.type )
         }
-        variableJSON.updateValue( variable.type, forKey : ResponseJSONKeys.type )
         if !variable.isCreate
         {
             variableJSON.updateValue( variable.id, forKey : ResponseJSONKeys.id )
@@ -914,6 +999,7 @@ extension OrgAPIHandler
         static let mcStatus = "mc_status"
         static let gappsEnabled = "gapps_enabled"
         static let privacySettings = "privacy_settings"
+        static let translationEnabled = "translation_enabled"
         
         static let name = "name"
         static let apiName = "api_name"
@@ -954,6 +1040,8 @@ extension OrgAPIHandler
         
         static let photoId = "photo_id"
         static let currency = "currency"
+        
+        static let active = "active"
     }
     
     struct URLPathConstants {
@@ -966,6 +1054,8 @@ extension OrgAPIHandler
         static let switchPortal = "SwitchPortal"
         static let currencies = "currencies"
         static let photo = "photo"
+        static let insights = "insights"
+        static let emails = "emails"
     }
 }
 

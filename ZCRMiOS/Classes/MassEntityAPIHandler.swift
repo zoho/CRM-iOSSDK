@@ -117,26 +117,15 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         setRequestMethod( requestMethod : .get )
         if let fields = recordParams.fields, fields.isEmpty == false
         {
-            var fieldsStr : String = ""
-            for field in fields
-            {
-                if(!field.isEmpty)
-                {
-                    fieldsStr += field + ","
-                }
-            }
-            if(!fieldsStr.isEmpty)
-            {
-                addRequestParam(param: RequestParamKeys.fields , value: String(fieldsStr.dropLast()) )
-            }
+            addRequestParam(param: RequestParamKeys.fields , value: fields.joined(separator: ",") )
         }
         if let cvId = cvId
         {
-            addRequestParam(param:  RequestParamKeys.cvId , value: String(cvId) )
+            addRequestParam(param:  RequestParamKeys.cvId , value: String( cvId ) )
         }
         if let filterId = filterId
         {
-            addRequestParam(param:  RequestParamKeys.filterId , value: String(filterId) )
+            addRequestParam(param:  RequestParamKeys.filterId , value: String( filterId ) )
         }
         if let sortBy = recordParams.sortBy
         {
@@ -154,9 +143,9 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         {
             addRequestParam(param: RequestParamKeys.approved , value: isApproved.description )
         }
-        if recordParams.modifiedSince.notNilandEmpty
+        if recordParams.modifiedSince.notNilandEmpty, let modifiedSince = recordParams.modifiedSince
         {
-            addRequestHeader(header: RequestParamKeys.ifModifiedSince , value: recordParams.modifiedSince! )
+            addRequestHeader(header: RequestParamKeys.ifModifiedSince , value: modifiedSince )
         }
         if( recordParams.includePrivateFields != nil && recordParams.includePrivateFields == true )
         {
@@ -168,11 +157,11 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
         if let page = recordParams.page
         {
-            addRequestParam(param: RequestParamKeys.page , value: String(page) )
+            addRequestParam(param: RequestParamKeys.page , value: String( page ) )
         }
         if let perPage = recordParams.perPage
         {
-            addRequestParam(param: RequestParamKeys.perPage , value: String(perPage) )
+            addRequestParam(param: RequestParamKeys.perPage , value: String( perPage ) )
         }
         if let startDateTime = recordParams.startDateTime
         {
@@ -516,7 +505,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func upsertRecords( triggers : [Trigger]?, records : [ ZCRMRecord ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    internal func upsertRecords( triggers : [Trigger]?, records : [ ZCRMRecord ], duplicateCheckFields : [ String ]?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         if ( records.count > 100 )
@@ -536,6 +525,10 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         if let triggers = triggers
         {
             reqBodyObj[ APIConstants.TRIGGER ] = getTriggerArray(triggers: triggers)
+        }
+        if let duplicateCheckFields = duplicateCheckFields
+        {
+            reqBodyObj[ APIConstants.DUPLICATE_CHECK_FIELDS ] = duplicateCheckFields
         }
         
         setUrlPath(urlPath:  "\( self.module.apiName )/\( URLPathConstants.upsert )")
@@ -616,11 +609,9 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.maxCountExceeded, message : ErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
             return
         }
-        let idsStrArr : [ String ] = ids.map { String( $0 ) }
-        let idsStr : String = idsStrArr.joined(separator: ",")
         setUrlPath(urlPath : "\(self.module.apiName)")
         setRequestMethod(requestMethod: .delete )
-        addRequestParam( param : RequestParamKeys.ids, value : idsStr )
+        addRequestParam( param : RequestParamKeys.ids, value : ids.map{ String( $0 ) }.joined(separator: ",") )
         let request : APIRequest = APIRequest(handler: self )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
@@ -754,16 +745,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
         setUrlPath(urlPath : "\(self.module.apiName)/\( URLPathConstants.actions )/\( URLPathConstants.cancel )" )
         setRequestMethod(requestMethod : .post )
-        var idString : String = String()
-        for index in 0..<records.count
-        {
-            idString.append( String( records[ index ].id ) )
-            if ( index != ( records.count - 1 ) )
-            {
-                idString.append(",")
-            }
-        }
-        addRequestParam( param : RequestParamKeys.ids, value : idString )
+        addRequestParam( param : RequestParamKeys.ids, value : records.map{ String( $0.id ) }.joined(separator: ",") )
         setRequestBody(requestBody : reqBodyObj )
         let request : APIRequest = APIRequest(handler: self )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -827,41 +809,20 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getDeletedRecords( modifiedSince : String?, page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
-    {
-        self.getDeletedRecords( type : RequestParamValues.all, modifiedSince : modifiedSince, page : page, perPage : perPage ) { ( resultType ) in
-            completion( resultType )
-        }
-    }
-    
-    internal func getRecycleBinRecords( modifiedSince : String?, page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
-    {
-        self.getDeletedRecords( type : RequestParamValues.recycle, modifiedSince : modifiedSince, page : page, perPage : perPage ) { ( resultType ) in
-            completion( resultType )
-        }
-    }
-    
-    internal func getPermanentlyDeletedRecords( modifiedSince : String?, page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
-    {
-        self.getDeletedRecords( type : RequestParamValues.permanent, modifiedSince : modifiedSince, page : page, perPage : perPage ) { ( resultType ) in
-            completion( resultType )
-        }
-    }
-
-    private func getDeletedRecords( type : String, modifiedSince : String?, page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+    internal func getDeletedRecords( type : TrashRecordTypes, params : GETRequestParams, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
     {
         setUrlPath(urlPath : "\( self.module.apiName )/\( URLPathConstants.deleted )")
         setRequestMethod(requestMethod : .get )
-        addRequestParam(param: RequestParamKeys.type , value: type )
-        if ( modifiedSince.notNilandEmpty)
+        addRequestParam(param: RequestParamKeys.type , value: type.rawValue )
+        if params.modifiedSince.notNilandEmpty, let modifiedSince = params.modifiedSince
         {
-            addRequestHeader( header : RequestParamKeys.ifModifiedSince, value : modifiedSince! )
+            addRequestHeader( header : RequestParamKeys.ifModifiedSince, value : modifiedSince )
         }
-        if let page = page
+        if let page = params.page
         {
             addRequestParam( param : RequestParamKeys.page, value : String( page ) )
         }
-        if let perPage = perPage
+        if let perPage = params.perPage
         {
             addRequestParam( param : RequestParamKeys.perPage, value : String( perPage ) )
         }
@@ -897,29 +858,10 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     internal func addTags( records : [ ZCRMRecord ], tags : [ String ], overWrite : Bool?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.DATA)
-        var idString : String = String()
-        for index in 0..<records.count
-        {
-            idString.append( String( records[ index ].id ) )
-            if ( index != ( records.count - 1 ) )
-            {
-                idString.append(",")
-            }
-        }
-        var tagNamesString : String = String()
-        for index in 0..<tags.count
-        {
-            tagNamesString.append( tags[ index ] )
-            if ( index != ( tags.count - 1 ) )
-            {
-                tagNamesString.append(",")
-            }
-        }
-        
         setUrlPath(urlPath: "\(self.module.apiName)/\( URLPathConstants.actions )/\( URLPathConstants.addTags )")
         setRequestMethod(requestMethod: .post)
-        addRequestParam(param: RequestParamKeys.ids, value: idString)
-        addRequestParam(param: RequestParamKeys.tagNames, value: tagNamesString)
+        addRequestParam(param: RequestParamKeys.ids, value: records.map{ String( $0.id ) }.joined(separator: ",") )
+        addRequestParam(param: RequestParamKeys.tagNames, value: tags.joined(separator: ",") )
         if let overWrite = overWrite
         {
             addRequestParam( param : RequestParamKeys.overWrite, value : String( overWrite ) )
@@ -970,28 +912,10 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     internal func removeTags( records : [ ZCRMRecord ], tags : [ String ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.DATA)
-        var idString : String = String()
-        for index in 0..<records.count
-        {
-            idString.append( String( records[ index ].id ) )
-            if ( index != ( records.count - 1 ) )
-            {
-                idString.append(",")
-            }
-        }
-        var tagNamesString : String = String()
-        for index in 0..<tags.count
-        {
-            tagNamesString.append( tags[ index ] )
-            if ( index != ( tags.count - 1 ) )
-            {
-                tagNamesString.append(",")
-            }
-        }
         setUrlPath(urlPath: "\(self.module.apiName)/\( URLPathConstants.actions )/\( URLPathConstants.removeTags )")
         setRequestMethod(requestMethod: .post)
-        addRequestParam(param: RequestParamKeys.ids, value: idString)
-        addRequestParam(param: RequestParamKeys.tagNames, value: tagNamesString)
+        addRequestParam(param: RequestParamKeys.ids, value: records.map{ String( $0.id ) }.joined(separator: ","))
+        addRequestParam(param: RequestParamKeys.tagNames, value: tags.joined(separator: ",") )
         
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")

@@ -8,8 +8,8 @@
 
 internal class ModuleAPIHandler : CommonAPIHandler
 {
-    let module : ZCRMModuleDelegate
-    let cache : CacheFlavour
+    private let module : ZCRMModuleDelegate
+    private let cache : CacheFlavour
     
     init( module : ZCRMModuleDelegate, cacheFlavour : CacheFlavour )
     {
@@ -280,6 +280,45 @@ internal class ModuleAPIHandler : CommonAPIHandler
             }
         }
     }
+
+    internal func getDealStages( completion: @escaping( Result.DataResponse< [ ZCRMDealStage ], BulkAPIResponse > ) -> () )
+    {
+        setIsCacheable( true )
+        var stages : [ ZCRMDealStage ] = [ ZCRMDealStage ]()
+        setJSONRootKey( key : JSONRootKey.STAGES )
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.stages )")
+        setRequestMethod(requestMethod: .get)
+        addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
+        let request : APIRequest = APIRequest( handler: self, cacheFlavour : self.cache )
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getBulkAPIResponse { ( resultType ) in
+            do{
+                let bulkResponse = try resultType.resolve()
+                let responseJSON = bulkResponse.getResponseJSON()
+                if responseJSON.isEmpty == false
+                {
+                    let stagesList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                    if stagesList.isEmpty == true
+                    {
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        return
+                    }
+                    for stageList in stagesList
+                    {
+                        stages.append( try PipelineAPIHandler( cache : self.cache ).getZCRMDealStage( stageDetails : stageList ) )
+                    }
+                }
+                bulkResponse.setData( data : stages )
+                completion( .success( stages, bulkResponse ) )
+            }
+            catch{
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
     
     internal func getActivitiesCVs( completion: @escaping( Result.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
     {
@@ -318,45 +357,6 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 }
                 bulkResponse.setData(data: allCVs)
                 completion( .success( allCVs, bulkResponse ) )
-            }
-            catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                completion( .failure( typeCastToZCRMError( error ) ) )
-            }
-        }
-    }
-    
-    func getDealStages( completion: @escaping( Result.DataResponse< [ ZCRMDealStage ], BulkAPIResponse > ) -> () )
-    {
-        setIsCacheable( true )
-        var stages : [ ZCRMDealStage ] = [ ZCRMDealStage ]()
-        setJSONRootKey( key : JSONRootKey.STAGES )
-        setUrlPath(urlPath: "settings/stages")
-        setRequestMethod( requestMethod : .get )
-        addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
-        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
-        ZCRMLogger.logDebug( message : "Request : \( request.toString() )" )
-        
-        request.getBulkAPIResponse { ( resultType ) in
-            do{
-                let bulkResponse = try resultType.resolve()
-                let responseJSON = bulkResponse.getResponseJSON()
-                if responseJSON.isEmpty == false
-                {
-                    let stagesList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
-                    if stagesList.isEmpty == true
-                    {
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg)" )
-                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
-                        return
-                    }
-                    for stageList in stagesList
-                    {
-                        stages.append( try PipelineAPIHandler( cache : self.cache ).getZCRMDealStage( stageDetails : stageList ) )
-                    }
-                }
-                bulkResponse.setData( data : stages )
-                completion( .success( stages, bulkResponse ) )
             }
             catch{
                 ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
@@ -582,6 +582,10 @@ internal class ModuleAPIHandler : CommonAPIHandler
         if fieldDetails.hasValue( forKey : ResponseJSONKeys.required )
         {
             field.isMandatory = try fieldDetails.getBoolean( key : ResponseJSONKeys.required )
+        }
+        else
+        {
+            field.isMandatory = try fieldDetails.getBoolean( key : ResponseJSONKeys.systemMandatory )
         }
         field.sequenceNo = fieldDetails.optInt(key: ResponseJSONKeys.sequenceNumber)
         field.tooltip = fieldDetails.optString(key: ResponseJSONKeys.toolTip)

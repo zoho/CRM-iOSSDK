@@ -29,7 +29,7 @@ open class ZCRMPriceBookPricing : ZCRMEntity
     }
 }
 
-extension ZCRMPriceBookPricing : Equatable
+extension ZCRMPriceBookPricing : Hashable
 {
     public static func == (lhs: ZCRMPriceBookPricing, rhs: ZCRMPriceBookPricing) -> Bool {
         let equals : Bool = lhs.id == rhs.id  &&
@@ -37,6 +37,10 @@ extension ZCRMPriceBookPricing : Equatable
             lhs.fromRange == rhs.fromRange &&
             lhs.discount == rhs.discount
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }
 

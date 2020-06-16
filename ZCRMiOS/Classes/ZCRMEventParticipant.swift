@@ -36,7 +36,7 @@ open class ZCRMEventParticipant : ZCRMEntity
     }
 }
 
-extension ZCRMEventParticipant : Equatable
+extension ZCRMEventParticipant : Hashable
 {
     public static func == (lhs: ZCRMEventParticipant, rhs: ZCRMEventParticipant) -> Bool {
         let equals : Bool = lhs.email == rhs.email &&
@@ -46,5 +46,9 @@ extension ZCRMEventParticipant : Equatable
             lhs.status == rhs.status &&
             lhs.participant == rhs.participant
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }

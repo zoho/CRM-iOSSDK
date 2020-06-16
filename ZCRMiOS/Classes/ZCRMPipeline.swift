@@ -19,7 +19,7 @@ open class ZCRMPipeline : ZCRMEntity
     }
 }
 
-extension ZCRMPipeline : Equatable
+extension ZCRMPipeline : Hashable
 {
     public static func == (lhs: ZCRMPipeline, rhs: ZCRMPipeline) -> Bool {
         let equals : Bool = lhs.displayName == rhs.displayName &&
@@ -28,5 +28,9 @@ extension ZCRMPipeline : Equatable
             lhs.actualName == rhs.actualName &&
             lhs.stages == rhs.stages
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }

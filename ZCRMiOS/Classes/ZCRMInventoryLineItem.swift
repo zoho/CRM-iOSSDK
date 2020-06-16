@@ -59,7 +59,7 @@ public class ZCRMInventoryLineItem : ZCRMEntity
     }
 }
 
-extension ZCRMInventoryLineItem : Equatable
+extension ZCRMInventoryLineItem : Hashable
 {
     public static func == (lhs: ZCRMInventoryLineItem, rhs: ZCRMInventoryLineItem) -> Bool {
         let equals : Bool = lhs.product == rhs.product &&
@@ -76,5 +76,9 @@ extension ZCRMInventoryLineItem : Equatable
             lhs.netTotal == rhs.netTotal &&
             lhs.unitPrice == rhs.unitPrice
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }

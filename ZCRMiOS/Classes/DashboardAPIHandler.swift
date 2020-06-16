@@ -40,7 +40,7 @@ class DashboardAPIHandler: CommonAPIHandler
     fileprivate typealias DrilldownDataAPINames = ZCRMAnalyticsData.ResponseJSONKeys
     
     // Model Objects
-    fileprivate typealias CompCategory = ZCRMDashboardComponent.ComponentCategory
+    fileprivate typealias ComponentType = ZCRMDashboardComponentDelegate.ZCRMDashboardComponentType
     fileprivate typealias CompObjective  = ZCRMDashboardComponent.Objective
     fileprivate typealias CompSegmentRanges = ZCRMDashboardComponent.SegmentRanges
     fileprivate typealias ComponentMarkers = ZCRMDashboardComponent.ComponentMarkers
@@ -158,20 +158,24 @@ extension DashboardAPIHandler
         }
     }
     
-    func getDashboards( fromPage page :Int?, withPerPageOf perPage : Int?, searchWord : String?, dashboardFilter : DashboardFilter?, then onCompletion : @escaping ArrayOfDashboards )
+    func getDashboards( _ params : GETRequestParams, searchWord : String?, dashboardFilter : DashboardFilter?, then onCompletion : @escaping ArrayOfDashboards )
     {
         setIsCacheable( true )
         let URLPath = "\( URLPathContants.analytics )"
         var arrayOfDashboardObj = [ ZCRMDashboard ]()
         setUrlPath( urlPath : URLPath )
         setRequestMethod( requestMethod : .get )
-        if let page = page
+        if let page = params.page
         {
             addRequestParam( param : RequestParamKeys.page, value : String( page ) )
         }
-        if let perPage = perPage
+        if let perPage = params.perPage
         {
-            addRequestParam(param: RequestParamKeys.perPage, value: String( ( perPage > 200 ) ? 200 : perPage ))
+            addRequestParam(param: RequestParamKeys.perPage, value: String( ( perPage > 200 ) ? 200 : perPage ) )
+        }
+        if params.modifiedSince.notNilandEmpty, let modifiedSince = params.modifiedSince
+        {
+            addRequestHeader(header: RequestParamKeys.ifModifiedSince, value: modifiedSince)
         }
         if let searchWord = searchWord
         {
@@ -241,7 +245,7 @@ extension DashboardAPIHandler
         } // completion
     } // func ends
     
-    func getComponentWith(id cmpID: Int64,fromDashboardID dbID: Int64, name : String?, category : ZCRMDashboardComponent.ComponentCategory? ,period : ComponentPeriod?, then onCompletion: @escaping DashBoardComponent)
+    func getComponentWith(id cmpID: Int64,fromDashboardID dbID: Int64, name : String?, category : ZCRMDashboardComponentCategory? ,period : ComponentPeriod?, then onCompletion: @escaping DashBoardComponent)
     {
         setIsCacheable(true)
         let URLPath = "\(URLPathContants.analytics)/\(dbID)/\(URLPathContants.components)/\(cmpID)"
@@ -272,7 +276,8 @@ extension DashboardAPIHandler
                     dashBoardComponentObj.dashboardId = dbID
                     onCompletion(.success(dashBoardComponentObj,apiResponse))
                 case .failure(let error) :
-                    if error.ZCRMErrordetails?.code == ErrorCode.invalidData && category == ZCRMDashboardComponent.ComponentCategory.anomalyDetector {
+                    if case .anomalyDetector = category?.identifier, error.ZCRMErrordetails?.code == ErrorCode.invalidData
+                    {
                         guard let name = name, let category = category else {
                             ZCRMLogger.logError(message: "Code : \( ErrorCode.insufficientData ) - Message : \( ErrorMessage.unableToConstructComponent ), Component Name And Category Cannot Be Empty")
                             onCompletion( .failure( ZCRMError.processingError(code: ErrorCode.insufficientData, message: ErrorMessage.unableToConstructComponent, details: nil) ) )
@@ -280,7 +285,6 @@ extension DashboardAPIHandler
                         }
                         let component = ZCRMDashboardComponent(cmpId: cmpID, name: name, dbId: dbID)
                         component.period = period
-                        component.type = "spline"
                         component.category = category
                         let response = APIResponse()
                         onCompletion( .success(component, response))
@@ -465,9 +469,9 @@ extension DashboardAPIHandler
         }
     } // func ends
     
-    internal func changeAnomalyPeriod( period : ComponentPeriod, _ oldCompObj : ZCRMDashboardComponent, _ name : String, _ category : ZCRMDashboardComponent.ComponentCategory, completion : @escaping DashBoardComponent)
+    internal func changeAnomalyPeriod( period : ComponentPeriod, _ oldCompObj : ZCRMDashboardComponent, _ name : String, _ category : ZCRMDashboardComponentCategory, completion : @escaping DashBoardComponent)
     {
-        guard oldCompObj.category == CompCategory.anomalyDetector else
+        guard case .anomalyDetector = oldCompObj.category.identifier else
         {
             completion( .failure( ZCRMError.inValidError(code: ErrorCode.invalidData, message: "Edit component by period is applicable only for AnomalyComponent", details: nil) ) )
             return
@@ -596,7 +600,7 @@ extension DashboardAPIHandler
                 let responseJSON : [ String : Any ] = response.getResponseJSON()
                 var drilldownData : ZCRMAnalyticsData = ZCRMAnalyticsData( componentId: componentId, dashboardId: dashboardId, criteria: dataParams.criteria)
                 drilldownData.reportId = reportId
-                drilldownData = try self.getZCRMDrilldownData(drilldownData: drilldownData, drilldownDataJSON: responseJSON)
+                drilldownData = try self.getZCRMDrilldownData(drilldownData: drilldownData, drilldownDataJSON: responseJSON, response : response)
                 response.setData(data: drilldownData)
                 completion( .success( drilldownData, response ))
             }
@@ -641,10 +645,10 @@ extension DashboardAPIHandler
         {
             addRequestParam( param : RequestParamKeys.period, value : period.rawValue )
         }
-        let request : FileAPIRequest = FileAPIRequest( handler : self, fileDownloadDelegate : fileDownloadDelegate, "\( componentId )" )
+        let request : FileAPIRequest = FileAPIRequest( handler : self, fileDownloadDelegate : fileDownloadDelegate)
         ZCRMLogger.logDebug( message : "Request : \( request.toString() )" )
         
-        request.downloadFile()
+        request.downloadFile( fileRefId : String( componentId ) )
     }
 } // extension ends
 
@@ -723,7 +727,6 @@ fileprivate extension DashboardAPIHandler
         oldComp.id = refreshedComp.id
         oldComp.dashboardId = refreshedComp.dashboardId
         oldComp.category = refreshedComp.category
-        oldComp.type = refreshedComp.type
         oldComp.objective = refreshedComp.objective
         oldComp.reportId = refreshedComp.reportId
         oldComp.segmentRanges = refreshedComp.segmentRanges
@@ -793,13 +796,19 @@ fileprivate extension DashboardAPIHandler
                 throw ZCRMError.inValidError(code: ErrorCode.valueNil, message: "\( ComponentAPINames.componentType ) cannot be nil", details: nil)
         }
 
-        let metaComponentObj = try ZCRMDashboardComponentMeta( id : metaComponentJSON.getInt64( key : MetaComponentAPINames.componentID ), name : metaComponentJSON.getString( key : MetaComponentAPINames.componentName ), type: componentType, dashboardId: dashboardId )
+        let category : String = try metaComponentJSON.getString( key : MetaComponentAPINames.componentType )
+        
+        let categoryIdentifier : ZCRMDashboardComponent.CategoryIdentifier = ZCRMDashboardComponent.CategoryIdentifier.getIdentifier(rawValue: category)
+
+        let componentCategory = ZCRMDashboardComponentCategory(type: ComponentType.getTypeWith( categoryIdentifier, componentType ), identifier: categoryIdentifier )
+        
+        let metaComponentObj = try ZCRMDashboardComponentMeta( id : metaComponentJSON.getInt64( key : MetaComponentAPINames.componentID ), name : metaComponentJSON.getString( key : MetaComponentAPINames.componentName ), dashboardId: dashboardId )
         
         if let isFavorite = metaComponentJSON.optBoolean(key: MetaComponentAPINames.favouriteComponent)
         {
             metaComponentObj.isFavourite = isFavorite
         }
-        metaComponentObj.category = try CompCategory( componentCategory : metaComponentJSON.getString( key : MetaComponentAPINames.componentType ) )
+        metaComponentObj.category = componentCategory
         if let isEditable = metaComponentJSON.optBoolean( key : MetaComponentAPINames.editable )
         {
             metaComponentObj.isEditable = isEditable
@@ -835,7 +844,8 @@ extension DashboardAPIHandler
     internal func getDashboardComponentFrom(_ componentJSON: [String:Any], Using cmpId: Int64, And dbId: Int64) throws -> ZCRMDashboardComponent
     {
         let componentObj = try ZCRMDashboardComponent( cmpId : cmpId, name : componentJSON.getString( key : ComponentAPINames.componentName ), dbId : dbId )
-        componentObj.category = CompCategory( componentCategory : try componentJSON.getString( key : ComponentAPINames.componentCategory ) )
+        let category = try componentJSON.getString( key : ComponentAPINames.componentCategory )
+        let categoryIdentifier : ZCRMDashboardComponent.CategoryIdentifier = ZCRMDashboardComponent.CategoryIdentifier.getIdentifier( rawValue:  category )
         componentObj.reportId = componentJSON.optInt64(key: ComponentAPINames.reportID)
         if componentJSON.hasValue(forKey: ComponentAPINames.componentMarker)
         {
@@ -851,7 +861,7 @@ extension DashboardAPIHandler
             componentObj.lastFetchedTimeLabel = lastFetchedTimeJSON.optString(key: ComponentAPINames.label)
             componentObj.lastFetchedTimeValue = lastFetchedTimeJSON.optString(key: ComponentAPINames.value)
         }
-        try setComponentPropertiesFor(componentObj, Using: componentJSON)
+        try setComponentPropertiesFor(componentObj, Using: componentJSON, category : categoryIdentifier)
         return componentObj
     } // func ends
 }
@@ -875,7 +885,7 @@ fileprivate extension DashboardAPIHandler
         return ArrayOfComponentMarkerObj
     }
     
-    func setComponentPropertiesFor(_ componentObject:ZCRMDashboardComponent, Using componentJSON: [String:Any]) throws
+    func setComponentPropertiesFor(_ componentObject:ZCRMDashboardComponent, Using componentJSON: [String:Any], category : ZCRMDashboardComponent.CategoryIdentifier) throws
     {
         let Key = ComponentAPINames.componentProps
         let componentPropsJSON = try componentJSON.getDictionary( key : Key )
@@ -887,16 +897,16 @@ fileprivate extension DashboardAPIHandler
             componentObject.maxRows = maximumRows
         }
         try setVisualizationPropertiesFor(componentObject: componentObject,
-                                          Using: componentPropsJSON)
+                                          Using: componentPropsJSON, category : category)
     } // func ends
     
     //COMPONENT VISUALIZATION PROPERTIES
-    func setVisualizationPropertiesFor(componentObject:ZCRMDashboardComponent, Using componentPropsJSON: [String:Any]) throws
+    func setVisualizationPropertiesFor(componentObject:ZCRMDashboardComponent, Using componentPropsJSON: [String:Any], category : ZCRMDashboardComponent.CategoryIdentifier) throws
     {
         let Key = ComponentAPINames.visualizationProps
         let visualizationPropsJSON = try componentPropsJSON.getDictionary( key : Key )
         let componentType = try visualizationPropsJSON.getString( key : ComponentAPINames.componentType )
-        componentObject.type = componentType
+        componentObject.category = ZCRMDashboardComponentCategory(type: ZCRMDashboardComponent.ZCRMDashboardComponentType.getTypeWith( category, componentType), identifier: category)
         if let ArrayOfSegmentRangeObj = try getArrayOfSegmentRangesFrom(visualizationPropsJSON)
         {
             componentObject.segmentRanges = ArrayOfSegmentRangeObj
@@ -1342,12 +1352,12 @@ fileprivate extension DashboardAPIHandler
 
 fileprivate extension DashboardAPIHandler
 {
-    func getZCRMDrilldownData( drilldownData : ZCRMAnalyticsData, drilldownDataJSON : [ String : Any ] ) throws -> ZCRMAnalyticsData
+    func getZCRMDrilldownData( drilldownData : ZCRMAnalyticsData, drilldownDataJSON : [ String : Any ], response : APIResponse ) throws -> ZCRMAnalyticsData
     {
         var drilldown : ZCRMAnalyticsData = drilldownData
         if drilldownData.reportId != nil
         {
-            drilldown = try self.setDrilldownWithReports( drilldownData : drilldownData, drilldownDataJSON : drilldownDataJSON)
+            drilldown = try self.setDrilldownWithReports( drilldownData : drilldownData, drilldownDataJSON : drilldownDataJSON, response : response)
         }
         else if let componentChuncks = drilldownDataJSON.optArrayOfDictionaries(key: DrilldownDataAPINames.componentChuncks)
         {
@@ -1357,12 +1367,21 @@ fileprivate extension DashboardAPIHandler
         return drilldown
     }
     
-    func setDrilldownWithReports( drilldownData : ZCRMAnalyticsData, drilldownDataJSON : [ String : Any ] ) throws -> ZCRMAnalyticsData
+    func setDrilldownWithReports( drilldownData : ZCRMAnalyticsData, drilldownDataJSON : [ String : Any ], response : APIResponse ) throws -> ZCRMAnalyticsData
     {
         if let requestedObj = drilldownDataJSON.optDictionary(key: DrilldownDataAPINames.requestedObj), let reportId = requestedObj.optInt64(key: DrilldownDataAPINames.reportId)
         {
+            var info : [ String : Any ] = [ String : Any ]()
+            info.updateValue(try requestedObj.getInt( key : DrilldownDataAPINames.limitListCount ), forKey: APIConstants.PER_PAGE)
+            info.updateValue(try  requestedObj.getBoolean(key: DrilldownDataAPINames.moreRecords), forKey: APIConstants.MORE_RECORDS)
+            info.updateValue(try  requestedObj.getInt(key: DrilldownDataAPINames.totalRowCount), forKey: APIConstants.COUNT)
+            info.updateValue(try  requestedObj.getInt(key: DrilldownDataAPINames.reqFromIndex), forKey: APIConstants.PAGE)
+            
+            response.responseJSON[ APIConstants.INFO ] = info
+            try response.setInfo()
+            
             drilldownData.reportId = reportId
-            drilldownData.count = try requestedObj.getInt( key : DrilldownDataAPINames.limitListCount )
+            
             if let module = requestedObj.optString(key: DrilldownDataAPINames.module)
             {
                 drilldownData.module = module
@@ -1370,10 +1389,6 @@ fileprivate extension DashboardAPIHandler
             if let reqType = requestedObj.optString(key: DrilldownDataAPINames.reqType)
             {
                 drilldownData.requestType = reqType
-            }
-            if let totalCount = requestedObj.optInt(key: DrilldownDataAPINames.totalRowCount)
-            {
-                drilldownData.rowCount = totalCount
             }
             drilldownData.componentName = requestedObj.optString(key: DrilldownDataAPINames.type)
             if let headings = drilldownDataJSON.optArrayOfDictionaries(key: DrilldownDataAPINames.heading)
@@ -1483,10 +1498,6 @@ fileprivate extension DashboardAPIHandler
             if let columnInfo = componentChunk.optDictionary(key: DrilldownDataAPINames.aggregateColumnInfo), let aggregateLabel = columnInfo.optString(key: DrilldownDataAPINames.label)
             {
                 drilldownData.aggregateLabel = aggregateLabel
-            }
-            if let aggregates = try componentChunk.getDictionary( key : DrilldownDataAPINames.dataMap ).getDictionary( key : "T" ).optArrayOfDictionaries( key : DrilldownDataAPINames.aggregates ), let count = aggregates[ 0 ].optInt( key : DrilldownDataAPINames.value )
-            {
-                drilldownData.count = count
             }
             if let detailColumnInfo = componentChunk.optArrayOfDictionaries(key: DrilldownDataAPINames.detailColumnInfo)
             {

@@ -49,12 +49,3 @@ extension ZCRMAnalyticsColorThemes
         static let colorPalettes = "color_palettes"
     }
 }
-
-extension ZCRMAnalyticsColorThemes : Equatable
-{
-    public static func == (lhs: ZCRMAnalyticsColorThemes, rhs: ZCRMAnalyticsColorThemes) -> Bool {
-        let equals : Bool = lhs.name == rhs.name &&
-            lhs.colorPalette == rhs.colorPalette
-        return equals
-    }
-}

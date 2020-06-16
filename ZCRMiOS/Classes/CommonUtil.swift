@@ -49,11 +49,13 @@ public struct ErrorCode
     public static var requestTimeOut = "REQUEST_TIMEOUT"
     public static var insufficientData = "INSUFFICIENT_DATA"
     public static var networkConnectionLost = "NETWORK_CONNECTION_LOST"
+    public static var cannotFindHost = "CANNOT_FIND_HOST"
     public static var notModified = "NOT_MODIFIED"
     public static let limitExceeded = "LIMIT_EXCEEDED"
     public static let unhandled = "UNHANDLED"
     public static let portalNotFound = "PORTAL_NOT_FOUND"
     public static let duplicateData = "DUPLICATE_DATA"
+    public static let initializationError = "INITIALIZATION_ERROR"
 }
 
 public struct ErrorMessage
@@ -71,6 +73,7 @@ public struct ErrorMessage
     public static let notModifiedSinceMsg = "There is no changes made after the specified time."
     public static let unableToConstructComponent = "Insufficient data to construct component."
     public static let invalidPortalType = "The portal type seems to be invalid."
+    public static let missingPortalName = "Cannot initialise zcrmcp without portal name. Include the header X-CRMPORTAL in headers."
 }
 
 public extension Error
@@ -288,7 +291,7 @@ public enum AppType : String
 public enum ComponentPeriod : String
 {
     case day = "day"
-    case week = "week"
+    case week = "fiscal_week"
     case month = "month"
 }
 
@@ -339,6 +342,13 @@ public enum UserTypes : String
     case activeConfirmedAdmins = "ActiveConfirmedAdmins"
 }
 
+public enum TrashRecordTypes : String
+{
+    case all
+    case recycle
+    case permanent
+}
+
 public enum DashboardFilter : String
 {
     case mine = "mine"
@@ -360,6 +370,23 @@ public enum ZiaNotificationType : String
     case anomaly = "anomaly"
     case workflow = "workflow"
     case featureName = "featurename"
+}
+
+public enum VariableType : String
+{
+    case singleLine = "text"
+    case currency = "currency"
+    case date = "date"
+    case datetime = "datetime"
+    case decimal = "double"
+    case email = "email"
+    case longInteger = "long"
+    case multiLine = "textarea"
+    case number = "integer"
+    case percent = "percent"
+    case phone = "phone"
+    case url = "website"
+    case checkbox = "checkbox"
 }
 
 internal extension Dictionary
@@ -648,6 +675,11 @@ public extension String
         return Formatter.iso8601.date( from : self )   // "Nov 14, 2017, 10:22 PM"
     }
     
+    var dateFromISO8601WithTimeZone : Date?
+    {
+        return Formatter.iso8601WithTimeZone.date( from : self )
+    }
+    
     var dateComponents : DateComponents?
     {
         if let date : Date = Formatter.iso8601.date( from : self )
@@ -742,7 +774,7 @@ extension Formatter
         formatter.calendar = Calendar( identifier : .iso8601 )
         formatter.locale = Locale( identifier : "en_US_POSIX" )
         formatter.timeZone = TimeZone( secondsFromGMT : 0 )
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssXXXXX"
+        formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }()
     
@@ -757,6 +789,11 @@ extension Formatter
 public extension Date
 {
     var iso8601 : String
+    {
+        return Formatter.iso8601.string( from : self )
+    }
+    
+    var iso8601WithTimeZone : String
     {
         return Formatter.iso8601WithTimeZone.string( from : self ).replacingOccurrences( of : "Z", with : "+00:00" ).replacingOccurrences( of : "z", with : "+00:00" )
     }
@@ -1192,6 +1229,7 @@ internal struct APIConstants
     static let CODE_SUCCESS : String = "success"
     static let INFO : String = "info"
     static let DETAILS : String = "details"
+    static let PERMISSIONS : String = "permissions"
     
     static let MODULES : String = "modules"
     static let PRIVATE_FIELDS = "private_fields"
@@ -1212,6 +1250,7 @@ internal struct APIConstants
     static let BOOL_MOCK : Bool = false
     
     static let TRIGGER : String = "trigger"
+    static let DUPLICATE_CHECK_FIELDS : String = "duplicate_check_fields"
     
     static let MAX_ALLOWED_FILE_SIZE_IN_MB : Int = 20
     static let MAX_ALLOWED_FILE_SIZE : Int = 20971520
@@ -1222,23 +1261,23 @@ internal struct APIConstants
 
 public struct DefaultModuleAPINames
 {
-    static let LEADS : String = "Leads"
-    static let ACCOUNTS : String = "Accounts"
-    static let CONTACTS : String = "Contacts"
-    static let DEALS : String = "Deals"
-    static let QUOTES : String = "Quotes"
-    static let SALES_ORDERS : String = "Sales_Orders"
-    static let INVOICES : String = "Invoices"
-    static let PURCHASE_ORDERS : String = "Purchase_Orders"
-    static let PRODUCTS : String = "Products"
-    static let EVENTS : String = "Events"
-    static let NOTES : String = "Notes"
-    static let ATTACHMENTS : String = "Attachments"
-    static let SOCIAL : String = "Social"
-    static let PRICE_BOOKS : String = "Price_Books"
-    static let CALLS : String = "Calls"
-    static let ORGANIZATIONS : String = "organizations"
-    static let TASKS : String = "Tasks"
+    public static let LEADS : String = "Leads"
+    public static let ACCOUNTS : String = "Accounts"
+    public static let CONTACTS : String = "Contacts"
+    public static let DEALS : String = "Deals"
+    public static let QUOTES : String = "Quotes"
+    public static let SALES_ORDERS : String = "Sales_Orders"
+    public static let INVOICES : String = "Invoices"
+    public static let PURCHASE_ORDERS : String = "Purchase_Orders"
+    public static let PRODUCTS : String = "Products"
+    public static let EVENTS : String = "Events"
+    public static let NOTES : String = "Notes"
+    public static let ATTACHMENTS : String = "Attachments"
+    public static let SOCIAL : String = "Social"
+    public static let PRICE_BOOKS : String = "Price_Books"
+    public static let CALLS : String = "Calls"
+    public static let ORGANIZATIONS : String = "organizations"
+    public static let TASKS : String = "Tasks"
 }
 
 internal struct RequestParamKeys
@@ -1262,6 +1301,8 @@ var EMAIL : String = "email"
 var AUTHORIZATION : String = "Authorization"
 var USER_AGENT : String = "User-Agent"
 var X_CRM_ORG : String = "X-CRM-ORG"
+var X_ZOHO_SERVICE : String = "X-ZOHO-SERVICE"
+var X_CRM_PORTAL : String = "X-CRMPORTAL"
 var ZOHO_OAUTHTOKEN = "Zoho-oauthtoken"
 
 struct JSONRootKey {
@@ -1286,6 +1327,7 @@ struct JSONRootKey {
     static let ORG_INFO : String = "org_info"
     static let NOTIFICATIONS : String = "notifications"
     static let EMAIL_RELATED_LIST :String = "email_related_list"
+    static let EMAIL_INSIGHTS :String = "email_insights"
     static let ORGANIZATIONS : String = "organizations"
     static let PIPELINE : String = "pipeline"
     static let FILTERS : String = "filters"
@@ -1368,7 +1410,7 @@ public struct Result {
     }
 } // struct ends ..
 
-func typeCastToZCRMError( _ error : Error ) -> ZCRMError {
+public func typeCastToZCRMError( _ error : Error ) -> ZCRMError {
     if let typecastedError = error as? ZCRMError
     {
         return typecastedError
@@ -1386,6 +1428,10 @@ func typeCastToZCRMError( _ error : Error ) -> ZCRMError {
         else if error.code == NSURLErrorNetworkConnectionLost
         {
             return ZCRMError.networkError( code : ErrorCode.networkConnectionLost, message : error.localizedDescription, details : nil )
+        }
+        else if error.code == NSURLErrorCannotFindHost
+        {
+            return ZCRMError.networkError(code: ErrorCode.cannotFindHost, message: error.localizedDescription, details: nil)
         }
         return ZCRMError.sdkError( code : ErrorCode.internalError, message : error.description, details : nil )
     }
@@ -1613,7 +1659,7 @@ internal struct ResponsesTableStatement
     
     func searchData(_ withURL : String ) -> String
     {
-        return "\(DBConstant.DQL_SELECT) * \(DBConstant.KEYS_FROM) \(DBConstant.TABLE_RESPONSES) \(DBConstant.CLAUSE_WHERE) \(DBConstant.COLUMN_URL) LIKE \'\(withURL)?%\' AND \(DBConstant.COLUMN_VALIDITY) > \(DBConstant.CURRENT_TIME);"
+        return "\(DBConstant.DQL_SELECT) * \(DBConstant.KEYS_FROM) \(DBConstant.TABLE_RESPONSES) \(DBConstant.CLAUSE_WHERE) \(DBConstant.COLUMN_URL) LIKE \'\(withURL)\' OR \'\( withURL )?%\' AND \(DBConstant.COLUMN_VALIDITY) > \(DBConstant.CURRENT_TIME);"
     }
 }
     

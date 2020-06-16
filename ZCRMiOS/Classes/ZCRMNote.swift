@@ -75,6 +75,19 @@ open class ZCRMNote : ZCRMEntity
         }
     }
     
+    public func getAttachments( withParams : GETEntityRequestParams, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
+    {
+        if self.isCreate
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : Note ID MUST NOT be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil.", details : nil ) ) )
+        }
+        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ) ).getAttachments( withParams : withParams ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    @available(*, deprecated, message: "Use the method getAttachments( withParams : GETEntityRequestParams, completion : ) instead" )
     public func getAttachments( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
     {
         if self.isCreate
@@ -82,11 +95,15 @@ open class ZCRMNote : ZCRMEntity
             ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : Note ID MUST NOT be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil.", details : nil ) ) )
         }
-        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : DefaultModuleAPINames.ATTACHMENTS ) ).getAttachments( page : page, perPage : perPage, modifiedSince : nil ) { ( result ) in
+        var params = ZCRMQuery.getEntityRequestParams
+        params.page = page
+        params.perPage = perPage
+        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ) ).getAttachments( withParams : params ) { ( result ) in
             completion( result )
         }
     }
     
+    @available(*, deprecated, message: "Use the method getAttachments( withParams : GETEntityRequestParams, completion : ) instead" )
     public func getAttachments( page : Int, perPage : Int, modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
     {
         if self.isCreate
@@ -94,7 +111,11 @@ open class ZCRMNote : ZCRMEntity
             ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : Note ID MUST NOT be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil.", details : nil ) ) )
         }
-        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : DefaultModuleAPINames.ATTACHMENTS ) ).getAttachments( page : page, perPage : perPage, modifiedSince : modifiedSince ) { ( result ) in
+        var params = ZCRMQuery.getEntityRequestParams
+        params.page = page
+        params.perPage = perPage
+        params.modifiedSince = modifiedSince
+        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ) ).getAttachments( withParams : params ) { ( result ) in
             completion( result )
         }
     }
@@ -153,25 +174,16 @@ open class ZCRMNote : ZCRMEntity
     public func deleteAttachment( id : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ) ).deleteAttachment( attachmentId : id ) { ( result ) in
-            do
+            if case .success( _ ) = result
             {
-                let resp = try result.resolve()
-                if resp.getStatus() == APIConstants.CODE_SUCCESS
-                {
-                    self.removeAttachment(attachmentId: id)
-                }
-                completion( result )
+                self.removeAttachment(attachmentId: id)
             }
-            catch
-            {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                completion( .failure( typeCastToZCRMError( error ) ) )
-            }
+            completion( result )
         }
     }
 }
 
-extension ZCRMNote : NSCopying, Equatable
+extension ZCRMNote : NSCopying, Hashable
 {
     public func copy( with zone : NSZone? = nil ) -> Any
     {
@@ -208,5 +220,9 @@ extension ZCRMNote : NSCopying, Equatable
             lhs.isVoiceNote == rhs.isVoiceNote &&
             lhs.size == rhs.size
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }

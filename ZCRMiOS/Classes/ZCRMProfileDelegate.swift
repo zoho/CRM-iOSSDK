@@ -25,12 +25,16 @@ open class ZCRMProfileDelegate : ZCRMEntity
     }
 }
 
-extension ZCRMProfileDelegate : Equatable
+extension ZCRMProfileDelegate : Hashable
 {
     public static func == (lhs: ZCRMProfileDelegate, rhs: ZCRMProfileDelegate) -> Bool {
         let equals : Bool = lhs.id == rhs.id &&
             lhs.name == rhs.name &&
             lhs.isDefault == rhs.isDefault
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }

@@ -17,11 +17,15 @@ open class ZCRMLayoutDelegate : ZCRMEntity
     }
 }
 
-extension ZCRMLayoutDelegate : Equatable
+extension ZCRMLayoutDelegate : Hashable
 {
     public static func == (lhs: ZCRMLayoutDelegate, rhs: ZCRMLayoutDelegate) -> Bool {
         let equals : Bool = lhs.id == rhs.id &&
             lhs.name == rhs.name
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }

@@ -16,12 +16,16 @@ open class ZCRMRoleDelegate : ZCRMEntity
     }
 }
 
-extension ZCRMRoleDelegate : Equatable
+extension ZCRMRoleDelegate : Hashable
 {
     public static func == (lhs: ZCRMRoleDelegate, rhs: ZCRMRoleDelegate) -> Bool {
         let equals : Bool = lhs.id == rhs.id &&
             lhs.name == rhs.name
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }
 

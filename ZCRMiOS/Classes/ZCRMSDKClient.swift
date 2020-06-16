@@ -10,7 +10,7 @@ public class ZCRMSDKClient
 {
     public static let shared = ZCRMSDKClient()
     public var requestHeaders : Dictionary< String, String >?
-    public var isDBCacheEnabled : Bool = true
+    public var isDBCacheEnabled : Bool = false
    
     public var fileUploadURLSessionConfiguration : URLSessionConfiguration = .default
     public var fileDownloadURLSessionConfiguration : URLSessionConfiguration = .default
@@ -21,6 +21,7 @@ public class ZCRMSDKClient
     internal var portalId : Int64?
     internal var appType : AppType = AppType.zcrm
     public var requestTimeout : Double = 120.0
+    private var zohoAuthProvider : ZohoAuthProvider?
     /**
      The time until the db data can be used for specific URL Request. After the time ends the data will be fetched from the server.
      
@@ -33,7 +34,7 @@ public class ZCRMSDKClient
         private var isVerticalCRM: Bool = false
         internal var zcrmLoginHandler: ZCRMLoginHandler?
         internal var zvcrmLoginHandler: ZVCRMLoginHandler?
-        private var crmAppConfigs : CRMAppConfigUtil!
+        private var crmAppConfigs : Dictionary < String, Any >!
     
     internal var sessionCompletionHandlers : [ String : () -> () ] = [ String : () -> () ]()
     
@@ -43,40 +44,42 @@ public class ZCRMSDKClient
     {
         guard let appConfigPlist = Bundle.main.path( forResource : "AppConfiguration", ofType : "plist" ) else
         {
-            throw ZCRMError.sdkError(code: ErrorCode.internalError, message: "AppConfiguration.plist is not foud.", details: nil)
+            throw ZCRMError.sdkError(code: ErrorCode.internalError, message: "AppConfiguration.plist is not found.", details: nil)
         }
         if let appConfiguration = NSDictionary( contentsOfFile : appConfigPlist ) as? [String : Any]
         {
-            self.crmAppConfigs = CRMAppConfigUtil( appConfigDict : appConfiguration )
-            if let baseURL = apiBaseURL
+            self.crmAppConfigs = appConfiguration
+            if apiBaseURL.notNilandEmpty
+            {
+                ZCRMSDKClient.shared.apiBaseURL = apiBaseURL!
+            }
+            else if let baseURL = appConfiguration.optString( key : CRMAppConfigurationKeys.apiBaseURL ), !baseURL.isEmpty
             {
                 ZCRMSDKClient.shared.apiBaseURL = baseURL
-                if ZCRMSDKClient.shared.apiBaseURL.isEmpty == true
-                {
-                    throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "API Base URL is empty", details : nil )
-                }
             }
             if let scopes = oauthScopes
             {
-                crmAppConfigs.setOauthScopes( scopes : scopes )
+                crmAppConfigs[ CRMAppConfigurationKeys.oAuthScopes ] = scopes
             }
             if let accountURL = accountsURL
             {
-                crmAppConfigs.setAccountsURL( url : accountURL )
+                crmAppConfigs[ CRMAppConfigurationKeys.accountsURL ] = accountURL
             }
             if let clientId = clientID
             {
-                crmAppConfigs.setClientID( id : clientId )
+                crmAppConfigs[ CRMAppConfigurationKeys.clientId ] = clientId
             }
-            if let clientSecretId = clientSecretID {
-                crmAppConfigs.setClientSecretID(id: clientSecretId)
+            if let clientSecretId = clientSecretID
+            {
+                crmAppConfigs[ CRMAppConfigurationKeys.clientSecretId ] = clientSecretId
             }
             if let portalId = portalID
             {
-                crmAppConfigs.setPortalID(id: portalId)
+                crmAppConfigs[ CRMAppConfigurationKeys.portalId ] = portalId
             }
-            if let redirectURLScheme = redirectURLScheme {
-                crmAppConfigs.setRedirectURLScheme(scheme: redirectURLScheme)
+            if let redirectURLScheme = redirectURLScheme
+            {
+                crmAppConfigs[ CRMAppConfigurationKeys.redirectURLScheme ] = redirectURLScheme
             }
             if let bundleID = Bundle.main.bundleIdentifier
             {
@@ -101,6 +104,7 @@ public class ZCRMSDKClient
         {
             throw ZCRMError.sdkError(code: ErrorCode.internalError, message: "AppConfiguration.plist has no data.", details: nil)
         }
+        
         do
         {
             try ZCRMSDKClient.shared.createDB()
@@ -110,12 +114,13 @@ public class ZCRMSDKClient
         {
             ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : Table creation failed!")
         }
-        self.initIAMLogin( appType : ZCRMSDKClient.shared.appType, window : window, apiBaseURL : apiBaseURL )
+        self.initIAMLogin( appType : ZCRMSDKClient.shared.appType, window : window, apiBaseURL : ZCRMSDKClient.shared.apiBaseURL )
     }
     
     public static func notifyLogout()
     {
         shared.clearAllCache()
+        shared.clearAllURLSessionCache()
         shared.portalId = nil
     }
     
@@ -149,6 +154,20 @@ public class ZCRMSDKClient
         {
             ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
         }
+    }
+    
+    internal func getAccessToken( completion : @escaping ( Result.Data< String > ) -> ())
+    {
+        self.zohoAuthProvider?.getAccessToken() { result in
+            completion( result )
+        }
+    }
+    
+    public func clearAllURLSessionCache()
+    {
+        APIRequest.session.configuration.urlCache?.removeAllCachedResponses()
+        FileAPIRequest.fileUploadURLSessionWithDelegates.configuration.urlCache?.removeAllCachedResponses()
+        FileAPIRequest.fileDownloadURLSessionWithDelegates.configuration.urlCache?.removeAllCachedResponses()
     }
     
     /// default minLogLevel is set as ERROR
@@ -293,19 +312,20 @@ public class ZCRMSDKClient
             }
         }
         
-        fileprivate func handleAppType( appType : AppType, appConfigurations : CRMAppConfigUtil ) throws
+        fileprivate func handleAppType( appType : AppType, appConfigurations : Dictionary < String, Any > ) throws
         {
-            appConfigurations.setAppType( type : appType.rawValue )
             do
             {
                 if appType == AppType.zcrm
                 {
                     self.zcrmLoginHandler = try ZCRMLoginHandler( appConfigUtil : appConfigurations )
+                    self.zohoAuthProvider = self.zcrmLoginHandler
                     self.isVerticalCRM = false
                 }
                 else
                 {
                     self.zvcrmLoginHandler = try ZVCRMLoginHandler( appConfigUtil : appConfigurations )
+                    self.zohoAuthProvider = self.zvcrmLoginHandler
                     self.isVerticalCRM = true
                 }
                 self.clearFirstLaunch()
@@ -340,33 +360,19 @@ public class ZCRMSDKClient
                     }
                 }
             }
-            
         }
         
         public func isUserSignedIn(completion: @escaping (Bool) -> ())
         {
-            if self.isVerticalCRM
-            {
-                self.zvcrmLoginHandler?.getOauth2Token { (token, error) in
-                    if error != nil
-                    {
-                        completion(false)
-                    } else {
-                        completion(true)
-                    }
+            zohoAuthProvider?.getAccessToken( completion : { ( result ) in
+                switch result
+                {
+                case .success( _ ) :
+                    completion( true )
+                case .failure( _ ) :
+                    completion( false )
                 }
-            }
-            else
-            {
-                self.zcrmLoginHandler?.getOauth2Token { (token, error) in
-                    if error != nil
-                    {
-                        completion(false)
-                    } else {
-                        completion(true)
-                    }
-                }
-            }
+            } )
         }
         
         public func logout(completion: @escaping (Bool) -> ())
@@ -412,20 +418,44 @@ public class ZCRMSDKClient
         {
             if( status == APIConstants.CODE_ERROR && code == ErrorCode.noPermission)
             {
-                if let moduleName = name
+                if let details = msgJSON[ APIConstants.DETAILS ] as? [ String : Any ], let permissions = details[ APIConstants.PERMISSIONS ] as? [ String ]
                 {
-                    do
+                    for permission in permissions
                     {
-                        try ZCRMSDKClient.shared.getPersistentDB().deleteZCRMRecords(withModuleName: moduleName)
-                        try ZCRMSDKClient.shared.getNonPersistentDB().deleteZCRMRecords(withModuleName: moduleName)
-                    }
-                    catch
-                    {
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                        throw error
+                        if permission.contains( "Crm_Implied_View_" )
+                        {
+                            if let moduleName = name
+                            {
+                                do
+                                {
+                                    try ZCRMSDKClient.shared.getPersistentDB().deleteZCRMRecords(withModuleName: moduleName)
+                                    try ZCRMSDKClient.shared.getNonPersistentDB().deleteZCRMRecords(withModuleName: moduleName)
+                                }
+                                catch
+                                {
+                                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                    throw error
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
     }
+}
+
+struct CRMAppConfigurationKeys
+{
+    static let clientId = "ClientID"
+    static let clientSecretId = "ClientSecretID"
+    static let redirectURLScheme = "RedirectURLScheme"
+    static let oAuthScopes = "OAuthScopes"
+    static let accountsURL = "AccountsURL"
+    static let portalId = "PortalID"
+    static let apiBaseURL = "ApiBaseURL"
+    static let apiVersion = "ApiVersion"
+    static let countryDomain = "DomainSuffix"
+    static let accessType = "AccessType"
+    static let showSignUp = "ShowSignUp"
 }

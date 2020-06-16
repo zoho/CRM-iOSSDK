@@ -9,17 +9,17 @@
 import Foundation
 import UIKit
 
-public class ZCRMLoginHandler
+public class ZCRMLoginHandler : ZohoAuthProvider
 {
-    private var appConfigurationUtil : CRMAppConfigUtil = CRMAppConfigUtil()
+    private var appConfigurationUtil : Dictionary < String, Any > = Dictionary < String, Any >()
     private var accessType : String = String()
     private var configurationKeys : [ String ] = [ "DomainSuffix", "ApiVersion", "ClientID", "ClientSecretID", "RedirectURLScheme", "AccountsURL", "OAuthScopes", "AccessType", "LoginCustomization" ]
     public init(){}
     
-    public init( appConfigUtil : CRMAppConfigUtil ) throws
+    public init( appConfigUtil : Dictionary < String, Any > ) throws
     {
         self.appConfigurationUtil = appConfigUtil
-        try self.validateAppConfigs( dict : appConfigUtil.getAppConfigurations() )
+        try self.validateAppConfigs( dict : appConfigUtil )
     }
     
     internal func validateAppConfigs( dict : Dictionary< String, Any > ) throws
@@ -53,8 +53,8 @@ public class ZCRMLoginHandler
         {
             self.setAppConfigurations()
             ZCRMLogger.logDebug( message: "Country Domain : \( COUNTRYDOMAIN )" )
-            ZohoAuth.initWithClientID( try appConfigurationUtil.getClientID(), clientSecret : try appConfigurationUtil.getClientSecretID(), scope : try appConfigurationUtil.getAuthscopes(), urlScheme : try appConfigurationUtil.getRedirectURLScheme(), mainWindow : window, accountsURL : try appConfigurationUtil.getAccountsURL() )
-            ZCRMLogger.logDebug( message: "redirectURL : \( try appConfigurationUtil.getRedirectURLScheme() )")
+            ZohoAuth.initWithClientID( try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.clientId ), clientSecret : try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.clientSecretId ), scope : try appConfigurationUtil.getArray( key : CRMAppConfigurationKeys.oAuthScopes ), urlScheme : try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.redirectURLScheme ), mainWindow : window, accountsURL : try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.accountsURL ) )
+            ZCRMLogger.logDebug( message: "redirectURL : \( try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.redirectURLScheme ) )")
         }
         catch
         {
@@ -67,17 +67,13 @@ public class ZCRMLoginHandler
     {
         do
         {
-            if let appType = AppType( rawValue : appConfigurationUtil.getAppType() )
-            {
-                ZCRMSDKClient.shared.appType = appType
-            }
-            ZCRMSDKClient.shared.apiVersion = try appConfigurationUtil.getApiVersion()
+            ZCRMSDKClient.shared.apiVersion = try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.apiVersion )
             if( ZCRMSDKClient.shared.apiVersion.isEmpty == true )
             {
                 ZCRMSDKClient.shared.apiVersion = "v2"
             }
-                COUNTRYDOMAIN = try appConfigurationUtil.getCountryDomain()
-                accessType = try appConfigurationUtil.getAccessType()
+            COUNTRYDOMAIN = try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.countryDomain )
+            accessType = try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.accessType )
         }
         catch
         {
@@ -116,6 +112,16 @@ public class ZCRMLoginHandler
         case "cn" :
             ZCRMSDKClient.shared.apiBaseURL = "https://\( domain ).zohoapis.com.cn"
             ACCOUNTSURL = "https://accounts.zoho.com.cn"
+            break
+            
+        case "in" :
+            ZCRMSDKClient.shared.apiBaseURL = "https://\( domain ).zohoapis.in"
+            ACCOUNTSURL = "https://accounts.zoho.in"
+            break
+            
+        case "au" :
+            ZCRMSDKClient.shared.apiBaseURL = "https://\( domain ).zohoapis.com.au"
+            ACCOUNTSURL = "https://accounts.zoho.com.au"
             break
             
         default :
@@ -190,26 +196,10 @@ public class ZCRMLoginHandler
                         HTTPCookieStorage.shared.deleteCookie( cookie )
                     }
                 }
-                if( self.appConfigurationUtil.isLoginCustomized() == false )
-                {
-                    self.handleLogin( completion : { success in
-                        if success == true
-                        {
-                            print( "login screen loaded successfully on Logout call!")
-                        }
-                    })
-                }
                 completion( true )
                 ZCRMLogger.logDebug( message: "logout ZCRM!" )
             }
         } )
-    }
-    
-    internal func getOauth2Token( completion : @escaping( String?, Error? ) -> () )
-    {
-        ZohoAuth.getOauth2Token { ( token, error ) in
-            completion( token, error )
-        }
     }
     
     internal func getLoginScreenParams() -> String
@@ -217,23 +207,26 @@ public class ZCRMLoginHandler
         var loginScreenParams : String = ""
         do
         {
-            let showSignUp = try appConfigurationUtil.getShowSignUp()
-            if( appConfigurationUtil.getAppConfigurations().hasKey( forKey : "ShowSignUp" ) && showSignUp == "true" )
+            let showSignUp = try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.showSignUp )
+            if( showSignUp == "true" )
             {
                 loginScreenParams = "hide_signup=false"
             }
-//            let portalID = try appConfigurationUtil.getPortalID()
-//            if( appConfigurationUtil.getAppConfigurations().hasKey( forKey : "PortalID" ) && portalID.isEmpty == false )
-//            {
-//                if( loginScreenParams != "" && !loginScreenParams.contains( "PortalID" ) )
-//                {
-//                    loginScreenParams = loginScreenParams + "&portal_id=" + portalID
-//                }
-//                else
-//                {
-//                    loginScreenParams = "portal_id=" + portalID
-//                }
-//            }
+            
+            if let portalID = appConfigurationUtil.optString( key : CRMAppConfigurationKeys.portalId )
+            {
+                if portalID.isEmpty == false
+                {
+                    if( loginScreenParams != "" && !loginScreenParams.contains( "PortalID" ) )
+                    {
+                        loginScreenParams = loginScreenParams + "&portal_id=" + portalID
+                    }
+                    else
+                    {
+                        loginScreenParams = "portal_id=" + portalID
+                    }
+                }
+            }
         }
         catch
         {
@@ -241,5 +234,19 @@ public class ZCRMLoginHandler
         }
         ZCRMLogger.logDebug( message : "login screen params = \( loginScreenParams )" )
         return loginScreenParams
+    }
+    
+    public func getAccessToken( completion : @escaping ( Result.Data< String > ) -> () )
+    {
+        ZohoAuth.getOauth2Token { ( token, error ) in
+            if let error = error
+            {
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+            else if let token = token
+            {
+                completion( .success( token ) )
+            }
+        }
     }
 }

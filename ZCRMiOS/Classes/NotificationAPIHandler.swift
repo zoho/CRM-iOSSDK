@@ -89,26 +89,17 @@ internal class NotificationAPIHandler : CommonAPIHandler
         
         if let recordId = recordId
         {
-            addRequestParam(param: RequestParamKeys.recordId, value: String(recordId))
+            addRequestParam(param: RequestParamKeys.recordId, value: String( recordId ))
         }
         else if let notificationIds = notificationIds, notificationIds.isEmpty == false
         {
             if notificationIds.count == 1
             {
-                urlPath = urlPath + "/\(String(notificationIds[0]))"
+                urlPath = urlPath + "/\( notificationIds[0] )"
             }
             else
             {
-                var idString : String = String()
-                for index in 0..<notificationIds.count
-                {
-                    idString.append(String(notificationIds[index]))
-                    if ( index != ( notificationIds.count - 1 ) )
-                    {
-                        idString.append(",")
-                    }
-                }
-                addRequestParam(param: RequestParamKeys.ids, value: idString)
+                addRequestParam(param: RequestParamKeys.ids, value: notificationIds.map{ String( $0 ) }.joined(separator: ","))
             }
         }
         

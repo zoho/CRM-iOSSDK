@@ -24,7 +24,7 @@ open class ZCRMTrashRecord : ZCRMEntity
     }
 }
 
-extension ZCRMTrashRecord : Equatable
+extension ZCRMTrashRecord : Hashable
 {
     public static func == (lhs: ZCRMTrashRecord, rhs: ZCRMTrashRecord) -> Bool {
         let equals : Bool = lhs.id == rhs.id &&
@@ -34,5 +34,9 @@ extension ZCRMTrashRecord : Equatable
             lhs.deletedBy == rhs.deletedBy &&
             lhs.createdBy == rhs.createdBy
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }

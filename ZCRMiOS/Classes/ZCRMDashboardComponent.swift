@@ -15,7 +15,6 @@ open class ZCRMDashboardComponent : ZCRMDashboardComponentDelegate {
     /// Component Visualisation Props
     public internal( set ) var maxRows : Int?
     public internal( set ) var objective : Objective?
-    public internal( set ) var type : String = APIConstants.STRING_MOCK // Component Type
     public internal( set ) var colorPaletteName : colorPalette?
     public internal( set ) var colorPaletteStartingIndex : Int?
     public internal( set ) var segmentRanges : [ SegmentRanges ]?
@@ -124,7 +123,7 @@ extension ZCRMDashboardComponent
 }
 extension ZCRMDashboardComponent
 {
-    public struct ComponentChunks : Equatable
+    public struct ComponentChunks : Hashable
     {
         public internal(set) var groupingColumnInfo = [GroupingColumnInfo]()
         public internal(set) var aggregateColumnInfo = [AggregateColumnInfo]()
@@ -171,6 +170,10 @@ extension ZCRMDashboardComponent
         
         public static func == (lhs: ZCRMDashboardComponent.ComponentChunks, rhs: ZCRMDashboardComponent.ComponentChunks) -> Bool {
             return lhs.groupingColumnInfo == rhs.groupingColumnInfo && lhs.aggregateColumnInfo == rhs.aggregateColumnInfo && lhs.verticalGrouping == rhs.verticalGrouping && lhs.verticalGroupingTotalAggregate == rhs.verticalGroupingTotalAggregate && lhs.name == rhs.name && lhs.objective == rhs.objective && lhs.id == rhs.id && lhs.component == rhs.component
+        }
+        
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine( id )
         }
     }
     
@@ -379,11 +382,186 @@ extension ZCRMDashboardComponent
             lhs.componentChunks == rhs.componentChunks &&
             lhs.maxRows == rhs.maxRows &&
             lhs.objective == rhs.objective &&
-            lhs.type == rhs.type &&
             lhs.colorPaletteName == rhs.colorPaletteName &&
             lhs.colorPaletteStartingIndex == rhs.colorPaletteStartingIndex &&
             lhs.segmentRanges == rhs.segmentRanges &&
             lhs.period == rhs.period
         return equals
     }
+}
+
+extension ZCRMDashboardComponent
+{
+    public enum CategoryIdentifier : String, Hashable
+    {
+        case chart
+        case kpi
+        case comparator
+        case anomalyDetector = "trends"
+        case targetMeter = "target_meter"
+        case funnel
+        case cohort
+        case quadrant
+        case unknown
+        
+        static func getIdentifier( rawValue : String ) -> CategoryIdentifier
+        {
+            if let identifier = CategoryIdentifier( rawValue: rawValue )
+            {
+                return identifier
+            }
+            ZCRMLogger.logDebug(message: "UNKNOWN -> Component Category : \( rawValue )")
+            return .unknown
+        }
+    }
+    
+    public enum Chart: String {
+        case pie
+        case column
+        case bar
+        case donut
+        case funnel
+        case stackedBar = "bar_stacked"
+        case stackedColumn = "column_stacked"
+        case stackedColumn100Percent = "column_stacked_100percent"
+        case stackedBar100Percent = "bar_stacked_100percent"
+        case areaspline
+        case heatmap
+        case table
+        case spline
+        case unhandled
+        
+        static func getType(_ rawValue : String) -> Chart
+        {
+            if let type = Chart( rawValue: rawValue )
+            {
+                return type
+            }
+            ZCRMLogger.logDebug(message: "UNHANDLED -> Component type : \( rawValue )")
+            return .unhandled
+        }
+    }
+
+    public enum TargetMeter: String {
+        case normalGauge = "dial_gauge_with_max_value"
+        case trafficLightGauge = "traffic_list"
+        case bar
+        case multipleBar = "multiple_bar"
+        case unhandled
+        
+        static func getType(_ rawValue : String) -> TargetMeter
+        {
+            if let type = TargetMeter( rawValue: rawValue )
+            {
+                return type
+            }
+            ZCRMLogger.logDebug(message: "UNHANDLED -> Component type : \( rawValue )")
+            return .unhandled
+        }
+    }
+
+    public enum Comparator : String {
+        case elegant
+        case classic
+        case sport
+        case unhandled
+        
+        static func getType(_ rawValue : String) -> Comparator
+        {
+            if let type = Comparator( rawValue: rawValue )
+            {
+                return type
+            }
+            ZCRMLogger.logDebug(message: "UNHANDLED -> Component type : \( rawValue )")
+            return .unhandled
+        }
+    }
+
+    public enum KPI: String {
+        case scoreCard = "scorecard"
+        case standard
+        case basic
+        case growthIndex = "growth_index"
+        case rankings = "scorecard_bar"
+        case unhandled
+        
+        static func getType(_ rawValue : String) -> KPI
+        {
+            if let type = KPI( rawValue: rawValue )
+            {
+                return type
+            }
+            ZCRMLogger.logDebug(message: "UNHANDLED -> Component type : \( rawValue )")
+            return .unhandled
+        }
+    }
+
+    public enum Funnel: String {
+        case standard
+        case compact
+        case segment
+        case path
+        case classic
+        case unhandled
+        
+        static func getType(_ rawValue : String) -> Funnel
+        {
+            if let type = Funnel( rawValue: rawValue )
+            {
+                return type
+            }
+            ZCRMLogger.logDebug(message: "UNHANDLED -> Component type : \( rawValue )")
+            return .unhandled
+        }
+    }
+
+    public enum AnomalyDetector: String {
+        case table
+        case spline
+        case unhandled
+        
+        static func getType(_ rawValue : String) -> AnomalyDetector
+        {
+            if let type = AnomalyDetector( rawValue: rawValue )
+            {
+                return type
+            }
+            ZCRMLogger.logDebug(message: "UNHANDLED -> Component type : \( rawValue )")
+            return .unhandled
+        }
+    }
+
+    public enum Cohort: String {
+        case basic
+        case standard
+        case advanced
+        case unhandled
+        
+        static func getType(_ rawValue : String) -> Cohort
+        {
+            if let type = Cohort( rawValue: rawValue )
+            {
+                return type
+            }
+            ZCRMLogger.logDebug(message: "UNHANDLED -> Component type : \( rawValue )")
+            return .unhandled
+        }
+    }
+
+    public enum Quadrant: String {
+        case standard
+        case advanced
+        case unhandled
+        
+        static func getType(_ rawValue : String) -> Quadrant
+        {
+            if let type = Quadrant( rawValue: rawValue )
+            {
+                return type
+            }
+            ZCRMLogger.logDebug(message: "UNHANDLED -> Component type : \( rawValue )")
+            return .unhandled
+        }
+    }
+
 }

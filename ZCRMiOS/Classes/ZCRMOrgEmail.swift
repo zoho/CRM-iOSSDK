@@ -61,7 +61,7 @@ internal class ZCRMOrgEmail : ZCRMEntity
     }
 }
 
-extension ZCRMOrgEmail : Equatable
+extension ZCRMOrgEmail : Hashable
 {
     public static func == (lhs: ZCRMOrgEmail, rhs: ZCRMOrgEmail) -> Bool {
         let equals : Bool = lhs.isConfirmed == rhs.isConfirmed  &&
@@ -70,5 +70,9 @@ extension ZCRMOrgEmail : Equatable
             lhs.email == rhs.email &&
             lhs.name == rhs.name
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }

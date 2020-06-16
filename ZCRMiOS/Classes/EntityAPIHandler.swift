@@ -118,6 +118,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                             let record = try recordResult.resolve()
                             response.setData(data: record)
                             self.record.upsertJSON = [ String : Any? ]()
+                            self.record.isCreate = false
                             completion( .success( record, response ) )
                         }
                         catch
@@ -154,7 +155,7 @@ internal class EntityAPIHandler : CommonAPIHandler
             reqBodyObj[ APIConstants.TRIGGER ] = getTriggerArray(triggers: triggers)
         }
         
-        setUrlPath( urlPath : "\( self.record.moduleAPIName )/\( String( self.record.id ) )" )
+        setUrlPath( urlPath : "\( self.record.moduleAPIName )/\( self.record.id )" )
         setRequestMethod( requestMethod : .patch )
         setRequestBody( requestBody : reqBodyObj )
         let request : APIRequest = APIRequest( handler : self)
@@ -231,7 +232,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         dataArray.append(convertData)
         reqBodyObj[getJSONRootKey()] = dataArray
         
-        setUrlPath( urlPath : "\( self.record.moduleAPIName )/\( String( self.recordDelegate.id ) )/\( URLPathConstants.actions )/\( URLPathConstants.convert )" )
+        setUrlPath( urlPath : "\( self.record.moduleAPIName )/\( self.recordDelegate.id )/\( URLPathConstants.actions )/\( URLPathConstants.convert )" )
         setRequestMethod(requestMethod : .post )
         setRequestBody(requestBody : reqBodyObj )
         let request : APIRequest = APIRequest(handler : self)
@@ -437,7 +438,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
         
         setJSONRootKey( key : JSONRootKey.NIL )
-        setUrlPath( urlPath :"\( self.recordDelegate.moduleAPIName )/\( String( self.recordDelegate.id ) )/\( URLPathConstants.photo )" )
+        setUrlPath( urlPath :"\( self.recordDelegate.moduleAPIName )/\( self.recordDelegate.id )/\( URLPathConstants.photo )" )
         setRequestMethod(requestMethod : .post )
     }
     
@@ -484,7 +485,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         do
         {
             try buildUploadPhotoRequest(filePath: filePath, fileName: fileName, fileData: fileData)
-            let request : FileAPIRequest = FileAPIRequest( handler : self, fileUploadDelegate : fileUploadDelegate , fileRefId: fileRefId)
+            let request : FileAPIRequest = FileAPIRequest( handler : self, fileUploadDelegate : fileUploadDelegate)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
             
             request.uploadFile(fileRefId: fileRefId, filePath: filePath, fileName: fileName, fileData: fileData, entity: nil) { _,_ in }
@@ -501,7 +502,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     internal func downloadPhoto( completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.NIL )
-        setUrlPath( urlPath : "\( self.recordDelegate.moduleAPIName )/\( String( self.recordDelegate.id ) )/\( URLPathConstants.photo )" )
+        setUrlPath( urlPath : "\( self.recordDelegate.moduleAPIName )/\( self.recordDelegate.id )/\( URLPathConstants.photo )" )
         setRequestMethod(requestMethod : .get )
         let request : FileAPIRequest = FileAPIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -521,18 +522,18 @@ internal class EntityAPIHandler : CommonAPIHandler
     internal func downloadPhoto( fileDownloadDelegate : ZCRMFileDownloadDelegate )
     {
         setJSONRootKey( key : JSONRootKey.NIL )
-        setUrlPath( urlPath : "\( self.recordDelegate.moduleAPIName )/\( String( self.recordDelegate.id ) )/\( URLPathConstants.photo )" )
+        setUrlPath( urlPath : "\( self.recordDelegate.moduleAPIName )/\( self.recordDelegate.id )/\( URLPathConstants.photo )" )
         setRequestMethod(requestMethod : .get )
         
-        let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate, "\( self.recordDelegate.id )" )
+        let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-        request.downloadFile()
+        request.downloadFile( fileRefId: String( self.recordDelegate.id ) )
     }
 
     internal func deletePhoto( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.NIL )
-        setUrlPath( urlPath : "\( self.recordDelegate.moduleAPIName )/\( String( self.recordDelegate.id ) )/\( URLPathConstants.photo )" )
+        setUrlPath( urlPath : "\( self.recordDelegate.moduleAPIName )/\( self.recordDelegate.id )/\( URLPathConstants.photo )" )
         setRequestMethod(requestMethod : .delete )
         let request : APIRequest = APIRequest(handler : self )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -601,11 +602,11 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
         if let page = page
         {
-            addRequestParam( param : RequestParamKeys.page, value : String( page ) )
+            addRequestParam( param : RequestParamKeys.page, value : String( page ))
         }
         if let perPage = perPage
         {
-            addRequestParam( param : RequestParamKeys.perPage, value : String( perPage ) )
+            addRequestParam( param : RequestParamKeys.perPage, value : String( perPage ))
         }
         let request : APIRequest = APIRequest(handler: self )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -643,20 +644,10 @@ internal class EntityAPIHandler : CommonAPIHandler
     internal func addTags( tags : [ String ], overWrite : Bool?, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.DATA)
-        let recordIdString = String( recordDelegate.id )
         
-        setUrlPath( urlPath : "\( self.recordDelegate.moduleAPIName )/\( recordIdString )/\( URLPathConstants.actions )/\( URLPathConstants.addTags )" )
+        setUrlPath( urlPath : "\( self.recordDelegate.moduleAPIName )/\( recordDelegate.id )/\( URLPathConstants.actions )/\( URLPathConstants.addTags )" )
         setRequestMethod(requestMethod: .post)
-        var tagNamesString : String = String()
-        for index in 0..<tags.count
-        {
-            tagNamesString.append( tags[ index ] )
-            if ( index != ( tags.count - 1 ) )
-            {
-                tagNamesString.append(",")
-            }
-        }
-        addRequestParam(param: RequestParamKeys.tagNames, value: tagNamesString)
+        addRequestParam(param: RequestParamKeys.tagNames, value: tags.joined(separator: ",") )
         if let overWrite = overWrite
         {
             addRequestParam( param : RequestParamKeys.overWrite, value : String( overWrite ) )
@@ -679,6 +670,14 @@ internal class EntityAPIHandler : CommonAPIHandler
                         self.record.tags?.append( tag )
                     }
                 }
+                else if let tags = try tagDetails.getArrayOfDictionaries(key: JSONRootKey.TAGS) as? [ [ String : String ] ]
+                {
+                    self.record.tags = [ String ]()
+                    for tag in tags
+                    {
+                        self.record.tags?.append( try tag.getString(key: ResponseJSONKeys.name) )
+                    }
+                }
                 completion( .success( self.record, response ) )
             }
             catch{
@@ -691,20 +690,10 @@ internal class EntityAPIHandler : CommonAPIHandler
     internal func removeTags( tags : [ String ], completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.DATA)
-        let recordIdString = String( recordDelegate.id )
         
-        setUrlPath( urlPath : "\( self.recordDelegate.moduleAPIName )/\( recordIdString )/\( URLPathConstants.actions )/\( URLPathConstants.removeTags )" )
+        setUrlPath( urlPath : "\( self.recordDelegate.moduleAPIName )/\( recordDelegate.id )/\( URLPathConstants.actions )/\( URLPathConstants.removeTags )" )
         setRequestMethod(requestMethod: .post)
-        var tagNamesString : String = String()
-        for index in 0..<tags.count
-        {
-            tagNamesString.append( tags[ index ] )
-            if ( index != ( tags.count - 1 ) )
-            {
-                tagNamesString.append(",")
-            }
-        }
-        addRequestParam(param: RequestParamKeys.tagNames, value: tagNamesString)
+        addRequestParam(param: RequestParamKeys.tagNames, value: tags.joined(separator: ","))
         
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")

@@ -14,7 +14,7 @@ open class ZCRMField : ZCRMEntity
     public internal( set ) var dataType : String = APIConstants.STRING_MOCK
     public internal( set ) var isReadOnly : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isVisible : Bool = APIConstants.BOOL_MOCK
-    public var isMandatory : Bool?
+    public internal( set ) var isMandatory : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isCustomField : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var defaultValue : Any?
     public internal( set ) var maxLength : Int?
@@ -90,7 +90,7 @@ open class ZCRMField : ZCRMEntity
     }
 }
 
-extension ZCRMField : Equatable
+extension ZCRMField : Hashable
 {
     public static func == (lhs: ZCRMField, rhs: ZCRMField) -> Bool {
         var lookupFlag : Bool
@@ -162,5 +162,9 @@ extension ZCRMField : Equatable
             subformFlag &&
             isEqual( lhs : lhs.defaultValue, rhs : rhs.defaultValue )
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }
