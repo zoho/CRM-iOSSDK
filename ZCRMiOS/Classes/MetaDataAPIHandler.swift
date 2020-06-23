@@ -13,9 +13,9 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         var allModules : [ZCRMModule] = [ZCRMModule]()
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.modules )" )
         setRequestMethod(requestMethod: .get )
-        if ( modifiedSince.notNilandEmpty)
+        if ( modifiedSince.notNilandEmpty), let modifiedSince = modifiedSince
         {
-            addRequestHeader(header: RequestParamKeys.ifModifiedSince , value: modifiedSince! )
+            addRequestHeader(header: RequestParamKeys.ifModifiedSince , value: modifiedSince )
         }
         let request : APIRequest = APIRequest(handler : self )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -171,7 +171,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
     private func setRelatedListProperties(relatedList : ZCRMModuleRelation, relatedListDetails : [String : Any]) throws
     {
         relatedList.label = try relatedListDetails.getString(key: ResponseJSONKeys.displayLabel)
-        relatedList.module = try relatedListDetails.getString(key: ResponseJSONKeys.module)
+        relatedList.module = relatedListDetails.optString(key: ResponseJSONKeys.module)
         relatedList.id = try relatedListDetails.getInt64(key: ResponseJSONKeys.id)
         relatedList.isVisible = try relatedListDetails.getBoolean(key: ResponseJSONKeys.visible)
         relatedList.isDefault = (ResponseJSONKeys.defaultString == relatedListDetails.optString(key: ResponseJSONKeys.type))

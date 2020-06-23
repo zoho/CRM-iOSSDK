@@ -73,7 +73,7 @@ internal class EmailAPIHandler : CommonAPIHandler
     {
         setJSONRootKey(key: JSONRootKey.EMAIL_RELATED_LIST)
         setUrlPath( urlPath : "\( record.moduleAPIName )/\( record.id )/\( URLPathConstants.Emails )" )
-        addRequestParam(param: RequestParamKeys.userId, value: String(userId))
+        addRequestParam(param: RequestParamKeys.userId, value: String( userId ) )
         addRequestParam(param: RequestParamKeys.messageId, value: messageId)
         setRequestMethod(requestMethod: .get)
         let request : APIRequest = APIRequest(handler: self)
@@ -100,6 +100,27 @@ internal class EmailAPIHandler : CommonAPIHandler
         }
     }
     
+    internal func deleteMail( record : ZCRMRecordDelegate, messageId : String, completion : @escaping ( Result.Response< APIResponse > ) -> ()  )
+    {
+        setIsEmail( true )
+        setJSONRootKey(key: JSONRootKey.EMAIL_RELATED_LIST)
+        setUrlPath( urlPath : "\( record.moduleAPIName )/\( record.id )/\( URLPathConstants.Emails )" )
+        addRequestParam(param: RequestParamKeys.messageId, value: messageId)
+        setRequestMethod(requestMethod: .delete)
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getAPIResponse { result in
+            switch result
+            {
+            case .success(let response) :
+                completion( .success( response ) )
+            case .failure(let error) :
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( error )")
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
     
     internal func buildDownloadInlineImageRequest(imageId : String) throws {
         guard let email = self.email else
@@ -112,7 +133,7 @@ internal class EmailAPIHandler : CommonAPIHandler
         setJSONRootKey(key: JSONRootKey.NIL)
         self.setIsEmail( true )
         let urlString = "\( email.record.moduleAPIName )/\( email.record.id )/\( URLPathConstants.Emails )/\( URLPathConstants.inlineImages )"
-        addRequestParam(param: RequestParamKeys.userId, value: String( email.userId ))
+        addRequestParam(param: RequestParamKeys.userId, value: String( email.userId ) )
         addRequestParam(param: RequestParamKeys.messageId, value: email.messageId)
         addRequestParam(param: RequestParamKeys.id, value: imageId)
         setUrlPath(urlPath: urlString)
@@ -148,10 +169,10 @@ internal class EmailAPIHandler : CommonAPIHandler
     {
         do {
             try buildDownloadInlineImageRequest(imageId: imageId)
-            let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate, imageId )
+            let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate)
             ZCRMLogger.logDebug(message: "Request : \( request.toString() )")
             
-            request.downloadFile()
+            request.downloadFile( fileRefId: imageId )
         } catch {
             ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( error )")
             throw typeCastToZCRMError( error )
@@ -220,10 +241,10 @@ internal class EmailAPIHandler : CommonAPIHandler
                 throw ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: " EMAIL must not be nil", details : nil )
             }
             try buildDownloadAttachmentRequest( email : email, attachmentId: attachmentId, fileName: fileName )
-            let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate, attachmentId ?? fileName ?? email.messageId )
+            let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
             
-            request.downloadFile()
+            request.downloadFile( fileRefId: String( attachmentId ?? fileName ?? email.messageId ) )
         }
         catch
         {
@@ -289,7 +310,7 @@ internal class EmailAPIHandler : CommonAPIHandler
             if !orgEmail.isCreate
             {
                 setJSONRootKey(key: JSONRootKey.ORG_EMAILS)
-                setUrlPath(urlPath: "\(URLPathConstants.settings)/\(URLPathConstants.emails)/\(URLPathConstants.orgEmails)/\(String(orgEmail.id))/\( URLPathConstants.actions )/\( URLPathConstants.confirm )")
+                setUrlPath(urlPath: "\(URLPathConstants.settings)/\(URLPathConstants.emails)/\(URLPathConstants.orgEmails)/\( orgEmail.id )/\( URLPathConstants.actions )/\( URLPathConstants.confirm )")
                 addRequestParam(param: RequestParamKeys.code, value: withCode)
                 setRequestMethod(requestMethod: .post)
                 let request : APIRequest = APIRequest(handler: self)
@@ -326,7 +347,7 @@ internal class EmailAPIHandler : CommonAPIHandler
             if !orgEmail.isCreate
             {
                 setJSONRootKey(key: JSONRootKey.ORG_EMAILS)
-                setUrlPath(urlPath: "\(URLPathConstants.settings)/\(URLPathConstants.emails)/\(URLPathConstants.orgEmails)/\(String(orgEmail.id))/\( URLPathConstants.actions )/\( URLPathConstants.resendConfirmEmail )")
+                setUrlPath(urlPath: "\(URLPathConstants.settings)/\(URLPathConstants.emails)/\(URLPathConstants.orgEmails)/\( orgEmail.id )/\( URLPathConstants.actions )/\( URLPathConstants.resendConfirmEmail )")
                 setRequestMethod(requestMethod: .post)
                 let request : APIRequest = APIRequest(handler: self)
                 ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -358,7 +379,7 @@ internal class EmailAPIHandler : CommonAPIHandler
     internal func getOrgEmail( id : Int64, completion : @escaping( Result.DataResponse< ZCRMOrgEmail, APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.ORG_EMAILS)
-        setUrlPath(urlPath: "\(URLPathConstants.settings)/\(URLPathConstants.emails)/\(URLPathConstants.orgEmails)/\(String(id))")
+        setUrlPath(urlPath: "\(URLPathConstants.settings)/\(URLPathConstants.emails)/\(URLPathConstants.orgEmails)/\( id )")
         setRequestMethod(requestMethod: .get)
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -422,7 +443,7 @@ internal class EmailAPIHandler : CommonAPIHandler
     internal func delete( id : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.ORG_EMAILS)
-        setUrlPath(urlPath: "\(URLPathConstants.settings)/\(URLPathConstants.emails)/\(URLPathConstants.orgEmails)/\(String(id))" )
+        setUrlPath(urlPath: "\(URLPathConstants.settings)/\(URLPathConstants.emails)/\(URLPathConstants.orgEmails)/\( id )" )
         setRequestMethod(requestMethod: .delete )
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -769,8 +790,8 @@ extension EmailAPIHandler
         setRequestMethod(requestMethod: .post )
         if inline && sendMail
         {
-            addRequestParam( param : RequestParamKeys.inline, value : String( inline ) )
-            addRequestParam( param : RequestParamKeys.sendMail, value : String( sendMail ) )
+            addRequestParam( param : RequestParamKeys.inline, value : String( inline ))
+            addRequestParam( param : RequestParamKeys.sendMail, value : String( sendMail ))
         }
         let request : FileAPIRequest = FileAPIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -822,10 +843,10 @@ extension EmailAPIHandler
         setRequestMethod(requestMethod: .post )
         if inline && sendMail
         {
-            addRequestParam( param : RequestParamKeys.inline, value : String( inline ) )
-            addRequestParam( param : RequestParamKeys.sendMail, value : String( sendMail ) )
+            addRequestParam( param : RequestParamKeys.inline, value : String( inline ))
+            addRequestParam( param : RequestParamKeys.sendMail, value : String( sendMail ))
         }
-        let request : FileAPIRequest = FileAPIRequest( handler : self, fileUploadDelegate : emailAttachmentUploadDelegate, fileRefId: fileRefId )
+        let request : FileAPIRequest = FileAPIRequest( handler : self, fileUploadDelegate : emailAttachmentUploadDelegate)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         var emailAPIHandler : EmailAPIHandler? = self

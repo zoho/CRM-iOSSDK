@@ -16,7 +16,7 @@ open class ZCRMTimelineEvent : ZCRMEntity
     public internal( set ) var record : ZCRMRecordDelegate = RECORD_MOCK
     public internal( set ) var fieldHistory : [FieldHistory]?
     
-    public struct FieldHistory : Equatable
+    public struct FieldHistory : Hashable
     {
         public var fieldLabel : String
         public var id : Int64
@@ -29,6 +29,10 @@ open class ZCRMTimelineEvent : ZCRMEntity
                 lhs.oldValue == rhs.oldValue &&
                 lhs.newValue == rhs.newValue
             return equals
+        }
+        
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine( id )
         }
     }
     

@@ -57,7 +57,7 @@ public class ZCRMSubformRecord : ZCRMEntity
     }
 }
 
-extension ZCRMSubformRecord : NSCopying, Equatable
+extension ZCRMSubformRecord : NSCopying, Hashable
 {
     public func copy(with zone: NSZone? = nil) -> Any {
         let copy : ZCRMSubformRecord = ZCRMSubformRecord( name : self.name )
@@ -121,5 +121,9 @@ extension ZCRMSubformRecord : NSCopying, Equatable
             lhs.createdBy == rhs.createdBy &&
             lhs.modifiedBy == rhs.modifiedBy
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }

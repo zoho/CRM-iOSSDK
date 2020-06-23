@@ -59,7 +59,7 @@ open class ZCRMCustomView : ZCRMEntity
     }
 }
 
-extension ZCRMCustomView : Equatable
+extension ZCRMCustomView : Hashable
 {
     public static func == (lhs: ZCRMCustomView, rhs: ZCRMCustomView) -> Bool {
         var criteriaFlag : Bool = false
@@ -92,5 +92,9 @@ extension ZCRMCustomView : Equatable
             lhs.sharedDetails == rhs.sharedDetails &&
             criteriaFlag
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }

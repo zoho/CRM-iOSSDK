@@ -22,7 +22,7 @@ open class ZCRMNotification : ZCRMEntity
         self.id = id
     }
     
-    public struct ZCRMMailMetadata : ZCRMEntity, Equatable
+    public struct ZCRMMailMetadata : ZCRMEntity
     {
         public internal(set) var auditedTime : String = APIConstants.STRING_MOCK
         public internal(set) var mailType : String = APIConstants.STRING_MOCK
@@ -30,16 +30,6 @@ open class ZCRMNotification : ZCRMEntity
         public internal(set) var subject : String = APIConstants.STRING_MOCK
         public internal(set) var dateTime : String?
         public internal(set) var massMailId : String?
-        
-        public static func == (lhs: ZCRMNotification.ZCRMMailMetadata, rhs: ZCRMNotification.ZCRMMailMetadata) -> Bool {
-            let equals : Bool = lhs.auditedTime == rhs.auditedTime &&
-                lhs.mailType == rhs.mailType &&
-                lhs.messageId == rhs.messageId &&
-                lhs.subject == rhs.subject &&
-                lhs.dateTime == rhs.dateTime &&
-                lhs.massMailId == rhs.massMailId
-            return equals
-        }
     }
     
     public func markAsRead( completion : @escaping( Result.Response< APIResponse > ) -> () )
@@ -48,21 +38,5 @@ open class ZCRMNotification : ZCRMEntity
         NotificationAPIHandler().markNotificationsAsRead(recordId: nil, notificationIds: notificationIds) { ( result ) in
             completion( result )
         }
-    }
-}
-
-extension ZCRMNotification : Equatable
-{
-    public static func == (lhs: ZCRMNotification, rhs: ZCRMNotification) -> Bool {
-        let equals : Bool = lhs.dateDisplay == rhs.dateDisplay &&
-            lhs.dateTooltip == rhs.dateTooltip &&
-            lhs.mailMeta == rhs.mailMeta &&
-            lhs.read == rhs.read &&
-            lhs.record == rhs.record &&
-            lhs.moduleAPIName == rhs.moduleAPIName &&
-            lhs.auditedTime == rhs.auditedTime &&
-            lhs.id == rhs.id &&
-            lhs.signal == rhs.signal
-        return equals
     }
 }

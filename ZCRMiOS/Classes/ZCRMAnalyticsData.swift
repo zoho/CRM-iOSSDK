@@ -13,11 +13,9 @@ open class ZCRMAnalyticsData : ZCRMEntity
     public internal(set) var componentId : Int64
     public internal(set) var reportId : Int64?
     public internal(set) var criteria : ZCRMQuery.ZCRMCriteria?
-    public internal(set) var count : Int = APIConstants.INT_MOCK
     public internal(set) var aggregateLabel : String?
     public internal(set) var module : String?
     public internal(set) var requestType : String?
-    public internal(set) var rowCount : Int?
     public internal(set) var componentName : String?
     public internal(set) var fields : [Field] = [Field]()
     public internal(set) var rows : [ Row ] = [ Row ]()
@@ -85,10 +83,12 @@ extension ZCRMAnalyticsData
         static let componentChuncks = "component_chunks"
         static let requestedObj = "requestedObj"
         static let reportId = "reportId"
+        static let moreRecords = "moreRecords"
         static let limitListCount = "listLimitCount"
         static let module = "module"
         static let reqType = "reqType"
         static let totalRowCount = "totalRowCount"
+        static let reqFromIndex = "ReqFromIndex"
         static let type = "type"
         static let heading = "heading"
         static let columnName = "COLUMNNAME"
@@ -119,11 +119,9 @@ extension ZCRMAnalyticsData : Equatable
             lhs.componentId == rhs.componentId &&
             lhs.reportId == rhs.reportId &&
             lhs.criteria == rhs.criteria &&
-            lhs.count == rhs.count &&
             lhs.aggregateLabel == rhs.aggregateLabel &&
             lhs.module == rhs.module &&
             lhs.requestType == rhs.requestType &&
-            lhs.rowCount == rhs.rowCount &&
             lhs.componentName == rhs.componentName &&
             lhs.fields == rhs.fields &&
             lhs.rows == rhs.rows

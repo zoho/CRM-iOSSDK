@@ -12,17 +12,15 @@ public class ZCRMDashboardComponentMeta : ZCRMEntity
     public internal( set ) var isFavourite : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isSystemGenerated : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var layoutProperties : LayoutProperties = LayoutProperties()
-    public internal( set ) var type : String = APIConstants.STRING_MOCK
-    public internal( set ) var category : ZCRMDashboardComponent.ComponentCategory = ZCRMDashboardComponent.ComponentCategory.chart
+    public internal( set ) var category : ZCRMDashboardComponentCategory = ZCRMDashboardComponentCategory(type: .unknown( "" ), identifier: .unknown)
     public internal( set ) var isEditable : Bool = APIConstants.BOOL_MOCK
     internal var dashboardId : Int64
     public typealias dashboardComponent = ZCRMSDKUtil.ZCRMAnalytics.DashboardComponent
     
-    init( id : Int64, name : String, type : String, dashboardId : Int64 )
+    init( id : Int64, name : String, dashboardId : Int64 )
     {
         self.id = id
         self.name = name
-        self.type = type
         self.dashboardId = dashboardId
     }
     

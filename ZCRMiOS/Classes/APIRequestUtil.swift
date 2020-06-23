@@ -113,7 +113,7 @@ internal enum HTTPStatusCode : Int
 
 internal let faultyStatusCodes : [HTTPStatusCode] = [HTTPStatusCode.authorizationError, HTTPStatusCode.badRequest, HTTPStatusCode.forbidden, HTTPStatusCode.internalServerError, HTTPStatusCode.methodNotAllowed, HTTPStatusCode.movedTemporarily, HTTPStatusCode.movedPermanently, HTTPStatusCode.requestEntityTooLarge, HTTPStatusCode.tooManyRequest, HTTPStatusCode.unsupportedMediaType, HTTPStatusCode.noContent, HTTPStatusCode.notFound, HTTPStatusCode.badGateway, HTTPStatusCode.unhandled, HTTPStatusCode.notModified]
 
-internal enum RequestMethod : String
+public enum RequestMethod : String
 {
    case get = "GET"
    case post = "POST"
@@ -140,4 +140,9 @@ struct ZCRMURLBuilder
        components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
        return components.url
    }
+}
+
+public protocol ZohoAuthProvider
+{
+    func getAccessToken( completion : @escaping( Result.Data< String > ) -> ()  )
 }

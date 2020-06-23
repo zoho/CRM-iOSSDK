@@ -21,22 +21,17 @@ internal class FileAPIRequest : APIRequest
     internal static var fileUploadURLSessionWithDelegates : URLSession = URLSession(configuration: ZCRMSDKClient.shared.fileUploadURLSessionConfiguration, delegate: FileAPIRequest.fileAPIRequestDelegate, delegateQueue: OperationQueue())
     internal static var fileDownloadURLSessionWithDelegates : URLSession = URLSession(configuration: ZCRMSDKClient.shared.fileDownloadURLSessionConfiguration, delegate: FileAPIRequest.fileAPIRequestDelegate, delegateQueue: OperationQueue())
     internal var requestedModule : String?
-    
-    
-    private var fileRefId : String?
 
-    init( handler : APIHandler, fileDownloadDelegate : ZCRMFileDownloadDelegate, _ fileRefId : String )
+    init( handler : APIHandler, fileDownloadDelegate : ZCRMFileDownloadDelegate)
     {
         self.fileDownloadDelegate = fileDownloadDelegate
-        self.fileRefId = fileRefId
         self.requestedModule = handler.getModuleName()
         super.init( handler : handler, cacheFlavour : .noCache )
     }
     
-    init( handler : APIHandler, fileUploadDelegate : ZCRMFileUploadDelegate, fileRefId : String )
+    init( handler : APIHandler, fileUploadDelegate : ZCRMFileUploadDelegate)
     {
         self.fileUploadDelegate = fileUploadDelegate
-        self.fileRefId = fileRefId
         super.init( handler : handler, cacheFlavour : .noCache )
     }
     
@@ -505,15 +500,14 @@ internal class FileAPIRequest : APIRequest
         }
     }
 
-    internal func downloadFile()
+    internal func downloadFile( fileRefId : String )
     {
         let fileDownloadDelegate = self.fileDownloadDelegate
-        let fileRefId = self.fileRefId
         self.initialiseRequest { ( err ) in
             if let error = err
             {
                 ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                fileDownloadDelegate?.didFail( typeCastToZCRMError( error ) )
+                fileDownloadDelegate?.didFail( fileRefId: fileRefId, typeCastToZCRMError( error ) )
                 return
             }
             else
@@ -526,10 +520,10 @@ internal class FileAPIRequest : APIRequest
                         throw ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil)
                     }
                     
-                    let fileDownloadTaskReference = FileDownloadTaskReference(fileRefId: self.fileRefId ?? "-") { ( taskDetails, taskFinished, error ) in
+                    let fileDownloadTaskReference = FileDownloadTaskReference(fileRefId: fileRefId) { ( taskDetails, taskFinished, error ) in
                         if let error = error
                         {
-                            fileDownloadDelegate?.didFail( typeCastToZCRMError( error ) )
+                            fileDownloadDelegate?.didFail( fileRefId: fileRefId, typeCastToZCRMError( error ) )
                         }
                         else if let taskFinished = taskFinished
                         {
@@ -542,20 +536,20 @@ internal class FileAPIRequest : APIRequest
                                 }
                                 
                                 downloadTasksQueue.async {
-                                    FileTasks.liveDownloadTasks?.removeValue(forKey: fileRefId ?? "-")
+                                    FileTasks.liveDownloadTasks?.removeValue(forKey: fileRefId)
                                 }
                                 let fileAPIResponse : FileAPIResponse = try FileAPIResponse(response: response, tempLocalUrl: taskFinished.location, requestAPIName: self.requestedModule)
-                                fileDownloadDelegate?.didFinish( fileAPIResponse )
+                                fileDownloadDelegate?.didFinish( fileRefId: fileRefId, fileAPIResponse )
                             }
                             catch
                             {
                                 ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                                fileDownloadDelegate?.didFail( typeCastToZCRMError( error ) )
+                                fileDownloadDelegate?.didFail( fileRefId: fileRefId, typeCastToZCRMError( error ) )
                             }
                         }
                         else if let taskDetails = taskDetails
                         {
-                            fileDownloadDelegate?.progress( session: taskDetails.session, downloadTask: taskDetails.task, progressPercentage: taskDetails.progress, totalBytesWritten: taskDetails.totalBytesWritten, totalBytesExpectedToWrite: taskDetails.totalBytesExpectedToWrite )
+                            fileDownloadDelegate?.progress( fileRefId : fileRefId, session: taskDetails.session, downloadTask: taskDetails.task, progressPercentage: taskDetails.progress, totalBytesWritten: taskDetails.totalBytesWritten, totalBytesExpectedToWrite: taskDetails.totalBytesExpectedToWrite )
                         }
                     }
                     
@@ -566,14 +560,14 @@ internal class FileAPIRequest : APIRequest
                         {
                             FileTasks.liveDownloadTasks = [ String : URLSessionDownloadTask ]()
                         }
-                        FileTasks.liveDownloadTasks?.updateValue(downloadTask, forKey: fileRefId ?? "-")
+                        FileTasks.liveDownloadTasks?.updateValue(downloadTask, forKey: fileRefId)
                     }
                     downloadTask.resume()
                 }
                 catch
                 {
                     ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                    fileDownloadDelegate?.didFail( typeCastToZCRMError( error ) )
+                    fileDownloadDelegate?.didFail( fileRefId: fileRefId, typeCastToZCRMError( error ) )
                 }
             }
         }
@@ -582,11 +576,11 @@ internal class FileAPIRequest : APIRequest
 
 public protocol ZCRMFileDownloadDelegate
 {
-    func progress( session: URLSession, downloadTask: URLSessionDownloadTask, progressPercentage : Double, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64 )
+    func progress( fileRefId : String, session: URLSession, downloadTask: URLSessionDownloadTask, progressPercentage : Double, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64 )
     
-    func didFinish( _ fileAPIResponse : FileAPIResponse )
+    func didFinish( fileRefId : String, _ fileAPIResponse : FileAPIResponse )
     
-    func didFail( _ withError : ZCRMError? )
+    func didFail( fileRefId : String, _ withError : ZCRMError? )
 }
 
 public protocol ZCRMFileUploadDelegate
@@ -608,13 +602,23 @@ internal class FileAPIRequestDelegate : NSObject, URLSessionDataDelegate, URLSes
     
     func urlSession( _ session : URLSession, task : URLSessionTask, didCompleteWithError error : Error? )
     {
-        if let err = error
-        {
-            if let fileUploadTaskReference = uploadTaskWithFileRefIdDict[ task ] {
-                fileUploadTaskReference.uploadClosure( nil, nil, typeCastToZCRMError( err ))
-            }
-            
-        }
+         if let err = error
+         {
+             if let _ = task as? URLSessionDownloadTask
+             {
+                 if let fileDownloadTaskReference = downloadTaskWithFileRefIdDict[ task ]
+                 {
+                     fileDownloadTaskReference.downloadClosure( nil, nil, typeCastToZCRMError( err ))
+                 }
+             }
+             else if let _ = task as? URLSessionUploadTask
+             {
+                 if let fileUploadTaskReference = uploadTaskWithFileRefIdDict[ task ]
+                 {
+                     fileUploadTaskReference.uploadClosure( nil, nil, typeCastToZCRMError( err ))
+                 }
+             }
+         }
     }
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL)

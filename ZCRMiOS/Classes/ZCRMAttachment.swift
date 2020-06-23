@@ -57,7 +57,7 @@ open class ZCRMAttachment : ZCRMEntity
     }
 }
 
-extension ZCRMAttachment : Equatable
+extension ZCRMAttachment : Hashable
 {
     public static func == (lhs: ZCRMAttachment, rhs: ZCRMAttachment) -> Bool
     {
@@ -75,5 +75,9 @@ extension ZCRMAttachment : Equatable
             lhs.fileName == rhs.fileName &&
             lhs.id == rhs.id
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }

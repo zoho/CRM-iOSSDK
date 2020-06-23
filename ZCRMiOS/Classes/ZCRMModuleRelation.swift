@@ -67,7 +67,7 @@ public class ZCRMModuleRelation : ZCRMEntity
     }
 }
 
-extension ZCRMModuleRelation : Equatable
+extension ZCRMModuleRelation : Hashable
 {
     public static func == (lhs: ZCRMModuleRelation, rhs: ZCRMModuleRelation) -> Bool {
         let equals : Bool = lhs.apiName == rhs.apiName &&
@@ -82,5 +82,9 @@ extension ZCRMModuleRelation : Equatable
             lhs.href == rhs.href &&
             lhs.sequenceNo == rhs.sequenceNo
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }

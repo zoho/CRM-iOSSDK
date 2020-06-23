@@ -228,9 +228,9 @@ internal class CacheDBHandler
         }
     }
     
-    func fetchPortal() throws -> Int64
+    func fetchPortal() throws -> Int64?
     {
-        var portalId : Int64 = Int64()
+        var portalId : Int64?
         let fetchStatement = portalTableStatement.fetchData()
         try serialQueue.sync {
             if try dbRequest.isTableExists(tableName: DBConstant.TABLE_CURRENT_PORTAL)

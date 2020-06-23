@@ -19,16 +19,4 @@ open class ZCRMSignalDelegate : ZCRMEntity
     }
 }
 
-extension ZCRMSignalDelegate : Equatable
-{
-    public static func == (lhs: ZCRMSignalDelegate, rhs: ZCRMSignalDelegate) -> Bool {
-        let equals : Bool = lhs.id == rhs.id &&
-            lhs.type == rhs.type &&
-            lhs.namespace == rhs.namespace &&
-            lhs.fileId == rhs.fileId &&
-            lhs.sandBoxZgId == rhs.sandBoxZgId
-        return equals
-    }
-}
-
 var SIGNAL_MOCK : ZCRMSignalDelegate = ZCRMSignalDelegate(id: APIConstants.INT64_MOCK)

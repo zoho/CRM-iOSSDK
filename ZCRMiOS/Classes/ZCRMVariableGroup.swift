@@ -39,7 +39,7 @@ open class ZCRMVariableGroup : ZCRMEntity
     }
 }
 
-extension ZCRMVariableGroup : NSCopying, Equatable
+extension ZCRMVariableGroup : NSCopying, Hashable
 {
     public func copy( with zone : NSZone? = nil ) -> Any
     {
@@ -59,6 +59,10 @@ extension ZCRMVariableGroup : NSCopying, Equatable
             lhs.displayLabel == rhs.displayLabel &&
             lhs.description == rhs.description
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }
 

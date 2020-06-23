@@ -8,17 +8,17 @@
 
 import Foundation
 
-public class ZVCRMLoginHandler
+public class ZVCRMLoginHandler : ZohoAuthProvider
 {
-    private var appConfigurationUtil : CRMAppConfigUtil = CRMAppConfigUtil()
+    private var appConfigurationUtil : Dictionary < String, Any > = Dictionary < String, Any >()
     private var configurationKeys : [ String ] = [ "ClientID", "ClientSecretID", "AccountsURL", "PortalID", "OAuthScopes", "RedirectURLScheme", "ApiBaseURL", "ApiVersion" ]
 
     public init(){}
 
-    public init( appConfigUtil : CRMAppConfigUtil ) throws
+    public init( appConfigUtil : Dictionary < String, Any > ) throws
     {
         self.appConfigurationUtil = appConfigUtil
-        try self.validateAppConfigs( dict : appConfigUtil.getAppConfigurations() )
+        try self.validateAppConfigs( dict : appConfigUtil )
     }
 
     internal func validateAppConfigs( dict : Dictionary< String, Any > ) throws
@@ -48,15 +48,12 @@ public class ZVCRMLoginHandler
 
     public func initIAMLogin( window : UIWindow? )
     {
-        do {
-            if let appType = AppType( rawValue : appConfigurationUtil.getAppType() )
-            {
-                ZCRMSDKClient.shared.appType = appType
-            }
-            ZCRMSDKClient.shared.apiBaseURL = try appConfigurationUtil.getApiBaseURL()
-            ZCRMSDKClient.shared.apiVersion = try appConfigurationUtil.getApiVersion()
+        do
+        {
+            ZCRMSDKClient.shared.apiBaseURL = try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.apiBaseURL )
+            ZCRMSDKClient.shared.apiVersion = try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.apiVersion )
             
-            ZohoPortalAuth.initWithClientID( try appConfigurationUtil.getClientID(), clientSecret : try appConfigurationUtil.getClientSecretID(), portalID : try appConfigurationUtil.getPortalID(), scope : try appConfigurationUtil.getAuthscopes(), urlScheme : try appConfigurationUtil.getRedirectURLScheme(), mainWindow : window, accountsPortalURL : try appConfigurationUtil.getAccountsURL()  )
+            ZohoPortalAuth.initWithClientID( try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.clientId ), clientSecret : try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.clientSecretId ), portalID : try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.portalId ), scope : try appConfigurationUtil.getArray( key : CRMAppConfigurationKeys.oAuthScopes ), urlScheme : try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.redirectURLScheme ), mainWindow : window, accountsPortalURL : try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.accountsURL )  )
         }
         catch
         {
@@ -76,18 +73,12 @@ public class ZVCRMLoginHandler
                 case 205 :
                     print( "Error Detail : \( error!.description ), code : \( error!.code )" )
                     completion( false )
-                    self.handleLogin( completion : { _ in
-                        
-                    })
                     break
 
                 // access_denied
                 case 905 :
                     print( "Error Detail : \( error!.description ), code : \( error!.code )" )
                     completion( false )
-                    self.handleLogin( completion : { _ in
-                        
-                    })
                     break
 
                 default :
@@ -105,13 +96,6 @@ public class ZVCRMLoginHandler
     public func iamLoginHandleURL( url : URL, sourceApplication : String?, annotation : Any )
     {
         ZohoPortalAuth.handleURL( url, sourceApplication : sourceApplication, annotation : annotation )
-    }
-
-    internal func getOauth2Token( completion : @escaping( String?, Error? ) -> () )
-    {
-        ZohoPortalAuth.getOauth2Token { ( token, error ) in
-            completion( token, error )
-        }
     }
 
     public func clearIAMLoginFirstLaunch()
@@ -146,5 +130,19 @@ public class ZVCRMLoginHandler
                     print( "logout ZVCRM successful!" )
                 }
         })
+    }
+    
+    public func getAccessToken( completion : @escaping ( Result.Data< String > ) -> () )
+    {
+        ZohoPortalAuth.getOauth2Token { ( token, error ) in
+            if let error = error
+            {
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+            else if let token = token
+            {
+                completion( .success( token ) )
+            }
+        }
     }
 }

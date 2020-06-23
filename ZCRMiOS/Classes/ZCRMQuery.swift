@@ -5,9 +5,24 @@
 //  Created by Umashri R on 24/01/19.
 //
 
+public protocol GETRequestParams
+{
+    var page : Int? { get set }
+    var perPage : Int? { get set }
+    var modifiedSince : String? { get set }
+}
+
+public protocol GETEntityRequestParams : GETRequestParams
+{
+    var fields : [String]? { get set }
+    var sortOrder : SortOrder? { get set }
+    var sortBy : String? { get set }
+    var filter : ZCRMQuery.ZCRMCriteria? { get set }
+}
+
 public class ZCRMQuery
 {
-    public struct GetRecordParams
+    public struct GetRecordParams : GETEntityRequestParams
     {
         public var kanbanViewColumn : String?
         public var modifiedSince : String?
@@ -31,6 +46,16 @@ public class ZCRMQuery
             self.startDateTime = startDateTime
             self.endDateTime = endDateTime
         }
+    }
+    
+    public static var getEntityRequestParams : GETEntityRequestParams
+    {
+        return GetRecordParams()
+    }
+    
+    public static var getRequestParams : GETRequestParams
+    {
+        return GetRecordParams()
     }
     
     public struct GetDrilldownDataParams

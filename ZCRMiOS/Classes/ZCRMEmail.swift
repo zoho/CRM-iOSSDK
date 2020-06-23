@@ -122,6 +122,21 @@ open class ZCRMEmail : ZCRMEntity
         }
     }
     
+    public func delete( completion : @escaping ( Result.Response< APIResponse > ) -> () )
+    {
+        if !didSend
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidOperation) : Mail MUST be sent before performing delete operation.")
+            completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidOperation, message : "Mail MUST be sent before performing delete operation.", details : nil  ) ) )
+        }
+        else
+        {
+            EmailAPIHandler(email: self).deleteMail(record: record, messageId: messageId) { result in
+                completion( result )
+            }
+        }
+    }
+    
     public func uploadAttachment( filePath : String, completion : @escaping( Result.DataResponse< String, APIResponse > ) -> () )
     {
         EmailAPIHandler().uploadAttachment( filePath : filePath, fileName : nil, fileData : nil, inline : false, sendMail : false ) { ( result ) in

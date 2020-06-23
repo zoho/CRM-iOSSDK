@@ -72,12 +72,16 @@ open class ZCRMUserDelegate : ZCRMEntity
     }
 }
 
-extension ZCRMUserDelegate : Equatable
+extension ZCRMUserDelegate : Hashable
 {
     public static func == (lhs: ZCRMUserDelegate, rhs: ZCRMUserDelegate) -> Bool {
         let equals : Bool = lhs.id == rhs.id &&
             lhs.name == rhs.name
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }
 

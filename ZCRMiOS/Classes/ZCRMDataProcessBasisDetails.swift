@@ -51,7 +51,7 @@ open class ZCRMDataProcessBasisDetails : ZCRMEntity
     }
 }
 
-extension ZCRMDataProcessBasisDetails : Equatable
+extension ZCRMDataProcessBasisDetails : Hashable
 {
     public static func == (lhs: ZCRMDataProcessBasisDetails, rhs: ZCRMDataProcessBasisDetails) -> Bool {
         let equals : Bool = lhs.communicationPreferences == rhs.communicationPreferences &&
@@ -69,5 +69,9 @@ extension ZCRMDataProcessBasisDetails : Equatable
             lhs.consentEndsOn == rhs.consentEndsOn &&
             lhs.consentThrough == rhs.consentThrough
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }

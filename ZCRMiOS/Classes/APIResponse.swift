@@ -76,15 +76,32 @@ public class  APIResponse : CommonAPIResponse
         }
         else if httpStatusCode == HTTPStatusCode.badRequest
         {
-            if let details = self.responseJSON[ "details" ] as? [ String : Any ], let headerName = details[ "header_name" ] as? String, headerName == X_CRM_ORG
+            if let responseJSONArray = self.responseJSON[ responseJSONRootKey ] as? [ [ String : Any ] ]
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.portalNotFound ) : \( ErrorMessage.invalidPortalType ), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
-                throw ZCRMError.processingError( code : ErrorCode.portalNotFound, message : ErrorMessage.invalidPortalType, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+                let responseJSON = responseJSONArray[0]
+                if let details = responseJSON[ "details" ] as? [ String : Any ], let headerName = details[ "header_name" ] as? String, headerName == X_CRM_ORG
+                {
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.portalNotFound ) : \( ErrorMessage.invalidPortalType ), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                    throw ZCRMError.processingError( code : ErrorCode.portalNotFound, message : ErrorMessage.invalidPortalType, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+                }
+                else
+                {
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                    throw ZCRMError.processingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+                }
             }
             else
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
-                throw ZCRMError.processingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+                if let details = responseJSON[ "details" ] as? [ String : Any ], let headerName = details[ "header_name" ] as? String, headerName == X_CRM_ORG
+                {
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.portalNotFound ) : \( ErrorMessage.invalidPortalType ), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                    throw ZCRMError.processingError( code : ErrorCode.portalNotFound, message : ErrorMessage.invalidPortalType, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+                }
+                else
+                {
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                    throw ZCRMError.processingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+                }
             }
         }
         else
@@ -98,9 +115,13 @@ public class  APIResponse : CommonAPIResponse
     {
         var msgJSON : [ String : Any ] = responseJSON
         if responseJSON.hasValue( forKey : responseJSONRootKey ),
-            let recordsArray : [ [ String : Any ] ] = responseJSON[responseJSONRootKey] as? [ [ String : Any ] ]
+            let recordsArray : [ [ String : Any ] ] = responseJSON.optArrayOfDictionaries(key: responseJSONRootKey)
         {
             msgJSON = recordsArray[ 0 ]
+        }
+        else if responseJSON.hasValue(forKey: responseJSONRootKey), let recordsDict : [ String : Any ] = responseJSON.optDictionary(key: responseJSONRootKey)
+        {
+            msgJSON = recordsDict
         }
         if ( msgJSON.hasValue( forKey : APIConstants.MESSAGE ) )
         {
@@ -307,15 +328,32 @@ public class BulkAPIResponse : CommonAPIResponse
         }
         else if httpStatusCode == HTTPStatusCode.badRequest
         {
-            if let details = self.responseJSON[ "details" ] as? [ String : Any ], let headerName = details[ "header_name" ] as? String, headerName == X_CRM_ORG
+            if let responseJSONArray = self.responseJSON[ responseJSONRootKey ] as? [ [ String : Any ] ]
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.portalNotFound ) : \( ErrorMessage.invalidPortalType ), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
-                throw ZCRMError.processingError( code : ErrorCode.portalNotFound, message : ErrorMessage.invalidPortalType, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+                let responseJSON = responseJSONArray[0]
+                if let details = responseJSON[ "details" ] as? [ String : Any ], let headerName = details[ "header_name" ] as? String, headerName == X_CRM_ORG
+                {
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.portalNotFound ) : \( ErrorMessage.invalidPortalType ), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                    throw ZCRMError.processingError( code : ErrorCode.portalNotFound, message : ErrorMessage.invalidPortalType, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+                }
+                else
+                {
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                    throw ZCRMError.processingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+                }
             }
             else
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
-                throw ZCRMError.processingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+                if let details = self.responseJSON[ "details" ] as? [ String : Any ], let headerName = details[ "header_name" ] as? String, headerName == X_CRM_ORG
+                {
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.portalNotFound ) : \( ErrorMessage.invalidPortalType ), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                    throw ZCRMError.processingError( code : ErrorCode.portalNotFound, message : ErrorMessage.invalidPortalType, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+                }
+                else
+                {
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                    throw ZCRMError.processingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
+                }
             }
         }
         else

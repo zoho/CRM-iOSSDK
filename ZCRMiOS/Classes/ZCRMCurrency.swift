@@ -29,7 +29,7 @@ open class ZCRMCurrency : ZCRMEntity
     }
     
     
-    public struct Format
+    public struct Format : Hashable
     {
         public internal( set ) var decimalSeparator : String
         public internal( set ) var thousandSeparator : String
@@ -60,5 +60,29 @@ open class ZCRMCurrency : ZCRMEntity
                 return " "
             }
         }
+    }
+}
+
+extension ZCRMCurrency : Hashable
+{
+    public static func == (lhs: ZCRMCurrency, rhs: ZCRMCurrency) -> Bool {
+        return lhs.createdBy == rhs.createdBy &&
+            lhs.createdTime == rhs.createdTime &&
+            lhs.exchangeRate == rhs.exchangeRate &&
+            lhs.format == rhs.format &&
+            lhs.id == rhs.id &&
+            lhs.isActive == rhs.isActive &&
+            lhs.isBase == rhs.isBase &&
+            lhs.isoCode == rhs.isoCode &&
+            lhs.modifiedBy == rhs.modifiedBy &&
+            lhs.modifiedTime == rhs.modifiedTime &&
+            lhs.symbol == rhs.symbol &&
+            lhs.prefixSymbol == rhs.prefixSymbol &&
+            lhs.name == rhs.name
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
+        hasher.combine( isoCode )
     }
 }

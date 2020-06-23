@@ -29,7 +29,7 @@ open class ZCRMFilter : ZCRMEntity
     }
 }
 
-extension ZCRMFilter : Equatable
+extension ZCRMFilter : Hashable
 {
     public static func == (lhs: ZCRMFilter, rhs: ZCRMFilter) -> Bool {
         let equals : Bool = lhs.id == rhs.id &&
@@ -38,5 +38,9 @@ extension ZCRMFilter : Equatable
             lhs.moduleAPIName == rhs.moduleAPIName &&
             lhs.criteria == rhs.criteria
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }

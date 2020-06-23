@@ -36,7 +36,7 @@ open class ZCRMJunctionRecord : ZCRMEntity
     }
 }
 
-extension ZCRMJunctionRecord : Equatable
+extension ZCRMJunctionRecord : Hashable
 {
     public static func == ( lhs : ZCRMJunctionRecord, rhs : ZCRMJunctionRecord ) -> Bool {
         if lhs.relatedDetails.count == rhs.relatedDetails.count {
@@ -62,5 +62,9 @@ extension ZCRMJunctionRecord : Equatable
         let equals : Bool = lhs.apiName == rhs.apiName &&
             lhs.id == rhs.id
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }

@@ -24,12 +24,17 @@ open class ZCRMLineTax : ZCRMEntity
     }
 }
 
-extension ZCRMLineTax : Equatable
+extension ZCRMLineTax : Hashable
 {
     public static func == (lhs: ZCRMLineTax, rhs: ZCRMLineTax) -> Bool {
         let equals : Bool = lhs.name == rhs.name &&
             lhs.percentage == rhs.percentage &&
             lhs.value == rhs.value
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( name )
+        hasher.combine( percentage )
     }
 }

@@ -41,12 +41,16 @@ open class ZCRMTax : ZCRMTaxDelegate
     }
 }
 
-extension ZCRMTax
+extension ZCRMTax : Hashable
 {
     public static func == (lhs: ZCRMTax, rhs: ZCRMTax) -> Bool {
         let equals : Bool = lhs.id == rhs.id &&
             lhs.percentage == rhs.percentage &&
             lhs.displayName == rhs.displayName
         return equals
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
     }
 }

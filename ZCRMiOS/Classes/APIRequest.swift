@@ -16,13 +16,21 @@
     private var requestBody : Any?
     internal var request : URLRequest?
     private var url : URL?
+    private var absoluteURL : URL?
     private var isOAuth : Bool = true
     internal var jsonRootKey = String()
     private var cacheFlavour : CacheFlavour!
     private var isCacheable : Bool
     private static let configuration = URLSessionConfiguration.default
-    private static let session = URLSession( configuration : APIRequest.configuration )
+    internal static let session = URLSession( configuration : APIRequest.configuration )
     private var requestedModule : String?
+    
+    init( absoluteURL : URL, requestMethod : RequestMethod )
+    {
+        self.absoluteURL = absoluteURL
+        self.requestMethod = requestMethod
+        self.isCacheable = false
+    }
     
     init( handler : APIHandler, cacheFlavour : CacheFlavour )
     {
@@ -44,68 +52,56 @@
     
     private func authenticateRequest( completion : @escaping( ZCRMError? ) -> () )
     {
-        self.addHeader( headerName : "User-Agent", headerVal : ZCRMSDKClient.shared.userAgent )
-        if let headers = ZCRMSDKClient.shared.requestHeaders
-        {
-            do{
-                for headerName in headers.keys
+        ZCRMSDKClient.shared.getAccessToken() { result in
+            switch result
+            {
+            case .success(let accessToken) :
+                guard accessToken.isEmpty == false else
                 {
-                    if headers.hasValue( forKey : headerName )
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.oauthTokenNil) : \(ErrorMessage.oauthTokenNilMsg)")
+                    completion( ZCRMError.unAuthenticatedError( code : ErrorCode.oauthTokenNil, message : ErrorMessage.oauthTokenNilMsg, details : nil ) )
+                    return
+                }
+                self.addHeader( headerName : AUTHORIZATION, headerVal : "\(ZOHO_OAUTHTOKEN) \( accessToken )" )
+                self.addHeader( headerName : USER_AGENT, headerVal : ZCRMSDKClient.shared.userAgent )
+                if let headers = ZCRMSDKClient.shared.requestHeaders
+                {
+                    for headerName in headers.keys
                     {
-                        self.addHeader( headerName : headerName, headerVal : try headers.getString( key : headerName ) )
+                        if headers.hasValue( forKey : headerName )
+                        {
+                            do
+                            {
+                                try self.addHeader( headerName : headerName, headerVal : headers.getString( key : headerName ) )
+                            }
+                            catch
+                            {
+                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                completion( typeCastToZCRMError( error ) )
+                                return
+                            }
+                        }
                     }
                 }
-            }
-            catch
-            {
-                ZCRMLogger.logDebug( message:"Error occured in authenticateRequest() >>> \(error)")
-            }
-        }
-        if( ZCRMSDKClient.shared.appType == AppType.zcrm )
-        {
-            ZCRMSDKClient.shared.zcrmLoginHandler?.getOauth2Token { ( token, error ) in
-                if let err = error
+                if ZCRMSDKClient.shared.appType == .zcrmcp, let portalName = self.headers[ X_CRM_PORTAL ]
                 {
-                    completion(ZCRMError.sdkError(code: ErrorCode.oauthFetchError, message: err.description, details: nil))
-                    return
+                    self.addHeader(headerName: X_CRM_PORTAL, headerVal: portalName )
                 }
-                if let oAuthtoken = token, token.notNilandEmpty
+                else if let portalId = ZCRMSDKClient.shared.portalId, self.headers[ X_CRM_ORG ] == nil , self.url?.absoluteString.lastPathComponent() != "\( DefaultModuleAPINames.ORGANIZATIONS )"
                 {
-                    self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( oAuthtoken )" )
-                    ZCRMLogger.logError(message: "Request >>> \( self.toString() )")
-                    ZCRMLogger.logError(message: "Access Token >>> \( oAuthtoken )")
-                    completion( nil )
-                    return
+                    self.addHeader( headerName : X_CRM_ORG, headerVal : String(portalId) )
+                }
+                completion( nil )
+            case .failure( let error ) :
+                if let zcrmError = error.ZCRMErrordetails
+                {
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( zcrmError.code ) : \( zcrmError )" )
+                    completion( error )
                 }
                 else
                 {
-                    ZCRMLogger.logDebug( message: "oAuthtoken is nil." )
-                    completion(ZCRMError.sdkError(code: ErrorCode.oauthTokenNil, message: ErrorMessage.oauthTokenNilMsg, details: nil))
-                }
-            }
-        }
-        else
-        {
-            ZCRMSDKClient.shared.zvcrmLoginHandler?.getOauth2Token { ( token, error ) in
-                if( ZCRMSDKClient.shared.appType == AppType.zcrmcp  && self.headers.hasValue( forKey : "X-CRMPORTAL" ) == false )
-                {
-                    self.addHeader( headerName : "X-CRMPORTAL", headerVal : "SDKCLIENT" )
-                }
-                if let err = error
-                {
-                    completion(ZCRMError.sdkError(code: ErrorCode.oauthFetchError, message: err.description, details: nil))
-                    return
-                }
-                if let oAuthtoken = token, token.notNilandEmpty
-                {
-                    self.addHeader( headerName : "Authorization", headerVal : "Zoho-oauthtoken \( oAuthtoken )")
-                    completion( nil )
-                    return
-                }
-                else
-                {
-                    print( "oAuthtoken is empty." )
-                    completion(ZCRMError.sdkError(code: ErrorCode.oauthTokenNil, message: ErrorMessage.oauthTokenNilMsg, details: nil))
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( error ). \(ErrorCode.typeCastError) : Error - Expected type -> ZCRMError, \( APIConstants.DETAILS ) : -")
+                    completion( error )
                 }
             }
         }
@@ -164,6 +160,55 @@
         else
         {
             completion(nil)
+        }
+    }
+    
+    /**
+     To intialize the request with url and headers.
+     
+     Used only for acquiring raw response from the server for any apiRequests.
+     
+     - Parameters:
+        - absoluteURL : Absolute URL of the request that has to be made.
+        - requestMethod : Request Method of the API
+        - headers : Headers that has to be included for the request ( Optional Value )
+        - completion : Returns the raw Data and HTTPURLResponse
+     */
+    func initialiseRequest( _ absoluteURL : URL, _ requestMethod : RequestMethod, _ headers : [ String : String ]?, _ requestBody : [ String : Any ]?, completion : @escaping ( Result.DataURLResponse<Data, HTTPURLResponse> ) -> Void )
+    {
+        self.url = absoluteURL
+        
+        if let requestHeaders = headers
+        {
+            for ( key, value ) in requestHeaders
+            {
+                self.addHeader(headerName: key, headerVal: value)
+            }
+        }
+        
+        if let requestBody = requestBody
+        {
+            self.requestBody = requestBody
+        }
+        
+        ZCRMLogger.logDebug( message : "Request : \( self.toString() )" )
+        self.initialiseRequest() { error in
+            if let error = error
+            {
+                completion( .failure( error ) )
+            }
+            else
+            {
+                self.makeRequest() { result in
+                    switch result
+                    {
+                    case .success(let data, let response) :
+                        completion( .success(data, response) )
+                    case .failure(let error) :
+                        completion( .failure( error ) )
+                    }
+                }
+            }
         }
     }
     

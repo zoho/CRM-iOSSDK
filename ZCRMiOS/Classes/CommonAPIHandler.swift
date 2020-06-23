@@ -74,8 +74,7 @@ internal class CommonAPIHandler : APIHandler
         var queryItems : [URLQueryItem] = [URLQueryItem]()
         for (key, value) in requestParams
         {
-            let queryItem : URLQueryItem = URLQueryItem(name: key, value: value)
-            queryItems.append(queryItem)
+            queryItems.append( URLQueryItem( name : key, value : value ) )
         }
         return queryItems
     }

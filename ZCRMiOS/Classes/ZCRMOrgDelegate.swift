@@ -7,8 +7,6 @@
 
 open class ZCRMOrgDelegate : ZCRMEntity
 {
-    public static let shared = ZCRMOrgDelegate()
-    
     internal init() {}
     
     public func newUser( lastName : String, email : String, role : ZCRMRoleDelegate, profile : ZCRMProfileDelegate ) -> ZCRMUser
@@ -38,11 +36,6 @@ open class ZCRMOrgDelegate : ZCRMEntity
         return ZCRMRoleDelegate( id : id, name : name )
     }
     
-    private func newOrgEmail( name : String, email : String, accessibleProfiles : [ZCRMProfileDelegate] ) -> ZCRMOrgEmail
-    {
-        return ZCRMOrgEmail(name: name, email: email, accessibleProfiles: accessibleProfiles)
-    }
-    
     public func newTax( name : String, percentage : Double ) -> ZCRMTax
     {
         return ZCRMTax( name : name, percentage : percentage )
@@ -55,11 +48,12 @@ open class ZCRMOrgDelegate : ZCRMEntity
     
     public func getUsers( ofType : UserTypes, completion : @escaping ( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
-        UserAPIHandler().getUsers(ofType: ofType, modifiedSince: nil, page: nil, perPage: nil) { result in
+        UserAPIHandler().getUsers(ofType: ofType, ZCRMQuery.getRequestParams) { result in
             completion( result )
         }
     }
     
+    @available(*, deprecated, message: "Use getUsers( ofType :, withParams : GETRequestParams, completion :) method instead")
     public func getUsers( ofType : UserTypes, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         UserAPIHandler().getUsers(ofType: ofType, modifiedSince: nil, page: page, perPage: perPage) { result in
@@ -69,11 +63,26 @@ open class ZCRMOrgDelegate : ZCRMEntity
     
     public func getUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
-        UserAPIHandler().getUsers( ofType : .allUsers, modifiedSince : nil, page : nil, perPage : nil ) { ( result ) in
+        UserAPIHandler().getUsers(ofType: .allUsers, ZCRMQuery.getRequestParams) { result in
             completion( result )
         }
     }
     
+    public func getUsers( withParams : GETRequestParams, completion : @escaping ( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> Void)
+    {
+        UserAPIHandler().getUsers( ofType : .allUsers, withParams) { result in
+            completion( result )
+        }
+    }
+    
+    public func getUsers( ofType : UserTypes, withParams : GETRequestParams, completion : @escaping ( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> Void)
+    {
+        UserAPIHandler().getUsers( ofType : ofType, withParams) { result in
+            completion( result )
+        }
+    }
+    
+    @available(*, deprecated, message: "Use getUsers( withParams : GETRequestParams, completion :) method instead")
     public func getUsers( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         UserAPIHandler().getUsers( ofType: .allUsers, modifiedSince: modifiedSince, page: nil, perPage: nil) { result in
@@ -81,6 +90,7 @@ open class ZCRMOrgDelegate : ZCRMEntity
         }
     }
     
+    @available(*, deprecated, message: "Use getUsers( withParams : GETRequestParams, completion :) method instead")
     public func getUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         UserAPIHandler().getUsers( ofType : .allUsers, modifiedSince : nil, page : page, perPage : perPage ) { ( result ) in
@@ -88,6 +98,7 @@ open class ZCRMOrgDelegate : ZCRMEntity
         }
     }
     
+    @available(*, deprecated, message: "Use getUsers(  withParams : GETRequestParams, completion :) method instead")
     public func getUsers( page : Int, perPage : Int, modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         UserAPIHandler().getUsers( ofType : .allUsers, modifiedSince : modifiedSince, page : page, perPage : perPage ) { ( result ) in
@@ -123,7 +134,7 @@ open class ZCRMOrgDelegate : ZCRMEntity
         }
     }
     
-    @available(*, deprecated, message: "Use the method getUsers wih param UserTypes" )
+    @available(*, deprecated, message: "Use getUsers( ofType :, completion :) method instead")
     public func getActiveConfirmedUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         UserAPIHandler().getAllActiveConfirmedUsers( page : nil, perPage : nil ) { ( result ) in
@@ -131,7 +142,7 @@ open class ZCRMOrgDelegate : ZCRMEntity
         }
     }
     
-    @available(*, deprecated, message: "Use the method getUsers wih param UserTypes" )
+    @available(*, deprecated, message: "Use getUsers( ofType :, withParams : GETRequestParams, completion :) method instead")
     public func getActiveConfirmedUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         UserAPIHandler().getAllActiveConfirmedAdmins( page : page, perPage : perPage ) { ( result ) in
@@ -139,7 +150,7 @@ open class ZCRMOrgDelegate : ZCRMEntity
         }
     }
     
-    @available(*, deprecated, message: "Use the method getUsers wih param UserTypes" )
+    @available(*, deprecated, message: "Use getUsers( ofType :, completion :) method instead")
     public func getAdminUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         UserAPIHandler().getAllAdminUsers( page : nil, perPage : nil ) { ( result ) in
@@ -147,7 +158,7 @@ open class ZCRMOrgDelegate : ZCRMEntity
         }
     }
     
-    @available(*, deprecated, message: "Use the method getUsers wih param UserTypes" )
+    @available(*, deprecated, message: "Use getUsers( ofType :, withParams : GETRequestParams, completion :) method instead")
     public func getAdminUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         UserAPIHandler().getAllAdminUsers( page : page, perPage : perPage ) { ( result ) in
@@ -155,7 +166,7 @@ open class ZCRMOrgDelegate : ZCRMEntity
         }
     }
     
-    @available(*, deprecated, message: "Use the method getUsers wih param UserTypes" )
+    @available(*, deprecated, message: "Use getUsers( ofType :, completion :) method instead")
     public func getActiveUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         UserAPIHandler().getAllActiveUsers( page : nil, perPage : nil ) { ( result ) in
@@ -163,7 +174,7 @@ open class ZCRMOrgDelegate : ZCRMEntity
         }
     }
     
-    @available(*, deprecated, message: "Use the method getUsers wih param UserTypes" )
+    @available(*, deprecated, message: "Use getUsers( ofType :, withParams : GETRequestParams, completion :) method instead")
     public func getActiveUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         UserAPIHandler().getAllActiveUsers( page : page, perPage : perPage ) { ( result ) in
@@ -171,7 +182,7 @@ open class ZCRMOrgDelegate : ZCRMEntity
         }
     }
     
-    @available(*, deprecated, message: "Use the method getUsers wih param UserTypes" )
+    @available(*, deprecated, message: "Use getUsers( ofType :, completion :) method instead")
     public func getInActiveUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         UserAPIHandler().getAllDeactiveUsers( page : nil, perPage : nil ) { ( result ) in
@@ -179,7 +190,7 @@ open class ZCRMOrgDelegate : ZCRMEntity
         }
     }
     
-    @available(*, deprecated, message: "Use the method getUsers wih param UserTypes" )
+    @available(*, deprecated, message: "Use getUsers( ofType :, withParams : GETRequestParams, completion :) method instead")
     public func getInActiveUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         UserAPIHandler().getAllDeactiveUsers( page : page, perPage : perPage ) { ( result ) in
@@ -286,16 +297,51 @@ open class ZCRMOrgDelegate : ZCRMEntity
         }
     }
     
-    private func getOrgEmail( id : Int64, completion : @escaping( Result.DataResponse< ZCRMOrgEmail, APIResponse > ) -> () )
+    public func getTaxes( _ completion : @escaping ( Result.DataResponse< [ ZCRMTax ], BulkAPIResponse > ) -> Void )
     {
-        EmailAPIHandler().getOrgEmail(id: id) { ( result ) in
+        TaxAPIHandler().getAllTaxes() { result in
             completion( result )
         }
     }
     
-    private func getOrgEmails(completion : @escaping( Result.DataResponse< [ZCRMOrgEmail], BulkAPIResponse > ) -> () )
+    public func getTax( withId : Int64, _ completion : @escaping ( Result.DataResponse< ZCRMTax, APIResponse > ) -> Void )
     {
-        EmailAPIHandler().getOrgEmails { ( result ) in
+        TaxAPIHandler().getTax( withId : withId) { result in
+            completion( result )
+        }
+    }
+    
+    public func createTax( _ tax : ZCRMTax, completion : @escaping ( Result.DataResponse< ZCRMTax, APIResponse > ) -> Void)
+    {
+        TaxAPIHandler().createTax( tax : tax ) { result in
+            completion( result )
+        }
+    }
+    
+    public func createTaxes( _ taxes : [ ZCRMTax ]  ,_ completion : @escaping ( Result.DataResponse< [ ZCRMTax ], BulkAPIResponse > ) -> Void )
+    {
+        TaxAPIHandler().createTaxes(taxes: taxes) { result in
+            completion( result )
+        }
+    }
+    
+    public func updateTaxes( _ taxes : [ ZCRMTax ], _ completion : @escaping ( Result.DataResponse< [ ZCRMTax ], BulkAPIResponse > ) -> Void)
+    {
+        TaxAPIHandler().updateTaxes(taxes: taxes) { result in
+            completion( result )
+        }
+    }
+    
+    public func deleteTaxes( withIds : [ Int64 ], _ completion : @escaping ( Result.Response< BulkAPIResponse > ) -> Void )
+    {
+        TaxAPIHandler().deleteTaxes(ids: withIds) { result in
+            completion( result )
+        }
+    }
+    
+    public func isEmailInsightsEnabled( completion : @escaping ( Result.Data< Bool > ) -> ())
+    {
+        OrgAPIHandler().isEmailInsightsEnabled() { result in
             completion( result )
         }
     }
