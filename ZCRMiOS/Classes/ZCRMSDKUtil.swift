@@ -104,6 +104,34 @@ public class ZCRMSDKUtil
         }
     }
     
+    public static func getInventoryTemplates( completion : @escaping( Result.DataResponse< [ ZCRMInventoryTemplate ], BulkAPIResponse > ) -> () )
+    {
+        EmailAPIHandler().getInventoryTemplates( params: ZCRMQuery.GetTemplateParams()) { result in
+            completion( result )
+        }
+    }
+    
+    public static func getInventoryTemplates( params : ZCRMQuery.GetTemplateParams, completion : @escaping( Result.DataResponse< [ ZCRMInventoryTemplate ], BulkAPIResponse > ) -> () )
+    {
+        EmailAPIHandler().getInventoryTemplates( params: params) { result in
+            completion( result )
+        }
+    }
+    
+    public static func getEmailTemplates( completion : @escaping( Result.DataResponse< [ ZCRMEmailTemplate ], BulkAPIResponse > ) -> () )
+    {
+        EmailAPIHandler().getEmailTemplates( params: ZCRMQuery.GetTemplateParams()) { result in
+            completion( result )
+        }
+    }
+    
+    public static func getEmailTemplates( params : ZCRMQuery.GetTemplateParams, completion : @escaping( Result.DataResponse< [ ZCRMEmailTemplate ], BulkAPIResponse > ) -> () )
+    {
+        EmailAPIHandler().getEmailTemplates( params: params) { result in
+            completion( result )
+        }
+    }
+    
     public static func createVariables( variables : [ZCRMVariable], completion : @escaping( Result.DataResponse< [ZCRMVariable], BulkAPIResponse > ) -> () )
     {
         OrgAPIHandler().createVariables(variables: variables) { ( result ) in

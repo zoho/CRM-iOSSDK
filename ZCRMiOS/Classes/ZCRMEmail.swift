@@ -22,10 +22,6 @@ open class ZCRMEmail : ZCRMEntity
     public var isOrgEmail : Bool?
     public var isConsentEmail : Bool?
     public var inReplyTo : String?
-    public var layoutId : Int64?
-    public var paperType : PaperType?
-    public var viewType : ViewType?
-    public var layoutName : String?
     public var templateId : Int64?
     public var scheduledTime : String?
     public var messageId : String = APIConstants.STRING_MOCK
@@ -34,6 +30,7 @@ open class ZCRMEmail : ZCRMEntity
     public var sentTime : String = APIConstants.STRING_MOCK
     public var inlineImageIds : [String]?
     internal var didSend : Bool = APIConstants.BOOL_MOCK
+    public var inventoryTemplateDetails : InventoryTemplateDetails?
     
     init( record : ZCRMRecordDelegate, from : User, to : [User] )
     {
@@ -41,6 +38,26 @@ open class ZCRMEmail : ZCRMEntity
         self.from = from
         self.to = to
         self.didSend = false
+    }
+    
+    public struct InventoryTemplateDetails : Equatable
+    {
+        public let templateId : Int64
+        public var name : String?
+        public var paperType : PaperType?
+        public var viewType : ViewType?
+        
+        public init( templateId : Int64 )
+        {
+            self.templateId = templateId
+        }
+        
+        public static func == (lhs: ZCRMEmail.InventoryTemplateDetails, rhs: ZCRMEmail.InventoryTemplateDetails) -> Bool {
+            return lhs.templateId == rhs.templateId &&
+                lhs.name == rhs.name &&
+                lhs.paperType == rhs.paperType &&
+                lhs.viewType == rhs.viewType
+        }
     }
     
     public struct User : Equatable
@@ -239,10 +256,7 @@ extension ZCRMEmail : Equatable
             lhs.isOrgEmail == rhs.isOrgEmail &&
             lhs.isConsentEmail == rhs.isConsentEmail &&
             lhs.inReplyTo == rhs.inReplyTo &&
-            lhs.layoutId == rhs.layoutId &&
-            lhs.paperType == rhs.paperType &&
-            lhs.viewType == rhs.viewType &&
-            lhs.layoutName == rhs.layoutName &&
+            lhs.inventoryTemplateDetails == rhs.inventoryTemplateDetails &&
             lhs.templateId == rhs.templateId &&
             lhs.scheduledTime == rhs.scheduledTime &&
             lhs.messageId == rhs.messageId &&

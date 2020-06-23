@@ -22,6 +22,15 @@ public protocol GETEntityRequestParams : GETRequestParams
 
 public class ZCRMQuery
 {
+    public struct GetTemplateParams
+    {
+        var module : String?
+        var category : ZCRMTemplateCategory?
+        var sortOrder : SortOrder?
+        var sortBy : String?
+        var filter : ZCRMQuery.ZCRMCriteria?
+    }
+
     public struct GetRecordParams : GETEntityRequestParams
     {
         public var kanbanViewColumn : String?

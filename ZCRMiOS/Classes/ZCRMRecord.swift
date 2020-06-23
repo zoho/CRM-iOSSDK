@@ -391,7 +391,6 @@ open class ZCRMRecord : ZCRMRecordDelegate
         else
         {
             EntityAPIHandler(record: self).createRecord( triggers : triggers ) { ( result ) in
-                self.isCreate = false
                 completion( result )
             }
         }
