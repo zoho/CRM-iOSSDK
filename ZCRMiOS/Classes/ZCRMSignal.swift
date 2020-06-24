@@ -1,10 +1,10 @@
 //
-//  ZCRMSignalDelegate.swift
+//  ZCRMSignal.swift
 //  ZCRMiOS
 //
 //  Created by Umashri R on 01/11/18.
 //
-open class ZCRMSignalDelegate : ZCRMEntity
+open class ZCRMSignal : ZCRMEntity
 {
     public internal(set) var id : Int64 = APIConstants.INT64_MOCK
     public internal(set) var type : Int = APIConstants.INT_MOCK
@@ -19,4 +19,4 @@ open class ZCRMSignalDelegate : ZCRMEntity
     }
 }
 
-var SIGNAL_MOCK : ZCRMSignalDelegate = ZCRMSignalDelegate(id: APIConstants.INT64_MOCK)
+var SIGNAL_MOCK : ZCRMSignal = ZCRMSignal(id: APIConstants.INT64_MOCK)

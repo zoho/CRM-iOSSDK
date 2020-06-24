@@ -7,7 +7,7 @@
 
 open class ZCRMEmail : ZCRMEntity
 {
-    var userId : Int64 = APIConstants.INT64_MOCK
+    var ownerId : Int64 = APIConstants.INT64_MOCK
     var isUserIdSet : Bool = APIConstants.BOOL_MOCK
     var record : ZCRMRecordDelegate
     public var from : User
@@ -15,25 +15,27 @@ open class ZCRMEmail : ZCRMEntity
     public var cc : [ User ]?
     public var bcc : [ User ]?
     public var replyTo : User?
-    public var subject : String?
-    public var mailFormat : MailFormat = MailFormat.html
+    public var subject : String = APIConstants.STRING_MOCK
+    public var mailFormat : MailFormat?
     public var content : String?
     public var attachments : [ Attachment ]?
     public var isOrgEmail : Bool?
     public var isConsentEmail : Bool?
     public var inReplyTo : String?
-    public var layoutId : Int64?
-    public var paperType : PaperType?
-    public var viewType : ViewType?
-    public var layoutName : String?
     public var templateId : Int64?
     public var scheduledTime : String?
     public var messageId : String = APIConstants.STRING_MOCK
     public var sentimentDetails : SentimentDetails?
-    public var isEditable : Bool = APIConstants.BOOL_MOCK
+    public var isEditable : Bool?
     public var sentTime : String = APIConstants.STRING_MOCK
+    public var isRead : Bool?
+    public var source : Source?
+    public var category : Category?
+    public var isConversation : Bool?
     public var inlineImageIds : [String]?
+    public var mailIndex : String?
     internal var didSend : Bool = APIConstants.BOOL_MOCK
+    public var inventoryTemplateDetails : InventoryTemplateDetails?
     
     init( record : ZCRMRecordDelegate, from : User, to : [User] )
     {
@@ -41,6 +43,26 @@ open class ZCRMEmail : ZCRMEntity
         self.from = from
         self.to = to
         self.didSend = false
+    }
+    
+    public struct InventoryTemplateDetails : Equatable
+    {
+        public let templateId : Int64
+        public var name : String?
+        public var paperType : PaperType?
+        public var viewType : ViewType?
+        
+        public init( templateId : Int64 )
+        {
+            self.templateId = templateId
+        }
+        
+        public static func == (lhs: ZCRMEmail.InventoryTemplateDetails, rhs: ZCRMEmail.InventoryTemplateDetails) -> Bool {
+            return lhs.templateId == rhs.templateId &&
+                lhs.name == rhs.name &&
+                lhs.paperType == rhs.paperType &&
+                lhs.viewType == rhs.viewType
+        }
     }
     
     public struct User : Equatable
@@ -112,6 +134,52 @@ open class ZCRMEmail : ZCRMEntity
     {
         case landscape = "landscape"
         case portrait = "portrait"
+    }
+    
+    public enum MailType : Int
+    {
+        case emailSentFromCRM = 1
+        case otherUsers
+        case allIMAPSharedUsers
+        case allContactsEmails
+        case allEmails
+    }
+
+    public enum Source : String
+    {
+        case individual = "Individual"
+        case workflow = "Workflow"
+        case bccDropbox = "Bcc_Dropbox"
+        case imap = "IMAP"
+        case consentMail = "Consent_Mail"
+        case outlook = "Outlook"
+        case manualMassMail = "Manual_MassMail"
+        case massEmailFollowUp = "Mass_Email_Follow_Up"
+        case autoResponder = "Auto_Responder"
+        case autoResponderFollowUp = "Auto_Responder_Follow_Up"
+        case event = "Event"
+        case mailMerge = "Mail_Merge"
+        case webForm = "WebForm"
+        case unHandled
+        
+        static func getSource( _ source : String ) -> Source
+        {
+            if let source = Source( rawValue: source )
+            {
+                return source
+            }
+            else
+            {
+                ZCRMLogger.logInfo(message: "UNHANDLED -> Mail Source : \( source )")
+                return .unHandled
+            }
+        }
+    }
+    
+    public enum Category
+    {
+        case sent
+        case received
     }
     
     public func send( completion : @escaping( Result.DataResponse< ZCRMEmail, APIResponse > ) -> () )
@@ -225,7 +293,7 @@ open class ZCRMEmail : ZCRMEntity
 extension ZCRMEmail : Equatable
 {
     public static func == (lhs: ZCRMEmail, rhs: ZCRMEmail) -> Bool {
-        let equals : Bool = lhs.userId == rhs.userId &&
+        let equals : Bool = lhs.ownerId == rhs.ownerId &&
             lhs.record == rhs.record &&
             lhs.from == rhs.from &&
             lhs.to == rhs.to &&
@@ -239,10 +307,7 @@ extension ZCRMEmail : Equatable
             lhs.isOrgEmail == rhs.isOrgEmail &&
             lhs.isConsentEmail == rhs.isConsentEmail &&
             lhs.inReplyTo == rhs.inReplyTo &&
-            lhs.layoutId == rhs.layoutId &&
-            lhs.paperType == rhs.paperType &&
-            lhs.viewType == rhs.viewType &&
-            lhs.layoutName == rhs.layoutName &&
+            lhs.inventoryTemplateDetails == rhs.inventoryTemplateDetails &&
             lhs.templateId == rhs.templateId &&
             lhs.scheduledTime == rhs.scheduledTime &&
             lhs.messageId == rhs.messageId &&

@@ -29,7 +29,15 @@ internal class EmailAPIHandler : CommonAPIHandler
             setJSONRootKey(key: JSONRootKey.DATA)
             var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
             var dataArray : [[String:Any]] = [[String:Any]]()
-            dataArray.append(self.getZCRMEmailAsJSON(email: email))
+            do
+            {
+                dataArray.append( try self.getZCRMEmailAsJSON(email: email))
+            }
+            catch
+            {
+                completion( .failure( typeCastToZCRMError( error ) ) )
+                return
+            }
             reqBodyObj[getJSONRootKey()] = dataArray
             
             setUrlPath( urlPath : "\( email.record.moduleAPIName )/\( email.record.id )/\( URLPathConstants.actions )/\( URLPathConstants.sendMail )" )
@@ -87,7 +95,7 @@ internal class EmailAPIHandler : CommonAPIHandler
                 let responseJSONArray  = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                 let responseJSONData = responseJSONArray[ 0 ]
                 let email = try self.getZCRMEmail(record: record, emailDetails: responseJSONData)
-                email.userId = userId
+                email.ownerId = userId
                 email.messageId = messageId
                 response.setData( data : email )
                 completion( .success( email, response ) )
@@ -122,6 +130,72 @@ internal class EmailAPIHandler : CommonAPIHandler
         }
     }
     
+    internal func viewMails( record : ZCRMRecordDelegate, params : ZCRMQuery.GetEmailParams, completion : @escaping( Result.DataResponse< [ ZCRMEmail ], BulkAPIResponse > ) -> () )
+    {
+        var emails : [ ZCRMEmail ] = [ ZCRMEmail ]()
+        setJSONRootKey(key: JSONRootKey.EMAIL_RELATED_LIST)
+        setUrlPath( urlPath : "\( record.moduleAPIName )/\( record.id )/\( URLPathConstants.Emails )" )
+        setRequestMethod(requestMethod: .get)
+        
+        if let ownerId = params.ownerId
+        {
+            addRequestParam(param: RequestParamKeys.userId, value: "\( ownerId )")
+        }
+        if let type = params.type
+        {
+            addRequestParam(param: RequestParamKeys.type, value: "\( type.rawValue )")
+        }
+        if let lastMailIndex = params.lastMailIndex
+        {
+            addRequestParam(param: RequestParamKeys.lastMailIndex, value: "\( lastMailIndex )")
+        }
+        if let startIndex = params.startIndex
+        {
+            addRequestParam(param: RequestParamKeys.startIndex, value: "\( startIndex )")
+        }
+        if let page = params.page
+        {
+            addRequestParam(param: RequestParamKeys.page, value: "\( page )")
+        }
+        if let dealsMail = params.dealsMail
+        {
+            addRequestParam(param: RequestParamKeys.dealsMail, value: "\( dealsMail )")
+        }
+        
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getBulkAPIResponse { result in
+            do
+            {
+                switch result
+                {
+                case .success(let bulkResponse) :
+                    let responseJSON = bulkResponse.getResponseJSON()
+                    if !responseJSON.isEmpty
+                    {
+                        let emailList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                        for emailJSON in emailList
+                        {
+                            let email = try self.getZCRMEmail(record: record, emailDetails: emailJSON)
+                            emails.append( email )
+                        }
+                    }
+                    bulkResponse.setData(data: emails)
+                    completion( .success(emails, bulkResponse) )
+                case .failure(let error) :
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( error )")
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+            catch
+            {
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( error )")
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
     internal func buildDownloadInlineImageRequest(imageId : String) throws {
         guard let email = self.email else
         {
@@ -133,7 +207,7 @@ internal class EmailAPIHandler : CommonAPIHandler
         setJSONRootKey(key: JSONRootKey.NIL)
         self.setIsEmail( true )
         let urlString = "\( email.record.moduleAPIName )/\( email.record.id )/\( URLPathConstants.Emails )/\( URLPathConstants.inlineImages )"
-        addRequestParam(param: RequestParamKeys.userId, value: String( email.userId ) )
+        addRequestParam(param: RequestParamKeys.userId, value: String( email.ownerId ) )
         addRequestParam(param: RequestParamKeys.messageId, value: email.messageId)
         addRequestParam(param: RequestParamKeys.id, value: imageId)
         setUrlPath(urlPath: urlString)
@@ -189,7 +263,7 @@ internal class EmailAPIHandler : CommonAPIHandler
             throw ZCRMError.processingError( code: ErrorCode.processingError, message: "Only sent messages can be used to perform download operations", details : nil )
         }
         addRequestParam(param: RequestParamKeys.messageId, value: email.messageId)
-        addRequestParam( param : RequestParamKeys.userId, value : String( email.userId ) )
+        addRequestParam( param : RequestParamKeys.userId, value : String( email.ownerId ) )
         if let attachmentId = attachmentId
         {
             addRequestParam(param: RequestParamKeys.id, value: attachmentId)
@@ -440,6 +514,220 @@ internal class EmailAPIHandler : CommonAPIHandler
         }
     }
     
+    internal func getInventoryTemplates( params : ZCRMQuery.GetTemplateParams, completion : @escaping ( Result.DataResponse< [ ZCRMInventoryTemplate ], BulkAPIResponse > ) -> () )
+    {
+        setJSONRootKey(key: JSONRootKey.INVENTORY_TEMPLATES)
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.inventoryTemplates )")
+        
+        if let category = params.category
+        {
+            if category == .associated
+            {
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.invalidData ) : Category - associated is not applicable for Inventory template type, \( APIConstants.DETAILS ) : -")
+                completion( .failure( ZCRMError.sdkError( code : ErrorCode.invalidData, message : "Category - associated is not applicable for Inventory template type", details : nil ) ) )
+                return
+            }
+            addRequestParam(param: RequestParamKeys.category, value: category.rawValue)
+        }
+        if let module = params.module
+        {
+            addRequestParam(param: RequestParamKeys.module, value: module)
+        }
+        if let sortBy = params.sortBy
+        {
+            addRequestParam(param: RequestParamKeys.sortBy, value: sortBy)
+        }
+        if let sortOrder = params.sortOrder
+        {
+            addRequestParam(param: RequestParamKeys.sortOrder, value: sortOrder.rawValue)
+        }
+        if let filterQuery = params.filter?.filterQuery
+        {
+            addRequestParam(param: RequestParamKeys.filters, value: filterQuery)
+        }
+        setRequestMethod(requestMethod: .get)
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getBulkAPIResponse { ( result ) in
+            switch result
+            {
+            case .success(let bulkResponse) :
+                do
+                {
+                    var inventoryTemplates : [ ZCRMInventoryTemplate ] = [ ZCRMInventoryTemplate ]()
+                    let responseJSON = bulkResponse.getResponseJSON()
+                    if responseJSON.isEmpty == false
+                    {
+                        let inventoryTemplatesList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                        if inventoryTemplatesList.isEmpty == true
+                        {
+                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg ), \( APIConstants.DETAILS ) : -")
+                            completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                            return
+                        }
+                        for inventoryTemplateList in inventoryTemplatesList
+                        {
+                            inventoryTemplates.append( try self.getZCRMInventoryTemplate(inventoryTemplateDetails: inventoryTemplateList) )
+                        }
+                    }
+                    bulkResponse.setData(data: inventoryTemplates)
+                    completion( .success( inventoryTemplates, bulkResponse ) )
+                }
+                catch
+                {
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func getInventoryTemplate(byId id : Int64, completion : @escaping ( Result.DataResponse< ZCRMInventoryTemplate, APIResponse > ) -> () )
+    {
+        setJSONRootKey(key: JSONRootKey.INVENTORY_TEMPLATES)
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.inventoryTemplates )/\( id )")
+        setRequestMethod(requestMethod: .get)
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getAPIResponse { ( result ) in
+            switch result
+            {
+            case .success(let response) :
+                do
+                {
+                    let responseJSON = response.getResponseJSON()
+                    let inventoryTemplateArray = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey() )
+                    guard !inventoryTemplateArray.isEmpty else
+                    {
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg ), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        return
+                    }
+                    let inventoryTemplate = try self.getZCRMInventoryTemplate(inventoryTemplateDetails: inventoryTemplateArray[0] )
+                    response.setData(data: inventoryTemplate)
+                    completion( .success( inventoryTemplate, response ) )
+                }
+                catch
+                {
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func getEmailTemplates( params : ZCRMQuery.GetTemplateParams, completion : @escaping ( Result.DataResponse< [ ZCRMEmailTemplate ], BulkAPIResponse > ) -> ())
+    {
+        setJSONRootKey(key: JSONRootKey.EMAIL_TEMPLATES)
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.emailTemplates )")
+        
+        if let module = params.module
+        {
+            addRequestParam(param: RequestParamKeys.module, value: module)
+        }
+        if let category = params.category
+        {
+            addRequestParam(param: RequestParamKeys.category, value: category.rawValue)
+        }
+        if let sortBy = params.sortBy
+        {
+            addRequestParam(param: RequestParamKeys.sortBy, value: sortBy)
+        }
+        if let sortOrder = params.sortOrder
+        {
+            addRequestParam(param: RequestParamKeys.sortOrder, value: sortOrder.rawValue)
+        }
+        if let filterQuery = params.filter?.filterQuery
+        {
+            addRequestParam(param: RequestParamKeys.filters, value: filterQuery)
+        }
+        setRequestMethod(requestMethod: .get)
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getBulkAPIResponse { ( result ) in
+            switch result
+            {
+            case .success(let bulkResponse) :
+                do
+                {
+                    var emailTemplates : [ ZCRMEmailTemplate ] = [ ZCRMEmailTemplate ]()
+                    let responseJSON = bulkResponse.getResponseJSON()
+                    if responseJSON.isEmpty == false
+                    {
+                        let emailTemplatesList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                        if emailTemplatesList.isEmpty == true
+                        {
+                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg ), \( APIConstants.DETAILS ) : -")
+                            completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                            return
+                        }
+                        for emailTemplateList in emailTemplatesList
+                        {
+                            emailTemplates.append( try self.getZCRMEmailTemplate(emailTemplateDetails: emailTemplateList) )
+                        }
+                    }
+                    bulkResponse.setData(data: emailTemplates)
+                    completion( .success( emailTemplates, bulkResponse ) )
+                }
+                catch
+                {
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func getEmailTemplate( byId id : Int64, completion : @escaping ( Result.DataResponse< ZCRMEmailTemplate, APIResponse > ) -> ())
+    {
+        setJSONRootKey(key: JSONRootKey.EMAIL_TEMPLATES)
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.emailTemplates )/\( id )")
+        setRequestMethod(requestMethod: .get)
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getAPIResponse { ( result ) in
+            switch result
+            {
+            case .success(let response) :
+                do
+                {
+                    let responseJSON = response.getResponseJSON()
+                    let emailTemplateArray = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                    guard !emailTemplateArray.isEmpty else
+                    {
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg ), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        return
+                    }
+                    let emailTemplate = try self.getZCRMEmailTemplate(emailTemplateDetails: emailTemplateArray[0])
+                    response.setData(data: emailTemplate)
+                    completion( .success( emailTemplate, response ) )
+                }
+                catch
+                {
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
     internal func delete( id : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.ORG_EMAILS)
@@ -494,6 +782,39 @@ internal class EmailAPIHandler : CommonAPIHandler
             let replyToDetails = try emailDetails.getDictionary( key : ResponseJSONKeys.replyTo )
             email.replyTo = try self.getUser(userJSON: replyToDetails)
         }
+        email.subject = try emailDetails.getString( key : ResponseJSONKeys.subject )
+        if emailDetails.hasValue(forKey: ResponseJSONKeys.read)
+        {
+            email.isRead = try emailDetails.getBoolean(key: ResponseJSONKeys.read )
+        }
+        if emailDetails.hasValue(forKey: ResponseJSONKeys.source)
+        {
+            email.source = try ZCRMEmail.Source.getSource( emailDetails.getString(key: ResponseJSONKeys.source) )
+        }
+        if emailDetails.hasValue(forKey: ResponseJSONKeys.sent)
+        {
+            if try emailDetails.getBoolean(key: ResponseJSONKeys.sent)
+            {
+                email.category = .sent
+            }
+            else
+            {
+                email.category = .received
+            }
+        }
+        if emailDetails.hasValue(forKey: ResponseJSONKeys.conversation)
+        {
+            email.isConversation = try emailDetails.getBoolean(key: ResponseJSONKeys.conversation)
+        }
+        if emailDetails.hasValue(forKey: ResponseJSONKeys.mailIndex)
+        {
+            email.mailIndex = try emailDetails.getString(key: ResponseJSONKeys.mailIndex)
+        }
+        if emailDetails.hasValue(forKey: ResponseJSONKeys.owner)
+        {
+            let owner = try emailDetails.getDictionary(key: ResponseJSONKeys.owner)
+            email.ownerId = try owner.getInt64(key: ResponseJSONKeys.id)
+        }
         if emailDetails.hasValue(forKey: ResponseJSONKeys.subject)
         {
             email.subject = try emailDetails.getString( key : ResponseJSONKeys.subject )
@@ -531,13 +852,16 @@ internal class EmailAPIHandler : CommonAPIHandler
             }
             email.sentimentDetails = sentiment
         }
-        let mailFormat = try emailDetails.getString( key : ResponseJSONKeys.mailFormat )
-        guard let format = ZCRMEmail.MailFormat(rawValue: mailFormat) else
+        if emailDetails.hasValue(forKey: ResponseJSONKeys.mailFormat)
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : \(ResponseJSONKeys.mailFormat) has invalid value, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.inValidError( code : ErrorCode.invalidData, message : "\(ResponseJSONKeys.mailFormat) has invalid value", details : nil )
+            let mailFormat = try emailDetails.getString( key : ResponseJSONKeys.mailFormat )
+            guard let format = ZCRMEmail.MailFormat(rawValue: mailFormat) else
+            {
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : \(ResponseJSONKeys.mailFormat) has invalid value, \( APIConstants.DETAILS ) : -")
+                throw ZCRMError.inValidError( code : ErrorCode.invalidData, message : "\(ResponseJSONKeys.mailFormat) has invalid value", details : nil )
+            }
+            email.mailFormat = format
         }
-        email.mailFormat = format
         if emailDetails.hasValue(forKey: ResponseJSONKeys.editable)
         {
             email.isEditable = try emailDetails.getBoolean( key : ResponseJSONKeys.editable )
@@ -554,38 +878,6 @@ internal class EmailAPIHandler : CommonAPIHandler
         if emailDetails.hasValue(forKey: ResponseJSONKeys.inReplyTo)
         {
             email.inReplyTo = try emailDetails.getString( key : ResponseJSONKeys.inReplyTo )
-        }
-        if emailDetails.hasValue(forKey: ResponseJSONKeys.layoutId)
-        {
-            email.layoutId = try emailDetails.getInt64( key : ResponseJSONKeys.layoutId )
-        }
-        if emailDetails.hasValue(forKey: ResponseJSONKeys.paperType)
-        {
-            let paperType = try emailDetails.getString( key : ResponseJSONKeys.paperType )
-            guard let paperTypeEnum = ZCRMEmail.PaperType(rawValue: paperType) else
-            {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : \(ResponseJSONKeys.paperType) has invalid value, \( APIConstants.DETAILS ) : -")
-                throw ZCRMError.inValidError( code : ErrorCode.invalidData, message : "\(ResponseJSONKeys.paperType) has invalid value", details : nil )
-            }
-            email.paperType = paperTypeEnum
-        }
-        if emailDetails.hasValue(forKey: ResponseJSONKeys.viewType)
-        {
-            let viewType = try emailDetails.getString( key : ResponseJSONKeys.viewType )
-            guard let viewTypeEnum = ZCRMEmail.ViewType(rawValue: viewType) else
-            {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : \(ResponseJSONKeys.viewType) has invalid value, \( APIConstants.DETAILS ) : -")
-                throw ZCRMError.inValidError( code : ErrorCode.invalidData, message : "\(ResponseJSONKeys.viewType) has invalid value", details : nil )
-            }
-            email.viewType = viewTypeEnum
-        }
-        if emailDetails.hasValue(forKey: ResponseJSONKeys.layoutName)
-        {
-            email.layoutName = try emailDetails.getString( key : ResponseJSONKeys.layoutName )
-        }
-        if emailDetails.hasValue(forKey: ResponseJSONKeys.templateId)
-        {
-            email.templateId = try emailDetails.getInt64( key : ResponseJSONKeys.templateId )
         }
         if emailDetails.hasValue(forKey: ResponseJSONKeys.scheduledTime)
         {
@@ -638,7 +930,88 @@ internal class EmailAPIHandler : CommonAPIHandler
         return orgEmail
     }
     
-    private func getZCRMEmailAsJSON( email : ZCRMEmail ) -> [String:Any]
+    private func getZCRMInventoryTemplate( inventoryTemplateDetails : [ String : Any ] ) throws -> ZCRMInventoryTemplate
+    {
+        let id = try inventoryTemplateDetails.getInt64(key: ResponseJSONKeys.id )
+        let name = try inventoryTemplateDetails.getString(key: ResponseJSONKeys.name )
+        let folderDetails = try inventoryTemplateDetails.getDictionary(key: ResponseJSONKeys.folder )
+        let folder = try ZCRMInventoryTemplate.Folder(name: folderDetails.getString(key: ResponseJSONKeys.name), id: folderDetails.getInt64(key: ResponseJSONKeys.id))
+        let moduleDetails = try inventoryTemplateDetails.getDictionary(key: ResponseJSONKeys.module )
+        let module = try ZCRMModuleDelegate(apiName: moduleDetails.getString(key: ResponseJSONKeys.apiName ))
+        let inventoryTemplate = ZCRMInventoryTemplate( id : id, name : name, folder: folder, module: module )
+        
+        inventoryTemplate.type = try ZCRMTemplateType.getType(rawValue: inventoryTemplateDetails.getString(key: ResponseJSONKeys.type ))
+        inventoryTemplate.isFavorite = try inventoryTemplateDetails.getBoolean(key: ResponseJSONKeys.favorite )
+        
+        inventoryTemplate.createdTime = inventoryTemplateDetails.optString(key: ResponseJSONKeys.createdTime )
+        if let createdUserDetails = inventoryTemplateDetails.optDictionary(key: ResponseJSONKeys.createdBy)
+        {
+            inventoryTemplate.createdBy = try ZCRMUserDelegate(id: createdUserDetails.getInt64(key: ResponseJSONKeys.id ), name: createdUserDetails.getString(key: ResponseJSONKeys.name ))
+        }
+        inventoryTemplate.modifiedTime = inventoryTemplateDetails.optString(key: ResponseJSONKeys.modifiedTime )
+        if let modifiedUserDetails = inventoryTemplateDetails.optDictionary(key: ResponseJSONKeys.modifiedBy )
+        {
+            inventoryTemplate.modifiedBy = try ZCRMUserDelegate(id: modifiedUserDetails.getInt64(key: ResponseJSONKeys.id ), name: modifiedUserDetails.getString(key: ResponseJSONKeys.name ))
+        }
+        inventoryTemplate.content = inventoryTemplateDetails.optString(key: ResponseJSONKeys.content )
+        inventoryTemplate.lastUsageTime = inventoryTemplateDetails.optString(key: ResponseJSONKeys.lastUsageTime )
+        
+        return inventoryTemplate
+    }
+    
+    private func getZCRMEmailTemplate( emailTemplateDetails : [ String : Any ] ) throws -> ZCRMEmailTemplate
+    {
+        let id = try emailTemplateDetails.getInt64(key: ResponseJSONKeys.id )
+        let name = try emailTemplateDetails.getString(key: ResponseJSONKeys.name )
+        let folderDetails = try emailTemplateDetails.getDictionary(key: ResponseJSONKeys.folder )
+        let folder = try ZCRMEmailTemplate.Folder(name: folderDetails.getString(key: ResponseJSONKeys.name), id: folderDetails.getInt64(key: ResponseJSONKeys.id))
+        let moduleDetails = try emailTemplateDetails.getDictionary(key: ResponseJSONKeys.module )
+        let module = try ZCRMModuleDelegate(apiName: moduleDetails.getString(key: ResponseJSONKeys.apiName ))
+        let emailTemplate = ZCRMEmailTemplate( id : id, name : name, folder: folder, module: module )
+        
+        emailTemplate.type = try ZCRMTemplateType.getType(rawValue: emailTemplateDetails.getString(key: ResponseJSONKeys.type ))
+        emailTemplate.isFavorite = try emailTemplateDetails.getBoolean(key: ResponseJSONKeys.favorite )
+        emailTemplate.subject = try emailTemplateDetails.getString(key: ResponseJSONKeys.subject)
+        emailTemplate.isAssociated = try emailTemplateDetails.getBoolean(key: ResponseJSONKeys.associated )
+        emailTemplate.isConsentLinked = try emailTemplateDetails.getBoolean(key: ResponseJSONKeys.consentLinked)
+        
+        if emailTemplateDetails.hasValue(forKey: ResponseJSONKeys.attachments)
+        {
+            let attachments = try emailTemplateDetails.getArrayOfDictionaries(key: ResponseJSONKeys.attachments )
+            emailTemplate.attachments = [ ZCRMEmailTemplate.Attachment ]()
+            for attachment in attachments
+            {
+                emailTemplate.attachments?.append( try self.getTemplateAttachments( attachment : attachment ) )
+            }
+        }
+        
+        emailTemplate.createdTime = emailTemplateDetails.optString(key: ResponseJSONKeys.createdTime )
+        if let createdUserDetails = emailTemplateDetails.optDictionary(key: ResponseJSONKeys.createdBy)
+        {
+            emailTemplate.createdBy = try ZCRMUserDelegate(id: createdUserDetails.getInt64(key: ResponseJSONKeys.id ), name: createdUserDetails.getString(key: ResponseJSONKeys.name ))
+        }
+        emailTemplate.modifiedTime = emailTemplateDetails.optString(key: ResponseJSONKeys.modifiedTime )
+        if let modifiedUserDetails = emailTemplateDetails.optDictionary(key: ResponseJSONKeys.modifiedBy )
+        {
+            emailTemplate.modifiedBy = try ZCRMUserDelegate(id: modifiedUserDetails.getInt64(key: ResponseJSONKeys.id ), name: modifiedUserDetails.getString(key: ResponseJSONKeys.name ))
+        }
+        emailTemplate.content = emailTemplateDetails.optString(key: ResponseJSONKeys.content )
+        emailTemplate.lastUsageTime = emailTemplateDetails.optString(key: ResponseJSONKeys.lastUsageTime )
+        
+        return emailTemplate
+    }
+    
+    func getTemplateAttachments( attachment : [ String : Any ] ) throws -> ZCRMEmailTemplate.Attachment
+    {
+        let size = try attachment.getInt64(key: ResponseJSONKeys.size )
+        let fileName = try attachment.getString(key: ResponseJSONKeys.fileName )
+        let fileId = try attachment.getString(key: ResponseJSONKeys.fileId )
+        let id = try attachment.getInt64(key: ResponseJSONKeys.id )
+        
+        return ZCRMEmailTemplate.Attachment( size: size, file_name: fileName, fileId: fileId, id: id )
+    }
+    
+    private func getZCRMEmailAsJSON( email : ZCRMEmail ) throws -> [String:Any]
     {
         var emailDetails : [String:Any] = [String:Any]()
         emailDetails.updateValue( self.getUserAsJSON( user : email.from ), forKey : ResponseJSONKeys.from )
@@ -655,22 +1028,23 @@ internal class EmailAPIHandler : CommonAPIHandler
         {
             emailDetails.updateValue( self.getUserAsJSON( user : replyTo ), forKey : ResponseJSONKeys.replyTo )
         }
-        if let subject = email.subject
-        {
-            emailDetails.updateValue( subject, forKey : ResponseJSONKeys.subject )
-        }
+        emailDetails.updateValue( email.subject, forKey : ResponseJSONKeys.subject )
         if let content = email.content
         {
             emailDetails.updateValue( content, forKey : ResponseJSONKeys.content )
         }
-        emailDetails.updateValue( email.mailFormat.rawValue, forKey : ResponseJSONKeys.mailFormat )
+        if let mailFormat = email.mailFormat
+        {
+            emailDetails.updateValue( mailFormat.rawValue, forKey : ResponseJSONKeys.mailFormat )
+        }
         if let scheduledTime = email.scheduledTime
         {
             emailDetails.updateValue( scheduledTime, forKey : ResponseJSONKeys.scheduledTime )
         }
-        if let templateId = email.templateId
+        if let id = email.templateId
         {
-            emailDetails.updateValue( templateId, forKey : ResponseJSONKeys.templateId )
+            let template : [ String : Int64 ] = [ ResponseJSONKeys.id : id ]
+            emailDetails.updateValue( template, forKey : ResponseJSONKeys.template )
         }
         if let attachments = email.attachments
         {
@@ -688,23 +1062,37 @@ internal class EmailAPIHandler : CommonAPIHandler
         {
             emailDetails.updateValue( inReplyTo, forKey : ResponseJSONKeys.inReplyTo )
         }
-        if let layoutId = email.layoutId
+        if let inventoryDetails = email.inventoryTemplateDetails
         {
-            emailDetails.updateValue( layoutId, forKey : ResponseJSONKeys.layoutId )
-        }
-        if let paperType = email.paperType
-        {
-            emailDetails.updateValue( paperType.rawValue, forKey : ResponseJSONKeys.paperType )
-        }
-        if let viewType = email.viewType
-        {
-            emailDetails.updateValue( viewType.rawValue, forKey : ResponseJSONKeys.viewType )
-        }
-        if let layoutName = email.layoutName
-        {
-            emailDetails.updateValue( layoutName, forKey : ResponseJSONKeys.layoutName )
+            let moduleAPIName = email.record.moduleAPIName
+            guard moduleAPIName == DefaultModuleAPINames.QUOTES || moduleAPIName == DefaultModuleAPINames.SALES_ORDERS || moduleAPIName == DefaultModuleAPINames.PURCHASE_ORDERS || moduleAPIName == DefaultModuleAPINames.INVOICES else
+            {
+                ZCRMLogger.logError(message: "Inventory templates are not allowed for this module - \( moduleAPIName )")
+                throw ZCRMError.inValidError(code: ErrorCode.invalidModule, message: "Inventory templates are not allowed for this module - \( moduleAPIName )", details: nil)
+            }
+            emailDetails[ ResponseJSONKeys.inventoryDetails ] = getInventoryTemplateDetailsASJSON( inventoryDetails )
         }
         return emailDetails
+    }
+    
+    private func getInventoryTemplateDetailsASJSON( _ inventoryTemplateDetails : ZCRMEmail.InventoryTemplateDetails ) -> [ String : Any ]
+    {
+        var inventoryTemplate : [ String : Any ] = [ String : Any ]()
+        var layoutDetails : [ String : String ] = [ ResponseJSONKeys.id : "\( inventoryTemplateDetails.templateId )" ]
+        if let layoutName = inventoryTemplateDetails.name
+        {
+            layoutDetails[ ResponseJSONKeys.name ] = layoutName
+        }
+        inventoryTemplate[ ResponseJSONKeys.inventoryTemplate ] = layoutDetails
+        if let paperType = inventoryTemplateDetails.paperType
+        {
+            inventoryTemplate[ ResponseJSONKeys.paperType ] = paperType.rawValue
+        }
+        if let viewType = inventoryTemplateDetails.viewType
+        {
+            inventoryTemplate[ ResponseJSONKeys.viewType ] = viewType.rawValue
+        }
+        return inventoryTemplate
     }
     
     private func getArrayOfUserJSON( users : [ ZCRMEmail.User ] ) -> [[String:Any]]
@@ -902,19 +1290,41 @@ extension EmailAPIHandler
         static let content = "content"
         static let attachments = "attachments"
         static let fileName = "file_name"
+        static let fileId = "file_id"
         static let serviceName = "service_name"
         static let scheduledTime = "scheduled_time"
-        static let templateId = "template_id"
+        static let template = "template"
         static let orgEmail = "org_email"
         static let consentEmail = "consent_email"
         static let inReplyTo = "in_reply_to"
-        static let layoutId = "layout_id"
+        static let inventoryDetails = "inventory_details"
+        static let inventoryTemplate = "inventory_template"
         static let paperType = "paper_type"
         static let viewType = "view_type"
-        static let layoutName = "layout_name"
+        static let folder = "folder"
+        static let apiName = "api_name"
+        static let favorite = "favorite"
+        static let type = "type"
+        static let lastUsageTime = "last_usage_time"
+        static let associated = "associated"
+        static let consentLinked = "consent_linked"
+        static let size = "size"
+        static let module = "module"
+        static let createdTime = "created_time"
+        static let modifiedTime = "modified_time"
+        static let createdBy = "created_by"
+        static let modifiedBy = "modified_by"
         static let sentimentDetails = "sentiment_details"
         static let editable = "editable"
         static let sentTime = "sent_time"
+        static let read = "read"
+        static let source = "source"
+        static let sent = "sent"
+        static let conversation = "conversation"
+        static let mailIndex = "mail_index"
+        static let owner = "owner"
+        
+        static let active = "active"
     }
     
     struct URLPathConstants {
@@ -922,6 +1332,7 @@ extension EmailAPIHandler
         static let sendMail = "send_mail"
         static let Emails = "Emails"
         static let inlineImages = "inline_images"
+        static let insights = "insights"
         static let attachments = "attachments"
         static let resendConfirmEmail = "resend_confirm_email"
         static let upload = "upload"
@@ -929,6 +1340,8 @@ extension EmailAPIHandler
         static let confirm = "confirm"
         static let orgEmails = "org_emails"
         static let settings = "settings"
+        static let inventoryTemplates = "inventory_templates"
+        static let emailTemplates = "email_templates"
     }
 }
 

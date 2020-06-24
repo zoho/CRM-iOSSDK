@@ -126,6 +126,35 @@ public enum AccessType : String
     case sandBox = "Sandbox"
 }
 
+public enum ZCRMTemplateCategory : String
+{
+    case favorite
+    case createdByMe = "created_by_me"
+    case sharedWithMe = "shared_with_me"
+    case associated
+    case draft
+}
+
+public enum ZCRMTemplateType : String
+{
+    case systemTemplates = "system_templates"
+    case customTemplates = "custom_templates"
+    case unhandled
+    
+    static func getType( rawValue : String ) -> ZCRMTemplateType
+    {
+        if let type = ZCRMTemplateType( rawValue : rawValue)
+        {
+            return type
+        }
+        else
+        {
+            ZCRMLogger.logDebug(message: "UNHANDLED -> Template Sub type : \( rawValue )")
+            return .unhandled
+        }
+    }
+}
+
 public enum PhotoSize : String
 {
     case stamp = "stamp"
@@ -631,7 +660,7 @@ internal extension Array
         let dup = stringArray.joined(separator: ",\"and\",")
         return dup
     }
-    
+	
 }
 
 public extension String
@@ -682,7 +711,7 @@ public extension String
     
     var dateComponents : DateComponents?
     {
-        if let date : Date = Formatter.iso8601.date( from : self )
+        if let date : Date = Formatter.iso8601WithTimeZone.date( from : self )
         {
             return date.dateComponents
         }
@@ -691,13 +720,13 @@ public extension String
     
     var millisecondsSince1970 : Double?
     {
-        if let date : Date = Formatter.iso8601.date( from : self )
+        if let date : Date = Formatter.iso8601WithTimeZone.date( from : self )
         {
             return date.millisecondsSince1970
         }
         return nil
     }
-    
+	
     func convertToDictionary() -> [String: String]? {
         if let data = self.data(using: .utf8)
         {
@@ -1291,6 +1320,10 @@ internal struct RequestParamKeys
     static let type : String = "type"
     static let ifModifiedSince : String = "If-Modified-Since"
     static let module : String = "module"
+    static let lastMailIndex : String = "last_mail_index"
+    static let startIndex : String = "start_index"
+    static let dealsMail : String = "deals_mail"
+    static let category : String = "category"
 }
 
 var ACCOUNTSURL : String = String()
@@ -1333,6 +1366,8 @@ struct JSONRootKey {
     static let FILTERS : String = "filters"
     static let CURRENCIES : String = "currencies"
     static let FEATURES : String = "features"
+    static let INVENTORY_TEMPLATES : String = "inventory_templates"
+    static let EMAIL_TEMPLATES : String = "email_templates"
 }
 
 //MARK:- RESULT TYPES
