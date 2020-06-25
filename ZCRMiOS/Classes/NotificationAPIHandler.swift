@@ -172,7 +172,7 @@ internal class NotificationAPIHandler : CommonAPIHandler
         let signal = try notificationDetails.getDictionary( key : ResponseJSONKeys.signal )
         if signal.hasValue(forKey: ResponseJSONKeys.id) && signal.hasValue(forKey: ResponseJSONKeys.namespace) && signal.hasValue(forKey: ResponseJSONKeys.type)
         {
-            notification.signal = ZCRMSignalDelegate( id : try signal.getInt64( key : ResponseJSONKeys.id ) )
+            notification.signal = ZCRMSignal( id : try signal.getInt64( key : ResponseJSONKeys.id ) )
             notification.signal.type = try signal.getInt( key : ResponseJSONKeys.type )
             notification.signal.namespace = try signal.getString( key : ResponseJSONKeys.namespace )
             notification.signal.displayLabel = signal.optString(key: ResponseJSONKeys.displayLabel)

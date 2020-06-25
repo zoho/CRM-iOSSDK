@@ -15,7 +15,7 @@ open class ZCRMNotification : ZCRMEntity
     public internal(set) var moduleAPIName : String = APIConstants.STRING_MOCK
     public internal(set) var auditedTime : String = APIConstants.STRING_MOCK
     public internal(set) var id : Int64 = APIConstants.INT64_MOCK
-    public internal(set) var signal : ZCRMSignalDelegate = SIGNAL_MOCK
+    public internal(set) var signal : ZCRMSignal = SIGNAL_MOCK
     
     init( id : Int64 )
     {
