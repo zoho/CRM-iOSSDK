@@ -37,18 +37,18 @@ internal class EntityAPIHandler : CommonAPIHandler
         self.requestedModule = recordDelegate.moduleAPIName
     }
     
-    // MARK: - Handler Functions
-    internal func getRecord( withPrivateFields : Bool, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+	// MARK: - Handler Functions
+	internal func getRecord( withPrivateFields : Bool, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         let urlPath = "\( self.record.moduleAPIName )/\( self.recordDelegate.id )"
-        setUrlPath(urlPath : urlPath )
+		setUrlPath(urlPath : urlPath )
         if( withPrivateFields == true )
         {
             addRequestParam( param : RequestParamKeys.include, value : APIConstants.PRIVATE_FIELDS )
         }
-        setRequestMethod(requestMethod : .get)
-        let request : APIRequest = APIRequest(handler: self)
+		setRequestMethod(requestMethod : .get)
+		let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         request.getAPIResponse { ( resultType ) in
             do
@@ -92,13 +92,13 @@ internal class EntityAPIHandler : CommonAPIHandler
         {
             reqBodyObj[ APIConstants.TRIGGER ] = getTriggerArray(triggers: triggers)
         }
-        
-        setUrlPath(urlPath : "\(self.record.moduleAPIName)")
-        setRequestMethod(requestMethod : .post)
-        setRequestBody(requestBody : reqBodyObj)
-        let request : APIRequest = APIRequest(handler : self)
+		
+		setUrlPath(urlPath : "\(self.record.moduleAPIName)")
+		setRequestMethod(requestMethod : .post)
+		setRequestBody(requestBody : reqBodyObj)
+		let request : APIRequest = APIRequest(handler : self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-        
+		
         request.getAPIResponse { ( resultType ) in
             do
             {
@@ -154,11 +154,11 @@ internal class EntityAPIHandler : CommonAPIHandler
         {
             reqBodyObj[ APIConstants.TRIGGER ] = getTriggerArray(triggers: triggers)
         }
-        
-        setUrlPath( urlPath : "\( self.record.moduleAPIName )/\( self.record.id )" )
-        setRequestMethod( requestMethod : .patch )
-        setRequestBody( requestBody : reqBodyObj )
-        let request : APIRequest = APIRequest( handler : self)
+		
+		setUrlPath( urlPath : "\( self.record.moduleAPIName )/\( self.record.id )" )
+		setRequestMethod( requestMethod : .patch )
+		setRequestBody( requestBody : reqBodyObj )
+		let request : APIRequest = APIRequest( handler : self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
@@ -198,9 +198,9 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     internal func deleteRecord( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        setUrlPath( urlPath : "\( self.recordDelegate.moduleAPIName )/\( self.recordDelegate.id )" )
-        setRequestMethod(requestMethod : .delete )
-        let request : APIRequest = APIRequest(handler : self )
+		setUrlPath( urlPath : "\( self.recordDelegate.moduleAPIName )/\( self.recordDelegate.id )" )
+		setRequestMethod(requestMethod : .delete )
+		let request : APIRequest = APIRequest(handler : self )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
@@ -712,6 +712,14 @@ internal class EntityAPIHandler : CommonAPIHandler
                         self.record.tags?.append( tag )
                     }
                 }
+                else if let tags = try tagDetails.getArrayOfDictionaries(key: JSONRootKey.TAGS) as? [ [ String : String ] ]
+                {
+                    self.record.tags = [ String ]()
+                    for tag in tags
+                    {
+                        self.record.tags?.append( try tag.getString(key: ResponseJSONKeys.name) )
+                    }
+                }
                 completion( .success( self.record, response ) )
             }
             catch{
@@ -720,9 +728,9 @@ internal class EntityAPIHandler : CommonAPIHandler
             }
         }
     }
-    
-    // MARK: - Utility Functions
-    private func setPriceDetails(priceDetails priceDetailsArrayOfJSON : [[ String : Any]]) throws
+	
+	// MARK: - Utility Functions
+	private func setPriceDetails(priceDetails priceDetailsArrayOfJSON : [[ String : Any]]) throws
     {
         for priceDetailJSON in priceDetailsArrayOfJSON {
             let ZCRMPriceBookPricing = try getZCRMPriceDetail(From: priceDetailJSON)
@@ -1553,7 +1561,7 @@ internal class EntityAPIHandler : CommonAPIHandler
             }
         }
     }
-    
+	
     private func getAllZCRMSubformRecords( apiName : String , subforms : [[ String : Any]], completion : @escaping( [ZCRMSubformRecord]?, Error? ) -> () )
     {
         var zcrmSubformRecords : [ZCRMSubformRecord] = [ZCRMSubformRecord]()
@@ -1601,7 +1609,7 @@ internal class EntityAPIHandler : CommonAPIHandler
             }
         }
     }
-    
+	
     private func getZCRMSubformRecord(apiName:String, subformDetails:[String:Any], completion : @escaping( ZCRMSubformRecord?, Error? ) -> ())
     {
         var subformRecErr : Error?

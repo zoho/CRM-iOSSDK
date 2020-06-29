@@ -139,7 +139,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Returns: APIResponse of the note addition
     /// - Throws: ZCRMSDKError if Note id is not nil
     public func addNote(note: ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
-    {
+    { 
         if !note.isCreate
         {
             ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : Note ID must be nil for create operation, \( APIConstants.DETAILS ) : -")
@@ -636,6 +636,13 @@ open class ZCRMRecordDelegate : ZCRMEntity
     public func deleteMail( messageId : String, completion : @escaping ( Result.Response< APIResponse > ) -> ())
     {
         EmailAPIHandler().deleteMail(record: self, messageId: messageId) { result in
+            completion( result )
+        }
+    }
+    
+    public func getMails( params : ZCRMQuery.GetEmailParams? = nil, completion : @escaping ( Result.DataResponse< [ ZCRMEmail ], BulkAPIResponse >) -> ())
+    {
+        EmailAPIHandler().viewMails(record: self, params: params ?? ZCRMQuery.GetEmailParams()) { result in
             completion( result )
         }
     }
