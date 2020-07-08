@@ -652,61 +652,6 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func isEmailInsightsEnabled( completion : @escaping ( Result.Data< Bool >) -> ())
-    {
-        setIsEmail( true )
-        setJSONRootKey(key: JSONRootKey.EMAIL_INSIGHTS )
-        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.emails )/\( URLPathConstants.insights )")
-        setRequestMethod(requestMethod: .get)
-        let request : APIRequest = APIRequest(handler: self)
-        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-        
-        request.getAPIResponse { result in
-            do
-            {
-                switch result
-                {
-                case .success(let response) :
-                    let responseJSON = response.getResponseJSON()
-                    let responseJSONData  = try responseJSON.getDictionary( key : self.getJSONRootKey() )
-                    let emailInsightStatus = try responseJSONData.getBoolean(key: ResponseJSONKeys.active)
-                    completion( .success( emailInsightStatus ) )
-                case .failure(let error) :
-                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( error )")
-                    completion( .failure( typeCastToZCRMError( error ) ) )
-                }
-            }
-            catch
-            {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                completion( .failure( typeCastToZCRMError( error ) ) )
-            }
-        }
-    }
-    
-    internal func updateEmailInsight( status : Bool, completion : @escaping ( Result.Response< APIResponse > ) -> () )
-    {
-        setIsEmail( true )
-        setJSONRootKey( key : JSONRootKey.EMAIL_INSIGHTS )
-        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.emails )/\( URLPathConstants.insights )")
-        addRequestParam(param: ResponseJSONKeys.active, value: "\( status )")
-        setRequestMethod( requestMethod : .put )
-        
-        let request = APIRequest( handler : self )
-        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-        
-        request.getAPIResponse { ( resultType ) in
-            switch resultType
-            {
-            case .success(let response) :
-                completion( .success( response ) )
-            case .failure(let error) :
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                completion( .failure( typeCastToZCRMError( error ) ) )
-            }
-        }
-    }
-    
     // check optional property in organisation API
     private func getZCRMOrg( orgDetails : [ String : Any ] ) throws -> ZCRMOrg
     {

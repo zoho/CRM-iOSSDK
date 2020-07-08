@@ -126,35 +126,6 @@ public enum AccessType : String
     case sandBox = "Sandbox"
 }
 
-public enum ZCRMTemplateCategory : String
-{
-    case favorite
-    case createdByMe = "created_by_me"
-    case sharedWithMe = "shared_with_me"
-    case associated
-    case draft
-}
-
-public enum ZCRMTemplateType : String
-{
-    case systemTemplates = "system_templates"
-    case customTemplates = "custom_templates"
-    case unhandled
-    
-    static func getType( rawValue : String ) -> ZCRMTemplateType
-    {
-        if let type = ZCRMTemplateType( rawValue : rawValue)
-        {
-            return type
-        }
-        else
-        {
-            ZCRMLogger.logDebug(message: "UNHANDLED -> Template Sub type : \( rawValue )")
-            return .unhandled
-        }
-    }
-}
-
 public enum PhotoSize : String
 {
     case stamp = "stamp"
@@ -221,19 +192,6 @@ internal enum CacheFlavour : String
     case urlVsResponse = "URL_VS_RESPONSE"
     case data = "DATA"
     case forceCache = "FORCE_CACHE"
-}
-
-public enum APNsMode : String
-{
-    case sbx = "SBX"
-    case prd = "PRD"
-}
-
-public enum NFChannel : String
-{
-    case cns = "CNS"
-    case uns = "UNS"
-    case both = "CNS,UNS"
 }
 
 public enum EventParticipantType : String
@@ -378,27 +336,12 @@ public enum TrashRecordTypes : String
     case permanent
 }
 
-public enum DashboardFilter : String
-{
-    case mine = "mine"
-    case shared = "shared"
-    case `public` = "public"
-    case `private` = "private"
-}
-
 internal enum MaxFileSize : Int64 {
     case notesAttachment = 20971520 // 20 MB
     case attachment = 104857600 // 100 MB
     case profilePhoto = 5242880 // 5 MB
     case entityImageAttachment = 2097152 // 2 MB
     case emailAttachment = 10485760 // 10 MB
-}
-
-public enum ZiaNotificationType : String
-{
-    case anomaly = "anomaly"
-    case workflow = "workflow"
-    case featureName = "featurename"
 }
 
 public enum VariableType : String
@@ -1324,6 +1267,7 @@ internal struct RequestParamKeys
     static let startIndex : String = "start_index"
     static let dealsMail : String = "deals_mail"
     static let category : String = "category"
+    static let criteria : String = "criteria"
 }
 
 var ACCOUNTSURL : String = String()
@@ -1486,15 +1430,6 @@ func setUserDelegate( userObj : ZCRMUserDelegate ) -> [ String : Any ]
     return userJSON
 }
 
-func activitiesCVModuleCheck( module : String ) throws
-{
-    if !( module == DefaultModuleAPINames.TASKS || module == DefaultModuleAPINames.EVENTS || module == DefaultModuleAPINames.CALLS )
-    {
-        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidModule) : the module given seems to be invalid, \( APIConstants.DETAILS ) : -")
-        throw ZCRMError.inValidError(code: ErrorCode.invalidModule, message: "the module given seems to be invalid", details: nil)
-    }
-}
-
 func relatedModuleCheck( module : String ) throws
 {
     if module == DefaultModuleAPINames.SOCIAL
@@ -1506,15 +1441,6 @@ func relatedModuleCheck( module : String ) throws
     {
         ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidOperation) : Try using getNotes or getAttachments methods, \( APIConstants.DETAILS ) : -")
         throw ZCRMError.inValidError( code : ErrorCode.invalidOperation, message : "Try using getNotes or getAttachments methods", details : nil )
-    }
-}
-
-func callsModuleCheck( module : String ) throws
-{
-    if !(module == DefaultModuleAPINames.CALLS)
-    {
-        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.notSupported) : This feature is not supported for this module, \( APIConstants.DETAILS ) : -")
-        throw ZCRMError.inValidError(code: ErrorCode.notSupported, message: "This feature is not supported for this module", details: nil)
     }
 }
 
@@ -1695,52 +1621,6 @@ internal struct ResponsesTableStatement
     func searchData(_ withURL : String ) -> String
     {
         return "\(DBConstant.DQL_SELECT) * \(DBConstant.KEYS_FROM) \(DBConstant.TABLE_RESPONSES) \(DBConstant.CLAUSE_WHERE) \(DBConstant.COLUMN_URL) LIKE \'\(withURL)\' OR \'\( withURL )?%\' AND \(DBConstant.COLUMN_VALIDITY) > \(DBConstant.CURRENT_TIME);"
-    }
-}
-    
-internal struct PushNotificationsTableStatement
-{
-    func insert( nfId : String, nfChannel : String, insId : String, appId : String, apnsMode : String ) -> String
-    {
-        return "\(DBConstant.DML_INSERT) \(DBConstant.KEYS_INTO) \(DBConstant.TABLE_PUSH_NOTIFICATIONS) (\(DBConstant.COLUMN_NF_ID), \(DBConstant.COLUMN_NF_CHANNEL), \(DBConstant.COLUMN_INS_ID), \(DBConstant.COLUMN_APP_ID), \(DBConstant.COLUMN_APNS_MODE)) \(DBConstant.KEYS_VALUES) (\"\(nfId)\", \"\(nfChannel)\", \"\(insId)\", \"\(appId)\", \"\(apnsMode)\" );"
-    }
-    
-    func createTable() -> String
-    {
-        return "\(DBConstant.DML_CREATE) TABLE IF NOT EXISTS  \(DBConstant.TABLE_PUSH_NOTIFICATIONS) (\(DBConstant.COLUMN_NF_ID) VARCHAR PRIMARY KEY NOT NULL, \(DBConstant.COLUMN_NF_CHANNEL) TEXT NOT NULL, \(DBConstant.COLUMN_INS_ID) TEXT NOT NULL, \(DBConstant.COLUMN_APP_ID) TEXT NOT NULL, \(DBConstant.COLUMN_APNS_MODE) TEXT NOT NULL );"
-    }
-    
-    func delete() -> String
-    {
-        return "\(DBConstant.DML_DELETE) \(DBConstant.KEYS_FROM) \(DBConstant.TABLE_PUSH_NOTIFICATIONS)"
-    }
-    
-    func fetchData() -> String
-    {
-        return "\(DBConstant.DQL_SELECT) * \(DBConstant.KEYS_FROM) \(DBConstant.TABLE_PUSH_NOTIFICATIONS);"
-    }
-}
-
-internal struct PortalTableStatement
-{
-    func insert( portalId : Int64 ) -> String
-    {
-        return "\(DBConstant.DML_INSERT) \(DBConstant.KEYS_INTO) \(DBConstant.TABLE_CURRENT_PORTAL) (\(DBConstant.COLUMN_PORTAL_ID)) \(DBConstant.KEYS_VALUES) (\"\(portalId)\");"
-    }
-    
-    func createTable() -> String
-    {
-        return "\(DBConstant.DML_CREATE) TABLE IF NOT EXISTS \(DBConstant.TABLE_CURRENT_PORTAL)(\(DBConstant.COLUMN_PORTAL_ID) VARCHAR PRIMARY KEY NOT NULL);"
-    }
-    
-    func delete() -> String
-    {
-        return "\(DBConstant.DML_DELETE) \(DBConstant.KEYS_FROM) \(DBConstant.TABLE_CURRENT_PORTAL)"
-    }
-    
-    func fetchData() -> String
-    {
-        return "\(DBConstant.DQL_SELECT) * \(DBConstant.KEYS_FROM) \(DBConstant.TABLE_CURRENT_PORTAL);"
     }
 }
 

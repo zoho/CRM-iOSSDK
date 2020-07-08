@@ -175,36 +175,6 @@ open class ZCRMModuleDelegate : ZCRMEntity
         }
     }
     
-    public func getActivitiesCVs( completion: @escaping( Result.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
-    {
-        do
-        {
-            try  activitiesCVModuleCheck(module: self.apiName)
-            ModuleAPIHandler(module: self, cacheFlavour: .urlVsResponse).getActivitiesCVs { ( result ) in
-                completion( result )
-            }
-        }
-        catch
-        {
-            completion( .failure( typeCastToZCRMError( error ) ) )
-        }
-    }
-    
-    public func getActivitiesCVsFromServer( completion: @escaping( Result.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
-    {
-        do
-        {
-            try  activitiesCVModuleCheck(module: self.apiName)
-            ModuleAPIHandler(module: self, cacheFlavour: .noCache).getActivitiesCVs { ( result ) in
-                completion( result )
-            }
-        }
-        catch
-        {
-            completion( .failure( typeCastToZCRMError( error ) ) )
-        }
-    }
-    
     /// Returns ZCRMRecord with the given ID of the module(APIResponse).
     ///
     /// - Parameter recordId: Id of the record to be returned
@@ -735,96 +705,6 @@ open class ZCRMModuleDelegate : ZCRMEntity
     {
         MassEntityAPIHandler( module : self ).removeTags( records : records, tags : tags ) { ( result ) in
             completion( result )
-        }
-    }
-    
-    public func getDealStages( completion : @escaping( Result.DataResponse< [ ZCRMDealStage ], BulkAPIResponse > ) -> () )
-    {
-        if self.apiName ==  DefaultModuleAPINames.DEALS
-        {
-            ModuleAPIHandler( module: self, cacheFlavour : .urlVsResponse ).getDealStages() { ( result ) in
-                completion( result )
-            }
-        }
-        else
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.notSupported) : This feature is not supported for this module, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.inValidError(code : ErrorCode.notSupported , message : "This feature is not supported for this module", details : nil ) ) )
-        }
-    }
-    
-    public func getDealStagesFromServer( completion : @escaping( Result.DataResponse< [ ZCRMDealStage ], BulkAPIResponse > ) -> () )
-    {
-        if self.apiName == DefaultModuleAPINames.DEALS
-        {
-            ModuleAPIHandler( module: self, cacheFlavour : .noCache ).getDealStages() { ( result ) in
-                completion( result )
-            }
-        }
-        else
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.notSupported) : This feature is not supported for this module, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.inValidError(code : ErrorCode.notSupported , message : "This feature is not supported for this module", details : nil ) ) )
-        }
-    }
-    
-    public func rescheduleCalls( records : [ ZCRMRecord ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
-    {
-        do
-        {
-            try callsModuleCheck(module: self.apiName)
-            MassEntityAPIHandler(module: self).rescheduleCalls(records: records, triggers: nil) { ( result ) in
-                completion( result )
-            }
-        }
-        catch
-        {
-            completion( .failure( typeCastToZCRMError( error ) ) )
-        }
-    }
-    
-    public func rescheduleCalls( records : [ ZCRMRecord ], triggers : [Trigger], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
-    {
-        do
-        {
-            try callsModuleCheck(module: self.apiName)
-            MassEntityAPIHandler(module: self).rescheduleCalls(records: records, triggers: triggers) { ( result ) in
-                completion( result )
-            }
-        }
-        catch
-        {
-            completion( .failure( typeCastToZCRMError( error ) ) )
-        }
-    }
-    
-    public func cancelCalls( records : [ ZCRMRecord ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
-    {
-        do
-        {
-            try callsModuleCheck(module: self.apiName)
-            MassEntityAPIHandler(module: self).cancelCalls(records: records, triggers: nil) { ( result ) in
-                completion( result )
-            }
-        }
-        catch
-        {
-            completion( .failure( typeCastToZCRMError( error ) ) )
-        }
-    }
-    
-    public func cancelCalls( records : [ ZCRMRecord ], triggers : [ Trigger ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
-    {
-        do
-        {
-            try callsModuleCheck(module: self.apiName)
-            MassEntityAPIHandler(module: self).cancelCalls(records: records, triggers: triggers) { ( result ) in
-                completion( result )
-            }
-        }
-        catch
-        {
-            completion( .failure( typeCastToZCRMError( error ) ) )
         }
     }
 }

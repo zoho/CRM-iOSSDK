@@ -11,7 +11,6 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     private var parentRecord : ZCRMRecordDelegate
     private var relatedList : ZCRMModuleRelation?
     private var junctionRecord : ZCRMJunctionRecord?
-    private var voiceNote : ZCRMNote?
     private var noteAttachment : ZCRMNote?
     
     private init( parentRecord : ZCRMRecordDelegate, relatedList : ZCRMModuleRelation?, junctionRecord : ZCRMJunctionRecord?)
@@ -529,55 +528,6 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
     }
-
-    internal func downloadVoiceNote( noteId : Int64, completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
-    {
-        if let relatedList = self.relatedList
-        {
-            setJSONRootKey( key : JSONRootKey.NIL )
-            setUrlPath(urlPath:  "\(relatedList.apiName)/\(noteId)" )
-            addRequestHeader(header: "Accept", value: "audio/*")
-            setRequestMethod(requestMethod: .get )
-            let request : FileAPIRequest = FileAPIRequest(handler: self)
-            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-            
-            request.downloadFile { ( resultType ) in
-                do{
-                    let response = try resultType.resolve()
-                    completion( .success( response ) )
-                }
-                catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                    completion( .failure( typeCastToZCRMError( error ) ) )
-                }
-            }
-        }
-        else
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
-        }
-    }
-    
-    internal func downloadVoiceNote( noteId : Int64, fileDownloadDelegate : ZCRMFileDownloadDelegate ) throws
-    {
-        if let relatedList = self.relatedList
-        {
-            setJSONRootKey( key : JSONRootKey.NIL )
-            setUrlPath(urlPath:  "\(relatedList.apiName)/\(noteId)" )
-            addRequestHeader(header: "Accept", value: "audio/*")
-            setRequestMethod(requestMethod: .get )
-            
-            let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate)
-            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-            request.downloadFile( fileRefId: String( noteId ) )
-        }
-        else
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil )
-        }
-    }
     
     internal func deleteNote( noteId : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
@@ -1009,129 +959,6 @@ extension RelatedListAPIHandler
         }
     }
     
-    internal func addVoiceNote( filePath : String?, fileName : String?, fileData : Data?, note : ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
-    {
-        do
-        {
-            try fileDetailCheck( filePath : filePath, fileData : fileData, maxFileSize: MaxFileSize.notesAttachment )
-        }
-        catch
-        {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-            completion( .failure( typeCastToZCRMError( error ) ) )
-            return
-        }
-        var reqBody : [ String : Any? ] = [ String : Any? ]()
-        var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
-        var dataArray : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
-        dataArray.append( self.getZCRMNoteAsJSON(note: note) )
-        reqBodyObj[getJSONRootKey()] = dataArray
-        reqBody[ResponseJSONKeys.content] = reqBodyObj
-        
-        setUrlPath(urlPath: "\( URLPathConstants.voiceNotes )" )
-        setRequestMethod(requestMethod: .post )
-        let request : FileAPIRequest = FileAPIRequest(handler: self)
-        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-        
-        if let filePath = filePath
-        {
-            request.uploadFile( filePath : filePath, entity : reqBody, completion : { ( resultType ) in
-                do{
-                    let response = try resultType.resolve()
-                    let voiceNote = try self.getVoiceNoteFrom( response : response, note : note )
-                    response.setData(data: voiceNote )
-                    voiceNote.size = getFileSize(filePath: filePath)
-                    completion( .success( voiceNote, response ) )
-                }
-                catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                    completion( .failure( typeCastToZCRMError( error ) ) )
-                }
-            })
-        }
-        else if let fileName = fileName, let fileData = fileData
-        {
-            request.uploadFile( fileName : fileName, entity : reqBody, fileData : fileData, completion : { ( resultType ) in
-                do{
-                    let response = try resultType.resolve()
-                    let voiceNote = try self.getVoiceNoteFrom( response : response, note : note )
-                    response.setData(data: voiceNote )
-                    voiceNote.size = Int64( fileData.count )
-                    completion( .success( voiceNote, response ) )
-                }
-                catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                    completion( .failure( typeCastToZCRMError( error ) ) )
-                }
-            })
-        }
-    }
-    
-    internal func addVoiceNote( fileRefId : String, filePath : String?, fileName : String?, fileData : Data?, note : ZCRMNote , voiceNoteUploadDelegate : ZCRMVoiceNoteUploadDelegate )
-    {
-        do
-        {
-            try fileDetailCheck( filePath : filePath, fileData : fileData, maxFileSize: MaxFileSize.notesAttachment )
-        }
-        catch
-        {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-            voiceNoteUploadDelegate.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
-            return
-        }
-        var reqBody : [ String : Any? ] = [ String : Any? ]()
-        var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
-        var dataArray : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
-        dataArray.append( self.getZCRMNoteAsJSON(note: note) )
-        reqBodyObj[getJSONRootKey()] = dataArray
-        reqBody[ResponseJSONKeys.content] = reqBodyObj
-        
-        setUrlPath(urlPath: "\( URLPathConstants.voiceNotes )" )
-        setRequestMethod(requestMethod: .post )
-        self.voiceNote = note
-        let request : FileAPIRequest = FileAPIRequest( handler : self, fileUploadDelegate : voiceNoteUploadDelegate)
-        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-        
-        var relatedListAPIHandler : RelatedListAPIHandler? = self
-        request.uploadFile(fileRefId: fileRefId, filePath: filePath, fileName: fileName, fileData: fileData, entity: reqBody) { result, response in
-            if result {
-                guard let response = response else {
-                    relatedListAPIHandler = nil
-                    return
-                }
-                relatedListAPIHandler?.setVoiceNote( fileRefId : fileRefId, filePath: filePath, fileData: fileData, apiResponse : response, note : note , voiceNoteUploadDelegate)
-                relatedListAPIHandler = nil
-            } else {
-                
-                relatedListAPIHandler = nil
-            }
-        }
-    }
-    
-    func setVoiceNote( fileRefId : String, filePath : String?, fileData : Data?, apiResponse : APIResponse, note : ZCRMNote , _ voiceNoteUploadDelegate : ZCRMVoiceNoteUploadDelegate)
-    {
-        do
-        {
-            let voiceNote = try self.getVoiceNoteFrom( response : apiResponse, note : note )
-            apiResponse.setData( data : voiceNote )
-            
-            if let filePath = filePath
-            {
-                voiceNote.size = getFileSize(filePath: filePath)
-            }
-            else if let fileData = fileData
-            {
-                voiceNote.size = Int64( fileData.count )
-            }
-            
-            voiceNoteUploadDelegate.getVoiceNote( fileRefId: fileRefId, voiceNote )
-        }
-        catch
-        {
-            voiceNoteUploadDelegate.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
-        }
-    }
-    
     func setAttachment( fileRefId : String, filePath : String?, fileName : String?, fileData : Data?, apiResponse : APIResponse, _ attachmentUploadDelegate : ZCRMAttachmentUploadDelegate )
     {
         do
@@ -1173,16 +1000,6 @@ extension RelatedListAPIHandler
         let attachment = try self.getZCRMAttachment(attachmentDetails: recordDetails)
         return attachment
     }
-    
-    private func getVoiceNoteFrom( response : APIResponse, note : ZCRMNote ) throws -> ZCRMNote
-    {
-        let responseJSON = response.getResponseJSON()
-        let respDataArr : [ [ String : Any? ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
-        let respData : [String:Any?] = respDataArr[0]
-        let recordDetails : [ String : Any ] = try respData.getDictionary( key : APIConstants.DETAILS )
-        let note = try self.getZCRMNote(noteDetails: recordDetails, note: note)
-        return note
-    }
 }
 
 extension RelatedListAPIHandler
@@ -1221,11 +1038,6 @@ extension RelatedListAPIHandler
 public protocol ZCRMAttachmentUploadDelegate : ZCRMFileUploadDelegate
 {
     func getZCRMAttachment( fileRefId : String, _ attachment : ZCRMAttachment )
-}
-
-public protocol ZCRMVoiceNoteUploadDelegate : ZCRMFileUploadDelegate
-{
-    func getVoiceNote( fileRefId : String, _ voiceNote : ZCRMNote )
 }
 
 extension RequestParamKeys

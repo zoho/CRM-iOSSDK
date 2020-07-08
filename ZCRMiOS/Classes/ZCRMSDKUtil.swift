@@ -20,11 +20,6 @@ public class ZCRMSDKUtil
         return ZCRMOrgDelegate()
     }
     
-    public static func getAnalytics() -> ZCRMAnalytics
-    {
-        return ZCRMAnalytics()
-    }
-    
     public static func newVariableGroup( name : String ) -> ZCRMVariableGroup
     {
         return ZCRMVariableGroup(name: name)
@@ -100,34 +95,6 @@ public class ZCRMSDKUtil
     public static func getCurrentUserFromServer( completion : @escaping( Result.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
         UserAPIHandler(cacheFlavour: .noCache).getCurrentUser { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public static func getInventoryTemplates( completion : @escaping( Result.DataResponse< [ ZCRMInventoryTemplate ], BulkAPIResponse > ) -> () )
-    {
-        EmailAPIHandler().getInventoryTemplates( params: ZCRMQuery.GetTemplateParams()) { result in
-            completion( result )
-        }
-    }
-    
-    public static func getInventoryTemplates( params : ZCRMQuery.GetTemplateParams, completion : @escaping( Result.DataResponse< [ ZCRMInventoryTemplate ], BulkAPIResponse > ) -> () )
-    {
-        EmailAPIHandler().getInventoryTemplates( params: params) { result in
-            completion( result )
-        }
-    }
-    
-    public static func getEmailTemplates( completion : @escaping( Result.DataResponse< [ ZCRMEmailTemplate ], BulkAPIResponse > ) -> () )
-    {
-        EmailAPIHandler().getEmailTemplates( params: ZCRMQuery.GetTemplateParams()) { result in
-            completion( result )
-        }
-    }
-    
-    public static func getEmailTemplates( params : ZCRMQuery.GetTemplateParams, completion : @escaping( Result.DataResponse< [ ZCRMEmailTemplate ], BulkAPIResponse > ) -> () )
-    {
-        EmailAPIHandler().getEmailTemplates( params: params) { result in
             completion( result )
         }
     }
@@ -223,201 +190,11 @@ public class ZCRMSDKUtil
         }
     }
     
-    public static func getNotificationsCount( completion : @escaping( Result.DataResponse< [ String : Any ], APIResponse > ) -> () )
-    {
-        NotificationAPIHandler().getNotificationsCount { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public static func markAllNotificationsAsRead( completion : @escaping( Result.Response< APIResponse > ) -> () )
-    {
-        NotificationAPIHandler().markNotificationsAsRead(recordId: nil, notificationIds: nil) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public static func markNotificationsAsRead( notificationIds : [Int64], completion : @escaping( Result.Response< APIResponse > ) -> () )
-    {
-        NotificationAPIHandler().markNotificationsAsRead(recordId: nil, notificationIds: notificationIds) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public static func getDashboards( params : GETRequestParams, then onCompletion : @escaping ZCRMAnalytics.ArrayOfDashboards )
-    {
-        DashboardAPIHandler( cacheFlavour: .urlVsResponse ).getDashboards( params , searchWord: nil, dashboardFilter: nil) { result in
-            onCompletion( result )
-        }
-    }
-    
-    public static func getDashboardsFromServer( params : GETRequestParams, then onCompletion : @escaping ZCRMAnalytics.ArrayOfDashboards )
-    {
-        DashboardAPIHandler( cacheFlavour: .noCache ).getDashboards( params, searchWord: nil, dashboardFilter: nil) { result in
-            onCompletion( result )
-        }
-    }
-    
-    public static func getDashboards( params : GETRequestParams, dashboardFilter : DashboardFilter , then onCompletion : @escaping ZCRMAnalytics.ArrayOfDashboards )
-    {
-        DashboardAPIHandler( cacheFlavour: .urlVsResponse ).getDashboards( params , searchWord: nil, dashboardFilter: dashboardFilter) { result in
-            onCompletion( result )
-        }
-    }
-    
-    public static func getDashboardsFromServer( params : GETRequestParams, dashboardFilter : DashboardFilter , then onCompletion : @escaping ZCRMAnalytics.ArrayOfDashboards )
-    {
-        DashboardAPIHandler( cacheFlavour: .noCache ).getDashboards( params, searchWord: nil, dashboardFilter: dashboardFilter) { result in
-            onCompletion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getDashboards with param GETRequestParams" )
-    public static func getDashboards( then onCompletion : @escaping ZCRMAnalytics.ArrayOfDashboards )
-    {
-        // 200 is the maxNumber of records that can be retreived in an API Call
-        DashboardAPIHandler( cacheFlavour: .urlVsResponse).getDashboards( ZCRMQuery.getRequestParams, searchWord: nil, dashboardFilter: nil) { ( result ) in
-            onCompletion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getDashboardsFromServer with param GETRequestParams" )
-    public static func getDashboardsFromServer( then onCompletion : @escaping ZCRMAnalytics.ArrayOfDashboards )
-    {
-        // 200 is the maxNumber of records that can be retreived in an API Call
-        DashboardAPIHandler( cacheFlavour : .noCache ).getDashboards( ZCRMQuery.getRequestParams, searchWord : nil, dashboardFilter : nil ) { ( result ) in
-            onCompletion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getDashboards with params GETRequestParams, DashboardFilter" )
-    public static func getDashboards( dashboardFilter : DashboardFilter, then onCompletion : @escaping ZCRMAnalytics.ArrayOfDashboards )
-    {
-        DashboardAPIHandler( cacheFlavour : .urlVsResponse ).getDashboards( ZCRMQuery.getRequestParams, searchWord : nil, dashboardFilter : dashboardFilter ) { ( result ) in
-            onCompletion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getDashboardsFromServer with params GETRequestParams, DashboardFilter" )
-    public static func getDashboardsFromServer( dashboardFilter : DashboardFilter, then onCompletion : @escaping ZCRMAnalytics.ArrayOfDashboards )
-    {
-        DashboardAPIHandler( cacheFlavour : .noCache ).getDashboards( ZCRMQuery.getRequestParams, searchWord : nil, dashboardFilter : dashboardFilter ) { ( result ) in
-            onCompletion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getDashboards with param GETRequestParams" )
-    public static func getDashboards( fromPage page :Int, perPage :Int, then onCompletion : @escaping ZCRMAnalytics.ArrayOfDashboards )
-    {
-        var params = ZCRMQuery.getRequestParams
-        params.page = page
-        params.perPage = perPage
-        DashboardAPIHandler( cacheFlavour : .urlVsResponse ).getDashboards( params, searchWord : nil, dashboardFilter : nil ) { ( result ) in
-            onCompletion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getDashboardsFromServer with param GETRequestParams" )
-    public static func getDashboardsFromServer( fromPage page :Int, perPage :Int, then onCompletion : @escaping ZCRMAnalytics.ArrayOfDashboards )
-    {
-        var params = ZCRMQuery.getRequestParams
-        params.page = page
-        params.perPage = perPage
-        DashboardAPIHandler( cacheFlavour : .noCache ).getDashboards( params, searchWord : nil, dashboardFilter : nil ) { ( result ) in
-            onCompletion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getDashboards with params GETRequestParams, DashboardFilter" )
-    public static func getDashboards( fromPage page :Int, perPage :Int, dashboardFilter : DashboardFilter, then onCompletion : @escaping ZCRMAnalytics.ArrayOfDashboards )
-    {
-        var params = ZCRMQuery.getRequestParams
-        params.page = page
-        params.perPage = perPage
-        DashboardAPIHandler( cacheFlavour : .urlVsResponse ).getDashboards( params, searchWord : nil, dashboardFilter : dashboardFilter ) { ( result ) in
-            onCompletion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getDashboardsFromServer with params GETRequestParams, DashboardFilter" )
-    public static func getDashboardsFromServer( fromPage page : Int, perPage : Int, dashboardFilter : DashboardFilter, then onCompletion : @escaping ZCRMAnalytics.ArrayOfDashboards )
-    {
-        var params = ZCRMQuery.getRequestParams
-        params.page = page
-        params.perPage = perPage
-        DashboardAPIHandler( cacheFlavour : .noCache ).getDashboards( params, searchWord : nil, dashboardFilter : dashboardFilter ) { ( result ) in
-            onCompletion( result )
-        }
-    }
-    
-    public static func searchDashboards( searchWord : String, then onCompletion : @escaping ( [ ZCRMDashboard ]?, ZCRMError? ) -> () )
-    {
-        DashboardAPIHandler(cacheFlavour: .noCache).searchDashboards(searchWord: searchWord) { ( dashboards, error) in
-            onCompletion( dashboards, error )
-        }
-    }
-    
-    public static func searchDashboardsFromServer( searchWord : String, then onCompletion : @escaping ZCRMAnalytics.ArrayOfDashboards )
-    {
-        DashboardAPIHandler( cacheFlavour: .noCache ).getDashboards( ZCRMQuery.getRequestParams, searchWord: searchWord, dashboardFilter: nil) { result in
-            onCompletion( result )
-        }
-    }
-    
-    public static func searchDashboardsFromServer( searchWord : String, dashboardFilter : DashboardFilter, then onCompletion : @escaping ZCRMAnalytics.ArrayOfDashboards )
-    {
-        DashboardAPIHandler( cacheFlavour: .noCache ).getDashboards( ZCRMQuery.getRequestParams, searchWord: searchWord, dashboardFilter: dashboardFilter) { result in
-            onCompletion( result )
-        }
-    }
-    
-    public static func getDashboardWithId(id: Int64,then onCompletion: @escaping ZCRMAnalytics.Dashboard)
-    {
-        DashboardAPIHandler(cacheFlavour: .urlVsResponse).getDashboardWithId(id: id) { (resultType) in
-            onCompletion(resultType)
-        }
-    }
-    
-    public static func getDashboardWithIdFromServer(id: Int64,then onCompletion: @escaping ZCRMAnalytics.Dashboard)
-    {
-        DashboardAPIHandler(cacheFlavour: .noCache).getDashboardWithId(id: id) { (resultType) in
-            onCompletion(resultType)
-        }
-    }
-    
-    public static func constructDashboardComponent(fromComponentJSON componentJSON: [String: Any],
-                                                      componentID: Int64,
-                                                      dashboardID: Int64) -> ZCRMDashboardComponent? {
-       return try? DashboardAPIHandler(cacheFlavour: .noCache).getDashboardComponentFrom(componentJSON, Using: componentID, And: dashboardID)
-    }
-    
-    public static func getDashboardComponentColorThemes( onCompletion: @escaping ZCRMAnalytics.ArrayOfColorThemes )
-    {
-        DashboardAPIHandler(cacheFlavour: .urlVsResponse).getDashboardComponentColorThemes { (resultType) in
-            onCompletion(resultType)
-        }
-    }
-    
-    public static func getDashboardComponentColorThemesFromServer( onCompletion: @escaping ZCRMAnalytics.ArrayOfColorThemes )
-    {
-        DashboardAPIHandler(cacheFlavour: .noCache).getDashboardComponentColorThemes { (resultType) in
-            onCompletion(resultType)
-        }
-    }
-    
     public static func getOrgDetails( _ id : Int64, completion : @escaping ( Result.DataResponse< ZCRMOrg, APIResponse > ) -> Void )
     {
         OrgAPIHandler().getOrgDetails( id ) { result in
             completion( result )
         }
-    }
-    
-    public struct ZCRMAnalytics {
-        public typealias Dashboard = (Result.DataResponse<ZCRMDashboard,APIResponse>) -> Void
-        public typealias ArrayOfDashboards = (Result.DataResponse<[ZCRMDashboard],BulkAPIResponse>) -> Void
-        public typealias ArrayOfColorThemes = (Result.DataResponse<[ZCRMAnalyticsColorThemes],APIResponse>) -> Void
-        public typealias RefreshResponse = (Result.Response<APIResponse>) -> Void
-        public typealias DashboardComponent = (Result.DataResponse<ZCRMDashboardComponent,APIResponse>) -> Void
     }
     
     @available(*, deprecated, message: "Use the method makeRequest with param requestBody instead" )

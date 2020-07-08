@@ -22,27 +22,6 @@ public protocol GETEntityRequestParams : GETRequestParams
 
 public class ZCRMQuery
 {
-    public struct GetEmailParams
-    {
-        public var ownerId : Int64?
-        public var type : ZCRMEmail.MailType?
-        public var lastMailIndex : String?
-        public var startIndex : Int?
-        public var page : Int?
-        public var dealsMail : Bool?
-        
-        public init() {}
-    }
-    
-    public struct GetTemplateParams
-    {
-        var module : String?
-        var category : ZCRMTemplateCategory?
-        var sortOrder : SortOrder?
-        var sortBy : String?
-        var filter : ZCRMQuery.ZCRMCriteria?
-    }
-    
     public struct GetRecordParams : GETEntityRequestParams
     {
         public var kanbanViewColumn : String?
