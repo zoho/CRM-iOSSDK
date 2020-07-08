@@ -31,12 +31,4 @@ open class ZCRMNotification : ZCRMEntity
         public internal(set) var dateTime : String?
         public internal(set) var massMailId : String?
     }
-    
-    public func markAsRead( completion : @escaping( Result.Response< APIResponse > ) -> () )
-    {
-        let notificationIds : [Int64] = [self.id]
-        NotificationAPIHandler().markNotificationsAsRead(recordId: nil, notificationIds: notificationIds) { ( result ) in
-            completion( result )
-        }
-    }
 }

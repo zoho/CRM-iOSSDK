@@ -52,13 +52,6 @@ open class ZCRMRecordDelegate : ZCRMEntity
         return tag
     }
     
-    public func newMail( from : ZCRMEmail.User, to : [ZCRMEmail.User] ) -> ZCRMEmail
-    {
-        let email = ZCRMEmail( record : self, from : from, to : to )
-        email.didSend = false
-        return email
-    }
-    
     /// Returns the API response of the ZCRMRecord delete.
     ///
     /// - Returns: API response of the ZCRMRecord delete
@@ -154,63 +147,6 @@ open class ZCRMRecordDelegate : ZCRMEntity
         }
     }
     
-    public func addVoiceNote( filePath : String, note : ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
-    {
-        if !note.isCreate
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : Note ID must be nil for create operation, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidData, message : "Note ID must be nil for create operation.", details : nil ) ) )
-        }
-        else
-        {
-            RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).addVoiceNote( filePath : filePath, fileName : nil, fileData : nil, note : note ) { ( result ) in
-                note.isCreate = false
-                completion( result )
-            }
-        }
-    }
-    
-    public func addVoiceNote( fileRefId : String, filePath : String, note : ZCRMNote, voiceNoteUploadDelegate : ZCRMVoiceNoteUploadDelegate )
-    {
-        if !note.isCreate
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : Note ID must be nil for create operation, \( APIConstants.DETAILS ) : -")
-            voiceNoteUploadDelegate.didFail( fileRefId : fileRefId, ZCRMError.processingError( code : ErrorCode.invalidData, message : "Note ID must be nil for create operation.", details : nil ) )
-        }
-        else
-        {
-            RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName )).addVoiceNote( fileRefId : fileRefId, filePath : filePath, fileName : nil, fileData : nil, note : note, voiceNoteUploadDelegate: voiceNoteUploadDelegate)
-        }
-    }
-    
-    public func addVoiceNote( fileName : String, fileData : Data, note : ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
-    {
-        if !note.isCreate
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : Note ID must be nil for create operation, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidData, message : "Note ID must be nil for create operation.", details : nil ) ) )
-        }
-        else
-        {
-            RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).addVoiceNote( filePath : nil, fileName : fileName, fileData : fileData, note : note ) { ( result ) in
-                completion( result )
-            }
-        }
-    }
-    
-    public func addVoiceNote( fileRefId : String, fileName : String, fileData : Data, note : ZCRMNote, voiceNoteUploadDelegate : ZCRMVoiceNoteUploadDelegate )
-    {
-        if !note.isCreate
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : Note ID must be nil for create operation, \( APIConstants.DETAILS ) : -")
-            voiceNoteUploadDelegate.didFail( fileRefId : fileRefId, ZCRMError.processingError( code : ErrorCode.invalidData, message : "Note ID must be nil for create operation.", details : nil ) )
-        }
-        else
-        {
-            RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName )).addVoiceNote( fileRefId : fileRefId, filePath : nil, fileName : fileName, fileData : fileData, note : note, voiceNoteUploadDelegate: voiceNoteUploadDelegate )
-        }
-    }
-    
     public func addTags( tags : [ String ], completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         EntityAPIHandler( recordDelegate : self ).addTags( tags : tags, overWrite : nil ) { ( result ) in
@@ -250,18 +186,6 @@ open class ZCRMRecordDelegate : ZCRMEntity
                 completion( result )
             }
         }
-    }
-    
-    public func downloadVoiceNote( id : Int64, completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
-    {
-        RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).downloadVoiceNote( noteId : id ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func downloadVoiceNote( id : Int64, fileDownloadDelegate : ZCRMFileDownloadDelegate ) throws
-    {
-        try RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).downloadVoiceNote( noteId : id, fileDownloadDelegate : fileDownloadDelegate )
     }
     
     /// To delete a Note of the ZCRMRecord
@@ -573,69 +497,6 @@ open class ZCRMRecordDelegate : ZCRMEntity
             }
         }
         RelatedListAPIHandler( parentRecord : self ).deleteRelations( junctionRecords : junctionRecords) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func follow( completion : @escaping( Result.Response< APIResponse > ) -> () )
-    {
-        EntityAPIHandler(recordDelegate: self).follow() { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func unfollow( completion : @escaping( Result.Response< APIResponse > ) -> () )
-    {
-        EntityAPIHandler(recordDelegate: self).unfollow() { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func getTimelineEvents( completion : @escaping( Result.DataResponse< [ZCRMTimelineEvent], BulkAPIResponse > ) -> () )
-    {
-        EntityAPIHandler( recordDelegate : self ).getTimelineEvents( page : nil, perPage : nil, filter : nil ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func getTimelineEvents( filter : String, completion : @escaping( Result.DataResponse< [ZCRMTimelineEvent], BulkAPIResponse > ) -> () )
-    {
-        EntityAPIHandler( recordDelegate : self ).getTimelineEvents( page : nil, perPage : nil, filter : filter ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func getTimelineEvents( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ZCRMTimelineEvent], BulkAPIResponse > ) -> () )
-    {
-        EntityAPIHandler(recordDelegate: self).getTimelineEvents(page: page, perPage: perPage, filter: nil) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func getTimelineEvents( page : Int, perPage : Int, filter : String, completion : @escaping( Result.DataResponse< [ZCRMTimelineEvent], BulkAPIResponse > ) -> () )
-    {
-        EntityAPIHandler(recordDelegate: self).getTimelineEvents(page: page, perPage: perPage, filter: filter) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    private func markNotificationsAsRead( completion : @escaping( Result.Response< APIResponse > ) -> () )
-    {
-        NotificationAPIHandler().markNotificationsAsRead( recordId : self.id, notificationIds : nil ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func getMail( userId : Int64, messageId : String, completion : @escaping( Result.DataResponse< ZCRMEmail, APIResponse > ) -> () )
-    {
-        EmailAPIHandler().viewMail(record: self, userId: userId, messageId: messageId) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func deleteMail( messageId : String, completion : @escaping ( Result.Response< APIResponse > ) -> ())
-    {
-        EmailAPIHandler().deleteMail(record: self, messageId: messageId) { result in
             completion( result )
         }
     }

@@ -32,13 +32,6 @@ open class ZCRMTax : ZCRMTaxDelegate
         self.isCreate = true
         super.init( name : name )
     }
-    
-    public func delete( _ completion : @escaping ( Result.Response< APIResponse > ) -> Void )
-    {
-        TaxAPIHandler().deleteTax( withId : self.id ) { result in
-            completion( result )
-        }
-    }
 }
 
 extension ZCRMTax : Hashable

@@ -58,68 +58,6 @@ internal class NotificationAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getNotificationsCount( completion : @escaping( Result.DataResponse< [ String : Any ], APIResponse > ) -> () )
-    {
-        setJSONRootKey(key: JSONRootKey.NIL)
-        setUrlPath(urlPath: "\( URLPathConstants.signals )/\( URLPathConstants.notifications )/\( URLPathConstants.actions )/\( URLPathConstants.count )")
-        setRequestMethod(requestMethod: .get)
-        let request : APIRequest = APIRequest(handler: self)
-        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-        
-        request.getAPIResponse { ( resultType ) in
-            do
-            {
-                let response = try resultType.resolve()
-                let responseJSON = response.getResponseJSON()
-                let notificationCount = try responseJSON.getDictionary( key : JSONRootKey.NOTIFICATIONS )
-                completion( .success( notificationCount, response ) )
-            }
-            catch
-            {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                completion( .failure( typeCastToZCRMError( error ) ) )
-            }
-        }
-    }
-    
-    internal func markNotificationsAsRead(recordId : Int64?, notificationIds : [Int64]?, completion : @escaping( Result.Response< APIResponse > ) -> () )
-    {
-        var urlPath = "\( URLPathConstants.signals )/\( URLPathConstants.notifications )/\( URLPathConstants.actions )/\( URLPathConstants.read )"
-        setJSONRootKey(key: JSONRootKey.NOTIFICATIONS)
-        
-        if let recordId = recordId
-        {
-            addRequestParam(param: RequestParamKeys.recordId, value: String( recordId ))
-        }
-        else if let notificationIds = notificationIds, notificationIds.isEmpty == false
-        {
-            if notificationIds.count == 1
-            {
-                urlPath = urlPath + "/\( notificationIds[0] )"
-            }
-            else
-            {
-                addRequestParam(param: RequestParamKeys.ids, value: notificationIds.map{ String( $0 ) }.joined(separator: ","))
-            }
-        }
-        
-        setUrlPath(urlPath: urlPath)
-        setRequestMethod(requestMethod: .put)
-        let request : APIRequest = APIRequest(handler: self)
-        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-        
-        request.getAPIResponse { ( resultType ) in
-            do{
-                let response = try resultType.resolve()
-                completion( .success( response ) )
-            }
-            catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                completion( .failure( typeCastToZCRMError( error ) ) )
-            }
-        }
-    }
-    
     private func getZCRMNotification( notificationDetails : [ String : Any ] ) throws -> ZCRMNotification
     {
         let notification : ZCRMNotification = ZCRMNotification( id : try notificationDetails.getInt64( key : ResponseJSONKeys.id ) )

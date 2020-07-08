@@ -29,20 +29,6 @@ open class ZCRMLayout : ZCRMLayoutDelegate
     {
         self.sections.append(section)
     }
-    
-    public func getPipelines( completion : @escaping( Result.DataResponse< [ ZCRMPipeline ], BulkAPIResponse > ) -> () )
-    {
-        PipelineAPIHandler( cache : .urlVsResponse ).getPipelines( layoutId : self.id ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func getPipelinesFromServer( completion : @escaping( Result.DataResponse< [ ZCRMPipeline ], BulkAPIResponse > ) -> () )
-    {
-        PipelineAPIHandler( cache : .noCache ).getPipelines( layoutId : self.id ) { ( result ) in
-            completion( result )
-        }
-    }
 }
 
 extension ZCRMLayout

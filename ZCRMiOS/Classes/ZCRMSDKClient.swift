@@ -206,16 +206,12 @@ public class ZCRMSDKClient
         if let persistentDB = ZCRMSDKClient.persistentDB, let nonPersistentDB = ZCRMSDKClient.nonPersistentDB
         {
             try persistentDB.createResponsesTable()
-            try persistentDB.createPortalTable()
-            try persistentDB.createPushNotificationsTable()
             try nonPersistentDB.createResponsesTable()
         }
         else
         {
             try createDB()
             try ZCRMSDKClient.persistentDB?.createResponsesTable()
-            try ZCRMSDKClient.persistentDB?.createPortalTable()
-            try ZCRMSDKClient.persistentDB?.createPushNotificationsTable()
             try ZCRMSDKClient.nonPersistentDB?.createResponsesTable()
         }
     }
