@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ClientID</key>
+	<string>Add created Client ID</string>
+	<key>ClientSecretID</key>
+	<string>Add created Client Secret ID</string>
+	<key>RedirectURLScheme</key>
+	<string>Add your app redirect URL(Custom URL Scheme)</string>
+	<key>Type</key>
+	<string>ZCRM</string>
+	<key>ApiVersion</key>
+	<string>v2</string>
+	<key>DomainSuffix</key>
+	<string>com</string>
+	<key>AccessType</key>
+	<string>Production</string>
+	<key>AccountsURL</key>
+	<string>https://accounts.zoho.com</string>
+	<key>LoginCustomization</key>
+	<string>false</string>
+	<key>OAuthScopes</key>
+	<array>
+		<string>ZohoCRM.settings.READ</string>
+		<string>ZohoCRM.modules.ALL</string>
+		<string>ZohoCRM.users.READ</string>
+		<string>ZohoCRM.org.READ</string>
+		<string>Aaaserver.profile.Read</string>
+		<string>profile.userphoto.READ</string>
+	</array>
+	<key>FirstLaunch</key>
+	<false/>
+</dict>
+</plist>
