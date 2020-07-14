@@ -1,0 +1,6 @@
+framework module ZCRMiOS {
+  umbrella header "ZCRMiOS-umbrella.h"
+
+  export *
+  module * { export * }
+}
