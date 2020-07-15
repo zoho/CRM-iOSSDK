@@ -211,4 +211,35 @@ public class ZCRMSDKUtil
             completion( result )
         }
     }
+    
+    /**
+      To get the details of all the territories
+     
+     - Parameters:
+        - completion :
+            - Success : Returns an array of ZCRMTerritory objects and a bulkAPIResponse
+            - Failure : Returns error
+     */
+    public static func getZCRMTerritories( completion : @escaping ( Result.DataResponse< [ ZCRMTerritory ], BulkAPIResponse > ) -> ())
+    {
+        OrgAPIHandler().getZCRMTerritories() { result in
+            completion( result )
+        }
+    }
+    
+    /**
+      To get the details of a territory by its ID
+     
+     - Parameters:
+        - byId : Id of the territory whose details has to be fetched
+        - completion :
+            - success : Returns a ZCRMTerritory object and an APIResponse
+            - Failure : Returns error
+     */
+    public static func getZCRMTerritory( byId id : Int64, completion : @escaping ( Result.DataResponse< ZCRMTerritory, APIResponse > ) -> ())
+    {
+        OrgAPIHandler().getZCRMTerritory( byId : id ) { result in
+            completion( result )
+        }
+    }
 }
