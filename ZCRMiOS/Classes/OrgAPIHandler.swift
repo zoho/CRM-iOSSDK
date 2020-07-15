@@ -652,6 +652,133 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
+    internal func getZCRMTerritories( completion : @escaping ( Result.DataResponse< [ ZCRMTerritory ], BulkAPIResponse > ) -> () )
+    {
+        setJSONRootKey( key : JSONRootKey.TERRITORIES )
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( JSONRootKey.TERRITORIES )")
+        setRequestMethod( requestMethod : .get )
+        
+        let request = APIRequest( handler : self )
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getBulkAPIResponse() { response in
+            do
+            {
+                switch response
+                {
+                case .success(let bulkResponse) :
+                    let responseJSON = bulkResponse.getResponseJSON()
+                    var territories : [ ZCRMTerritory ] = []
+                    if responseJSON.isEmpty == false
+                    {
+                        let territoriesList = try responseJSON.getArrayOfDictionaries( key: JSONRootKey.TERRITORIES )
+                        if territoriesList.isEmpty == true
+                        {
+                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                            completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                            return
+                        }
+                        territories = try self.getZCRMTerritoriesFrom( territoriesList )
+                    }
+                    bulkResponse.setData(data: territories)
+                    completion( .success( territories, bulkResponse ) )
+                case .failure(let error) :
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+            catch
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func getZCRMTerritory( byId id : Int64, completion : @escaping ( Result.DataResponse< ZCRMTerritory, APIResponse > ) -> () )
+    {
+        setJSONRootKey( key : JSONRootKey.TERRITORIES )
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( JSONRootKey.TERRITORIES )/\( id )")
+        setRequestMethod( requestMethod : .get )
+        
+        let request = APIRequest( handler : self )
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getAPIResponse() { response in
+            do
+            {
+                switch response
+                {
+                case .success(let response) :
+                    let responseJSON = response.getResponseJSON()
+                    
+                    let territoriesList = try responseJSON.getArrayOfDictionaries( key: JSONRootKey.TERRITORIES )
+                    if territoriesList.isEmpty == true
+                    {
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        return
+                    }
+                    let territory = try self.getZCRMTerritoriesFrom( territoriesList )[0]
+                    response.setData(data: territory)
+                    completion( .success( territory, response))
+                case .failure(let error) :
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+            catch
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    private func getZCRMTerritoriesFrom( _ responseJSON : [ [ String : Any ] ] ) throws -> [ ZCRMTerritory ]
+    {
+        var territories : [ ZCRMTerritory ] = []
+        for territoryJSON in responseJSON
+        {
+            territories.append( try self.getZCRMTerritory( fromJSON: territoryJSON ) )
+        }
+        return territories
+    }
+    
+    private func getZCRMTerritory( fromJSON json : [ String : Any ] ) throws -> ZCRMTerritory
+    {
+        let territory = try ZCRMTerritory( json.getString(key: ResponseJSONKeys.name ) )
+        
+        territory.id = try json.getInt64(key: ResponseJSONKeys.id )
+        
+        territory.createdBy = try getUserDelegate(userJSON: json.getDictionary(key: ResponseJSONKeys.createdBy))
+        territory.createdTime = try json.getString(key: ResponseJSONKeys.createdTime)
+        
+        territory.modifiedBy = try getUserDelegate(userJSON: json.getDictionary(key: ResponseJSONKeys.modifiedBy))
+        territory.modifiedTime = try json.getString(key: ResponseJSONKeys.modifiedTime)
+        
+        if json.hasValue(forKey: ResponseJSONKeys.manager)
+        {
+            let manager = try json.getDictionary(key: ResponseJSONKeys.manager)
+            territory.manager = try ZCRMUserDelegate(id: manager.getInt64(key: ResponseJSONKeys.id), name: manager.getString(key: ResponseJSONKeys.name))
+        }
+        territory.parentId = json.optInt64(key: ResponseJSONKeys.parentId)
+        territory.description = json.optString(key: ResponseJSONKeys.description)
+        
+        if json.hasValue(forKey: ResponseJSONKeys.criteria)
+        {
+            if let criteriaJSON = json.optDictionary(key: ResponseJSONKeys.criteria)
+            {
+                territory.criteria = try CriteriaHandling.setCriteria(criteriaJSON: criteriaJSON)
+            }
+            else
+            {
+                territory.criteria = try CriteriaHandling.setCriteria(criteriaArray: json.getArray(key: ResponseJSONKeys.criteria))
+            }
+        }
+        return territory
+    }
+    
     // check optional property in organisation API
     private func getZCRMOrg( orgDetails : [ String : Any ] ) throws -> ZCRMOrg
     {
@@ -987,6 +1114,12 @@ extension OrgAPIHandler
         static let currency = "currency"
         
         static let active = "active"
+        
+        static let manager = "manager"
+        static let parentId = "parent_id"
+        static let criteria = "criteria"
+        static let field = "field"
+        static let comparator = "comparator"
     }
     
     struct URLPathConstants {

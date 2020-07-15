@@ -111,7 +111,7 @@ public class ZCRMQuery
     {
         public var apiName : String
         public var comparator : String
-        public var value : String
+        public var value : Any
         internal var type : String?
         internal var recordQuery : String?
         internal var drilldownQuery : String?
@@ -119,7 +119,7 @@ public class ZCRMQuery
         internal var filterJSON : [ String : Any ] = [ String : Any ]()
         internal var filterQuery : String?
         
-        internal init(apiName : String, comparator : String, value : String) {
+        internal init(apiName : String, comparator : String, value : Any) {
             self.apiName = apiName
             self.comparator = comparator
             self.value = value
@@ -134,14 +134,14 @@ public class ZCRMQuery
             recordQuery.append( ":" )
             recordQuery.append( contentsOf : self.comparator )
             recordQuery.append( ":" )
-            recordQuery.append( contentsOf : self.value )
+            recordQuery.append( contentsOf : "\( self.value )" )
             recordQuery.append( ")" )
             self.recordQuery = recordQuery
             self.drilldownQuery = self.criteriaJSON.toString()
             self.filterQuery = self.filterJSON.toString()
         }
         
-        public convenience init( apiName : String, comparator : Comparator, value : String )
+        public convenience init( apiName : String, comparator : Comparator, value : Any )
         {
             self.init(apiName: apiName, comparator: comparator.criteria, value: value)
         }
@@ -216,7 +216,7 @@ public class ZCRMQuery
         public static func == (lhs: ZCRMQuery.ZCRMCriteria, rhs: ZCRMQuery.ZCRMCriteria) -> Bool {
             let equals : Bool = lhs.apiName == rhs.apiName &&
                 lhs.comparator == rhs.comparator &&
-                lhs.value == rhs.value &&
+                isEqual(lhs: lhs.value, rhs: rhs.value) &&
                 lhs.type == rhs.type &&
                 NSDictionary( dictionary : lhs.criteriaJSON ).isEqual( to : rhs.criteriaJSON )
             return equals

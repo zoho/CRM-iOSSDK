@@ -22,54 +22,6 @@ open class ZCRMUserDelegate : ZCRMEntity
             completion( result )
         }
     }
-    
-    public func uploadProfilePhoto( filePath : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
-    {
-        UserAPIHandler( userDelegate : self ).uploadPhoto(filePath: filePath, fileName: nil, fileData: nil) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func uploadProfilePhoto( fileRefId : String, filePath : String, fileUploadDelegate : ZCRMFileUploadDelegate )
-    {
-        UserAPIHandler( userDelegate : self ).uploadPhoto(fileRefId : fileRefId, filePath: filePath, fileName: nil, fileData: nil, fileUploadDelegate: fileUploadDelegate)
-    }
-    
-    public func uploadProfilePhoto( fileName : String, fileData : Data, completion : @escaping( Result.Response< APIResponse > ) -> () )
-    {
-        UserAPIHandler( userDelegate : self ).uploadPhoto(filePath: nil, fileName: fileName, fileData: fileData) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func uploadProfilePhoto( fileRefId : String, fileName : String, fileData : Data, fileUploadDelegate : ZCRMFileUploadDelegate )
-    {
-        UserAPIHandler( userDelegate : self ).uploadPhoto( fileRefId : fileRefId, filePath : nil, fileName : fileName, fileData : fileData, fileUploadDelegate : fileUploadDelegate )
-    }
-    
-    public func downloadProfilePhoto( completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
-    {
-        UserAPIHandler(userDelegate: self).downloadPhoto( size : nil ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func downloadProfilePhoto( fileDownloadDelegate : ZCRMFileDownloadDelegate ) throws
-    {
-        try UserAPIHandler(userDelegate: self).downloadPhoto(size: nil, fileDownloadDelegate: fileDownloadDelegate)
-    }
-    
-    public func downloadProfilePhoto( size : PhotoSize, completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
-    {
-        UserAPIHandler(userDelegate: self).downloadPhoto( size : size ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public func downloadProfilePhoto( size : PhotoSize, fileDownloadDelegate : ZCRMFileDownloadDelegate ) throws
-    {
-        try UserAPIHandler(userDelegate: self).downloadPhoto(size: size, fileDownloadDelegate: fileDownloadDelegate)
-    }
 }
 
 extension ZCRMUserDelegate : Hashable

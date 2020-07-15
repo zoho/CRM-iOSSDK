@@ -126,15 +126,6 @@ public enum AccessType : String
     case sandBox = "Sandbox"
 }
 
-public enum PhotoSize : String
-{
-    case stamp = "stamp"
-    case thumb = "thumb"
-    case original = "original"
-    case favicon = "favicon"
-    case medium = "medium"
-}
-
 public enum CommunicationPreferences : String
 {
     case email = "Email"
@@ -522,6 +513,16 @@ internal extension Dictionary
         {
             ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.typeCastError) : \( key ) - Expected type -> ARRAY< DICTIONARY< STRING, ANY > >, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> ARRAY< DICTIONARY < STRING, ANY > >", details : nil )
+        }
+        return value
+    }
+    
+    func getValue( key : Key ) throws -> Any
+    {
+        guard let value = optValue( key: key ) else
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.processingError) : \( key ) - Key Not found - \( key ), \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ErrorCode.processingError, message : "\( key ) - Key not found - \( key )", details : nil )
         }
         return value
     }
@@ -1294,7 +1295,6 @@ struct JSONRootKey {
     static let USERS : String = "users"
     static let PROFILES : String = "profiles"
     static let ROLES : String = "roles"
-    static let ANALYTICS : String = "Analytics"
     static let STAGES : String = "stages"
     static let TAXES : String = "taxes"
     static let TIMELINES : String = "timelines"
@@ -1302,16 +1302,11 @@ struct JSONRootKey {
     static let VARIABLES : String = "variables"
     static let VARIABLE_GROUPS : String = "variable_groups"
     static let ORG_INFO : String = "org_info"
-    static let NOTIFICATIONS : String = "notifications"
-    static let EMAIL_RELATED_LIST :String = "email_related_list"
-    static let EMAIL_INSIGHTS :String = "email_insights"
+    static let TERRITORIES : String = "territories"
     static let ORGANIZATIONS : String = "organizations"
-    static let PIPELINE : String = "pipeline"
     static let FILTERS : String = "filters"
     static let CURRENCIES : String = "currencies"
     static let FEATURES : String = "features"
-    static let INVENTORY_TEMPLATES : String = "inventory_templates"
-    static let EMAIL_TEMPLATES : String = "email_templates"
 }
 
 //MARK:- RESULT TYPES
