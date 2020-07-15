@@ -176,20 +176,6 @@ public class ZCRMSDKUtil
         }
     }
     
-    public static func getNotifications( completion : @escaping( Result.DataResponse< [ ZCRMNotification  ], BulkAPIResponse > ) -> () )
-    {
-        NotificationAPIHandler().getNotifications( page : nil, perPage : nil ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public static func getNotifications( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMNotification  ], BulkAPIResponse > ) -> () )
-    {
-        NotificationAPIHandler().getNotifications( page : page, perPage : perPage ) { ( result ) in
-            completion( result )
-        }
-    }
-    
     public static func getOrgDetails( _ id : Int64, completion : @escaping ( Result.DataResponse< ZCRMOrg, APIResponse > ) -> Void )
     {
         OrgAPIHandler().getOrgDetails( id ) { result in

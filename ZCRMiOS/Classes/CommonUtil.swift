@@ -126,15 +126,6 @@ public enum AccessType : String
     case sandBox = "Sandbox"
 }
 
-public enum PhotoSize : String
-{
-    case stamp = "stamp"
-    case thumb = "thumb"
-    case original = "original"
-    case favicon = "favicon"
-    case medium = "medium"
-}
-
 public enum CommunicationPreferences : String
 {
     case email = "Email"
@@ -1311,7 +1302,6 @@ struct JSONRootKey {
     static let VARIABLES : String = "variables"
     static let VARIABLE_GROUPS : String = "variable_groups"
     static let ORG_INFO : String = "org_info"
-    static let NOTIFICATIONS : String = "notifications"
     static let TERRITORIES : String = "territories"
     static let ORGANIZATIONS : String = "organizations"
     static let FILTERS : String = "filters"
