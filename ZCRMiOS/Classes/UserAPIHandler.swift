@@ -435,151 +435,6 @@ internal class UserAPIHandler : CommonAPIHandler
             }
         }
     }
-    
-    internal func downloadPhoto( size : PhotoSize?, completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
-    {
-        if let userDelegate = self.userDelegate
-        {
-            setJSONRootKey( key : JSONRootKey.NIL )
-            setUrlPath(urlPath: "\( URLPathConstants.users )/\(userDelegate.id)/\( URLPathConstants.photo )")
-            setRequestMethod(requestMethod: .get)
-            if let photoSize = size
-            {
-                addRequestParam(param: RequestParamKeys.photoSize , value: photoSize.rawValue )
-            }
-            let request : FileAPIRequest = FileAPIRequest(handler: self)
-            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-            
-            request.downloadFile { ( resultType ) in
-                do
-                {
-                    let response = try resultType.resolve()
-                    completion( .success( response ) )
-                }
-                catch
-                {
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                    completion( .failure( typeCastToZCRMError( error ) ) )
-                }
-            }
-        }
-        else
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : USER ID must not be nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "USER ID must not be nil", details : nil ) ) )
-        }
-    }
-    
-    internal func downloadPhoto( size : PhotoSize?, fileDownloadDelegate : ZCRMFileDownloadDelegate ) throws
-    {
-        if let userDelegate = self.userDelegate
-        {
-            setJSONRootKey( key : JSONRootKey.NIL )
-            setUrlPath(urlPath: "\( URLPathConstants.users )/\(userDelegate.id)/\( URLPathConstants.photo )")
-            setRequestMethod(requestMethod: .get)
-            if let photoSize = size
-            {
-                addRequestParam(param: RequestParamKeys.photoSize , value: photoSize.rawValue )
-            }
-            let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate)
-            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-            request.downloadFile( fileRefId: String( userDelegate.id ))
-        }
-        else
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : USER ID must not be nil, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "USER ID must not be nil", details : nil )
-        }
-    }
-    
-    internal func uploadPhoto( filePath : String?, fileName : String?, fileData : Data?, completion : @escaping(  Result.Response< APIResponse > ) -> () )
-    {
-        if let userDelegate = self.userDelegate
-        {
-            do
-            {
-                try fileDetailCheck( filePath : filePath, fileData : fileData, maxFileSize: MaxFileSize.profilePhoto )
-                try imageTypeValidation( filePath )
-            }
-            catch
-            {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                completion( .failure( typeCastToZCRMError( error ) ) )
-                return
-            }
-            setJSONRootKey( key : JSONRootKey.NIL )
-            setUrlPath(urlPath: "\( URLPathConstants.users )/\(userDelegate.id)/\( URLPathConstants.photo )")
-            setRequestMethod(requestMethod: .post)
-            let request : FileAPIRequest = FileAPIRequest(handler: self)
-            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-            
-            if let filePath = filePath
-            {
-                request.uploadFile( filePath : filePath, entity : nil ) { ( resultType ) in
-                    do
-                    {
-                        let response = try resultType.resolve()
-                        completion( .success( response ) )
-                    }
-                    catch
-                    {
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                        completion( .failure( typeCastToZCRMError( error ) ) )
-                    }
-                }
-            }
-            else if let fileName = fileName, let fileData = fileData
-            {
-                request.uploadFile( fileName : fileName, entity : nil, fileData : fileData ){ ( resultType ) in
-                    do
-                    {
-                        let response = try resultType.resolve()
-                        completion( .success( response ) )
-                    }
-                    catch
-                    {
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                        completion( .failure( typeCastToZCRMError( error ) ) )
-                    }
-                }
-            }
-        }
-        else
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : USER ID must not be nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "USER ID must not be nil", details : nil ) ) )
-        }
-    }
-    
-    internal func uploadPhoto(fileRefId : String, filePath : String?, fileName : String?, fileData : Data?, fileUploadDelegate : ZCRMFileUploadDelegate )
-    {
-        if let userDelegate = self.userDelegate
-        {
-            do
-            {
-                try fileDetailCheck( filePath : filePath, fileData : fileData, maxFileSize: MaxFileSize.profilePhoto )
-                try imageTypeValidation( filePath )
-            }
-            catch
-            {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                fileUploadDelegate.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
-                return
-            }
-            setJSONRootKey( key : JSONRootKey.NIL )
-            setUrlPath(urlPath: "\( URLPathConstants.users )/\(userDelegate.id)/\( URLPathConstants.photo )")
-            setRequestMethod(requestMethod: .post)
-            let request : FileAPIRequest = FileAPIRequest( handler : self, fileUploadDelegate : fileUploadDelegate)
-            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-            
-            request.uploadFile(fileRefId: fileRefId, filePath: filePath, fileName: fileName, fileData: fileData, entity: nil) { _,_ in }
-        }
-        else
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : USER ID must not be nil, \( APIConstants.DETAILS ) : -")
-            fileUploadDelegate.didFail( fileRefId : fileRefId, ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "USER ID must not be nil", details : nil ) )
-        }
-    }
 
     internal func getCurrentUser( completion : @escaping( Result.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
@@ -883,7 +738,6 @@ internal extension UserAPIHandler
         static let settings = "settings"
         static let profiles = "profiles"
         static let roles = "roles"
-        static let photo = "photo"
         static let search = "search"
         static let features = "features"
         static let __internal = "__internal"
@@ -893,5 +747,4 @@ internal extension UserAPIHandler
 extension RequestParamKeys
 {
     static let currentUser = "CurrentUser"
-    static let photoSize = "photo_size"
 }

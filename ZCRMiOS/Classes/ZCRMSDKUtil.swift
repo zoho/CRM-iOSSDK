@@ -176,20 +176,6 @@ public class ZCRMSDKUtil
         }
     }
     
-    public static func getNotifications( completion : @escaping( Result.DataResponse< [ ZCRMNotification  ], BulkAPIResponse > ) -> () )
-    {
-        NotificationAPIHandler().getNotifications( page : nil, perPage : nil ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    public static func getNotifications( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMNotification  ], BulkAPIResponse > ) -> () )
-    {
-        NotificationAPIHandler().getNotifications( page : page, perPage : perPage ) { ( result ) in
-            completion( result )
-        }
-    }
-    
     public static func getOrgDetails( _ id : Int64, completion : @escaping ( Result.DataResponse< ZCRMOrg, APIResponse > ) -> Void )
     {
         OrgAPIHandler().getOrgDetails( id ) { result in
@@ -208,6 +194,37 @@ public class ZCRMSDKUtil
     public static func makeRequest(withURL url : URL, _ requestMethod : RequestMethod , headers : [ String : String ]?, requestBody : [ String : Any ]?, completion : @escaping ( Result.DataURLResponse<Data, HTTPURLResponse> ) -> Void )
     {
         APIRequest(absoluteURL: url, requestMethod: requestMethod).initialiseRequest(url, requestMethod, headers, requestBody) { result in
+            completion( result )
+        }
+    }
+    
+    /**
+      To get the details of all the territories
+     
+     - Parameters:
+        - completion :
+            - Success : Returns an array of ZCRMTerritory objects and a bulkAPIResponse
+            - Failure : Returns error
+     */
+    public static func getZCRMTerritories( completion : @escaping ( Result.DataResponse< [ ZCRMTerritory ], BulkAPIResponse > ) -> ())
+    {
+        OrgAPIHandler().getZCRMTerritories() { result in
+            completion( result )
+        }
+    }
+    
+    /**
+      To get the details of a territory by its ID
+     
+     - Parameters:
+        - byId : Id of the territory whose details has to be fetched
+        - completion :
+            - success : Returns a ZCRMTerritory object and an APIResponse
+            - Failure : Returns error
+     */
+    public static func getZCRMTerritory( byId id : Int64, completion : @escaping ( Result.DataResponse< ZCRMTerritory, APIResponse > ) -> ())
+    {
+        OrgAPIHandler().getZCRMTerritory( byId : id ) { result in
             completion( result )
         }
     }

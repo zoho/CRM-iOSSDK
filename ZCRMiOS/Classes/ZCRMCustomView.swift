@@ -23,7 +23,7 @@ open class ZCRMCustomView : ZCRMEntity
     public internal( set ) var isOffline : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isSystemDefined : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var sharedType : String?
-    public internal( set ) var criteria : [ String : Any ]?
+    public internal( set ) var criteria : ZCRMQuery.ZCRMCriteria?
     public internal( set ) var sharedDetails : String?
     
     /// Initialise the instance of a custom view with the given custom view Id.
@@ -67,10 +67,6 @@ extension ZCRMCustomView : Hashable
         {
             criteriaFlag = true
         }
-        else if let lhsCriteria = lhs.criteria, let rhsCriteria = rhs.criteria
-        {
-            criteriaFlag = NSDictionary( dictionary : lhsCriteria ).isEqual( to : rhsCriteria )
-        }
         else
         {
             return false
@@ -90,6 +86,7 @@ extension ZCRMCustomView : Hashable
             lhs.isSystemDefined == rhs.isSystemDefined &&
             lhs.sharedType == rhs.sharedType &&
             lhs.sharedDetails == rhs.sharedDetails &&
+            lhs.criteria == rhs.criteria &&
             criteriaFlag
         return equals
     }
