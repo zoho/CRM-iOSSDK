@@ -526,6 +526,16 @@ internal extension Dictionary
         return value
     }
     
+    func getValue( key : Key ) throws -> Any
+    {
+        guard let value = optValue( key: key ) else
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.processingError) : \( key ) - Key Not found - \( key ), \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ErrorCode.processingError, message : "\( key ) - Key not found - \( key )", details : nil )
+        }
+        return value
+    }
+    
     func convertToJSON() -> String?
     {
         let jsonData = try? JSONSerialization.data(withJSONObject: self, options: .prettyPrinted)
@@ -1294,7 +1304,6 @@ struct JSONRootKey {
     static let USERS : String = "users"
     static let PROFILES : String = "profiles"
     static let ROLES : String = "roles"
-    static let ANALYTICS : String = "Analytics"
     static let STAGES : String = "stages"
     static let TAXES : String = "taxes"
     static let TIMELINES : String = "timelines"
@@ -1303,15 +1312,11 @@ struct JSONRootKey {
     static let VARIABLE_GROUPS : String = "variable_groups"
     static let ORG_INFO : String = "org_info"
     static let NOTIFICATIONS : String = "notifications"
-    static let EMAIL_RELATED_LIST :String = "email_related_list"
-    static let EMAIL_INSIGHTS :String = "email_insights"
+    static let TERRITORIES : String = "territories"
     static let ORGANIZATIONS : String = "organizations"
-    static let PIPELINE : String = "pipeline"
     static let FILTERS : String = "filters"
     static let CURRENCIES : String = "currencies"
     static let FEATURES : String = "features"
-    static let INVENTORY_TEMPLATES : String = "inventory_templates"
-    static let EMAIL_TEMPLATES : String = "email_templates"
 }
 
 //MARK:- RESULT TYPES

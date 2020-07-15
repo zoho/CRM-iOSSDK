@@ -6,6 +6,147 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
+internal struct CriteriaHandling
+{
+    
+    /**
+      To set the criteria if the response has a dictionary as criteria
+     
+     - Parameter criteriaJSON : The response JSON to be parsed to set criteria
+     
+     - Returns: A ZCRMCriteria object
+     */
+    static func setCriteria( criteriaJSON : [ String : Any ] ) throws -> ZCRMQuery.ZCRMCriteria?
+    {
+        var criteriaGroup : ZCRMQuery.ZCRMCriteria?
+        if let groups : [ [ String : Any ] ] = criteriaJSON.optArrayOfDictionaries( key : ResponseJSONKeys.group )
+        {
+            for group in groups
+            {
+                if group.hasValue( forKey : ResponseJSONKeys.groupOperator )
+                {
+                    if let criteriaGroup = criteriaGroup, let criteria = try setCriteria( criteriaJSON : group )
+                    {
+                        let groupOperator = try criteriaJSON.getString(key: ResponseJSONKeys.groupOperator).lowercased()
+                        if groupOperator == RequestParamKeys.or
+                        {
+                            criteriaGroup.or( criteria : criteria )
+                        }
+                        else
+                        {
+                            criteriaGroup.and(criteria: criteria)
+                        }
+                    }
+                    else
+                    {
+                        if let criteria = try setCriteria( criteriaJSON : group )
+                        {
+                            criteriaGroup = criteria
+                        }
+                    }
+                }
+                else
+                {
+                    let criteria = try ZCRMQuery.ZCRMCriteria( apiName : group.optDictionary( key : ResponseJSONKeys.field )?.getString( key : ResponseJSONKeys.apiName ) ?? group.getString(key: ResponseJSONKeys.field), comparator : group.getString( key : ResponseJSONKeys.comparator ), value : group.getValue(key: ResponseJSONKeys.value ) )
+                    if let criteriaGroup = criteriaGroup
+                    {
+                        let groupOperator = try criteriaJSON.getString(key: ResponseJSONKeys.groupOperator).lowercased()
+                        if groupOperator == RequestParamKeys.or
+                        {
+                            criteriaGroup.or( criteria : criteria )
+                        }
+                        else
+                        {
+                            criteriaGroup.and( criteria : criteria )
+                        }
+                    }
+                    else
+                    {
+                        criteriaGroup = criteria
+                    }
+                }
+            }
+        }
+        else
+        {
+            let criteria = try  ZCRMQuery.ZCRMCriteria( apiName : criteriaJSON.optDictionary( key : ResponseJSONKeys.field )?.getString( key : ResponseJSONKeys.apiName ) ?? criteriaJSON.getString(key: ResponseJSONKeys.field), comparator : criteriaJSON.getString( key : ResponseJSONKeys.comparator ), value : criteriaJSON.getValue(key: ResponseJSONKeys.value ) )
+            if let criteriaGroup = criteriaGroup
+            {
+                criteriaGroup.and( criteria : criteria )
+            }
+            else
+            {
+                criteriaGroup = criteria
+            }
+        }
+        return criteriaGroup
+    }
+    
+    static func setCriteria( criteriaArray : [ Any ] ) throws -> ZCRMQuery.ZCRMCriteria?
+    {
+        var criteriaGroup : ZCRMQuery.ZCRMCriteria?
+        var groupOperator : String = String()
+        for criteriaJSON in criteriaArray
+        {
+            if let criteria = criteriaJSON as? [ Any ]
+            {
+                if let criteriaGroup = criteriaGroup, let criteriaObj = try setCriteria(criteriaArray: criteria)
+                {
+                    if groupOperator == RequestParamKeys.or
+                    {
+                        criteriaGroup.or(criteria: criteriaObj)
+                    }
+                    else
+                    {
+                        criteriaGroup.and( criteria : criteriaObj )
+                    }
+                }
+                else
+                {
+                    if let criteria = try setCriteria(criteriaArray: criteria)
+                    {
+                        criteriaGroup = criteria
+                    }
+                }
+            }
+            else if let group = criteriaJSON as? [ String : Any ]
+            {
+                let criteria = try  ZCRMQuery.ZCRMCriteria( apiName : group.optDictionary( key : ResponseJSONKeys.field )?.getString( key : ResponseJSONKeys.apiName ) ?? group.getString(key: ResponseJSONKeys.field), comparator : group.getString( key : ResponseJSONKeys.comparator ), value : group.getValue(key: ResponseJSONKeys.value ) )
+                if let criteriaGroup = criteriaGroup
+                {
+                    if groupOperator == RequestParamKeys.or
+                    {
+                        criteriaGroup.or(criteria: criteria)
+                    }
+                    else
+                    {
+                        criteriaGroup.and( criteria : criteria )
+                    }
+                }
+                else
+                {
+                    criteriaGroup = criteria
+                }
+            }
+            else if let groupOp = criteriaJSON as? String
+            {
+                groupOperator = groupOp
+            }
+        }
+        return criteriaGroup
+    }
+    
+    struct ResponseJSONKeys
+    {
+        static let apiName = "api_name"
+        static let groupOperator = "group_operator"
+        static let group = "group"
+        static let comparator = "comparator"
+        static let field = "field"
+        static let value = "value"
+    }
+}
+
 internal class ModuleAPIHandler : CommonAPIHandler
 {
     private let module : ZCRMModuleDelegate
@@ -379,8 +520,20 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
         if cvDetails.hasValue(forKey: ResponseJSONKeys.criteria)
         {
-            customView.criteria = [ String : Any ]()
-            customView.criteria = try cvDetails.getDictionary(key: ResponseJSONKeys.criteria)
+            if let criteriaJSON = cvDetails.optDictionary(key: ResponseJSONKeys.criteria)
+            {
+                if let criteria = try CriteriaHandling.setCriteria(criteriaJSON: criteriaJSON )
+                {
+                    customView.criteria = criteria
+                }
+            }
+            else
+            {
+                if let criteria = try CriteriaHandling.setCriteria(criteriaArray: cvDetails.getArray(key: ResponseJSONKeys.criteria))
+                {
+                    customView.criteria = criteria
+                }
+            }
         }
         if cvDetails.hasValue(forKey: ResponseJSONKeys.sharedDetails)
         {
@@ -626,45 +779,9 @@ internal class ModuleAPIHandler : CommonAPIHandler
         let filter : ZCRMFilter = ZCRMFilter( id : try filterDetails.getInt64( key : ResponseJSONKeys.id ), name : try filterDetails.getString( key : ResponseJSONKeys.name ), parentCvId : cvId, moduleAPIName : self.module.apiName )
         if filterDetails.hasValue( forKey : ResponseJSONKeys.criteria )
         {
-            filter.criteria = try self.setCriteria( criteriaJSON : filterDetails.getDictionary( key : ResponseJSONKeys.criteria ) )
+            filter.criteria = try CriteriaHandling.setCriteria( criteriaJSON : filterDetails.getDictionary( key : ResponseJSONKeys.criteria ) )
         }
         return filter
-    }
-    
-    private func setCriteria( criteriaJSON : [ String : Any ] ) throws -> ZCRMQuery.ZCRMCriteria?
-    {
-        var criteriaGroup : ZCRMQuery.ZCRMCriteria?
-        let groups : [ [ String : Any ] ] = try criteriaJSON.getArrayOfDictionaries( key : ResponseJSONKeys.group )
-        for group in groups
-        {
-            if group.hasValue( forKey : ResponseJSONKeys.groupOperator )
-            {
-                if let criteriaGroup = criteriaGroup, let criteria = try setCriteria( criteriaJSON : group )
-                {
-                    criteriaGroup.and( criteria : criteria )
-                }
-                else
-                {
-                    if let criteria = try setCriteria( criteriaJSON : group )
-                    {
-                        criteriaGroup = criteria
-                    }
-                }
-            }
-            else
-            {
-                let criteria = ZCRMQuery.ZCRMCriteria( apiName : try group.getDictionary( key : ResponseJSONKeys.field ).getString( key : ResponseJSONKeys.apiName ), comparator : try group.getString( key : ResponseJSONKeys.comparator ), value : try group.getString( key : ResponseJSONKeys.value ) )
-                if let criteriaGroup = criteriaGroup
-                {
-                    criteriaGroup.and( criteria : criteria )
-                }
-                else
-                {
-                    criteriaGroup = criteria
-                }
-            }
-        }
-        return criteriaGroup
     }
 }
 
@@ -738,11 +855,6 @@ fileprivate extension ModuleAPIHandler
         static let module = "module"
         
         static let criteria = "criteria"
-        static let groupOperator = "group_operator"
-        static let group = "group"
-        static let comparator = "comparator"
-        static let field = "field"
-        static let value = "value"
         static let sharedType = "shared_type"
         static let sharedDetails = "shared_details"
         static let href = "href"
