@@ -537,6 +537,45 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
+    internal func getCurrency( byId id : Int64, completion : @escaping( Result.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
+    {
+        setIsCacheable( true )
+        setJSONRootKey( key : JSONRootKey.CURRENCIES )
+        setUrlPath( urlPath : "\( URLPathConstants.org )/\( URLPathConstants.currencies )/\( id )" )
+        setRequestMethod( requestMethod : .get )
+        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+        ZCRMLogger.logDebug( message : "Request : \( request.toString() )" )
+        
+        request.getAPIResponse { ( resultType ) in
+            do
+            {
+                switch resultType
+                {
+                case .success(let response) :
+                    let responseJSON = response.getResponseJSON()
+                    let responseArray = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                    if responseArray.isEmpty
+                    {
+                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg )" )
+                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        return
+                    }
+                    let currency = try self.getZCRMCurrency(currencyDetails: responseArray[0])
+                    response.setData( data : currency )
+                    completion( .success( currency, response ) )
+                case .failure(let error) :
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+            catch
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
     internal func getBaseCurrency( completion : @escaping( Result.Data< ZCRMCurrency > ) -> () )
     {
         self.getCurrencies { ( result ) in
@@ -735,6 +774,355 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
+    internal func enableMultiCurrency( _ currency : ZCRMCurrency, completion : @escaping ( Result.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
+    {
+        setJSONRootKey(key: JSONRootKey.BASE_CURRENCY)
+        setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.currencies )/\( URLPathConstants.actions )/\( URLPathConstants.enable )")
+        setRequestMethod(requestMethod: .post)
+        
+        var requestBody : [ String : Any ] = [:]
+        var dataArray : [ String : Any? ]
+        do
+        {
+            dataArray = try self.getZCRMCurrencyAsJSON(currency: currency)
+        }
+        catch
+        {
+            completion( .failure( typeCastToZCRMError( error ) ))
+            return
+        }
+        requestBody[ getJSONRootKey() ] = dataArray
+        setRequestBody(requestBody: requestBody)
+        
+        let request = APIRequest( handler: self )
+        ZCRMLogger.logDebug(message: "Request : \( request.toString() )")
+        
+        request.getAPIResponse() { result in
+            do
+            {
+                switch result
+                {
+                case .success( let response ) :
+                    let responseJSON = response.getResponseJSON()
+                    let responseData = try responseJSON.getDictionary( key: self.getJSONRootKey() )
+                    let details = try responseData.getDictionary(key: APIConstants.DETAILS )
+                    currency.id = try details.getInt64( key: ResponseJSONKeys.id )
+                    
+                    response.setData( data: currency )
+                    completion( .success( currency, response ))
+                case .failure( let error ) :
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+            catch
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func addCurrency( _ currency : ZCRMCurrency, completion : @escaping ( Result.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
+    {
+        setJSONRootKey(key: JSONRootKey.CURRENCIES)
+        setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.currencies )")
+        setRequestMethod(requestMethod: .post)
+        
+        var requestBody : [ String : Any ] = [:]
+        var dataArray : [[ String : Any? ]] = []
+        
+        do
+        {
+            try dataArray.append( self.getZCRMCurrencyAsJSON(currency: currency) )
+        }
+        catch
+        {
+            completion( .failure( typeCastToZCRMError( error ) ) )
+            return
+        }
+        requestBody[ getJSONRootKey() ] = dataArray
+        setRequestBody(requestBody: requestBody)
+        
+        let request = APIRequest(handler: self)
+        ZCRMLogger.logInfo(message: "Request : \( request.toString() )")
+        
+        request.getAPIResponse() { result in
+            do
+            {
+                switch result
+                {
+                case .success(let response) :
+                    let responseJSON = response.getResponseJSON()
+                    let responseArray = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                    if responseArray.isEmpty
+                    {
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        return
+                    }
+                    let respData : [ String : Any ] = responseArray[0]
+                    let details = try respData.getDictionary(key: APIConstants.DETAILS)
+                    currency.id = try details.getInt64(key: ResponseJSONKeys.id)
+                    
+                    response.setData(data: currency)
+                    completion( .success( currency, response ) )
+                case .failure(let error) :
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+            catch
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func addCurrencies( _ currencies : [ ZCRMCurrency ], completion : @escaping ( Result.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> () )
+    {
+        setJSONRootKey(key: JSONRootKey.CURRENCIES)
+        setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.currencies )")
+        setRequestMethod(requestMethod: .post)
+        
+        var requestBody : [ String : Any ] = [:]
+        var dataArray : [[ String : Any? ]] = []
+        
+        for currency in currencies
+        {
+            do
+            {
+                try dataArray.append( self.getZCRMCurrencyAsJSON(currency: currency) )
+            }
+            catch
+            {
+                completion( .failure( typeCastToZCRMError( error ) ) )
+                return
+            }
+        }
+        requestBody[ getJSONRootKey() ] = dataArray
+        setRequestBody(requestBody: requestBody)
+        
+        let request = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \( request.toString() )")
+        
+        request.getBulkAPIResponse() { result in
+            do
+            {
+                switch result
+                {
+                case .success(let bulkResponse) :
+                    let responses : [ EntityResponse ] = bulkResponse.getEntityResponses()
+                    var addedCurrencies : [ ZCRMCurrency ] = []
+                    for ( index , entityResponse ) in responses.enumerated()
+                    {
+                        if APIConstants.CODE_SUCCESS == entityResponse.getStatus()
+                        {
+                            let responseJSON = entityResponse.getResponseJSON()
+                            let details = try responseJSON.getDictionary(key: APIConstants.DETAILS)
+                            currencies[ index ].id = try details.getInt64(key: ResponseJSONKeys.id)
+                            addedCurrencies.append( currencies[ index ] )
+                            entityResponse.setData(data: currencies[ index ] )
+                        }
+                        else
+                        {
+                            entityResponse.setData(data: nil)
+                        }
+                    }
+                    
+                    bulkResponse.setData(data: addedCurrencies)
+                    completion( .success( addedCurrencies, bulkResponse ) )
+                case .failure(let error) :
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+            catch
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func updateBaseCurrency( _ currency : ZCRMCurrency, completion : @escaping ( Result.DataResponse< ZCRMCurrency, APIResponse > ) -> ())
+    {
+        setJSONRootKey(key: JSONRootKey.BASE_CURRENCY)
+        setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.currencies )/\( URLPathConstants.actions )/\( URLPathConstants.enable )")
+        setRequestMethod(requestMethod: .patch)
+        
+        var requestBody : [ String : Any ] = [:]
+        do
+        {
+            requestBody[ getJSONRootKey() ] = try self.getZCRMCurrencyAsJSON(currency: currency)
+        }
+        catch
+        {
+            completion( .failure( typeCastToZCRMError( error ) ) )
+            return
+        }
+        setRequestBody(requestBody: requestBody)
+        
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \( request.toString() )")
+        
+        request.getAPIResponse() { result in
+            do
+            {
+                switch result
+                {
+                case .success(let response) :
+                    let responseJSON = response.getResponseJSON()
+                    let respData = try responseJSON.getDictionary(key: self.getJSONRootKey())
+                    let details = try respData.getDictionary(key: APIConstants.DETAILS)
+                    currency.id = try details.getInt64(key: ResponseJSONKeys.id)
+                    
+                    response.setData(data: currency)
+                    completion( .success( currency, response) )
+                case .failure(let error) :
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+            catch
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func updateCurrencies( _ currencies : [ ZCRMCurrency ], completion : @escaping ( Result.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> ())
+    {
+        setJSONRootKey(key: JSONRootKey.CURRENCIES)
+        setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.currencies )")
+        setRequestMethod(requestMethod: .patch)
+        
+        var requestBody : [ String : Any ] = [:]
+        var dataArray : [[ String : Any? ]] = []
+        
+        for currency in currencies
+        {
+            do
+            {
+                try dataArray.append( self.getZCRMCurrencyAsJSON(currency: currency) )
+            }
+            catch
+            {
+                completion( .failure( typeCastToZCRMError( error ) ) )
+                return
+            }
+        }
+        requestBody[ getJSONRootKey() ] = dataArray
+        setRequestBody(requestBody: requestBody)
+        
+        let request = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \( request.toString() )")
+        
+        request.getBulkAPIResponse() { result in
+            do
+            {
+                switch result
+                {
+                case .success(let bulkResponse) :
+                    let entityResponses = bulkResponse.getEntityResponses()
+                    var updatedCurrencies : [ ZCRMCurrency ] = []
+                    for ( index, entityResponse ) in entityResponses.enumerated()
+                    {
+                        if APIConstants.CODE_SUCCESS == entityResponse.getStatus()
+                        {
+                            let responseJSON = entityResponse.getResponseJSON()
+                            let details = try responseJSON.getDictionary(key: APIConstants.DETAILS)
+                            currencies[ index ].id = try details.getInt64(key: ResponseJSONKeys.id)
+                            
+                            entityResponse.setData(data: currencies[ index ])
+                            updatedCurrencies.append( currencies[ index ] )
+                        }
+                        else
+                        {
+                            entityResponse.setData(data: nil)
+                        }
+                    }
+                    
+                    bulkResponse.setData(data: updatedCurrencies)
+                    completion( .success( updatedCurrencies, bulkResponse) )
+                case .failure(let error) :
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+            catch
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func updateCurrency( _ currency : ZCRMCurrency, completion : @escaping ( Result.DataResponse< ZCRMCurrency, APIResponse > ) -> ())
+    {
+        
+        guard let currencyId = currency.id else
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : Mandatory field not found, \( APIConstants.DETAILS ) : [ \"api_name\" : \"id\" ]")
+            completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message:
+                "Mandatory field not found", details : [ "api_name" : "id" ] ) ) )
+            return
+        }
+        setJSONRootKey(key: JSONRootKey.CURRENCIES)
+        setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.currencies )/\( currencyId )")
+        setRequestMethod(requestMethod: .patch)
+        
+        var requestBody : [ String : Any ] = [:]
+        var dataArray : [[ String : Any? ]] = []
+        do
+        {
+            try dataArray.append( self.getZCRMCurrencyAsJSON(currency: currency) )
+        }
+        catch
+        {
+            completion( .failure( typeCastToZCRMError( error ) ) )
+            return
+        }
+        requestBody[ getJSONRootKey() ] = dataArray
+        setRequestBody(requestBody: requestBody)
+        
+        let request = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \( request.toString() )")
+        
+        request.getAPIResponse() { result in
+            do
+            {
+                switch result
+                {
+                case .success(let response) :
+                    let responseJSON = response.getResponseJSON()
+                    let respData = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                    if respData.isEmpty == true
+                    {
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        return
+                    }
+                    let details = try respData[0].getDictionary(key: APIConstants.DETAILS)
+                    currency.id = try details.getInt64(key: ResponseJSONKeys.id)
+                    
+                    response.setData(data: currency)
+                    completion( .success( currency, response) )
+                case .failure(let error) :
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+            catch
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
     private func getZCRMTerritoriesFrom( _ responseJSON : [ [ String : Any ] ] ) throws -> [ ZCRMTerritory ]
     {
         var territories : [ ZCRMTerritory ] = []
@@ -908,6 +1296,61 @@ internal class OrgAPIHandler : CommonAPIHandler
         return org
     }
     
+    private func getZCRMCurrencyAsJSON( currency : ZCRMCurrency ) throws -> [ String : Any? ]
+    {
+        var currencyJSON : [ String : Any? ] = [:]
+        if currency.id != nil
+        {
+            currencyJSON.updateValue( currency.id, forKey: ResponseJSONKeys.id )
+        }
+        currencyJSON.updateValue( currency.name, forKey: ResponseJSONKeys.name )
+        currencyJSON.updateValue( currency.isoCode, forKey: ResponseJSONKeys.ISOCode )
+        currencyJSON.updateValue( currency.symbol, forKey: ResponseJSONKeys.symbol )
+        if let exchangeRate = currency.exchangeRate
+        {
+            currencyJSON.updateValue( "\( exchangeRate )", forKey: ResponseJSONKeys.exchangeRate )
+        }
+        if let format = currency.format
+        {
+            currencyJSON.updateValue( try self.getCurrencyFormatJSON( format ), forKey: ResponseJSONKeys.format)
+        }
+        currencyJSON.updateValue( currency.isActive, forKey: ResponseJSONKeys.isActive )
+        currencyJSON.updateValue( currency.prefixSymbol, forKey: ResponseJSONKeys.prefixSymbol )
+        currencyJSON.updateValue( currency.isActive, forKey: ResponseJSONKeys.isActive )
+        
+        return currencyJSON
+    }
+    
+    private func getCurrencyFormatJSON( _ format : ZCRMCurrency.Format ) throws -> [ String : Any ]
+    {
+        var formatJSON : [ String : Any ] = [:]
+        formatJSON.updateValue( try self.getValidSeparator(type: ResponseJSONKeys.decimalSeparator, format.decimalSeparator), forKey: ResponseJSONKeys.decimalSeparator )
+        formatJSON.updateValue( try self.getValidSeparator(type: ResponseJSONKeys.thousandSeparator, format.thousandSeparator), forKey: ResponseJSONKeys.thousandSeparator )
+        formatJSON.updateValue( "\( format.decimalPlaces )", forKey: ResponseJSONKeys.decimalPlaces )
+        return formatJSON
+    }
+    
+    private func getValidSeparator( type : String, _ separator : String ) throws -> String
+    {
+        if separator.lowercased() == "comma" || separator == ","
+        {
+            return "Comma"
+        }
+        else if separator.lowercased() == "period" || separator == "."
+        {
+            return "Period"
+        }
+        else if separator.lowercased() == "space" || separator == " "
+        {
+            return "Space"
+        }
+        else
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : \( type ) given is invalid - \( separator ), \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError(code: ErrorCode.invalidData, message: "\( type ) given is invalid - \( separator )", details: nil)
+        }
+    }
+    
     private func getZCRMVariableAsJSON( variable : ZCRMVariable ) -> [ String : Any? ]
     {
         var variableJSON : [ String : Any? ] = [ String : Any? ]()
@@ -1013,7 +1456,7 @@ internal class OrgAPIHandler : CommonAPIHandler
     {
         let currency = try ZCRMCurrency( name : currencyDetails.getString( key : ResponseJSONKeys.name ), symbol : currencyDetails.getString( key : ResponseJSONKeys.symbol ), isoCode : currencyDetails.getString( key : ResponseJSONKeys.ISOCode ) )
         currency.createdTime = currencyDetails.optString( key : ResponseJSONKeys.createdTime )
-        currency.isActive = currencyDetails.optBoolean( key : ResponseJSONKeys.isActive )
+        currency.isActive = try currencyDetails.getBoolean( key : ResponseJSONKeys.isActive )
         if currencyDetails.hasValue( forKey : ResponseJSONKeys.exchangeRate )
         {
             currency.exchangeRate = try Double( currencyDetails.getString( key : ResponseJSONKeys.exchangeRate )  )
@@ -1134,6 +1577,8 @@ extension OrgAPIHandler
         static let photo = "photo"
         static let insights = "insights"
         static let emails = "emails"
+        static let actions = "actions"
+        static let enable = "enable"
     }
 }
 

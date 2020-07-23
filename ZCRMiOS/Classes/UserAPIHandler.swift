@@ -9,7 +9,7 @@
 internal class UserAPIHandler : CommonAPIHandler
 {
     let cache : CacheFlavour
-    private var userDelegate : ZCRMUserDelegate?
+    internal var userDelegate : ZCRMUserDelegate?
     
     internal init( userDelegate : ZCRMUserDelegate )
     {

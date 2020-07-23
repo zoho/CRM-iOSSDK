@@ -149,8 +149,8 @@ internal struct CriteriaHandling
 
 internal class ModuleAPIHandler : CommonAPIHandler
 {
-    private let module : ZCRMModuleDelegate
-    private let cache : CacheFlavour
+    internal let module : ZCRMModuleDelegate
+    internal let cache : CacheFlavour
     
     init( module : ZCRMModuleDelegate, cacheFlavour : CacheFlavour )
     {
@@ -498,6 +498,13 @@ internal class ModuleAPIHandler : CommonAPIHandler
         {
             customView.fields = fields
         }
+        else if cvDetails.hasValue( forKey : ResponseJSONKeys.fields ), let fields = try cvDetails.getArrayOfDictionaries( key : ResponseJSONKeys.fields ) as? [ [ String : String ] ]
+        {
+            for field in fields
+            {
+                customView.fields.append( try field.getString( key: ResponseJSONKeys.apiName ) )
+            }
+        }
         if(cvDetails.hasValue(forKey: ResponseJSONKeys.sortBy))
         {
             customView.sortByCol = cvDetails.optString(key: ResponseJSONKeys.sortBy)
@@ -785,7 +792,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
     }
 }
 
-fileprivate extension ModuleAPIHandler
+internal extension ModuleAPIHandler
 {
     struct ResponseJSONKeys
     {

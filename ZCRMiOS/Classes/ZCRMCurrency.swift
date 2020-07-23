@@ -7,13 +7,13 @@
 
 open class ZCRMCurrency : ZCRMEntity
 {
-    public internal( set ) var symbol : String
+    public var symbol : String
     public internal( set ) var createdTime : String?
-    public internal( set ) var isActive : Bool?
-    public internal( set ) var exchangeRate : Double?
-    public internal( set ) var format : Format?
+    public var isActive : Bool = true
+    public var exchangeRate : Double?
+    public var format : Format?
     public internal( set ) var createdBy : ZCRMUserDelegate?
-    public internal( set ) var prefixSymbol : Bool?
+    public var prefixSymbol : Bool?
     public internal( set ) var isBase : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var modifiedTime : String?
     public internal( set ) var name : String
@@ -58,6 +58,29 @@ open class ZCRMCurrency : ZCRMEntity
                 return "."
             case .space:
                 return " "
+            }
+        }
+    }
+    
+    public func add( completion : @escaping ( Result.DataResponse< ZCRMCurrency, APIResponse > ) -> ())
+    {
+        OrgAPIHandler().addCurrency( self ) { result in
+            completion( result )
+        }
+    }
+    
+    public func update( completion : @escaping ( Result.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
+    {
+        if isBase == true
+        {
+            OrgAPIHandler().updateBaseCurrency( self ) { result in
+                completion( result )
+            }
+        }
+        else
+        {
+            OrgAPIHandler().updateCurrency( self ) { result in
+                completion( result )
             }
         }
     }

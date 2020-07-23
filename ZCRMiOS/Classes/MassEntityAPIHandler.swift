@@ -8,7 +8,7 @@
 
 internal class MassEntityAPIHandler : CommonAPIHandler
 {
-    private var module : ZCRMModuleDelegate
+    internal var module : ZCRMModuleDelegate
     
     init(module : ZCRMModuleDelegate)
     {
@@ -417,23 +417,27 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func updateRecords( triggers : [Trigger]?, ids : [ Int64 ], fieldAPIName : String, value : Any?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    internal func updateRecords( triggers : [Trigger]?, records : [ ZCRMRecord ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
-        if(ids.count > 100)
+        if( records.count > 100 )
         {
             ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.maxCountExceeded, message : ErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
             return
         }
-        var reqBodyObj : [String:Any] = [String:Any]()
-        var dataArray : [[String:Any]] = [[String:Any]]()
-        for id in ids
+        guard records.count != 0 else
         {
-            var dataJSON : [String:Any] = [String:Any]()
-            dataJSON[ResponseJSONKeys.id] = String(id)
-            dataJSON[fieldAPIName] = value
-            dataArray.append(dataJSON)
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : No records found to be updated, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.invalidData, message : "No records found to be updated", details : nil ) ) )
+            return
+        }
+        var reqBodyObj : [ String : Any ] = [ String : Any ]()
+        var dataArray : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
+        for record in records
+        {
+            let recordJSON = EntityAPIHandler(record : record ).getZCRMRecordAsJSON()
+            dataArray.append( recordJSON )
         }
         reqBodyObj[getJSONRootKey()] = dataArray
         if let triggers = triggers
@@ -448,54 +452,143 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         
         request.getBulkAPIResponse { ( resultType ) in
             do{
-                let bulkResponse = try resultType.resolve()
-                let responses : [EntityResponse] = bulkResponse.getEntityResponses()
-                var updatedRecords : [ZCRMRecord] = [ZCRMRecord]()
-                let dispatchGroup : DispatchGroup = DispatchGroup()
-                let dispatchQueue : DispatchQueue = DispatchQueue(label: "com.zoho.crm.sdk.massEnityAPIHandler.updateRecords")
-                for index in 0..<responses.count
+                switch resultType
                 {
-                    let entityResponse = responses[ index ]
-                    if(APIConstants.CODE_SUCCESS == entityResponse.getStatus())
+                case .success(let bulkResponse) :
+                    let responses : [EntityResponse] = bulkResponse.getEntityResponses()
+                    var updatedRecords : [ZCRMRecord] = [ZCRMRecord]()
+                    let dispatchGroup : DispatchGroup = DispatchGroup()
+                    let dispatchQueue : DispatchQueue = DispatchQueue(label: "com.zoho.crm.sdk.massEnityAPIHandler.updateRecords")
+                    for ( index, entityResponse ) in responses.enumerated()
                     {
-                        let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                        let recordJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
-                        if recordJSON.isEmpty == true
+                        if(APIConstants.CODE_SUCCESS == entityResponse.getStatus())
                         {
-                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
-                            completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
-                            return
-                        }
-                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
-                        record.id = ids[ index ]
-                        dispatchGroup.enter()
-                        EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordJSON, completion: { ( recordResult ) in
-                            do
-                            {
-                                let updatedRecord = try recordResult.resolve()
-                                dispatchQueue.sync {
-                                    updatedRecords.append(updatedRecord)
+                            let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
+                            let recordJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
+                            let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
+                            record.id = records[ index ].id
+                            dispatchGroup.enter()
+                            EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordJSON, completion: { ( recordResult ) in
+                                switch recordResult
+                                {
+                                case .success(let updatedRecord) :
+                                    dispatchQueue.sync {
+                                        updatedRecords.append(updatedRecord)
+                                    }
+                                    entityResponse.setData(data: updatedRecord)
+                                    dispatchGroup.leave()
+                                case .failure(let error) :
+                                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                    completion( .failure( typeCastToZCRMError( error ) ) )
+                                    dispatchGroup.leave()
+                                    return
                                 }
-                                responses[ index ].setData(data: updatedRecord)
-                                dispatchGroup.leave()
-                            }
-                            catch
-                            {
-                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                                completion( .failure( typeCastToZCRMError( error ) ) )
-                                dispatchGroup.leave()
-                                return
-                            }
-                        })
+                            })
+                        }
+                        else
+                        {
+                            entityResponse.setData(data: nil)
+                        }
                     }
-                    else
-                    {
-                        entityResponse.setData(data: nil)
+                    dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
+                        bulkResponse.setData( data : updatedRecords )
+                        completion( .success( updatedRecords, bulkResponse ) )
                     }
+                case .failure(let error) :
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
                 }
-                dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
-                    bulkResponse.setData( data : updatedRecords )
-                    completion( .success( updatedRecords, bulkResponse ) )
+            }
+            catch{
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+
+    internal func massUpdateRecords( triggers : [ Trigger ]?, ids : [ Int64 ], fieldValuePair : [ String : Any? ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    {
+        if(ids.count > 500)
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.maxCountExceeded, message : ErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
+            return
+        }
+        if ( self.module.apiName == DefaultModuleAPINames.DEALS && fieldValuePair.count > 3 ) || ( self.module.apiName != DefaultModuleAPINames.DEALS && fieldValuePair.count > 1 )
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : Max field limit exceeded, \( APIConstants.DETAILS ) : limit = \( ( self.module.apiName == DefaultModuleAPINames.DEALS ) ? 3 : 1 )")
+            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.invalidData, message : "Max field limit exceeded", details : [ "limit" : ( self.module.apiName == DefaultModuleAPINames.DEALS ) ? 3 : 1 ] ) ) )
+            return
+        }
+        else if fieldValuePair.count == 0
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : No field found, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.inValidError( code : ErrorCode.invalidData, message : "No field found", details : nil ) ) )
+            return
+        }
+        
+        setJSONRootKey( key : JSONRootKey.DATA )
+        var reqBodyObj : [String:Any] = [String:Any]()
+        reqBodyObj[getJSONRootKey()] = [ fieldValuePair ]
+        reqBodyObj[ ResponseJSONKeys.ids ] = ids
+        if let triggers = triggers
+        {
+            reqBodyObj[ APIConstants.TRIGGER ] = getTriggerArray(triggers: triggers)
+        }
+        setUrlPath(urlPath : "\(self.module.apiName)/\( URLPathConstants.actions )/\( URLPathConstants.massUpdate )")
+        setRequestMethod(requestMethod : .post )
+        setRequestBody(requestBody : reqBodyObj )
+        let request : APIRequest = APIRequest(handler: self )
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getBulkAPIResponse { ( resultType ) in
+            do{
+                switch resultType
+                {
+                case .success(let bulkResponse) :
+                    let responses : [EntityResponse] = bulkResponse.getEntityResponses()
+                    var updatedRecords : [ZCRMRecord] = [ZCRMRecord]()
+                    let dispatchGroup : DispatchGroup = DispatchGroup()
+                    let dispatchQueue : DispatchQueue = DispatchQueue(label: "com.zoho.crm.sdk.massEnityAPIHandler.updateRecords")
+                    for index in 0..<responses.count
+                    {
+                        let entityResponse = responses[ index ]
+                        if(APIConstants.CODE_SUCCESS == entityResponse.getStatus())
+                        {
+                            let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
+                            let recordJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
+                            let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
+                            record.id = ids[ index ]
+                            dispatchGroup.enter()
+                            EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordJSON, completion: { ( recordResult ) in
+                                switch recordResult
+                                {
+                                case .success(let updatedRecord) :
+                                    dispatchQueue.sync {
+                                        updatedRecords.append( updatedRecord )
+                                    }
+                                    responses[ index ].setData(data: updatedRecord )
+                                    dispatchGroup.leave()
+                                case .failure(let error) :
+                                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                    completion( .failure( typeCastToZCRMError( error ) ) )
+                                    dispatchGroup.leave()
+                                    return
+                                }
+                            })
+                        }
+                        else
+                        {
+                            entityResponse.setData(data: nil)
+                        }
+                    }
+                    dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
+                        bulkResponse.setData( data : updatedRecords )
+                        completion( .success( updatedRecords, bulkResponse ) )
+                    }
+                case .failure(let error) :
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             catch{
@@ -822,7 +915,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     }
 }
 
-fileprivate extension MassEntityAPIHandler
+internal extension MassEntityAPIHandler
 {
     struct RequestParamValues
     {
@@ -838,6 +931,7 @@ fileprivate extension MassEntityAPIHandler
     struct ResponseJSONKeys
     {
         static let id = "id"
+        static let ids = "ids"
         static let name = "name"
         static let createdBy = "created_by"
         static let deletedBy = "deleted_by"
@@ -857,6 +951,7 @@ fileprivate extension MassEntityAPIHandler
         static let search = "search"
         static let upsert = "upsert"
         static let reschedule = "reschedule"
+        static let massUpdate = "mass_update"
     }
 }
 

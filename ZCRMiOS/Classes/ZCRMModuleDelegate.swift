@@ -547,14 +547,69 @@ open class ZCRMModuleDelegate : ZCRMEntity
     /// - Throws: ZCRMSDKError if failed to update records
     public func updateRecords(recordIds: [Int64], fieldAPIName: String, value: Any?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
     {
-        MassEntityAPIHandler(module: self).updateRecords( triggers: nil, ids: recordIds, fieldAPIName: fieldAPIName, value: value) { ( result ) in
+        MassEntityAPIHandler(module: self).massUpdateRecords(triggers: nil, ids: recordIds, fieldValuePair: [ fieldAPIName : value ]) { result in
             completion( result )
         }
     }
     
+    /**
+      To update the given field values to the specifed record ids
+     
+     - Parameters:
+        - recordIds : ID of the records that needs to be updated with the field value
+        - fieldValuePair : A dictionary of field and its value
+        - triggers : The triggers that needs to be activated during the update operation
+        - completion :
+            - Success : Returns an array of ZCRMRecords and a BulkAPIResponse
+            - Failure : Returns error
+     */
+    private func massUpdateRecords( recordIds: [ Int64 ], fieldValuePair : [ String : Any?  ], triggers : [ Trigger ]? = nil, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    {
+        MassEntityAPIHandler(module: self).massUpdateRecords(triggers: triggers, ids: recordIds, fieldValuePair: fieldValuePair ) { result in
+            completion( result )
+        }
+    }
+    
+    /**
+     To update the records
+    
+    - Parameters:
+       - recordIds : Array of record Ids that needs to be updated
+       - fieldAPIName : API name of the field to be updated
+       - value : The Value with which the field to be updated
+       - triggers : Triggers that needs to be activated during the update operation
+       - completion :
+           - Success : Returns an array of ZCRMRecord objects and a BulkAPIResponse
+           - Failure : Returns error
+    */
+    public func updateRecords( recordIds: [Int64], fieldAPIName: String, value: Any?, triggers : [Trigger], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    {
+        MassEntityAPIHandler(module: self).massUpdateRecords(triggers: triggers, ids: recordIds, fieldValuePair: [ fieldAPIName : value ]) { result in
+            completion( result )
+        }
+    }
+    
+    @available(*, deprecated, message: "Use the method updateRecords( recordIds :, fieldAPIName:, value:, triggers:, completion : ) instead" )
     public func updateRecords(triggers : [Trigger], recordIds: [Int64], fieldAPIName: String, value: Any?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
     {
-        MassEntityAPIHandler(module: self).updateRecords( triggers : triggers, ids: recordIds, fieldAPIName: fieldAPIName, value: value) { ( result ) in
+        MassEntityAPIHandler(module: self).massUpdateRecords(triggers: triggers, ids: recordIds, fieldValuePair: [ fieldAPIName : value ]) { result in
+            completion( result )
+        }
+    }
+    
+    /**
+      To update the records
+     
+     - Parameters:
+        - records : Array of records that needs to be updated
+        - triggers : Triggers that needs to be activated during the update operation
+        - completion :
+            - Success : Returns an array of ZCRMRecord objects and a BulkAPIResponse
+            - Failure : Returns error
+     */
+    public func updateRecords( records: [ ZCRMRecord ], triggers : [ Trigger ]? = nil, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    {
+        MassEntityAPIHandler(module: self).updateRecords(triggers: triggers, records: records) { result in
             completion( result )
         }
     }
