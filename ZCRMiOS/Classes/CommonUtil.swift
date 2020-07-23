@@ -1307,6 +1307,7 @@ struct JSONRootKey {
     static let FILTERS : String = "filters"
     static let CURRENCIES : String = "currencies"
     static let FEATURES : String = "features"
+    static let BASE_CURRENCY : String = "base_currency"
 }
 
 //MARK:- RESULT TYPES
@@ -1615,7 +1616,7 @@ internal struct ResponsesTableStatement
     
     func searchData(_ withURL : String ) -> String
     {
-        return "\(DBConstant.DQL_SELECT) * \(DBConstant.KEYS_FROM) \(DBConstant.TABLE_RESPONSES) \(DBConstant.CLAUSE_WHERE) \(DBConstant.COLUMN_URL) LIKE \'\(withURL)\' OR \'\( withURL )?%\' AND \(DBConstant.COLUMN_VALIDITY) > \(DBConstant.CURRENT_TIME);"
+        return "\(DBConstant.DQL_SELECT) * \(DBConstant.KEYS_FROM) \(DBConstant.TABLE_RESPONSES) \(DBConstant.CLAUSE_WHERE) \(DBConstant.COLUMN_URL) LIKE \'\(withURL)\' OR \(DBConstant.COLUMN_URL) LIKE \'\( withURL )?%\' AND \(DBConstant.COLUMN_VALIDITY) > \(DBConstant.CURRENT_TIME);"
     }
 }
 

@@ -79,7 +79,7 @@ public class CommonAPIResponse
         {
             try handleForFaultyResponses()
         }
-        else if(httpStatusCode == HTTPStatusCode.accepted || httpStatusCode == HTTPStatusCode.ok || httpStatusCode == HTTPStatusCode.created )
+        else if(httpStatusCode == HTTPStatusCode.accepted || httpStatusCode == HTTPStatusCode.ok || httpStatusCode == HTTPStatusCode.created || httpStatusCode == HTTPStatusCode.multiStatus )
         {
             try processDataResponse()
         }

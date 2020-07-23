@@ -82,6 +82,7 @@ internal enum HTTPStatusCode : Int
    case created = 201
    case accepted = 202
    case noContent = 204
+   case multiStatus = 207
    case movedPermanently = 301
    case movedTemporarily = 302
    case notModified = 304

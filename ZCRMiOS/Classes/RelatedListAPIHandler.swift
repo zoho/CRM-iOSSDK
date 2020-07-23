@@ -9,7 +9,7 @@
 internal class RelatedListAPIHandler : CommonAPIHandler
 {
     private var parentRecord : ZCRMRecordDelegate
-    private var relatedList : ZCRMModuleRelation?
+    internal var relatedList : ZCRMModuleRelation?
     private var junctionRecord : ZCRMJunctionRecord?
     private var noteAttachment : ZCRMNote?
     
@@ -626,7 +626,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         return attachment
     }
     
-    private func getZCRMNote(noteDetails : [String:Any?], note : ZCRMNote) throws -> ZCRMNote
+    internal func getZCRMNote(noteDetails : [String:Any?], note : ZCRMNote) throws -> ZCRMNote
     {
         note.isCreate = false
         note.id = try noteDetails.getInt64( key : ResponseJSONKeys.id )
@@ -703,7 +703,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         return note
     }
     
-    private func getZCRMNoteAsJSON(note : ZCRMNote) -> [ String : Any? ]
+    internal func getZCRMNoteAsJSON(note : ZCRMNote) -> [ String : Any? ]
     {
         var noteJSON : [ String : Any? ] = [ String : Any? ]()
         noteJSON.updateValue( note.title, forKey : ResponseJSONKeys.noteTitle )
