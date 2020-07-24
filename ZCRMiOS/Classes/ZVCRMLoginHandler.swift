@@ -121,13 +121,15 @@ public class ZVCRMLoginHandler : ZohoAuthProvider
                     })
                     ZCRMSDKClient.shared.requestHeaders?.removeAll()
                     URLCache.shared.removeAllCachedResponses()
+                    ZCRMSDKClient.shared.clearAllCache()
+                    ZCRMSDKClient.shared.portalId = nil
                     if let cookies = HTTPCookieStorage.shared.cookies {
                         for cookie in cookies {
                             HTTPCookieStorage.shared.deleteCookie(cookie)
                         }
                     }
                     completion( true )
-                    print( "logout ZVCRM successful!" )
+                    ZCRMLogger.logDebug( message: "logout ZVCRM successful!" )
                 }
         })
     }
