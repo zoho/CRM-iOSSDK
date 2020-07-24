@@ -9,8 +9,8 @@ import Foundation
 
 internal class CacheDBHandler
 {
-    private var dbRequest : SQLite
-    private var responseTableStatement = ResponsesTableStatement()
+    internal var dbRequest : SQLite
+    internal var responseTableStatement = ResponsesTableStatement()
     internal let serialQueue = DispatchQueue( label : "com.zoho.crm.sdk.cacheDBHandler.execCommand", qos : .utility )
     
     init( dbName : String ) throws
