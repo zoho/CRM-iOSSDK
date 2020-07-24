@@ -235,6 +235,49 @@ public class ZCRMOrg : ZCRMOrgDelegate
         }
     }
     
+    public func getCurrency( byId id : Int64, completion : @escaping( Result.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
+    {
+        OrgAPIHandler( cacheFlavour : .urlVsResponse ).getCurrency( byId : id ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func getCurrencyFromServer( byId id : Int64, completion : @escaping( Result.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
+    {
+        OrgAPIHandler( cacheFlavour : .noCache ).getCurrency( byId : id ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func newCurrency( name : String, symbol : String, isoCode : String, exchangeRate : Double, format : ZCRMCurrency.Format) -> ZCRMCurrency
+    {
+        let currency = ZCRMCurrency( name: name, symbol: symbol, isoCode: isoCode )
+        currency.exchangeRate = exchangeRate
+        currency.format = format
+        return currency
+    }
+    
+    public func addCurrencies( _ currencies : [ ZCRMCurrency ], completion : @escaping ( Result.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> ())
+    {
+        OrgAPIHandler().addCurrencies( currencies ) { result in
+            completion( result )
+        }
+    }
+    
+    public func updateCurrencies( _ currencies : [ ZCRMCurrency ], completion : @escaping ( Result.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> ())
+    {
+        OrgAPIHandler().updateCurrencies( currencies ) { result in
+            completion( result )
+        }
+    }
+    
+    public func enableMultiCurrency( _ currency : ZCRMCurrency, completion : @escaping ( Result.DataResponse< ZCRMCurrency, APIResponse >) -> () )
+    {
+        OrgAPIHandler().enableMultiCurrency( currency ) { result in
+            completion( result )
+        }
+    }
+    
     public func getBaseCurrency( completion : @escaping( Result.Data< ZCRMCurrency > ) -> () )
     {
         if self.mcStatus

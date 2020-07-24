@@ -40,11 +40,15 @@ public class ZCRMSDKClient
     
     private init() {}
     
-    public func initSDK( window : UIWindow, appType : AppType? =  AppType.zcrm, apiBaseURL : String? = nil, oauthScopes : [ Any ]? = nil, clientID : String? = nil, clientSecretID : String? = nil, redirectURLScheme : String? = nil, accountsURL : String? = nil, portalID : String? = nil ) throws
+    public func initSDK( window : UIWindow, appType : AppType? =  AppType.zcrm, apiBaseURL : String? = nil, oauthScopes : [ Any ]? = nil, clientID : String? = nil, clientSecretID : String? = nil, redirectURLScheme : String? = nil, accountsURL : String? = nil, portalID : String? = nil, groupIdentifier : String? = nil ) throws
     {
         guard let appConfigPlist = Bundle.main.path( forResource : "AppConfiguration", ofType : "plist" ) else
         {
             throw ZCRMError.sdkError(code: ErrorCode.internalError, message: "AppConfiguration.plist is not found.", details: nil)
+        }
+        if let groupIdentifier = groupIdentifier
+        {
+            SQLite.sharedURL = FileManager().containerURL(forSecurityApplicationGroupIdentifier: groupIdentifier)
         }
         if let appConfiguration = NSDictionary( contentsOfFile : appConfigPlist ) as? [String : Any]
         {
@@ -117,13 +121,6 @@ public class ZCRMSDKClient
         self.initIAMLogin( appType : ZCRMSDKClient.shared.appType, window : window, apiBaseURL : ZCRMSDKClient.shared.apiBaseURL )
     }
     
-    public static func notifyLogout()
-    {
-        shared.clearAllCache()
-        shared.clearAllURLSessionCache()
-        shared.portalId = nil
-    }
-    
     public func getCurrentPortal() -> Int64?
     {
         return self.portalId
@@ -143,7 +140,7 @@ public class ZCRMSDKClient
         }
     }
     
-    internal func clearAllCache()
+    public func clearAllCache()
     {
         do
         {

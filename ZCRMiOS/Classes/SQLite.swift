@@ -14,10 +14,18 @@ public class SQLite
     private var database : OpaquePointer?
     private var count : Int = 0
     private let serialQueue = DispatchQueue( label : "com.zoho.crm.sdk.sqlite.execCommand", qos : .utility )
+    internal static var sharedURL : URL?
     
     public init(dbName : String) throws
     {
-        dbURL =  try FileManager.default.url( for :  .documentDirectory, in : .userDomainMask, appropriateFor : nil, create : true )
+        if let sharedURL = SQLite.sharedURL
+        {
+            dbURL = sharedURL
+        }
+        else
+        {
+            dbURL =  try FileManager.default.url( for :  .documentDirectory, in : .userDomainMask, appropriateFor : nil, create : true )
+        }
         dbURL.appendPathComponent( dbName )
         ZCRMLogger.logInfo(message: "Database created in path \(dbURL.absoluteString)")
     }

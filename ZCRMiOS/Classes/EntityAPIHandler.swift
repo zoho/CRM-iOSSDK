@@ -8,11 +8,11 @@
 
 internal class EntityAPIHandler : CommonAPIHandler
 {
-    private var record : ZCRMRecord
+    internal var record : ZCRMRecord
     var recordDelegate : ZCRMRecordDelegate
     private var moduleFields : [ String : ZCRMField ]?
     private var subformModuleFields : [ String : [ String : ZCRMField ]?] = [ String : [ String : ZCRMField]]()
-    private let moduleFieldQueue = DispatchQueue( label : "com.zoho.crm.EntityAPIHandler.record.properties", qos : .utility, attributes : .concurrent )
+    internal let moduleFieldQueue = DispatchQueue( label : "com.zoho.crm.EntityAPIHandler.record.properties", qos : .utility, attributes : .concurrent )
 
     init(record : ZCRMRecord)
     {
