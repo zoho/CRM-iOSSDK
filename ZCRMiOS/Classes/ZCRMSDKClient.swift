@@ -121,13 +121,6 @@ public class ZCRMSDKClient
         self.initIAMLogin( appType : ZCRMSDKClient.shared.appType, window : window, apiBaseURL : ZCRMSDKClient.shared.apiBaseURL )
     }
     
-    public static func notifyLogout()
-    {
-        shared.clearAllCache()
-        shared.clearAllURLSessionCache()
-        shared.portalId = nil
-    }
-    
     public func getCurrentPortal() -> Int64?
     {
         return self.portalId
@@ -147,7 +140,7 @@ public class ZCRMSDKClient
         }
     }
     
-    internal func clearAllCache()
+    public func clearAllCache()
     {
         do
         {
