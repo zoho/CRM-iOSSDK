@@ -683,7 +683,24 @@ open class ZCRMModuleDelegate : ZCRMEntity
     /// - Parameter recordIds: id's of the record to be deleted
     /// - Returns: mass delete response of the record
     /// - Throws: ZCRMSDKError if failed to delete records
+    @available(*, deprecated, message: "Use the method deleteRecords method which returns deleted record ids in the completion - deleteRecords( byIds recordIds:, completion: @escaping ( Result.DataResponse< [ Int64 ], BulkAPIResponse > ) -> () )" )
     public func deleteRecords(recordIds: [Int64], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
+    {
+        MassEntityAPIHandler(module: self).deleteRecords( ids : recordIds) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    /**
+      To delete multiple records at a time by using their ID's
+     
+     - Parameters:
+        - recordIds : ID's of the record to be deleted
+        - completion :
+            - Success : Returns an array of record ID's got deleted and a BulkAPIResponse
+            - Failure : Returns Error
+     */
+    public func deleteRecords(byIds recordIds: [Int64], completion : @escaping( Result.DataResponse< [ Int64 ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler(module: self).deleteRecords( ids : recordIds) { ( result ) in
             completion( result )

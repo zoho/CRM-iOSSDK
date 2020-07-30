@@ -174,12 +174,14 @@ open class ZCRMRecord : ZCRMRecordDelegate
         self.upsertJSON.updateValue( sendNotification, forKey: EntityAPIHandler.ResponseJSONKeys.sendNotification )
     }
     
-    /// Returns the field value to which the specified field name is mapped
-    ///
-    /// - Parameter ofField: field name whose associated value is to be returned
-    /// - Returns: the value to which specified field name is mapped
-    /// - Throws: throws the ZCRMSDKError if the given field is not present in the ZCRMRecord
-    public func getValue( ofFieldAPIName : String ) throws -> Any?
+    /**
+      Returns the field value to which the specified field name is mapped
+     
+     - Parameter ofFieldAPIName: Field name whose associated value is to be returned
+     - Returns: The value to which specified field name is mapped
+     - Throws: The ZCRMSDKError if the given field is not present in the ZCRMRecord
+     */
+    override public func getValue( ofFieldAPIName : String ) throws -> Any?
     {
         if self.upsertJSON.hasKey( forKey : ofFieldAPIName )
         {
@@ -231,10 +233,12 @@ open class ZCRMRecord : ZCRMRecordDelegate
         return try self.getValue( ofFieldAPIName : ofFieldAPIName ) as? ZCRMUserDelegate
     }
     
-    /// Returns the ZCRMRecord's fieldAPIName vs field value dictionary.
-    ///
-    /// - Returns: ZCRMRecord's fieldAPIName vs field value dictionary
-    public func getData() -> [ String : Any? ]
+    /**
+      Returns the ZCRMRecord's fieldAPIName vs field value dictionary
+     
+     - Returns: ZCRMRecord's fieldAPIName vs field value dictionary
+     */
+    override public func getData() -> [ String : Any? ]
     {
         var data : [ String : Any? ] = [ String : Any? ]()
         data = self.data
@@ -243,11 +247,6 @@ open class ZCRMRecord : ZCRMRecordDelegate
             data.updateValue( value, forKey : key )
         }
         return data
-    }
-    
-    public func getValue( ofProperty : String ) -> Any?
-    {
-        return self.properties.optValue( key : ofProperty )
     }
     
     /// Add ZCRMInventoryLineItem to the ZCRMRecord
