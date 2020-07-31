@@ -17,7 +17,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         {
             addRequestHeader(header: RequestParamKeys.ifModifiedSince , value: modifiedSince )
         }
-        let request : APIRequest = APIRequest(handler : self )
+		let request : APIRequest = APIRequest(handler : self ) 
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getBulkAPIResponse { ( resultType ) in
@@ -46,13 +46,13 @@ internal class MetaDataAPIHandler : CommonAPIHandler
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
-    }
+	}
 
     internal func getModule( apiName : String, completion: @escaping( Result.DataResponse< ZCRMModule, APIResponse > ) -> () )
-    {
-        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.modules )/\(apiName)" )
-        setRequestMethod(requestMethod: .get )
-        let request : APIRequest = APIRequest(handler: self)
+	{
+		setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.modules )/\(apiName)" )
+		setRequestMethod(requestMethod: .get )
+		let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
@@ -71,9 +71,9 @@ internal class MetaDataAPIHandler : CommonAPIHandler
             }
         }
     }
-    
-    private func getZCRMModule(moduleDetails : [String:Any]) throws -> ZCRMModule
-    {
+	
+	private func getZCRMModule(moduleDetails : [String:Any]) throws -> ZCRMModule
+	{
         let module : ZCRMModule = ZCRMModule( apiName : try moduleDetails.getString( key : ResponseJSONKeys.apiName ), singularLabel : try moduleDetails.getString( key : ResponseJSONKeys.singularLabel ), pluralLabel : try moduleDetails.getString( key : ResponseJSONKeys.pluralLabel ) )
         module.id = try moduleDetails.getInt64( key : ResponseJSONKeys.id )
         module.name = try moduleDetails.getString( key : ResponseJSONKeys.moduleName )
@@ -155,6 +155,18 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         {
             module.isSubMenuPresent = try moduleDetails.getBoolean( key : ResponseJSONKeys.presenceSubMenu )
         }
+        if moduleDetails.hasValue( forKey: ResponseJSONKeys.properties )
+        {
+            if let properties = try moduleDetails.getArray(key: ResponseJSONKeys.properties) as? [ String ]
+            {
+                module.properties = properties.map{ $0.replacingOccurrences(of: "$", with: "", options: [], range: $0.range(of: "$")) }
+            }
+            else
+            {
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.typeCastError) : \( ResponseJSONKeys.properties ) - Expected type -> Array Of String, \( APIConstants.DETAILS ) : -")
+                throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( ResponseJSONKeys.properties ) - Expected type -> Array Of String", details : nil )
+            }
+        }
         if moduleDetails.hasValue( forKey : ResponseJSONKeys.perPage )
         {
             module.perPage = try moduleDetails.getInt( key : ResponseJSONKeys.perPage )
@@ -167,15 +179,15 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         }
         return module
     }
-    
-    private func setRelatedListProperties(relatedList : ZCRMModuleRelation, relatedListDetails : [String : Any]) throws
-    {
+	
+	private func setRelatedListProperties(relatedList : ZCRMModuleRelation, relatedListDetails : [String : Any]) throws
+	{
         relatedList.label = try relatedListDetails.getString(key: ResponseJSONKeys.displayLabel)
-        relatedList.module = relatedListDetails.optString(key: ResponseJSONKeys.module)
-        relatedList.id = try relatedListDetails.getInt64(key: ResponseJSONKeys.id)
-        relatedList.isVisible = try relatedListDetails.getBoolean(key: ResponseJSONKeys.visible)
+		relatedList.module = relatedListDetails.optString(key: ResponseJSONKeys.module)
+		relatedList.id = try relatedListDetails.getInt64(key: ResponseJSONKeys.id)
+		relatedList.isVisible = try relatedListDetails.getBoolean(key: ResponseJSONKeys.visible)
         relatedList.isDefault = (ResponseJSONKeys.defaultString == relatedListDetails.optString(key: ResponseJSONKeys.type))
-    }
+	}
     
     internal override func getJSONRootKey() -> String {
         return APIConstants.MODULES
