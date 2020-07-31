@@ -19,6 +19,47 @@ open class ZCRMRecordDelegate : ZCRMEntity
         self.moduleAPIName = moduleAPIName
     }
     
+    /**
+      Returns the ZCRMRecordDelegate's fieldAPIName vs field value dictionary
+     
+     - Returns: ZCRMRecordDelegate's fieldAPIName vs field value dictionary
+     */
+    public func getData() -> [ String : Any? ]
+    {
+        return self.data
+    }
+    
+    /**
+      Returns the value of the property name given
+     
+     - Parameter ofProperty : Name of the property
+     - Returns: The value of the property
+     */
+    public func getValue( ofProperty : String ) -> Any?
+    {
+        return self.properties.optValue( key : ofProperty )
+    }
+    
+    /**
+      Returns the field value to which the specified field name is mapped
+     
+     - Parameter ofFieldAPIName: Field name whose associated value is to be returned
+     - Returns: The value to which specified field name is mapped
+     - Throws: The ZCRMSDKError if the given field is not present in the ZCRMRecord
+     */
+    public func getValue( ofFieldAPIName : String ) throws -> Any?
+    {
+        if self.data.hasKey( forKey : ofFieldAPIName )
+        {
+            return self.data.optValue( key : ofFieldAPIName )
+        }
+        else
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.fieldNotFound) : The given field is not present in the record. Field Name -> \( ofFieldAPIName )")
+            throw ZCRMError.processingError( code : ErrorCode.fieldNotFound, message : "The given field is not present in the record. Field Name -> \( ofFieldAPIName )", details : nil )
+        }
+    }
+    
     /// Set the value of the ZCRMRecord's property.
     ///
     /// - Parameters:
@@ -132,7 +173,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Returns: APIResponse of the note addition
     /// - Throws: ZCRMSDKError if Note id is not nil
     public func addNote(note: ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
-    {
+    { 
         if !note.isCreate
         {
             ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : Note ID must be nil for create operation, \( APIConstants.DETAILS ) : -")
