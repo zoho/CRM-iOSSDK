@@ -50,13 +50,14 @@ open class ZCRMModule : ZCRMModuleDelegate
     public internal( set ) var isFilterSupported : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isFeedsRequired : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isEmailTemplateSupported : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var properties : [ String ]?
     
     internal init( apiName : String, singularLabel : String, pluralLabel : String )
     {
         self.singularLabel = singularLabel
         self.pluralLabel = pluralLabel
         super.init( apiName : apiName )
-    }
+	}
     
     func addAccessibleProfiles( profile : ZCRMProfileDelegate )
     {

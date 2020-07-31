@@ -27,9 +27,9 @@ internal class OrgAPIHandler : CommonAPIHandler
         self.variable = variable
     }
     
-    override init() {
+	override init() {
         self.cache = CacheFlavour.noCache
-    }
+	}
     
     override func setModuleName() {
         self.requestedModule = "org"
@@ -39,8 +39,8 @@ internal class OrgAPIHandler : CommonAPIHandler
     {
         setIsCacheable( true )
         setJSONRootKey( key : JSONRootKey.ORG )
-        setUrlPath(urlPath:  "\( URLPathConstants.org )" )
-        setRequestMethod(requestMethod: .get)
+		setUrlPath(urlPath:  "\( URLPathConstants.org )" )
+		setRequestMethod(requestMethod: .get)
         
         if let id = id
         {
@@ -1567,6 +1567,7 @@ extension OrgAPIHandler
     
     struct URLPathConstants {
         static let org = "org"
+        static let orgs = "orgs"
         static let settings = "settings"
         static let variables = "variables"
         static let variableGroups = "variable_groups"
