@@ -157,27 +157,27 @@ internal class ModuleAPIHandler : CommonAPIHandler
         self.module = module
         self.cache = cacheFlavour
     }
-    
+	
     override func setModuleName() {
         self.requestedModule = module.apiName
     }
     
-    // MARK: - Handler functions
+	// MARK: - Handler functions
     internal func getAllLayouts( modifiedSince : String?, completion: @escaping( Result.DataResponse< [ ZCRMLayout ], BulkAPIResponse > ) -> () )
     {
         setIsCacheable(true)
-        setJSONRootKey( key : JSONRootKey.LAYOUTS )
+		setJSONRootKey( key : JSONRootKey.LAYOUTS )
         var layouts : [ZCRMLayout] = [ZCRMLayout]()
-        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.layouts )")
-        setRequestMethod(requestMethod: .get )
+		setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.layouts )")
+		setRequestMethod(requestMethod: .get )
         addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
-        if modifiedSince.notNilandEmpty, let modifiedSince = modifiedSince
-        {
-            addRequestHeader( header : RequestParamKeys.ifModifiedSince , value : modifiedSince )
-        }
-        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+		if modifiedSince.notNilandEmpty, let modifiedSince = modifiedSince
+		{ 
+			addRequestHeader( header : RequestParamKeys.ifModifiedSince , value : modifiedSince )
+		}
+		let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-        
+		
         request.getBulkAPIResponse { ( resultType ) in
             do{
                 let bulkResponse = try resultType.resolve()
@@ -206,12 +206,12 @@ internal class ModuleAPIHandler : CommonAPIHandler
     {
         setIsCacheable(true)
         setJSONRootKey( key : JSONRootKey.LAYOUTS )
-        setUrlPath(urlPath:  "\( URLPathConstants.settings )/\( URLPathConstants.layouts )/\(layoutId)")
-        setRequestMethod(requestMethod: .get )
-        addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
-        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
-        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-        
+		setUrlPath(urlPath:  "\( URLPathConstants.settings )/\( URLPathConstants.layouts )/\(layoutId)")
+		setRequestMethod(requestMethod: .get )
+		addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
+		let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+		ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+		
         request.getAPIResponse { ( resultType ) in
             do{
                 let response = try resultType.resolve()
@@ -235,14 +235,14 @@ internal class ModuleAPIHandler : CommonAPIHandler
         var fields : [ZCRMField] = [ZCRMField]()
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.fields )")
         setRequestMethod(requestMethod: .get )
-        addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
+		addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
         if modifiedSince.notNilandEmpty, let modifiedSince = modifiedSince
         {
             addRequestHeader( header : RequestParamKeys.ifModifiedSince , value : modifiedSince )
         }
-        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+		let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-        
+		
         request.getBulkAPIResponse { ( resultType ) in
             do{
                 let bulkResponse = try resultType.resolve()
@@ -297,16 +297,16 @@ internal class ModuleAPIHandler : CommonAPIHandler
     {
         setIsCacheable(true)
         setJSONRootKey( key : JSONRootKey.CUSTOM_VIEWS )
-        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.customViews )")
-        setRequestMethod(requestMethod: .get )
-        addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
+		setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.customViews )")
+		setRequestMethod(requestMethod: .get )
+		addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
         if modifiedSince.notNilandEmpty, let modifiedSince = modifiedSince
         {
             addRequestHeader( header : RequestParamKeys.ifModifiedSince , value : modifiedSince )
         }
-        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+		let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-        
+		
         request.getBulkAPIResponse { ( resultType ) in
             do{
                 let bulkResponse = try resultType.resolve()
@@ -400,10 +400,10 @@ internal class ModuleAPIHandler : CommonAPIHandler
     {
         setIsCacheable(true)
         setJSONRootKey( key :  JSONRootKey.CUSTOM_VIEWS )
-        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.customViews )/\(cvId)" )
-        setRequestMethod(requestMethod: .get )
-        addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
-        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+		setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.customViews )/\(cvId)" )
+		setRequestMethod(requestMethod: .get )
+		addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
+		let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
@@ -458,8 +458,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
             }
         }
     }
-    
-    // MARK: - Utility functions
+	
+	// MARK: - Utility functions
     private func getAllRelatedLists( relatedListsDetails : [ [ String : Any ] ] ) throws -> [ ZCRMModuleRelation ]
     {
         var relatedLists : [ ZCRMModuleRelation ] = [ ZCRMModuleRelation ]()
@@ -470,7 +470,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         return relatedLists
     }
     
-    internal func getZCRMCustomView(cvDetails: [String:Any]) throws -> ZCRMCustomView
+	internal func getZCRMCustomView(cvDetails: [String:Any]) throws -> ZCRMCustomView
     {
         let customView : ZCRMCustomView = ZCRMCustomView( name : try cvDetails.getString( key : ResponseJSONKeys.name ), moduleAPIName : self.module.apiName )
         customView.id = try cvDetails.getInt64( key : ResponseJSONKeys.id )
@@ -862,6 +862,7 @@ internal extension ModuleAPIHandler
         static let module = "module"
         
         static let criteria = "criteria"
+        
         static let sharedType = "shared_type"
         static let sharedDetails = "shared_details"
         static let href = "href"
@@ -871,6 +872,8 @@ internal extension ModuleAPIHandler
         static let maximumRows = "maximum_rows"
         static let properties = "properties"
         static let required = "required"
+        
+        static let count = "count"
     }
     
     struct URLPathConstants {

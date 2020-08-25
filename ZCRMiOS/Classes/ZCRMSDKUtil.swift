@@ -186,14 +186,14 @@ public class ZCRMSDKUtil
     @available(*, deprecated, message: "Use the method makeRequest with param requestBody instead" )
     public static func makeRequest(withURL url : URL, _ requestMethod : RequestMethod , headers : [ String : String ]?, completion : @escaping ( Result.DataURLResponse<Data, HTTPURLResponse> ) -> Void )
     {
-        APIRequest(absoluteURL: url, requestMethod: requestMethod).initialiseRequest(url, requestMethod, headers, nil) { result in
+        APIRequest(absoluteURL: url, requestMethod: requestMethod).initialiseRequest( headers, nil ) { result in
             completion( result )
         }
     }
     
     public static func makeRequest(withURL url : URL, _ requestMethod : RequestMethod , headers : [ String : String ]?, requestBody : [ String : Any ]?, completion : @escaping ( Result.DataURLResponse<Data, HTTPURLResponse> ) -> Void )
     {
-        APIRequest(absoluteURL: url, requestMethod: requestMethod).initialiseRequest(url, requestMethod, headers, requestBody) { result in
+        APIRequest(absoluteURL: url, requestMethod: requestMethod).initialiseRequest( headers, requestBody ) { result in
             completion( result )
         }
     }

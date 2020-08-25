@@ -8,8 +8,8 @@
 
 Pod::Spec.new do |s|
   s.name             = 'ZCRMiOS'
-  s.version          = '1.3.4'
-      s.summary          = 'A short description of ZCRMiOS.'
+  s.version          = '1.3.5'
+          s.summary          = 'A short description of ZCRMiOS.'
 
 # This description is used to generate tags and improve search results.
 #   * Think: What does it do? Why did you write it? What is the focus?
