@@ -22,6 +22,7 @@ public protocol GETEntityRequestParams : GETRequestParams
 
 public class ZCRMQuery
 {
+    
     public struct GetRecordParams : GETEntityRequestParams
     {
         public var kanbanViewColumn : String?
@@ -122,7 +123,14 @@ public class ZCRMQuery
         internal init(apiName : String, comparator : String, value : Any) {
             self.apiName = apiName
             self.comparator = comparator
-            self.value = value
+            if let value = value as? String
+            {
+                self.value = value.replacingOccurrences(of: ",", with: "\\,")
+            }
+            else
+            {
+                self.value = value
+            }
             if self.apiName.contains( "(" ) && self.apiName.contains( "-" ) && self.apiName.contains( "/" ) && self.apiName.contains( ")" )
             {
                 self.type = Constants.FORMULA_EXPRESSION

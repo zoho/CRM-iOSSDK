@@ -16,7 +16,6 @@
     private var requestBody : Any?
     internal var request : URLRequest?
     private var url : URL?
-    private var absoluteURL : URL?
     private var isOAuth : Bool = true
     internal var jsonRootKey = String()
     private var cacheFlavour : CacheFlavour!
@@ -25,11 +24,13 @@
     internal static let session = URLSession( configuration : APIRequest.configuration )
     private var requestedModule : String?
     
-    init( absoluteURL : URL, requestMethod : RequestMethod )
+    init( absoluteURL : URL, requestMethod : RequestMethod, cacheFlavour : CacheFlavour? = nil, isCacheable : Bool? = false, jsonRootKey : String? = nil )
     {
-        self.absoluteURL = absoluteURL
+        self.url = absoluteURL
         self.requestMethod = requestMethod
-        self.isCacheable = false
+        self.isCacheable = isCacheable ?? false
+        self.cacheFlavour = cacheFlavour ?? CacheFlavour.noCache
+        self.jsonRootKey = jsonRootKey ?? String()
     }
     
     init( handler : APIHandler, cacheFlavour : CacheFlavour )
@@ -169,15 +170,11 @@
      Used only for acquiring raw response from the server for any apiRequests.
      
      - Parameters:
-        - absoluteURL : Absolute URL of the request that has to be made.
-        - requestMethod : Request Method of the API
         - headers : Headers that has to be included for the request ( Optional Value )
         - completion : Returns the raw Data and HTTPURLResponse
      */
-    func initialiseRequest( _ absoluteURL : URL, _ requestMethod : RequestMethod, _ headers : [ String : String ]?, _ requestBody : [ String : Any ]?, completion : @escaping ( Result.DataURLResponse<Data, HTTPURLResponse> ) -> Void )
+    func initialiseRequest( _ headers : [ String : String ]?, _ requestBody : [ String : Any ]?, completion : @escaping ( Result.DataURLResponse<Data, HTTPURLResponse> ) -> Void )
     {
-        self.url = absoluteURL
-        
         if let requestHeaders = headers
         {
             for ( key, value ) in requestHeaders

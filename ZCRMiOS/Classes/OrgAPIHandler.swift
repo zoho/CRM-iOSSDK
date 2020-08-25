@@ -1557,7 +1557,7 @@ extension OrgAPIHandler
         static let currency = "currency"
         
         static let active = "active"
-        
+
         static let manager = "manager"
         static let parentId = "parent_id"
         static let criteria = "criteria"
