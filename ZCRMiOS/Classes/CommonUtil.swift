@@ -203,6 +203,7 @@ internal struct FieldDataTypeConstants
 {
     static var subform = "subform"
     static var userLookup = "userlookup"
+    static let ownerLookup = "ownerlookup"
 }
 
 public enum EventParticipant : Equatable
@@ -1268,7 +1269,7 @@ internal struct RequestParamKeys
     static let startIndex : String = "start_index"
     static let dealsMail : String = "deals_mail"
     static let category : String = "category"
-    static let criteria : String = "criteria"
+    static let criteria = "criteria"
 }
 
 var ACCOUNTSURL : String = String()
