@@ -1231,9 +1231,6 @@ internal struct APIConstants
     var ENABLED_DB_CACHE : Bool = true
     
     static let EXCEPTION_LOG_MSG : String = "ZCRM SDK - "
-    
-    static let FAVORITE_COMPONENT_ID : Int64 = -111
-    static var FAVORITE_COMPONENT_NAME : String = "Favorite Components"
 }
 
 public struct DefaultModuleAPINames
@@ -1299,7 +1296,6 @@ struct JSONRootKey {
     static let USERS : String = "users"
     static let PROFILES : String = "profiles"
     static let ROLES : String = "roles"
-    static let COMPONENTS : String = "components"
     static let STAGES : String = "stages"
     static let TAXES : String = "taxes"
     static let TIMELINES : String = "timelines"

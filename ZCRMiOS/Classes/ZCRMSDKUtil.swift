@@ -228,9 +228,4 @@ public class ZCRMSDKUtil
             completion( result )
         }
     }
-    
-    public static func setFavoriteComponentLocalised( _ name : String )
-    {
-        APIConstants.FAVORITE_COMPONENT_NAME = name
-    }
 }
