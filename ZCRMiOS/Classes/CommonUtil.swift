@@ -203,6 +203,7 @@ internal struct FieldDataTypeConstants
 {
     static var subform = "subform"
     static var userLookup = "userlookup"
+    static let ownerLookup = "ownerlookup"
 }
 
 public enum EventParticipant : Equatable
@@ -1230,6 +1231,9 @@ internal struct APIConstants
     var ENABLED_DB_CACHE : Bool = true
     
     static let EXCEPTION_LOG_MSG : String = "ZCRM SDK - "
+    
+    static let FAVORITE_COMPONENT_ID : Int64 = -111
+    static var FAVORITE_COMPONENT_NAME : String = "Favorite Components"
 }
 
 public struct DefaultModuleAPINames
@@ -1268,7 +1272,7 @@ internal struct RequestParamKeys
     static let startIndex : String = "start_index"
     static let dealsMail : String = "deals_mail"
     static let category : String = "category"
-    static let criteria : String = "criteria"
+    static let criteria = "criteria"
 }
 
 var ACCOUNTSURL : String = String()
@@ -1295,6 +1299,7 @@ struct JSONRootKey {
     static let USERS : String = "users"
     static let PROFILES : String = "profiles"
     static let ROLES : String = "roles"
+    static let COMPONENTS : String = "components"
     static let STAGES : String = "stages"
     static let TAXES : String = "taxes"
     static let TIMELINES : String = "timelines"

@@ -216,6 +216,22 @@ open class ZCRMModuleDelegate : ZCRMEntity
     }
     
     /**
+      To get the number of records in a module and number of records satisfying the given param values
+     
+     - Parameters:
+        - filter : Filter criteria
+        - cvId : Id of the custom view
+        - approved : To decide whether to fetch approved records count or unapproved
+        - converted : To decide whether to fetch converted records count or nonConverted
+     */
+    public func getRecordsCount( filter : ZCRMQuery.ZCRMCriteria? = nil, cvId : Int64? = nil, approved : Bool? = nil, converted : Bool? = nil, completion : @escaping ( Result.DataResponse< Int, APIResponse > ) -> () )
+    {
+        ModuleAPIHandler(module: self, cacheFlavour: .noCache).getRecordsCount(filter: filter, cvId: cvId, approved: approved, converted: converted) { result in
+            completion( result )
+        }
+    }
+    
+    /**
      Returns List of all deleted records of the module( BulkAPIResponse )
      
      - Parameters:
