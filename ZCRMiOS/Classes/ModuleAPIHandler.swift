@@ -458,59 +458,6 @@ internal class ModuleAPIHandler : CommonAPIHandler
             }
         }
     }
-    
-    internal func getRecordsCount( filter : ZCRMQuery.ZCRMCriteria? = nil, cvId : Int64? = nil, approved : Bool? = nil, converted : Bool? = nil, completion : @escaping ( Result.DataResponse< Int, APIResponse > ) -> () )
-    {
-        setUrlPath(urlPath: "\( module.apiName )/\( URLPathConstants.actions )/\( URLPathConstants.count )")
-        setRequestMethod(requestMethod: .get)
-        
-        if let filter = filter, let filterQuery = filter.filterQuery
-        {
-            addRequestParam(param: RequestParamKeys.filters, value: filterQuery)
-        }
-        if let cvId = cvId
-        {
-            addRequestParam(param: RequestParamKeys.cvId, value: "\( cvId )")
-        }
-        if let approved = approved
-        {
-            addRequestParam(param: RequestParamKeys.approved, value: "\( approved )")
-        }
-        if let converted = converted
-        {
-            addRequestParam(param: RequestParamKeys.converted, value: "\( converted )")
-        }
-        
-        let request = APIRequest(handler: self)
-        ZCRMLogger.logDebug( message : "Request : \(request.toString())" )
-        
-        request.getAPIResponse() { result in
-            do
-            {
-                switch result
-                {
-                case .success(let response) :
-                    let responseJSON = response.getResponseJSON()
-                    if responseJSON.isEmpty == true
-                    {
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg ), \( APIConstants.DETAILS ) : -" )
-                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
-                        return
-                    }
-                    let count = try responseJSON.getInt(key: ResponseJSONKeys.count)
-                    completion( .success( count, response) )
-                case .failure(let error) :
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                    completion( .failure( typeCastToZCRMError( error ) ) )
-                }
-            }
-            catch
-            {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                completion( .failure( typeCastToZCRMError( error ) ) )
-            }
-        }
-    }
 	
 	// MARK: - Utility functions
     private func getAllRelatedLists( relatedListsDetails : [ [ String : Any ] ] ) throws -> [ ZCRMModuleRelation ]
@@ -940,8 +887,6 @@ internal extension ModuleAPIHandler
         static let ignite = "ignite"
         static let activities = "activities"
         static let filters = "filters"
-        static let actions = "actions"
-        static let count = "count"
     }
 
     enum SubLayoutViewType : String
