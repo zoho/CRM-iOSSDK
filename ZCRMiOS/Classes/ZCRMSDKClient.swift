@@ -22,6 +22,7 @@ public class ZCRMSDKClient
     internal var appType : AppType = AppType.zcrm
     public var requestTimeout : Double = 120.0
     private var zohoAuthProvider : ZohoAuthProvider?
+    
     /**
      The time until the db data can be used for specific URL Request. After the time ends the data will be fetched from the server.
      
@@ -37,6 +38,18 @@ public class ZCRMSDKClient
         private var crmAppConfigs : Dictionary < String, Any >!
     
     internal var sessionCompletionHandlers : [ String : () -> () ] = [ String : () -> () ]()
+    internal var isUserSignedIn : Bool
+    {
+        get
+        {
+            if self.isVerticalCRM && self.appType != .solutions
+            {
+                return ZohoPortalAuth.isUserSignedIn()
+            }
+            return ZohoAuth.isUserSignedIn()
+        }
+    }
+
     
     private init() {}
     
@@ -328,14 +341,14 @@ public class ZCRMSDKClient
                 throw ZCRMError.sdkError(code: ErrorCode.internalError, message: error.description, details: nil)
             }
         }
-        
-        public func showLogin(completion: @escaping (Bool) -> ())
+    
+        public func presentLogin(completion: @escaping ( ZCRMError? ) -> ())
         {
             self.isUserSignedIn { (isUserSignedIn) in
                 if isUserSignedIn
                 {
                     ZCRMLogger.logDebug(message: "User already signed in.")
-                    completion(true)
+                    completion( nil )
                 }
                 else
                 {
@@ -349,6 +362,43 @@ public class ZCRMSDKClient
                     {
                         self.zcrmLoginHandler?.handleLogin(completion: { (success) in
                             completion(success)
+                        })
+                    }
+                }
+            }
+        }
+    
+        @available(*, deprecated, message: "Use presentSignIn method with param ( completion: @escaping ( ( ZCRMError? ) -> ()) ) instead" )
+        public func showLogin(completion: @escaping (Bool) -> ())
+        {
+            self.isUserSignedIn { (isUserSignedIn) in
+                if isUserSignedIn
+                {
+                    ZCRMLogger.logDebug(message: "User already signed in.")
+                    completion(true)
+                }
+                else
+                {
+                    if self.isVerticalCRM
+                    {
+                        self.zvcrmLoginHandler?.handleLogin { ( error ) in
+                            if error != nil
+                            {
+                                completion( false )
+                                return
+                            }
+                            completion( true )
+                        }
+                    }
+                    else
+                    {
+                        self.zcrmLoginHandler?.handleLogin(completion: { ( error ) in
+                            if error != nil
+                            {
+                                completion( false )
+                                return
+                            }
+                            completion( true )
                         })
                     }
                 }
@@ -368,7 +418,7 @@ public class ZCRMSDKClient
             } )
         }
         
-        public func logout(completion: @escaping (Bool) -> ())
+        public func signout(completion: @escaping (ZCRMError?) -> ())
         {
             if self.isVerticalCRM
             {
@@ -380,6 +430,31 @@ public class ZCRMSDKClient
             {
                 self.zcrmLoginHandler?.logout { (success) in
                     completion(success)
+                }
+            }
+        }
+        
+        @available(*, deprecated, message: "Use handleLogout method with param ( completion: @escaping ( ( ZCRMError? ) -> ()) ) instead" )
+        public func logout(completion: @escaping (Bool) -> ())
+        {
+            if self.isVerticalCRM
+            {
+                self.zvcrmLoginHandler?.logout { ( error ) in
+                    if error != nil
+                    {
+                        completion( false )
+                    }
+                    completion( true )
+                }
+            }
+            else
+            {
+                self.zcrmLoginHandler?.logout { ( error ) in
+                    if error != nil
+                    {
+                        completion( false )
+                    }
+                    completion( true )
                 }
             }
         }
