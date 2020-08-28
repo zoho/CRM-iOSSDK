@@ -342,7 +342,7 @@ public class ZCRMSDKClient
             }
         }
     
-        public func presentLogin(completion: @escaping ( ZCRMError? ) -> ())
+        public func showLogin(completion: @escaping ( ZCRMError? ) -> ())
         {
             self.isUserSignedIn { (isUserSignedIn) in
                 if isUserSignedIn
@@ -367,43 +367,6 @@ public class ZCRMSDKClient
                 }
             }
         }
-    
-        @available(*, deprecated, message: "Use presentSignIn method with param ( completion: @escaping ( ( ZCRMError? ) -> ()) ) instead" )
-        public func showLogin(completion: @escaping (Bool) -> ())
-        {
-            self.isUserSignedIn { (isUserSignedIn) in
-                if isUserSignedIn
-                {
-                    ZCRMLogger.logDebug(message: "User already signed in.")
-                    completion(true)
-                }
-                else
-                {
-                    if self.isVerticalCRM
-                    {
-                        self.zvcrmLoginHandler?.handleLogin { ( error ) in
-                            if error != nil
-                            {
-                                completion( false )
-                                return
-                            }
-                            completion( true )
-                        }
-                    }
-                    else
-                    {
-                        self.zcrmLoginHandler?.handleLogin(completion: { ( error ) in
-                            if error != nil
-                            {
-                                completion( false )
-                                return
-                            }
-                            completion( true )
-                        })
-                    }
-                }
-            }
-        }
         
         public func isUserSignedIn(completion: @escaping (Bool) -> ())
         {
@@ -418,7 +381,7 @@ public class ZCRMSDKClient
             } )
         }
         
-        public func signout(completion: @escaping (ZCRMError?) -> ())
+        public func logout(completion: @escaping (ZCRMError?) -> ())
         {
             if self.isVerticalCRM
             {
@@ -430,31 +393,6 @@ public class ZCRMSDKClient
             {
                 self.zcrmLoginHandler?.logout { (success) in
                     completion(success)
-                }
-            }
-        }
-        
-        @available(*, deprecated, message: "Use handleLogout method with param ( completion: @escaping ( ( ZCRMError? ) -> ()) ) instead" )
-        public func logout(completion: @escaping (Bool) -> ())
-        {
-            if self.isVerticalCRM
-            {
-                self.zvcrmLoginHandler?.logout { ( error ) in
-                    if error != nil
-                    {
-                        completion( false )
-                    }
-                    completion( true )
-                }
-            }
-            else
-            {
-                self.zcrmLoginHandler?.logout { ( error ) in
-                    if error != nil
-                    {
-                        completion( false )
-                    }
-                    completion( true )
                 }
             }
         }
