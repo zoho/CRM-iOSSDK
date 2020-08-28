@@ -62,33 +62,33 @@ public class ZVCRMLoginHandler : ZohoAuthProvider
         
     }
 
-    public func handleLogin( completion : @escaping( Bool ) -> () )
+    public func handleLogin( completion : @escaping( ZCRMError? ) -> () )
     {
         ZohoPortalAuth.presentZohoPortalSign { ( success, error ) in
-            if( error != nil )
+            if let error = error
             {
-                switch( error!.code )
+                switch( error.code )
                 {
                 // SFSafari Dismissed
                 case 205 :
-                    print( "Error Detail : \( error!.description ), code : \( error!.code )" )
-                    completion( false )
+                    print( "Error Detail : \( error.description ), code : \( error.code )" )
+                    completion( typeCastToZCRMError( error ) )
                     break
 
                 // access_denied
                 case 905 :
-                    print( "Error Detail : \( error!.description ), code : \( error!.code )" )
-                    completion( false )
+                    print( "Error Detail : \( error.description ), code : \( error.code )" )
+                    completion( typeCastToZCRMError( error ) )
                     break
 
                 default :
-                    completion( false )
-                    print( "Error : \( error! )" )
+                    completion( typeCastToZCRMError( error ) )
+                    print( "Error : \( error )" )
                 }
             }
             else
             {
-                completion( true )
+                completion( nil )
             }
         }
     }
@@ -103,14 +103,14 @@ public class ZVCRMLoginHandler : ZohoAuthProvider
         ZohoPortalAuth.clearZohoAuthPortalDetailsForFirstLaunch()
     }
 
-    public func logout( completion : @escaping ( Bool ) -> () )
+    public func logout( completion : @escaping ( ZCRMError? ) -> () )
     {
         ZohoPortalAuth.revokeAccessToken(
             { ( error ) in
-                if( error != nil )
+                if let error = error
                 {
-                    print( "Error occured in logout() : \(error!)" )
-                    completion( false )
+                    print( "Error occured in logout() : \(error)" )
+                    completion( typeCastToZCRMError( error ) )
                 }
                 else
                 {
@@ -128,7 +128,7 @@ public class ZVCRMLoginHandler : ZohoAuthProvider
                             HTTPCookieStorage.shared.deleteCookie(cookie)
                         }
                     }
-                    completion( true )
+                    completion( nil )
                     ZCRMLogger.logDebug( message: "logout ZVCRM successful!" )
                 }
         })

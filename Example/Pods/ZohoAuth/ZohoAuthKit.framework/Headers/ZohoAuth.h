@@ -162,4 +162,7 @@ This method presents the Zoho Sign in page with custom parameters on SFSafariVie
 /// Method to set Network Delegate for On-Premise
 /// @param delegate NSURLSessionDataDelegate
 +(void)setNetworkDelegate:(id<NSURLSessionDataDelegate> )delegate;
+
+///  Method to get the Signed-in status of user in your app. YES if there is already a user signed-in to your app or NO if there is no user signed in to your app.
++(BOOL)isUserSignedIn;
 @end

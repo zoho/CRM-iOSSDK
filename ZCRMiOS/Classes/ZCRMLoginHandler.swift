@@ -146,44 +146,44 @@ public class ZCRMLoginHandler : ZohoAuthProvider
         ZohoAuth.handleURL( url, sourceApplication :sourceApplication, annotation : annotation )
     }
     
-    public func handleLogin( completion: @escaping ( Bool ) -> () )
+    public func handleLogin( completion: @escaping ( ZCRMError? ) -> () )
     {
         ZohoAuth.presentZohoSign(inHavingCustomParams: self.getLoginScreenParams()) { (success, error) in
-            if( error != nil )
+            if let error = error
             {
-                switch( error!.code )
+                switch( error.code )
                 {
                     // SFSafari Dismissed
                     case 205 :
-                        ZCRMLogger.logDebug( message: "Login view dismissed. Detail : \( error!.description ), code : \( error!.code )" )
-                        completion( false )
+                        ZCRMLogger.logDebug( message: "Login view dismissed. Detail : \( error.description ), code : \( error.code )" )
+                        completion( typeCastToZCRMError( error ) )
                         break
                         
                     // access_denied
                     case 905 :
-                        ZCRMLogger.logDebug( message: "User denied the access : \( error!.description ), code : \( error!.code )" )
-                        completion( false )
+                        ZCRMLogger.logDebug( message: "User denied the access : \( error.description ), code : \( error.code )" )
+                        completion( typeCastToZCRMError( error ) )
                         break
                         
                     default :
-                        completion( false )
-                        ZCRMLogger.logDebug( message: "Error occured while present sign in page. Detail : \( error! )" )
+                        completion( typeCastToZCRMError( error ) )
+                        ZCRMLogger.logDebug( message: "Error occured while present sign in page. Detail : \( error )" )
                 }
             }
             else
             {
-                completion( true )
+                completion( nil )
             }
         }
     }
     
-    public func logout( completion : @escaping ( Bool ) -> () )
+    public func logout( completion : @escaping ( ZCRMError? ) -> () )
     {
         ZohoAuth.revokeAccessToken( { ( error ) in
-            if( error != nil )
+            if let error = error
             {
-                ZCRMLogger.logDebug( message: "Error occured in removeAllScopesWithSuccess() : \(error!)" )
-                completion( false )
+                ZCRMLogger.logDebug( message: "Error occured in removeAllScopesWithSuccess() : \(error)" )
+                completion( typeCastToZCRMError( error ) )
             }
             else
             {
@@ -198,7 +198,7 @@ public class ZCRMLoginHandler : ZohoAuthProvider
                         HTTPCookieStorage.shared.deleteCookie( cookie )
                     }
                 }
-                completion( true )
+                completion( nil )
                 ZCRMLogger.logDebug( message: "logout ZCRM!" )
             }
         } )

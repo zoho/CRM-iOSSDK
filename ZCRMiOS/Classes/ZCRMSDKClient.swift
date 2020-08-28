@@ -22,6 +22,7 @@ public class ZCRMSDKClient
     internal var appType : AppType = AppType.zcrm
     public var requestTimeout : Double = 120.0
     private var zohoAuthProvider : ZohoAuthProvider?
+    
     /**
      The time until the db data can be used for specific URL Request. After the time ends the data will be fetched from the server.
      
@@ -37,6 +38,18 @@ public class ZCRMSDKClient
         private var crmAppConfigs : Dictionary < String, Any >!
     
     internal var sessionCompletionHandlers : [ String : () -> () ] = [ String : () -> () ]()
+    internal var isUserSignedIn : Bool
+    {
+        get
+        {
+            if self.isVerticalCRM && self.appType != .solutions
+            {
+                return ZohoPortalAuth.isUserSignedIn()
+            }
+            return ZohoAuth.isUserSignedIn()
+        }
+    }
+
     
     private init() {}
     
@@ -328,14 +341,14 @@ public class ZCRMSDKClient
                 throw ZCRMError.sdkError(code: ErrorCode.internalError, message: error.description, details: nil)
             }
         }
-        
-        public func showLogin(completion: @escaping (Bool) -> ())
+    
+        public func showLogin(completion: @escaping ( ZCRMError? ) -> ())
         {
             self.isUserSignedIn { (isUserSignedIn) in
                 if isUserSignedIn
                 {
                     ZCRMLogger.logDebug(message: "User already signed in.")
-                    completion(true)
+                    completion( nil )
                 }
                 else
                 {
@@ -368,7 +381,7 @@ public class ZCRMSDKClient
             } )
         }
         
-        public func logout(completion: @escaping (Bool) -> ())
+        public func logout(completion: @escaping (ZCRMError?) -> ())
         {
             if self.isVerticalCRM
             {
