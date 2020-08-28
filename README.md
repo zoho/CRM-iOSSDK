@@ -87,21 +87,24 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
 
 In the ViewController class of your custom launch screen, add this code as the sign in button's action
 ```ruby
-ZCRMSDKClient.shared.showLogin { ( success ) in
-            if( success == true )
+ZCRMSDKClient.shared.showLogin { ( err ) in
+            if let error = err
             {
-                print( "Login successful" )
+                print( "unable to show login.. Error >> \( error )")
             }
             else{
-                print( "unable to show login")
+                print( "Login successful" )
             }
         }
 ```
 Add this code as the sign out button's action
 ```ruby
-ZCRMSDKClient.shared.logout { ( success ) in
-            if success {
-                print("logout successful")
+ZCRMSDKClient.shared.logout { ( err ) in
+            if let error = err {
+                print("Error occurred >>> \( error )")
+            }
+            else{
+                print( "Logout successful" )
             }
         }
 ```
