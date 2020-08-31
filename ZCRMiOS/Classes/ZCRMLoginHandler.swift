@@ -179,29 +179,37 @@ public class ZCRMLoginHandler : ZohoAuthProvider
     
     public func logout( completion : @escaping ( ZCRMError? ) -> () )
     {
-        ZohoAuth.revokeAccessToken( { ( error ) in
-            if let error = error
-            {
-                ZCRMLogger.logDebug( message: "Error occured in removeAllScopesWithSuccess() : \(error)" )
-                completion( typeCastToZCRMError( error ) )
-            }
-            else
-            {
-                self.clearIAMLoginFirstLaunch()
-                ZCRMLogger.logDebug( message: "removed AllScopesWithSuccess!" )
-                ZCRMSDKClient.shared.requestHeaders?.removeAll()
-                URLCache.shared.removeAllCachedResponses()
-                ZCRMSDKClient.shared.clearAllCache()
-                ZCRMSDKClient.shared.portalId = nil
-                if let cookies = HTTPCookieStorage.shared.cookies {
-                    for cookie in cookies {
-                        HTTPCookieStorage.shared.deleteCookie( cookie )
-                    }
+        do
+        {
+            try ZCRMSDKClient.shared.clearAllCache()
+            ZohoAuth.revokeAccessToken( { ( error ) in
+                if let error = error
+                {
+                    ZCRMLogger.logDebug( message: "Error occured in removeAllScopesWithSuccess() : \(error)" )
+                    completion( typeCastToZCRMError( error ) )
                 }
-                completion( nil )
-                ZCRMLogger.logDebug( message: "logout ZCRM!" )
-            }
-        } )
+                else
+                {
+                    self.clearIAMLoginFirstLaunch()
+                    ZCRMLogger.logDebug( message: "removed AllScopesWithSuccess!" )
+                    ZCRMSDKClient.shared.requestHeaders?.removeAll()
+                    URLCache.shared.removeAllCachedResponses()
+                    
+                    ZCRMSDKClient.shared.portalId = nil
+                    if let cookies = HTTPCookieStorage.shared.cookies {
+                        for cookie in cookies {
+                            HTTPCookieStorage.shared.deleteCookie( cookie )
+                        }
+                    }
+                    completion( nil )
+                    ZCRMLogger.logDebug( message: "logout ZCRM!" )
+                }
+            } )
+        }
+        catch
+        {
+            completion( typeCastToZCRMError( error ) )
+        }
     }
     
     internal func getLoginScreenParams() -> String
