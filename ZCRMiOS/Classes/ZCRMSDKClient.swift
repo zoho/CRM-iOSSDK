@@ -10,7 +10,7 @@ public class ZCRMSDKClient
 {
     public static let shared = ZCRMSDKClient()
     public var requestHeaders : Dictionary< String, String >?
-    public var isDBCacheEnabled : Bool = false
+    var isDBCacheEnabled : Bool = false
    
     public var fileUploadURLSessionConfiguration : URLSessionConfiguration = .default
     public var fileDownloadURLSessionConfiguration : URLSessionConfiguration = .default
@@ -38,17 +38,6 @@ public class ZCRMSDKClient
         private var crmAppConfigs : Dictionary < String, Any >!
     
     internal var sessionCompletionHandlers : [ String : () -> () ] = [ String : () -> () ]()
-    internal var isUserSignedIn : Bool
-    {
-        get
-        {
-            if self.isVerticalCRM && self.appType != .solutions
-            {
-                return ZohoPortalAuth.isUserSignedIn()
-            }
-            return ZohoAuth.isUserSignedIn()
-        }
-    }
 
     
     private init() {}
@@ -139,31 +128,26 @@ public class ZCRMSDKClient
         return self.portalId
     }
     
-    public func clearCache() -> Bool
+    public func clearCache() throws
     {
-        do
-        {
-            try SQLite( dbName : DBConstant.CACHE_DB_NAME ).deleteDB()
-            return true
-        }
-        catch
-        {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-            return false
-        }
+        try SQLite( dbName : DBConstant.CACHE_DB_NAME ).deleteDB()
     }
     
-    public func clearAllCache()
+    public func clearAllCache() throws
     {
-        do
-        {
-            try SQLite( dbName : DBConstant.CACHE_DB_NAME ).deleteDB()
-            try SQLite( dbName : DBConstant.PERSISTENT_DB_NAME ).deleteDB()
-        }
-        catch
-        {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-        }
+        try SQLite( dbName : DBConstant.CACHE_DB_NAME ).deleteDB()
+        try SQLite( dbName : DBConstant.PERSISTENT_DB_NAME ).deleteDB()
+    }
+    
+    public func enableDBCaching()
+    {
+        isDBCacheEnabled = true
+    }
+    
+    public func disableDBCaching() throws
+    {
+        isDBCacheEnabled = false
+        try clearAllCache()
     }
     
     internal func getAccessToken( completion : @escaping ( Result.Data< String > ) -> ())
@@ -344,41 +328,34 @@ public class ZCRMSDKClient
     
         public func showLogin(completion: @escaping ( ZCRMError? ) -> ())
         {
-            self.isUserSignedIn { (isUserSignedIn) in
-                if isUserSignedIn
+            if isUserSignedIn()
+            {
+                completion( nil )
+            }
+            else
+            {
+                if self.isVerticalCRM
                 {
-                    ZCRMLogger.logDebug(message: "User already signed in.")
-                    completion( nil )
+                    self.zvcrmLoginHandler?.handleLogin { (success) in
+                        completion(success)
+                    }
                 }
                 else
                 {
-                    if self.isVerticalCRM
-                    {
-                        self.zvcrmLoginHandler?.handleLogin { (success) in
-                            completion(success)
-                        }
-                    }
-                    else
-                    {
-                        self.zcrmLoginHandler?.handleLogin(completion: { (success) in
-                            completion(success)
-                        })
-                    }
+                    self.zcrmLoginHandler?.handleLogin(completion: { (success) in
+                        completion(success)
+                    })
                 }
             }
         }
         
-        public func isUserSignedIn(completion: @escaping (Bool) -> ())
+        public func isUserSignedIn() -> Bool
         {
-            zohoAuthProvider?.getAccessToken( completion : { ( result ) in
-                switch result
-                {
-                case .success( _ ) :
-                    completion( true )
-                case .failure( _ ) :
-                    completion( false )
-                }
-            } )
+            if self.isVerticalCRM && self.appType != .solutions
+            {
+                return ZohoPortalAuth.isUserSignedIn()
+            }
+            return ZohoAuth.isUserSignedIn()
         }
         
         public func logout(completion: @escaping (ZCRMError?) -> ())
