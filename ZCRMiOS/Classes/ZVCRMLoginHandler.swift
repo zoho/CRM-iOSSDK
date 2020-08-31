@@ -105,7 +105,10 @@ public class ZVCRMLoginHandler : ZohoAuthProvider
 
     public func logout( completion : @escaping ( ZCRMError? ) -> () )
     {
-        ZohoPortalAuth.revokeAccessToken(
+        do
+        {
+            try ZCRMSDKClient.shared.clearAllCache()
+            ZohoPortalAuth.revokeAccessToken(
             { ( error ) in
                 if let error = error
                 {
@@ -121,7 +124,6 @@ public class ZVCRMLoginHandler : ZohoAuthProvider
                     })
                     ZCRMSDKClient.shared.requestHeaders?.removeAll()
                     URLCache.shared.removeAllCachedResponses()
-                    ZCRMSDKClient.shared.clearAllCache()
                     ZCRMSDKClient.shared.portalId = nil
                     if let cookies = HTTPCookieStorage.shared.cookies {
                         for cookie in cookies {
@@ -131,7 +133,12 @@ public class ZVCRMLoginHandler : ZohoAuthProvider
                     completion( nil )
                     ZCRMLogger.logDebug( message: "logout ZVCRM successful!" )
                 }
-        })
+            })
+        }
+        catch
+        {
+            completion( typeCastToZCRMError( error ) )
+        }
     }
     
     public func getAccessToken( completion : @escaping ( Result.Data< String > ) -> () )
