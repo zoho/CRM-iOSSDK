@@ -51,7 +51,7 @@
         self.init( handler : handler, cacheFlavour : .noCache )
     }
     
-    private func authenticateRequest( completion : @escaping( ZCRMError? ) -> () )
+    internal func authenticateRequest( completion : @escaping( ZCRMError? ) -> () )
     {
         ZCRMSDKClient.shared.getAccessToken() { result in
             switch result
@@ -84,13 +84,17 @@
                         }
                     }
                 }
-                if ZCRMSDKClient.shared.appType == .zcrmcp, let portalName = self.headers[ X_CRM_PORTAL ]
+                if ZCRMSDKClient.shared.appType == .zcrmcp, let organizationName = self.headers[ X_CRM_PORTAL ]
                 {
-                    self.addHeader(headerName: X_CRM_PORTAL, headerVal: portalName )
+                    self.addHeader(headerName: X_CRM_PORTAL, headerVal: organizationName )
                 }
-                else if let portalId = ZCRMSDKClient.shared.portalId, self.headers[ X_CRM_ORG ] == nil , self.url?.absoluteString.lastPathComponent() != "\( DefaultModuleAPINames.ORGANIZATIONS )"
+                else if let organizationId = ZCRMSDKClient.shared.portalId, self.headers[ X_CRM_ORG ] == nil , self.url?.absoluteString.lastPathComponent() != "\( DefaultModuleAPINames.ORGANIZATIONS )"
                 {
-                    self.addHeader( headerName : X_CRM_ORG, headerVal : String(portalId) )
+                    self.addHeader( headerName : X_CRM_ORG, headerVal : String(organizationId) )
+                }
+                for ( key, value ) in self.headers
+                {
+                    self.request?.setValue( value, forHTTPHeaderField: key)
                 }
                 completion( nil )
             case .failure( let error ) :
@@ -117,45 +121,34 @@
     {
         if isOAuth == true
         {
-            self.authenticateRequest { ( error ) in
-                if let err = error
+            if let myUrl = self.url
+            {
+                self.request = URLRequest(url: myUrl )
+                if self.requestMethod == RequestMethod.undefined
                 {
-                    ZCRMLogger.logError( message : "Error Occured : \( err )" )
-                    completion( typeCastToZCRMError( err ) )
+                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidOperation) : Invalid Request method!!!, \( APIConstants.DETAILS ) : -")
+                    completion( ZCRMError.inValidError( code : ErrorCode.invalidOperation, message: "Invalid Request method!!!", details: nil ) )
                     return
                 }
-                else
+                self.request?.httpMethod = self.requestMethod.rawValue
+                self.request?.cachePolicy = URLRequest.CachePolicy.reloadIgnoringLocalCacheData
+                for (key, value) in self.headers
                 {
-                    if let myUrl = self.url
-                    {
-                        self.request = URLRequest(url: myUrl )
-                        if self.requestMethod == RequestMethod.undefined
-                        {
-                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidOperation) : Invalid Request method!!!, \( APIConstants.DETAILS ) : -")
-                            completion( ZCRMError.inValidError( code : ErrorCode.invalidOperation, message: "Invalid Request method!!!", details: nil ) )
-                            return
-                        }
-                        self.request?.httpMethod = self.requestMethod.rawValue
-                        self.request?.cachePolicy = URLRequest.CachePolicy.reloadIgnoringLocalCacheData
-                        for (key, value) in self.headers
-                        {
-                            self.request?.setValue(value, forHTTPHeaderField: key)
-                        }
-                        if self.requestBody != nil, let requestBody = self.requestBody as? [ String : Any ], requestBody.isEmpty == false
-                        {
-                            let reqBody = try? JSONSerialization.data(withJSONObject: requestBody, options: [])
-                            self.request?.httpBody = reqBody
-                        }
-                        completion( nil )
-                        return
-                    }
-                    else
-                    {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
-                        completion(ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil))
-                        return
-                    }
+                    self.request?.setValue(value, forHTTPHeaderField: key)
                 }
+                if self.requestBody != nil, let requestBody = self.requestBody as? [ String : Any ], requestBody.isEmpty == false
+                {
+                    let reqBody = try? JSONSerialization.data(withJSONObject: requestBody, options: [])
+                    self.request?.httpBody = reqBody
+                }
+                completion( nil )
+                return
+            }
+            else
+            {
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
+                completion(ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil))
+                return
             }
         }
         else
@@ -517,44 +510,51 @@
     
     internal func makeRequest( completion : @escaping ( Result.DataURLResponse<Data, HTTPURLResponse> ) -> () )
     {
-        if let request = self.request
-        {
-            APIRequest.configuration.timeoutIntervalForRequest = ZCRMSDKClient.shared.requestTimeout
-            APIRequest.session.dataTask(with: request) { resultType in
-                switch resultType
-                {
-                case .success(let data, let response) :
-                    completion( .success(data, response) )
-                case .failure(let error) :
-                    if error.ZCRMErrordetails?.code != ErrorCode.noInternetConnection && error.ZCRMErrordetails?.code != ErrorCode.requestTimeOut && error.ZCRMErrordetails?.code !=  ErrorCode.networkConnectionLost
-                    {
-                        do
-                        {
-                            try self.clearCacheData()
-                        }
-                        catch
-                        {
-                            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                            completion( .failure( typeCastToZCRMError( error ) ))
-                            return
-                        }
-                    }
-                    completion( .failure( error ) )
-                }
-            }.resume()
-        }
-        else
-        {
-            do {
-                try self.clearCacheData()
-            } catch {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                completion( .failure( typeCastToZCRMError( error ) ))
+        self.authenticateRequest() { error in
+            if let error = error
+            {
+                completion( .failure( typeCastToZCRMError( error )) )
                 return
             }
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Request is nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.sdkError(code: ErrorCode.internalError, message: "Request is nil", details : nil) ) )
-            return
+            if let request = self.request
+            {
+                APIRequest.configuration.timeoutIntervalForRequest = ZCRMSDKClient.shared.requestTimeout
+                APIRequest.session.dataTask(with: request) { resultType in
+                    switch resultType
+                    {
+                    case .success(let data, let response) :
+                        completion( .success(data, response) )
+                    case .failure(let error) :
+                        if error.ZCRMErrordetails?.code != ErrorCode.noInternetConnection && error.ZCRMErrordetails?.code != ErrorCode.requestTimeOut && error.ZCRMErrordetails?.code !=  ErrorCode.networkConnectionLost
+                        {
+                            do
+                            {
+                                try self.clearCacheData()
+                            }
+                            catch
+                            {
+                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                completion( .failure( typeCastToZCRMError( error ) ))
+                                return
+                            }
+                        }
+                        completion( .failure( error ) )
+                    }
+                }.resume()
+            }
+            else
+            {
+                do {
+                    try self.clearCacheData()
+                } catch {
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ))
+                    return
+                }
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Request is nil, \( APIConstants.DETAILS ) : -")
+                completion( .failure( ZCRMError.sdkError(code: ErrorCode.internalError, message: "Request is nil", details : nil) ) )
+                return
+            }
         }
     }
     

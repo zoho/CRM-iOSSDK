@@ -179,7 +179,8 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         var zcrmFields : [ZCRMField]?
         var bulkResponse : BulkAPIResponse?
-        var err : Error?
+        var recordAPIError : Error?
+        var fieldsAPIError : Error?
         let dispatchGroup : DispatchGroup = DispatchGroup()
         
         dispatchGroup.enter()
@@ -192,7 +193,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             }
             catch
             {
-                err = error
+                fieldsAPIError = error
                 dispatchGroup.leave()
             }
         }
@@ -207,12 +208,24 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             }
             catch
             {
-                err = error
+                recordAPIError = error
                 dispatchGroup.leave()
             }
         }
         
         dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
+            if let recordAPIError = recordAPIError
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( recordAPIError )" )
+                completion( .failure( typeCastToZCRMError( recordAPIError ) ) )
+                return
+            }
+            else if let fieldsAPIError = fieldsAPIError
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( fieldsAPIError )" )
+                completion( .failure( typeCastToZCRMError( fieldsAPIError ) ) )
+                return
+            }
             if let fields = zcrmFields, let response = bulkResponse
             {
                 self.getZCRMRecords(fields: fields, bulkResponse: response, completion: { ( records, error ) in
@@ -229,11 +242,6 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         return
                     }
                 })
-            }
-            else if let error = err
-            {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                completion( .failure( typeCastToZCRMError( error ) ) )
             }
             else
             {
@@ -353,7 +361,8 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         var zcrmFields : [ZCRMField]?
         var bulkResponse : BulkAPIResponse?
-        var err : Error?
+        var recordAPIError : Error?
+        var fieldsAPIError : Error?
         let dispatchGroup : DispatchGroup = DispatchGroup()
         
         dispatchGroup.enter()
@@ -366,7 +375,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             }
             catch
             {
-                err = error
+                fieldsAPIError = error
                 dispatchGroup.leave()
             }
         }
@@ -381,12 +390,24 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             }
             catch
             {
-                err = error
+                recordAPIError = error
                 dispatchGroup.leave()
             }
         }
         
         dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
+            if let recordAPIError = recordAPIError
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( recordAPIError )" )
+                completion( .failure( typeCastToZCRMError( recordAPIError ) ) )
+                return
+            }
+            else if let fieldsAPIError = fieldsAPIError
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( fieldsAPIError )" )
+                completion( .failure( typeCastToZCRMError( fieldsAPIError ) ) )
+                return
+            }
             if let fields = zcrmFields, let response = bulkResponse
             {
                 self.getZCRMRecords(fields: fields, bulkResponse: response, completion: { ( records, error ) in
@@ -403,11 +424,6 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         return
                     }
                 })
-            }
-            else if let error = err
-            {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                completion( .failure( typeCastToZCRMError( error ) ) )
             }
             else
             {

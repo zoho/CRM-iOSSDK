@@ -1,12 +1,11 @@
 //
-//  ZCRMOrgDelegate.swift
-//  Pods-ZCRMiOS_Tests
+//  ZCRMCompanyInfoDelegate.swift
+//  ZCRMiOS
 //
-//  Created by Boopathy P on 18/09/18.
+//  Created by gowtham-pt2177 on 08/10/20.
 //
 
-@available(*, deprecated, message: "Use ZCRMCompanyInfoDelegate class instead")
-open class ZCRMOrgDelegate : ZCRMEntity
+open class ZCRMCompanyInfoDelegate : ZCRMEntity
 {
     internal init() {}
     
@@ -54,14 +53,6 @@ open class ZCRMOrgDelegate : ZCRMEntity
         }
     }
     
-    @available(*, deprecated, message: "Use getUsers( ofType :, withParams : GETRequestParams, completion :) method instead")
-    public func getUsers( ofType : UserTypes, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
-    {
-        UserAPIHandler().getUsers(ofType: ofType, modifiedSince: nil, page: page, perPage: perPage) { result in
-            completion( result )
-        }
-    }
-    
     public func getUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         UserAPIHandler().getUsers(ofType: .allUsers, ZCRMQuery.getRequestParams) { result in
@@ -79,30 +70,6 @@ open class ZCRMOrgDelegate : ZCRMEntity
     public func getUsers( ofType : UserTypes, withParams : GETRequestParams, completion : @escaping ( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> Void)
     {
         UserAPIHandler().getUsers( ofType : ofType, withParams) { result in
-            completion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getUsers( withParams : GETRequestParams, completion :) method instead")
-    public func getUsers( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
-    {
-        UserAPIHandler().getUsers( ofType: .allUsers, modifiedSince: modifiedSince, page: nil, perPage: nil) { result in
-            completion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getUsers( withParams : GETRequestParams, completion :) method instead")
-    public func getUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
-    {
-        UserAPIHandler().getUsers( ofType : .allUsers, modifiedSince : nil, page : page, perPage : perPage ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getUsers(  withParams : GETRequestParams, completion :) method instead")
-    public func getUsers( page : Int, perPage : Int, modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
-    {
-        UserAPIHandler().getUsers( ofType : .allUsers, modifiedSince : modifiedSince, page : page, perPage : perPage ) { ( result ) in
             completion( result )
         }
     }
@@ -131,70 +98,6 @@ open class ZCRMOrgDelegate : ZCRMEntity
     public func downloadPhoto( withOrgID id : Int64, completion : @escaping ( Result.Response< FileAPIResponse > ) -> () )
     {
         OrgAPIHandler().downloadPhoto( withOrgID : id ) { result in
-            completion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getUsers( ofType :, completion :) method instead")
-    public func getActiveConfirmedUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
-    {
-        UserAPIHandler().getAllActiveConfirmedUsers( page : nil, perPage : nil ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getUsers( ofType :, withParams : GETRequestParams, completion :) method instead")
-    public func getActiveConfirmedUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
-    {
-        UserAPIHandler().getAllActiveConfirmedAdmins( page : page, perPage : perPage ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getUsers( ofType :, completion :) method instead")
-    public func getAdminUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
-    {
-        UserAPIHandler().getAllAdminUsers( page : nil, perPage : nil ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getUsers( ofType :, withParams : GETRequestParams, completion :) method instead")
-    public func getAdminUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
-    {
-        UserAPIHandler().getAllAdminUsers( page : page, perPage : perPage ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getUsers( ofType :, completion :) method instead")
-    public func getActiveUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
-    {
-        UserAPIHandler().getAllActiveUsers( page : nil, perPage : nil ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getUsers( ofType :, withParams : GETRequestParams, completion :) method instead")
-    public func getActiveUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
-    {
-        UserAPIHandler().getAllActiveUsers( page : page, perPage : perPage ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getUsers( ofType :, completion :) method instead")
-    public func getInActiveUsers( completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
-    {
-        UserAPIHandler().getAllDeactiveUsers( page : nil, perPage : nil ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getUsers( ofType :, withParams : GETRequestParams, completion :) method instead")
-    public func getInActiveUsers( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
-    {
-        UserAPIHandler().getAllDeactiveUsers( page : page, perPage : perPage ) { ( result ) in
             completion( result )
         }
     }
@@ -234,14 +137,6 @@ open class ZCRMOrgDelegate : ZCRMEntity
         }
     }
     
-    @available(*, deprecated, message: "Use the method searchUsers -> withCriteria of type ZCRMQuery.ZCRMCriteria" )
-    public func searchUsers( withCriteria : String, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
-    {
-        UserAPIHandler().searchUsers( ofType: nil, criteria : withCriteria, page : nil, perPage : nil ) { ( result ) in
-            completion( result )
-        }
-    }
-    
     public func searchUsers( withCriteria : ZCRMQuery.ZCRMCriteria, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         guard let recordQuery = withCriteria.recordQuery else {
@@ -262,14 +157,6 @@ open class ZCRMOrgDelegate : ZCRMEntity
             return
         }
         UserAPIHandler().searchUsers(ofType : ofType, criteria : recordQuery, page : nil, perPage: nil) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use the method searchUsers -> withCriteria of type ZCRMQuery.ZCRMCriteria, page : Int, perPage : Int" )
-    public func searchUsers( withCriteria : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
-    {
-        UserAPIHandler().searchUsers( ofType: nil, criteria : withCriteria, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
@@ -298,3 +185,4 @@ open class ZCRMOrgDelegate : ZCRMEntity
         }
     }
 }
+

@@ -93,34 +93,41 @@ internal class FileAPIRequest : APIRequest
                 }
                 if let url = url
                 {
-                    guard let request = self.request else
-                    {
-                        self.removeTempFile(atURL: url)
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
-                        completion( .failure( ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil ) ) )
-                        return
-                    }
-                    
-                    let jsonRootKey = self.jsonRootKey
-                    FileAPIRequest.urlSession.uploadTask(with: request, fromFile: url) { resultType in
-                        self.removeTempFile(atURL: url)
-                        do
+                    self.authenticateRequest() { error in
+                        if let error = error
                         {
-                            switch resultType
+                            completion( .failure( typeCastToZCRMError( error ) ) )
+                            return
+                        }
+                        guard let request = self.request else
+                        {
+                            self.removeTempFile(atURL: url)
+                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
+                            completion( .failure( ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil ) ) )
+                            return
+                        }
+                        
+                        let jsonRootKey = self.jsonRootKey
+                        FileAPIRequest.urlSession.uploadTask(with: request, fromFile: url) { resultType in
+                            self.removeTempFile(atURL: url)
+                            do
                             {
-                            case .success(let respData, let resp) :
-                                let response = try APIResponse( response : resp, responseData : respData, responseJSONRootKey : jsonRootKey, requestAPIName: self.requestedModule )
-                                completion( .success( response ) )
-                            case .failure(let error) :
+                                switch resultType
+                                {
+                                case .success(let respData, let resp) :
+                                    let response = try APIResponse( response : resp, responseData : respData, responseJSONRootKey : jsonRootKey, requestAPIName: self.requestedModule )
+                                    completion( .success( response ) )
+                                case .failure(let error) :
+                                    completion( .failure( typeCastToZCRMError( error ) ) )
+                                }
+                            }
+                            catch
+                            {
+                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                                 completion( .failure( typeCastToZCRMError( error ) ) )
                             }
-                        }
-                        catch
-                        {
-                            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                            completion( .failure( typeCastToZCRMError( error ) ) )
-                        }
-                    }.resume()
+                        }.resume()
+                    }
                 }
             }
         }
@@ -147,34 +154,41 @@ internal class FileAPIRequest : APIRequest
                 }
                 if let url = url
                 {
-                    guard let request = self.request else
-                    {
-                        self.removeTempFile(atURL: url)
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
-                        completion( .failure( ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil ) ) )
-                        return
-                    }
-                    
-                    let jsonRootKey = self.jsonRootKey
-                    FileAPIRequest.urlSession.uploadTask(with: request, fromFile: url) { resultType in
-                        self.removeTempFile(atURL: url)
-                        do
+                    self.authenticateRequest() { error in
+                        if let error = error
                         {
-                            switch resultType
+                            completion( .failure( typeCastToZCRMError( error ) ) )
+                            return
+                        }
+                        guard let request = self.request else
+                        {
+                            self.removeTempFile(atURL: url)
+                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
+                            completion( .failure( ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil ) ) )
+                            return
+                        }
+                        
+                        let jsonRootKey = self.jsonRootKey
+                        FileAPIRequest.urlSession.uploadTask(with: request, fromFile: url) { resultType in
+                            self.removeTempFile(atURL: url)
+                            do
                             {
-                            case .success(let respData, let resp) :
-                                let response = try APIResponse( response : resp, responseData : respData, responseJSONRootKey : jsonRootKey, requestAPIName: self.requestedModule )
-                                completion( .success( response ) )
-                            case .failure(let error) :
+                                switch resultType
+                                {
+                                case .success(let respData, let resp) :
+                                    let response = try APIResponse( response : resp, responseData : respData, responseJSONRootKey : jsonRootKey, requestAPIName: self.requestedModule )
+                                    completion( .success( response ) )
+                                case .failure(let error) :
+                                    completion( .failure( typeCastToZCRMError( error ) ) )
+                                }
+                            }
+                            catch
+                            {
+                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                                 completion( .failure( typeCastToZCRMError( error ) ) )
                             }
-                        }
-                        catch
-                        {
-                            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                            completion( .failure( typeCastToZCRMError( error ) ) )
-                        }
-                    }.resume()
+                        }.resume()
+                    }
                 }
             }
         }
@@ -272,75 +286,84 @@ internal class FileAPIRequest : APIRequest
                 }
                 if let tempFileUrl = tempFileUrl
                 {
-                    guard let request = self.request else
-                    {
-                        self.removeTempFile(atURL: tempFileUrl)
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.internalError ) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -" )
-                        fileUploadDelegate?.didFail( fileRefId : fileRefId, ZCRMError.sdkError( code : ErrorCode.internalError, message : "Unable to construct URLRequest", details : nil ) )
-                        completion( false, nil)
-                        return
-                    }
-                    
-                    let fileUploadTaskReference = FileUploadTaskReference(fileRefId: fileRefId, uploadClosure: { taskDetails, taskFinished, error in
+                    self.authenticateRequest { error in
                         if let error = error
                         {
-                            self.fileUploadDelegate?.didFail(fileRefId: fileRefId, typeCastToZCRMError( error ))
-                            self.removeTempFile(atURL: tempFileUrl)
-                            completion( false , nil)
+                            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                            fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
+                            completion( false, nil )
+                            return
                         }
-                        else if let taskFinished = taskFinished
+                        guard let request = self.request else
                         {
-                            do
+                            self.removeTempFile(atURL: tempFileUrl)
+                            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.internalError ) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -" )
+                            fileUploadDelegate?.didFail( fileRefId : fileRefId, ZCRMError.sdkError( code : ErrorCode.internalError, message : "Unable to construct URLRequest", details : nil ) )
+                            completion( false, nil)
+                            return
+                        }
+                        
+                        let fileUploadTaskReference = FileUploadTaskReference(fileRefId: fileRefId, uploadClosure: { taskDetails, taskFinished, error in
+                            if let error = error
                             {
-                                if let httpResponse = taskFinished.dataTask?.response as? HTTPURLResponse, let data = taskFinished.data
-                                {
-                                    let jsonRootKey = self.jsonRootKey
-                                    let response = try APIResponse( response : httpResponse, responseData : data, responseJSONRootKey : jsonRootKey, requestAPIName: self.requestedModule )
-                                    uploadTasksQueue.async {
-                                        FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
-                                    }
-                                    fileUploadDelegate?.didFinish( fileRefId : fileRefId, response )
-                                    self.removeTempFile(atURL: tempFileUrl)
-                                    completion( true, response )
-                                }
-                                else
-                                {
-                                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -" )
-                                    throw ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseNilMsg, details : nil )
-                                }
-                            }
-                            catch
-                            {
-                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                                uploadTasksQueue.async {
-                                    FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
-                                }
-                                fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
+                                self.fileUploadDelegate?.didFail(fileRefId: fileRefId, typeCastToZCRMError( error ))
                                 self.removeTempFile(atURL: tempFileUrl)
                                 completion( false , nil)
                             }
-                        }
-                        else if let taskDetails = taskDetails
-                        {
-                            fileUploadDelegate?.progress(fileRefId: fileRefId, session: taskDetails.session, sessionTask: taskDetails.task, progressPercentage: taskDetails.progress, totalBytesSent: taskDetails.bytesSent, totalBytesExpectedToSend: taskDetails.totalBytesExpectedToSend)
-                        }
-                    })
-                    let uploadTask = FileAPIRequest.fileUploadURLSessionWithDelegates.uploadTask(with: request, fromFile : tempFileUrl)
-                    FileAPIRequest.fileAPIRequestDelegate.uploadTaskWithFileRefIdDict.updateValue( fileUploadTaskReference, forKey: uploadTask)
-                    uploadTasksQueue.async {
-                        if FileTasks.liveUploadTasks == nil
-                        {
-                            FileTasks.liveUploadTasks = [ String : URLSessionUploadTask ]()
-                        }
-                        if let tasks = FileTasks.liveUploadTasks, tasks[ fileRefId ] == nil
-                        {
-                            FileTasks.liveUploadTasks?.updateValue( uploadTask, forKey: fileRefId)
-                            uploadTask.resume()
-                        }
-                        else
-                        {
-                            ZCRMLogger.logError( message : "Error Occurred : A task with file reference Id - \( fileRefId ) is already present. Please provide a unique reference id" )
-                            fileUploadDelegate?.didFail( fileRefId: fileRefId, ZCRMError.inValidError(code: ErrorCode.invalidData, message: "A task with file reference Id - \( fileRefId ) is already present. Please provide a unique reference id", details: nil) )
+                            else if let taskFinished = taskFinished
+                            {
+                                do
+                                {
+                                    if let httpResponse = taskFinished.dataTask?.response as? HTTPURLResponse, let data = taskFinished.data
+                                    {
+                                        let jsonRootKey = self.jsonRootKey
+                                        let response = try APIResponse( response : httpResponse, responseData : data, responseJSONRootKey : jsonRootKey, requestAPIName: self.requestedModule )
+                                        uploadTasksQueue.async {
+                                            FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
+                                        }
+                                        fileUploadDelegate?.didFinish( fileRefId : fileRefId, response )
+                                        self.removeTempFile(atURL: tempFileUrl)
+                                        completion( true, response )
+                                    }
+                                    else
+                                    {
+                                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -" )
+                                        throw ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseNilMsg, details : nil )
+                                    }
+                                }
+                                catch
+                                {
+                                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                    uploadTasksQueue.async {
+                                        FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
+                                    }
+                                    fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
+                                    self.removeTempFile(atURL: tempFileUrl)
+                                    completion( false , nil)
+                                }
+                            }
+                            else if let taskDetails = taskDetails
+                            {
+                                fileUploadDelegate?.progress(fileRefId: fileRefId, session: taskDetails.session, sessionTask: taskDetails.task, progressPercentage: taskDetails.progress, totalBytesSent: taskDetails.bytesSent, totalBytesExpectedToSend: taskDetails.totalBytesExpectedToSend)
+                            }
+                        })
+                        let uploadTask = FileAPIRequest.fileUploadURLSessionWithDelegates.uploadTask(with: request, fromFile : tempFileUrl)
+                        FileAPIRequest.fileAPIRequestDelegate.uploadTaskWithFileRefIdDict.updateValue( fileUploadTaskReference, forKey: uploadTask)
+                        uploadTasksQueue.async {
+                            if FileTasks.liveUploadTasks == nil
+                            {
+                                FileTasks.liveUploadTasks = [ String : URLSessionUploadTask ]()
+                            }
+                            if let tasks = FileTasks.liveUploadTasks, tasks[ fileRefId ] == nil
+                            {
+                                FileTasks.liveUploadTasks?.updateValue( uploadTask, forKey: fileRefId)
+                                uploadTask.resume()
+                            }
+                            else
+                            {
+                                ZCRMLogger.logError( message : "Error Occurred : A task with file reference Id - \( fileRefId ) is already present. Please provide a unique reference id" )
+                                fileUploadDelegate?.didFail( fileRefId: fileRefId, ZCRMError.inValidError(code: ErrorCode.invalidData, message: "A task with file reference Id - \( fileRefId ) is already present. Please provide a unique reference id", details: nil) )
+                            }
                         }
                     }
                 }
@@ -472,30 +495,37 @@ internal class FileAPIRequest : APIRequest
             }
             else
             {
-                guard let request = self.request else
-                {
-                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to construct URLRequest")
-                    completion( .failure( ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil ) ) )
-                    return
-                }
-                FileAPIRequest.urlSession.downloadTask(with: request) { resultType in
-                    do
+                self.authenticateRequest { error in
+                    if let error = error
                     {
-                        switch resultType
+                        completion( .failure( typeCastToZCRMError( error ) ) )
+                        return
+                    }
+                    guard let request = self.request else
+                    {
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to construct URLRequest")
+                        completion( .failure( ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil ) ) )
+                        return
+                    }
+                    FileAPIRequest.urlSession.downloadTask(with: request) { resultType in
+                        do
                         {
-                        case .success(let respData, let resp) :
-                            if let url = respData as? URL {
-                                let response = try FileAPIResponse( response : resp, tempLocalUrl : url, requestAPIName: self.requestedModule )
-                                completion( .success( response ) )
+                            switch resultType
+                            {
+                            case .success(let respData, let resp) :
+                                if let url = respData as? URL {
+                                    let response = try FileAPIResponse( response : resp, tempLocalUrl : url, requestAPIName: self.requestedModule )
+                                    completion( .success( response ) )
+                                }
+                            case .failure(let error) :
+                                completion( .failure( typeCastToZCRMError( error ) ) )
                             }
-                        case .failure(let error) :
+                        } catch {
+                            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                             completion( .failure( typeCastToZCRMError( error ) ) )
                         }
-                    } catch {
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                        completion( .failure( typeCastToZCRMError( error ) ) )
-                    }
-                }.resume()
+                    }.resume()
+                }
             }
         }
     }
@@ -512,62 +542,68 @@ internal class FileAPIRequest : APIRequest
             }
             else
             {
-                do
-                {
-                    guard let request = self.request else
+                self.authenticateRequest { error in
+                    do
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
-                        throw ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil)
-                    }
-                    
-                    let fileDownloadTaskReference = FileDownloadTaskReference(fileRefId: fileRefId) { ( taskDetails, taskFinished, error ) in
                         if let error = error
                         {
-                            fileDownloadDelegate?.didFail( fileRefId: fileRefId, typeCastToZCRMError( error ) )
+                            throw error
                         }
-                        else if let taskFinished = taskFinished
+                        guard let request = self.request else
                         {
-                            do
+                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
+                            throw ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil)
+                        }
+                        
+                        let fileDownloadTaskReference = FileDownloadTaskReference(fileRefId: fileRefId) { ( taskDetails, taskFinished, error ) in
+                            if let error = error
                             {
-                                guard let response = taskFinished.downloadTask?.response as? HTTPURLResponse else
-                                {
-                                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
-                                    throw ZCRMError.sdkError(code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details : nil)
-                                }
-                                
-                                downloadTasksQueue.async {
-                                    FileTasks.liveDownloadTasks?.removeValue(forKey: fileRefId)
-                                }
-                                let fileAPIResponse : FileAPIResponse = try FileAPIResponse(response: response, tempLocalUrl: taskFinished.location, requestAPIName: self.requestedModule)
-                                fileDownloadDelegate?.didFinish( fileRefId: fileRefId, fileAPIResponse )
-                            }
-                            catch
-                            {
-                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
                                 fileDownloadDelegate?.didFail( fileRefId: fileRefId, typeCastToZCRMError( error ) )
                             }
+                            else if let taskFinished = taskFinished
+                            {
+                                do
+                                {
+                                    guard let response = taskFinished.downloadTask?.response as? HTTPURLResponse else
+                                    {
+                                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
+                                        throw ZCRMError.sdkError(code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details : nil)
+                                    }
+                                    
+                                    downloadTasksQueue.async {
+                                        FileTasks.liveDownloadTasks?.removeValue(forKey: fileRefId)
+                                    }
+                                    let fileAPIResponse : FileAPIResponse = try FileAPIResponse(response: response, tempLocalUrl: taskFinished.location, requestAPIName: self.requestedModule)
+                                    fileDownloadDelegate?.didFinish( fileRefId: fileRefId, fileAPIResponse )
+                                }
+                                catch
+                                {
+                                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                    fileDownloadDelegate?.didFail( fileRefId: fileRefId, typeCastToZCRMError( error ) )
+                                }
+                            }
+                            else if let taskDetails = taskDetails
+                            {
+                                fileDownloadDelegate?.progress( fileRefId : fileRefId, session: taskDetails.session, downloadTask: taskDetails.task, progressPercentage: taskDetails.progress, totalBytesWritten: taskDetails.totalBytesWritten, totalBytesExpectedToWrite: taskDetails.totalBytesExpectedToWrite )
+                            }
                         }
-                        else if let taskDetails = taskDetails
-                        {
-                            fileDownloadDelegate?.progress( fileRefId : fileRefId, session: taskDetails.session, downloadTask: taskDetails.task, progressPercentage: taskDetails.progress, totalBytesWritten: taskDetails.totalBytesWritten, totalBytesExpectedToWrite: taskDetails.totalBytesExpectedToWrite )
+                        
+                        let downloadTask = FileAPIRequest.fileDownloadURLSessionWithDelegates.downloadTask(with: request)
+                        FileAPIRequest.fileAPIRequestDelegate.downloadTaskWithFileRefIdDict.updateValue( fileDownloadTaskReference, forKey: downloadTask)
+                        downloadTasksQueue.async {
+                            if FileTasks.liveDownloadTasks == nil
+                            {
+                                FileTasks.liveDownloadTasks = [ String : URLSessionDownloadTask ]()
+                            }
+                            FileTasks.liveDownloadTasks?.updateValue(downloadTask, forKey: fileRefId)
                         }
+                        downloadTask.resume()
                     }
-                    
-                    let downloadTask = FileAPIRequest.fileDownloadURLSessionWithDelegates.downloadTask(with: request)
-                    FileAPIRequest.fileAPIRequestDelegate.downloadTaskWithFileRefIdDict.updateValue( fileDownloadTaskReference, forKey: downloadTask)
-                    downloadTasksQueue.async {
-                        if FileTasks.liveDownloadTasks == nil
-                        {
-                            FileTasks.liveDownloadTasks = [ String : URLSessionDownloadTask ]()
-                        }
-                        FileTasks.liveDownloadTasks?.updateValue(downloadTask, forKey: fileRefId)
+                    catch
+                    {
+                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                        fileDownloadDelegate?.didFail( fileRefId: fileRefId, typeCastToZCRMError( error ) )
                     }
-                    downloadTask.resume()
-                }
-                catch
-                {
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                    fileDownloadDelegate?.didFail( fileRefId: fileRefId, typeCastToZCRMError( error ) )
                 }
             }
         }

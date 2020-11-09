@@ -8,61 +8,24 @@
 
 import Foundation
 
-public class ZVCRMLoginHandler : ZohoAuthProvider
+internal class ZVCRMLoginHandler : ZohoAuthProvider
 {
-    private var appConfigurationUtil : Dictionary < String, Any > = Dictionary < String, Any >()
-    private var configurationKeys : [ String ] = [ "ClientID", "ClientSecretID", "AccountsURL", "PortalID", "OAuthScopes", "RedirectURLScheme", "ApiBaseURL", "ApiVersion" ]
+    private var appConfiguration : ZCRMSDKConfigs
 
-    public init(){}
-
-    public init( appConfigUtil : Dictionary < String, Any > ) throws
+    init( appConfiguration : ZCRMSDKConfigs ) throws
     {
-        self.appConfigurationUtil = appConfigUtil
-        try self.validateAppConfigs( dict : appConfigUtil )
+        self.appConfiguration = appConfiguration
     }
 
-    internal func validateAppConfigs( dict : Dictionary< String, Any > ) throws
+    func initIAMLogin( window : UIWindow? ) throws
     {
-        if( dict.keys.count > 0 )
-        {
-            for key in configurationKeys
-            {
-                if( dict.keys.contains( key ) == false )
-                {
-                    throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "\( key ) not present in the App configuration plist!", details: nil )
-                }
-            }
-            for key in dict.keys
-            {
-                if( dict[ key ] == nil )
-                {
-                    throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "\( key ) is nil. It should have value", details: nil )
-                }
-            }
-        }
-        else
-        {
-            throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "App configuration property list is empty!", details: nil )
-        }
-    }
-
-    public func initIAMLogin( window : UIWindow? )
-    {
-        do
-        {
-            ZCRMSDKClient.shared.apiBaseURL = try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.apiBaseURL )
-            ZCRMSDKClient.shared.apiVersion = try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.apiVersion )
-            
-            ZohoPortalAuth.initWithClientID( try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.clientId ), clientSecret : try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.clientSecretId ), portalID : try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.portalId ), scope : try appConfigurationUtil.getArray( key : CRMAppConfigurationKeys.oAuthScopes ), urlScheme : try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.redirectURLScheme ), mainWindow : window, accountsPortalURL : try appConfigurationUtil.getString( key : CRMAppConfigurationKeys.accountsURL )  )
-        }
-        catch
-        {
-            print("Error occured initIAMLogin() -> \(error)")
-        }
+        ZCRMSDKClient.shared.apiBaseURL = appConfiguration.apiBaseURL
+        ZCRMSDKClient.shared.apiVersion = appConfiguration.apiVersion
         
+        ZohoPortalAuth.initWithClientID( appConfiguration.clientId, clientSecret : appConfiguration.clientSecret, portalID : appConfiguration.portalId, scope : appConfiguration.oauthScopes, urlScheme : appConfiguration.redirectURLScheme, mainWindow : window, accountsPortalURL : appConfiguration.accountsURL )
     }
 
-    public func handleLogin( completion : @escaping( ZCRMError? ) -> () )
+    func handleLogin( completion : @escaping( ZCRMError? ) -> () )
     {
         ZohoPortalAuth.presentZohoPortalSign { ( success, error ) in
             if let error = error
@@ -71,19 +34,19 @@ public class ZVCRMLoginHandler : ZohoAuthProvider
                 {
                 // SFSafari Dismissed
                 case 205 :
-                    print( "Error Detail : \( error.description ), code : \( error.code )" )
+                    ZCRMLogger.logError(message: "Error Detail : \( error.description ), code : \( error.code )")
                     completion( typeCastToZCRMError( error ) )
                     break
 
                 // access_denied
                 case 905 :
-                    print( "Error Detail : \( error.description ), code : \( error.code )" )
+                    ZCRMLogger.logError(message: "Error Detail : \( error.description ), code : \( error.code )")
                     completion( typeCastToZCRMError( error ) )
                     break
 
                 default :
+                    ZCRMLogger.logError(message: "Error : \( error )")
                     completion( typeCastToZCRMError( error ) )
-                    print( "Error : \( error )" )
                 }
             }
             else
@@ -93,46 +56,42 @@ public class ZVCRMLoginHandler : ZohoAuthProvider
         }
     }
 
-    public func iamLoginHandleURL( url : URL, sourceApplication : String?, annotation : Any )
+    func iamLoginHandleURL( url : URL, sourceApplication : String?, annotation : Any )
     {
         ZohoPortalAuth.handleURL( url, sourceApplication : sourceApplication, annotation : annotation )
     }
 
-    public func clearIAMLoginFirstLaunch()
+    func clearIAMLoginFirstLaunch()
     {
         ZohoPortalAuth.clearZohoAuthPortalDetailsForFirstLaunch()
     }
 
-    public func logout( completion : @escaping ( ZCRMError? ) -> () )
+    func logout( completion : @escaping ( ZCRMError? ) -> () )
     {
         do
         {
             try ZCRMSDKClient.shared.clearAllCache()
             ZohoPortalAuth.revokeAccessToken(
-            { ( error ) in
-                if let error = error
-                {
-                    print( "Error occured in logout() : \(error)" )
-                    completion( typeCastToZCRMError( error ) )
-                }
-                else
-                {
-                    self.clearIAMLoginFirstLaunch()
-                    print( "removed AllScopesWithSuccess!" )
-                    self.handleLogin( completion : { _ in
-                            
-                    })
-                    ZCRMSDKClient.shared.requestHeaders?.removeAll()
-                    URLCache.shared.removeAllCachedResponses()
-                    ZCRMSDKClient.shared.portalId = nil
-                    if let cookies = HTTPCookieStorage.shared.cookies {
-                        for cookie in cookies {
-                            HTTPCookieStorage.shared.deleteCookie(cookie)
-                        }
+                { ( error ) in
+                    if let error = error
+                    {
+                        ZCRMLogger.logError(message: "Error occured in logout() : \( error )")
+                        completion( typeCastToZCRMError( error ) )
                     }
-                    completion( nil )
-                    ZCRMLogger.logDebug( message: "logout ZVCRM successful!" )
-                }
+                    else
+                    {
+                        self.clearIAMLoginFirstLaunch()
+                        ZCRMLogger.logDebug(message: "removed AllScopesWithSuccess!")
+                        ZCRMSDKClient.shared.requestHeaders?.removeAll()
+                        URLCache.shared.removeAllCachedResponses()
+                        if let cookies = HTTPCookieStorage.shared.cookies {
+                            for cookie in cookies {
+                                HTTPCookieStorage.shared.deleteCookie(cookie)
+                            }
+                        }
+                        ZCRMLogger.logDebug(message: "Logout ZVCRM successful!")
+                        completion( nil )
+                    }
             })
         }
         catch
@@ -141,7 +100,7 @@ public class ZVCRMLoginHandler : ZohoAuthProvider
         }
     }
     
-    public func getAccessToken( completion : @escaping ( Result.Data< String > ) -> () )
+    func getAccessToken( completion : @escaping ( Result.Data< String > ) -> () )
     {
         ZohoPortalAuth.getOauth2Token { ( token, error ) in
             if let error = error

@@ -34,7 +34,47 @@ internal class OrgAPIHandler : CommonAPIHandler
     override func setModuleName() {
         self.requestedModule = "org"
     }
-
+    
+    internal func getCompanyDetails( _ id : Int64? = nil, completion : @escaping( Result.DataResponse< ZCRMCompanyInfo, APIResponse > ) -> () )
+    {
+        setIsCacheable( true )
+        setJSONRootKey( key : JSONRootKey.ORG )
+        setUrlPath(urlPath:  "\( URLPathConstants.org )" )
+        setRequestMethod(requestMethod: .get)
+        
+        if let id = id
+        {
+            addRequestHeader(header: X_CRM_ORG, value: "\( id )")
+        }
+        
+        let request : APIRequest = APIRequest(handler: self, cacheFlavour: self.cache )
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getAPIResponse { ( resultType ) in
+            do
+            {
+                switch resultType
+                {
+                case .success(let response) :
+                    let responseJSON : [ String :  Any ] = response.responseJSON
+                    let companyInfoArray = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+                    let companyInfo = try self.getZCRMCompanyInfo(companyDetails: companyInfoArray[ 0 ])
+                    companyInfo.upsertJSON = [ String : Any? ]()
+                    response.setData( data : companyInfo )
+                    completion( .success( companyInfo, response ) )
+                case .failure(let error) :
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+            catch{
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    @available(*, deprecated, message: "Use getCompanyDetails(id:, completion:) method instead")
     internal func getOrgDetails( _ id : Int64? = nil, completion : @escaping( Result.DataResponse< ZCRMOrg, APIResponse > ) -> () )
     {
         setIsCacheable( true )
@@ -466,6 +506,41 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
+    internal func update( companyInfo : ZCRMCompanyInfo, completion : @escaping( Result.DataResponse< ZCRMCompanyInfo, APIResponse > ) -> () )
+    {
+        if !companyInfo.upsertJSON.isEmpty
+        {
+            setJSONRootKey( key : JSONRootKey.ORG )
+            setRequestMethod( requestMethod : .patch )
+            setUrlPath( urlPath : "\( URLPathConstants.org )" )
+            var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
+            var dataArray : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
+            dataArray.append( companyInfo.upsertJSON )
+            reqBodyObj[ getJSONRootKey() ] = dataArray
+            setRequestBody( requestBody : reqBodyObj )
+            let request = APIRequest( handler : self )
+            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+            
+            request.getAPIResponse { ( resultType ) in
+                switch resultType
+                {
+                case .success(let response) :
+                    companyInfo.upsertJSON = [ String : Any? ]()
+                    completion( .success( companyInfo, response ) )
+                case .failure(let error) :
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+        }
+        else
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.notModified) : No changes have been made on the company details to update, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.sdkError( code: ErrorCode.notModified, message: "No changes have been made on the company details to update", details : nil ) ) )
+        }
+    }
+    
+    @available(*, deprecated, message: "Use update method with params companyInfo and completion handler instead")
     internal func update( _ org : ZCRMOrg, completion : @escaping( Result.DataResponse< ZCRMOrg, APIResponse > ) -> () )
     {
         if !org.upsertJSON.isEmpty
@@ -1148,7 +1223,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         if json.hasValue(forKey: ResponseJSONKeys.manager)
         {
             let manager = try json.getDictionary(key: ResponseJSONKeys.manager)
-            territory.manager = try ZCRMUserDelegate(id: manager.getInt64(key: ResponseJSONKeys.id), name: manager.getString(key: ResponseJSONKeys.name))
+            territory.manager = try getUserDelegate(userJSON: manager)
         }
         territory.parentId = json.optInt64(key: ResponseJSONKeys.parentId)
         territory.description = json.optString(key: ResponseJSONKeys.description)
@@ -1167,7 +1242,136 @@ internal class OrgAPIHandler : CommonAPIHandler
         return territory
     }
     
+    private func getZCRMCompanyInfo( companyDetails : [ String : Any ] ) throws -> ZCRMCompanyInfo
+    {
+        let companyInfo : ZCRMCompanyInfo = ZCRMCompanyInfo()
+        companyInfo.id = try companyDetails.getInt64( key : ResponseJSONKeys.id )
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.fax ) )
+        {
+            companyInfo.fax = try companyDetails.getString( key : ResponseJSONKeys.fax )
+        }
+        companyInfo.name = companyDetails.optString( key : ResponseJSONKeys.companyName )
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.alias ) )
+        {
+            companyInfo.alias = try companyDetails.getString( key : ResponseJSONKeys.alias)
+        }
+        companyInfo.primaryZUID = try companyDetails.getInt64( key : ResponseJSONKeys.primaryZUID )
+        companyInfo.zgid = try companyDetails.getInt64( key : ResponseJSONKeys.ZGID )
+        if let ziaPortalIdStr = companyDetails.optString( key : ResponseJSONKeys.ziaPortalId )
+        {
+            if let ziaPortalId = Int64( ziaPortalIdStr )
+            {
+                companyInfo.ziaPortalId = ziaPortalId
+            }
+        }
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.phone ) )
+        {
+            companyInfo.phone = try companyDetails.getString( key : ResponseJSONKeys.phone )
+        }
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.mobile ) )
+        {
+            companyInfo.mobile = try companyDetails.getString( key : ResponseJSONKeys.mobile )
+        }
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.website ) )
+        {
+            companyInfo.website = try companyDetails.getString( key : ResponseJSONKeys.website )
+        }
+        companyInfo.primaryEmail = try companyDetails.getString( key : ResponseJSONKeys.primaryEmail )
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.employeeCount ) )
+        {
+            companyInfo.employeeCount = try companyDetails.getString( key : ResponseJSONKeys.employeeCount )
+        }
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.description ) )
+        {
+            companyInfo.description = try companyDetails.getString( key : ResponseJSONKeys.description )
+        }
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.timeZone ) )
+        {
+            companyInfo.timeZone = try companyDetails.getString( key : ResponseJSONKeys.timeZone )
+        }
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.ISOCode ) )
+        {
+            companyInfo.isoCode = try companyDetails.getString( key : ResponseJSONKeys.ISOCode )
+        }
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.currencyLocale ) )
+        {
+            companyInfo.currencyLocale = try companyDetails.getString( key : ResponseJSONKeys.currencyLocale )
+        }
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.currencySymbol ) )
+        {
+            companyInfo.currencySymbol = try companyDetails.getString( key : ResponseJSONKeys.currencySymbol )
+        }
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.street ) )
+        {
+            companyInfo.street = try companyDetails.getString( key : ResponseJSONKeys.street )
+        }
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.city ) )
+        {
+            companyInfo.city = try companyDetails.getString( key : ResponseJSONKeys.city )
+        }
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.state ) )
+        {
+            companyInfo.state = try companyDetails.getString( key : ResponseJSONKeys.state )
+        }
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.country ) )
+        {
+            companyInfo.country = try companyDetails.getString( key : ResponseJSONKeys.country )
+        }
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.countryCode ) )
+        {
+            companyInfo.countryCode = try companyDetails.getString( key : ResponseJSONKeys.countryCode )
+        }
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.zip ) )
+        {
+            companyInfo.zipcode = try companyDetails.getString( key : ResponseJSONKeys.zip )
+        }
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.mcStatus ) )
+        {
+            companyInfo.mcStatus = try companyDetails.getBoolean( key : ResponseJSONKeys.mcStatus )
+        }
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.translationEnabled ) )
+        {
+            companyInfo.isTranslationEnabled = try companyDetails.getBoolean( key : ResponseJSONKeys.translationEnabled )
+        }
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.gappsEnabled ) )
+        {
+            companyInfo.isGappsEnabled = try companyDetails.getBoolean( key : ResponseJSONKeys.gappsEnabled )
+        }
+        if( companyDetails.hasValue( forKey : ResponseJSONKeys.privacySettings ) )
+        {
+            companyInfo.isPrivacySettingsEnable = try companyDetails.getBoolean( key : ResponseJSONKeys.privacySettings )
+        }
+        if companyDetails.hasValue( forKey : ResponseJSONKeys.photoId )
+        {
+            companyInfo.logoId = try companyDetails.getString( key : ResponseJSONKeys.photoId )
+        }
+        if companyDetails.hasValue( forKey : ResponseJSONKeys.currency )
+        {
+            companyInfo.currency = try companyDetails.getString( key : ResponseJSONKeys.currency )
+        }
+        if companyDetails.hasValue(forKey: ResponseJSONKeys.licenseDetails)
+        {
+            let licenseDetails = try companyDetails.getDictionary(key: ResponseJSONKeys.licenseDetails)
+            var license = ZCRMCompanyInfo.LicenseDetails( licensePlan : try licenseDetails.getString( key : ResponseJSONKeys.paidType ) )
+            license.isPaid = try licenseDetails.getBoolean( key : ResponseJSONKeys.paid )
+            if licenseDetails.hasValue(forKey: ResponseJSONKeys.paidExpiry)
+            {
+                license.expiryDate = try licenseDetails.getString(key: ResponseJSONKeys.paidExpiry)
+            }
+            if licenseDetails.hasValue(forKey: ResponseJSONKeys.trialExpiry)
+            {
+                license.expiryDate = try licenseDetails.getString(key: ResponseJSONKeys.trialExpiry)
+            }
+            license.noOfUsersPurchased = try licenseDetails.getInt( key : ResponseJSONKeys.usersLicensePurchased )
+            license.trialType = licenseDetails.optString( key : ResponseJSONKeys.trialType )
+            license.trialAction = licenseDetails.optString( key : ResponseJSONKeys.trialAction )
+            companyInfo.licenseDetails = license
+        }
+        return companyInfo
+    }
+    
     // check optional property in organisation API
+    @available(*, deprecated, message: "Use getZCRMCompanyInfo(companyDetails:) method instead")
     private func getZCRMOrg( orgDetails : [ String : Any ] ) throws -> ZCRMOrg
     {
         let org : ZCRMOrg = ZCRMOrg()
@@ -1528,6 +1732,9 @@ extension OrgAPIHandler
         static let domainName = "domain_name"
         static let webURL = "web_url"
         static let apiURL = "api_url"
+        static let administrator = "administrator"
+        static let joinedTime = "joined_time"
+        static let userStatus = "user_status"
         
         static let paidExpiry = "paid_expiry"
         static let usersLicensePurchased = "users_license_purchased"

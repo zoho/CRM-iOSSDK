@@ -52,7 +52,7 @@ public class ZCRMUser : ZCRMUserDelegate
     public var firstName : String?{
         didSet
         {
-            upsertJSON.updateValue(firstName, forKey: UserAPIHandler.ResponseJSONKeys.id)
+            upsertJSON.updateValue(firstName, forKey: UserAPIHandler.ResponseJSONKeys.firstName)
         }
     }
     public var alias : String?{
@@ -177,16 +177,6 @@ public class ZCRMUser : ZCRMUserDelegate
     public internal( set ) var reportingTo : ZCRMUserDelegate?
     public internal( set ) var sortOrderPreference : String?
     
-    internal var data : [ String : Any? ] = [ String : Any? ](){
-        didSet
-        {
-            for ( key, value ) in data
-            {
-                upsertJSON.updateValue(value, forKey: key)
-            }
-        }
-    }
-    internal var upsertJSON : [ String : Any? ] = [ String : Any? ]()
     internal var isCreate : Bool = APIConstants.BOOL_MOCK
     
     internal init( emailId : String, role : ZCRMRoleDelegate, profile : ZCRMProfileDelegate )
@@ -195,10 +185,10 @@ public class ZCRMUser : ZCRMUserDelegate
         self.role = role
         self.profile = profile
         self.isCreate = true
+        super.init( id : APIConstants.INT64_MOCK, name : APIConstants.STRING_MOCK )
         upsertJSON.updateValue(emailId, forKey: UserAPIHandler.ResponseJSONKeys.email)
         upsertJSON.updateValue(String( role.id ), forKey: UserAPIHandler.ResponseJSONKeys.role)
         upsertJSON.updateValue(String( profile.id ), forKey: UserAPIHandler.ResponseJSONKeys.profile)
-        super.init( id : APIConstants.INT64_MOCK, name : APIConstants.STRING_MOCK )
     }
     
     internal init( emailId : String )
