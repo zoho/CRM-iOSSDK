@@ -3,7 +3,7 @@ use_frameworks!
 pod 'ZohoAuth', '1.3'
 pod 'ZohoPortalAuth', '0.0.3'
 
-target 'ZCRMiOS_Tests' do
-  pod 'ZCRMiOS', :path => '../'
-
-end
+  target 'ZCRMiOS_Tests' do
+    pod 'ZCRMiOS', :path => '../'
+    
+  end

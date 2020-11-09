@@ -22,6 +22,57 @@ public protocol GETEntityRequestParams : GETRequestParams
 
 public class ZCRMQuery
 {
+    /**
+     To construct a COQLQuery
+     */
+    public struct GetCOQLQueryParams
+    {
+        /// Fields that needs to be fetched
+        public var selectColumns : [ String ]
+        /// Criteria based on which the record details needs to be fetched
+        public var criteria : String
+        /**
+          To define the fields based on which the records needs to be sorted either ascending or descending
+         
+         Use ZCRMQuery.GetCOQLQueryParams.OrderBy to construct the object
+         */
+        public var orderBy : [ OrderBy ] = []
+        internal var limit : Int?
+        internal var offSet : Int64?
+        
+        public init( selectColumns : [ String ], criteria : String )
+        {
+            self.selectColumns = selectColumns
+            self.criteria = criteria
+        }
+        
+        /**
+          To define the field based on which the records needs to be sorted either ascending or descending. Default sort order is ascending
+         */
+        public struct OrderBy
+        {
+            public var fieldAPIName : String
+            public var sortOrder : SortOrder = .ascending
+        }
+        
+        /**
+          To set the limit and offset in the Query
+         
+         ```
+         Query Limit should not exceed 200
+         Offset should not be negative
+         ```
+         
+         - Parameters:
+            - limit : No of records that needs to be fetched
+            - offSet : No of records that needs to be skipped
+         */
+        public mutating func setLimit( _ limit : Int, offSet : Int64? = nil )
+        {
+            self.limit = limit
+            self.offSet = offSet
+        }
+    }
     
     public struct GetRecordParams : GETEntityRequestParams
     {

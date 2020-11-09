@@ -5,6 +5,7 @@
 //  Created by Boopathy P on 18/09/18.
 //
 
+@available(*, deprecated, message: "Use ZCRMCompanyInfoDelegate class instead")
 open class ZCRMOrgDelegate : ZCRMEntity
 {
     internal init() {}
@@ -41,9 +42,9 @@ open class ZCRMOrgDelegate : ZCRMEntity
         return ZCRMTax( name : name, percentage : percentage )
     }
     
-    public func getTaxDelegate( name : String ) -> ZCRMTaxDelegate
+    public func getTaxDelegate( displayName : String ) -> ZCRMTaxDelegate
     {
-        return ZCRMTaxDelegate(name: name)
+        return ZCRMTaxDelegate(displayName: displayName)
     }
     
     public func getUsers( ofType : UserTypes, completion : @escaping ( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )

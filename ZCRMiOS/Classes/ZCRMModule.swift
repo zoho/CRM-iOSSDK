@@ -51,6 +51,8 @@ open class ZCRMModule : ZCRMModuleDelegate
     public internal( set ) var isFeedsRequired : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isEmailTemplateSupported : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var properties : [ String ]?
+    internal var internalBusinessCardFields : [ String ]?
+    internal var fields : [ Int64 : ZCRMField ]?
     
     internal init( apiName : String, singularLabel : String, pluralLabel : String )
     {
@@ -75,6 +77,67 @@ open class ZCRMModule : ZCRMModuleDelegate
             self.relatedLists = [ ZCRMModuleRelation ]()
         }
         self.relatedLists?.append( relatedList )
+    }
+    
+    /**
+      Returns list of ZCRMFields of the module
+     
+     - Parameters:
+        - completion :
+            - Success : Returns an array of ZCRMField objects and a BulkAPIResponse
+            - Failure : Returns Error
+     */
+    override public func getFields( completion : @escaping( Result.DataResponse< [ ZCRMField ], BulkAPIResponse > ) -> () )
+    {
+        if let fields = fields
+        {
+            completion( .success( Array( fields.values ), BulkAPIResponse()) )
+        }
+        else
+        {
+            ModuleAPIHandler( module : self, cacheFlavour : .urlVsResponse ).getAllFields( modifiedSince : nil ) { ( result ) in
+                if case .success( let fields, _) = result
+                {
+                    self.fields = fields.reduce( [ Int64 : ZCRMField ](), { dict, field in
+                        var fieldsMap = dict
+                        fieldsMap.updateValue( field, forKey: field.id )
+                        return fieldsMap
+                    })
+                }
+                completion( result )
+            }
+        }
+    }
+    
+    /**
+      To get the details of the field in a module by it's Id from DB.
+     
+     - Parameters:
+        - id : Id of the field whose details to be fetched
+        - completion:
+            - Success : Returns a ZCRMField object and an APIResponse
+            - Failure : Returns Error
+     */
+    override public func getField( id : Int64, completion : @escaping( Result.DataResponse< ZCRMField, APIResponse > ) -> () )
+    {
+        if let fields = fields
+        {
+            if let field = fields[ id ]
+            {
+                completion( .success( field, APIResponse()) )
+            }
+            else
+            {
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.invalidData ) : \( ErrorMessage.invalidIdMsg ), \( APIConstants.DETAILS ) : \("-")")
+                completion( .failure( ZCRMError.processingError(code: ErrorCode.invalidData, message: ErrorMessage.invalidIdMsg, details: nil)) )
+            }
+        }
+        else
+        {
+            ModuleAPIHandler(module: self, cacheFlavour: .urlVsResponse).getField(fieldId: id) { ( result ) in
+                completion( result )
+            }
+        }
     }
 }
 
@@ -139,7 +202,9 @@ extension ZCRMModule
             lhs.isSubMenuPresent == rhs.isSubMenuPresent &&
             lhs.perPage == rhs.perPage &&
             lhs.isFilterSupported == rhs.isFilterSupported &&
-            lhs.isFeedsRequired == rhs.isFeedsRequired
+            lhs.isFeedsRequired == rhs.isFeedsRequired &&
+            lhs.internalBusinessCardFields == rhs.internalBusinessCardFields &&
+            lhs.fields == rhs.fields
         return equals
     }
 }

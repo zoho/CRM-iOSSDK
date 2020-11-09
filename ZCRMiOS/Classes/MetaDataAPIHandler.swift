@@ -177,6 +177,27 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         {
             module.isEmailTemplateSupported = try moduleDetails.getBoolean(key: ResponseJSONKeys.emailTemplateSupported)
         }
+        if moduleDetails.hasValue(forKey: ResponseJSONKeys.businessCardFields)
+        {
+            if let businessCardFields = try moduleDetails.getArray(key: ResponseJSONKeys.businessCardFields) as? [ String ]
+            {
+                module.internalBusinessCardFields = businessCardFields
+            }
+            else
+            {
+                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.typeCastError) : \( ResponseJSONKeys.businessCardFields ) - Expected type -> Array Of String, \( APIConstants.DETAILS ) : -")
+                throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( ResponseJSONKeys.businessCardFields ) - Expected type -> Array Of String", details : nil )
+            }
+        }
+        if let fields = moduleDetails.optArrayOfDictionaries(key: ResponseJSONKeys.fields)
+        {
+            module.fields = [:]
+            for fieldJSON in fields
+            {
+                let field = try ModuleAPIHandler(module: module, cacheFlavour: .noCache).getZCRMField(fieldDetails: fieldJSON )
+                module.fields?[ field.id ] = field
+            }
+        }
         return module
     }
 	
@@ -235,6 +256,8 @@ fileprivate extension MetaDataAPIHandler
         static let filterSupported = "filter_supported"
         static let feedsRequired = "feeds_required"
         static let emailTemplateSupported = "emailTemplate_support"
+        static let businessCardFields = "business_card_fields"
+        static let fields = "fields"
         
         static let displayLabel = "display_label"
         static let module = "module"
