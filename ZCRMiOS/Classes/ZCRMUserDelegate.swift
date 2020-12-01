@@ -4,19 +4,25 @@
 //
 //  Created by Boopathy P on 16/09/18.
 //
+import ZCacheiOS
 
-open class ZCRMUserDelegate : ZCRMEntity
+open class ZCRMUserDelegate : ZCRMEntity, ZCacheUser
 {
-    public internal( set ) var id : Int64
+    public var id: String
+    
+    public var moduleName: String = "USERS"
+    
+    public var orgId: String?
+    
     public var name : String
     
-    internal init( id : Int64, name : String )
+    internal init( id : String, name : String )
     {
         self.id = id
         self.name = name
     }
     
-    public func delete( completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func delete( completion : @escaping( ResultType.Response< APIResponse > ) -> () )
     {
         UserAPIHandler().deleteUser( userId : self.id ) { ( result ) in
             completion( result )
@@ -37,4 +43,4 @@ extension ZCRMUserDelegate : Hashable
     }
 }
 
-let USER_MOCK : ZCRMUserDelegate = ZCRMUserDelegate( id : APIConstants.INT64_MOCK, name : APIConstants.STRING_MOCK )
+let USER_MOCK : ZCRMUserDelegate = ZCRMUserDelegate( id : APIConstants.STRING_MOCK, name : APIConstants.STRING_MOCK )

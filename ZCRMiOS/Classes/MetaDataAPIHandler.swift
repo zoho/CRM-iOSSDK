@@ -8,7 +8,7 @@
 
 internal class MetaDataAPIHandler : CommonAPIHandler
 {
-    internal func getAllModules( modifiedSince : String?, completion: @escaping( Result.DataResponse< [ ZCRMModule ], BulkAPIResponse > ) -> () )
+    internal func getAllModules( modifiedSince : String?, completion: @escaping( ResultType.DataResponse< [ ZCRMModule ], BulkAPIResponse > ) -> () )
     {
         var allModules : [ZCRMModule] = [ZCRMModule]()
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.modules )" )
@@ -48,7 +48,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         }
 	}
 
-    internal func getModule( apiName : String, completion: @escaping( Result.DataResponse< ZCRMModule, APIResponse > ) -> () )
+    internal func getModule( apiName : String, completion: @escaping( ResultType.DataResponse< ZCRMModule, APIResponse > ) -> () )
 	{
 		setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.modules )/\(apiName)" )
 		setRequestMethod(requestMethod: .get )
@@ -75,7 +75,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
 	private func getZCRMModule(moduleDetails : [String:Any]) throws -> ZCRMModule
 	{
         let module : ZCRMModule = ZCRMModule( apiName : try moduleDetails.getString( key : ResponseJSONKeys.apiName ), singularLabel : try moduleDetails.getString( key : ResponseJSONKeys.singularLabel ), pluralLabel : try moduleDetails.getString( key : ResponseJSONKeys.pluralLabel ) )
-        module.id = try moduleDetails.getInt64( key : ResponseJSONKeys.id )
+        module.id = try moduleDetails.getString( key : ResponseJSONKeys.id )
         module.name = try moduleDetails.getString( key : ResponseJSONKeys.moduleName )
         module.generatedType = try moduleDetails.getString( key : ResponseJSONKeys.generatedType )
         module.isCreatable = try moduleDetails.getBoolean( key : ResponseJSONKeys.creatable )

@@ -10,7 +10,6 @@ open class ZCRMModule : ZCRMModuleDelegate
 {
     public internal( set ) var singularLabel : String
     public internal( set ) var pluralLabel : String
-    public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
     public internal( set ) var name : String = APIConstants.STRING_MOCK
     
     public internal( set ) var isCreatable : Bool = APIConstants.BOOL_MOCK
@@ -52,12 +51,125 @@ open class ZCRMModule : ZCRMModuleDelegate
     public internal( set ) var isEmailTemplateSupported : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var properties : [ String ]?
     
+    enum Keys: String, CodingKey
+    {
+        case apiName
+        case id
+        case isApiSupported
+        
+        case name
+        case singularLabel
+        case pluralLabel
+        
+        case isCreatable
+        case isViewable
+        case isConvertible
+        case isEditable
+        case isDeletable
+        
+        case modifiedBy
+        case modifiedTime
+        
+        case accessibleProfiles
+        case relatedLists
+        
+        case isGlobalSearchSupported
+        case visibility
+        case isAPISupported
+        case isQuickCreateAvailable
+        case isScoringSupported
+        case sequenceNumber
+        case generatedType
+        case businessCardFieldLimit
+        case webLink
+        
+        case arguments
+        
+        case displayField
+        case searchLayoutFields
+        case parentModule
+        case customView
+        
+        case isKanbanViewEnabled
+        case filterStatus
+        case isSubMenuPresent
+        case perPage
+        case isFilterSupported
+        case isFeedsRequired
+        case isEmailTemplateSupported
+        case properties
+    }
+    
     internal init( apiName : String, singularLabel : String, pluralLabel : String )
     {
         self.singularLabel = singularLabel
         self.pluralLabel = pluralLabel
         super.init( apiName : apiName )
 	}
+    
+    required public init(from decoder: Decoder) throws {
+        fatalError("init(from:) has not been implemented")
+        
+//        let values = try! decoder.container(keyedBy: Keys.self)
+//        name = try! values.decode(String.self, forKey: .name)
+//        id = try! values.decode(String.self, forKey: .id)
+//        let decodedData = try! values.decode(Data.self, forKey: .data)
+//        data = try! JSONSerialization.jsonObject(with: decodedData, options: .mutableContainers) as! [String: Any]
+    }
+    
+    open override func encode( to encoder : Encoder ) throws
+    {
+        var container = encoder.container( keyedBy : Keys.self )
+        
+        try container.encode( self.id, forKey : Keys.id )
+        try container.encode( self.apiName, forKey : Keys.apiName )
+        try container.encode( self.isApiSupported, forKey : Keys.isApiSupported )
+
+        try container.encode( self.name, forKey : Keys.name )
+        try container.encode( self.singularLabel, forKey : Keys.singularLabel )
+        try container.encode( self.pluralLabel, forKey : Keys.pluralLabel )
+        
+        try container.encode( self.isCreatable, forKey : Keys.isCreatable )
+        try container.encode( self.isViewable, forKey : Keys.isViewable )
+        try container.encode( self.isConvertible, forKey : Keys.isConvertible )
+        try container.encode( self.isEditable, forKey : Keys.isEditable )
+        try container.encode( self.isDeletable, forKey : Keys.isDeletable )
+        
+        try container.encode( self.modifiedBy, forKey : Keys.modifiedBy )
+        try container.encode( self.modifiedTime, forKey : Keys.modifiedTime )
+        
+        try container.encode( self.accessibleProfiles, forKey : Keys.accessibleProfiles)
+        try container.encode( self.relatedLists, forKey : Keys.relatedLists )
+        
+        try container.encode( self.isGlobalSearchSupported, forKey : Keys.isGlobalSearchSupported )
+        try container.encode( self.visibility, forKey : Keys.visibility )
+        try container.encode( self.isAPISupported, forKey : Keys.isAPISupported )
+        try container.encode( self.isQuickCreateAvailable, forKey : Keys.isQuickCreateAvailable )
+        try container.encode( self.isScoringSupported, forKey : Keys.isScoringSupported )
+        try container.encode( self.sequenceNumber, forKey : Keys.sequenceNumber )
+        try container.encode( self.generatedType, forKey : Keys.generatedType )
+        try container.encode( self.businessCardFieldLimit, forKey : Keys.businessCardFieldLimit )
+        try container.encode( self.webLink, forKey : Keys.webLink )
+        
+        try container.encode( self.arguments, forKey : Keys.arguments)
+        
+        try container.encode( self.displayField, forKey : Keys.displayField )
+        try container.encode( self.searchLayoutFields, forKey : Keys.searchLayoutFields )
+        try container.encode( self.parentModule, forKey : Keys.parentModule )
+        try container.encode( self.customView, forKey : Keys.customView )
+        
+        try container.encode( self.isKanbanViewEnabled, forKey : Keys.isKanbanViewEnabled )
+        try container.encode( self.filterStatus, forKey : Keys.filterStatus )
+        try container.encode( self.isSubMenuPresent, forKey : Keys.isSubMenuPresent )
+        try container.encode( self.perPage, forKey : Keys.perPage )
+        try container.encode( self.isFilterSupported, forKey : Keys.isFilterSupported )
+        try container.encode( self.isFeedsRequired, forKey : Keys.isFeedsRequired )
+        try container.encode( self.isEmailTemplateSupported, forKey : Keys.isEmailTemplateSupported )
+        try container.encode( self.properties, forKey : Keys.properties )
+        
+//        try container.encodeIfPresent( self.dataMap[ Keys.dob.rawValue ] as? String, forKey : CodingKeys.dob )
+        
+    }
     
     func addAccessibleProfiles( profile : ZCRMProfileDelegate )
     {

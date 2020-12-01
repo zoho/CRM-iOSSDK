@@ -1316,7 +1316,7 @@ struct JSONRootKey {
 //MARK:  Result types can be handled in 2 ways:
 //MARK:  1) Handle Result Types either by calling Resolve()
 //MARK:  2) on them or use the traditional switch case pattern to handle success and failure seperately
-public struct Result {
+public struct ResultType {
     
     public enum DataURLResponse<Data: Any, Response: HTTPURLResponse>{
         case success(Data, Response)
@@ -1415,7 +1415,7 @@ public func typeCastToZCRMError( _ error : Error ) -> ZCRMError {
 
 func getUserDelegate( userJSON : [ String : Any ] ) throws -> ZCRMUserDelegate
 {
-    let user : ZCRMUserDelegate = ZCRMUserDelegate( id : try userJSON.getInt64( key : "id" ), name : try userJSON.getString( key : "name" ) )
+    let user : ZCRMUserDelegate = ZCRMUserDelegate( id : try userJSON.getString( key : "id" ), name : try userJSON.getString( key : "name" ) )
     return user
 }
 

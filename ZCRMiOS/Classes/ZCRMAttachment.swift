@@ -37,7 +37,7 @@ open class ZCRMAttachment : ZCRMEntity
     ///
     /// - Returns: FileAPIResponse containing the data of the file downloaded.
     /// - Throws: ZCRMSDkError if failed to download the attachment
-    public func downloadFile( completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
+    public func downloadFile( completion : @escaping( ResultType.Response< FileAPIResponse > ) -> () )
     {
         RelatedListAPIHandler( parentRecord : self.parentRecord, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : self.parentRecord.moduleAPIName ) ).downloadAttachment( attachmentId : self.id ) { ( result ) in
             completion( result )

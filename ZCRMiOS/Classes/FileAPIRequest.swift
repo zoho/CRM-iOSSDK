@@ -40,7 +40,7 @@ internal class FileAPIRequest : APIRequest
         super.init( handler : handler, cacheFlavour : .noCache )
     }
     
-    internal func uploadLink( completion : @escaping( Result.Response< APIResponse > ) -> () )
+    internal func uploadLink( completion : @escaping( ResultType.Response< APIResponse > ) -> () )
     {
         let boundary = APIConstants.BOUNDARY
         self.createMultipartRequest( bodyData : Data(), fileName: "-", boundary : boundary) { ( url, error ) in
@@ -77,7 +77,7 @@ internal class FileAPIRequest : APIRequest
     }
     
     /// - Parameter content: ZCRMNote as JSON to be added
-    internal func uploadFile( filePath : String, entity : [ String : Any? ]?, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    internal func uploadFile( filePath : String, entity : [ String : Any? ]?, completion : @escaping( ResultType.Response< APIResponse > ) -> () )
     {
         let fileURL = URL( fileURLWithPath : filePath )
         let boundary = APIConstants.BOUNDARY
@@ -132,7 +132,7 @@ internal class FileAPIRequest : APIRequest
     }
     
     /// - Parameter content: ZCRMNote as JSON to be added
-    internal func uploadFile( fileName : String, entity : [ String : Any? ]?, fileData : Data, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    internal func uploadFile( fileName : String, entity : [ String : Any? ]?, fileData : Data, completion : @escaping( ResultType.Response< APIResponse > ) -> () )
     {
         do
         {
@@ -462,7 +462,7 @@ internal class FileAPIRequest : APIRequest
         return "application/octet-stream"
     }
 
-    internal func downloadFile( completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
+    internal func downloadFile( completion : @escaping( ResultType.Response< FileAPIResponse > ) -> () )
     {
         self.initialiseRequest { ( err ) in
             if let error = err
@@ -748,7 +748,7 @@ internal var downloadTasksQueue = DispatchQueue(label: "com.zoho.crm.sdk.filedow
         - completion : Returns an APIResponse with success message if the task has been cancelled or, an error message if the cancellation failed.
  */
 
-public func cancelUploadTask(withRefId id : String, completion : @escaping ( Result.Response< APIResponse > ) -> () )
+public func cancelUploadTask(withRefId id : String, completion : @escaping ( ResultType.Response< APIResponse > ) -> () )
 {
     let response = APIResponse()
     response.setStatus(status: "error")
@@ -794,7 +794,7 @@ public func cancelUploadTask(withRefId id : String, completion : @escaping ( Res
          * Component ID - DashboardComponent
  */
 
-public func cancelDownloadTask(withId id : String, completion : @escaping ( Result.Response< APIResponse > ) -> () )
+public func cancelDownloadTask(withId id : String, completion : @escaping ( ResultType.Response< APIResponse > ) -> () )
 {
     let response = APIResponse()
     response.setStatus(status: "error")

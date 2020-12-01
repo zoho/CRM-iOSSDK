@@ -51,7 +51,7 @@ public class ZCRMModuleRelation : ZCRMEntity
     ///   - recordParams: Params to be included in fetching the records
     /// - Returns: sorted list of module of the ZCRMRecord
     /// - Throws: ZCRMSDKError if falied to get related records
-    public func getRelatedRecords( ofParentRecord : ZCRMRecordDelegate, recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    public func getRelatedRecords( ofParentRecord : ZCRMRecordDelegate, recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
     {
         do
         {

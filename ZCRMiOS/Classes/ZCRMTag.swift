@@ -25,14 +25,14 @@ open class ZCRMTag : ZCRMEntity
     internal init()
     { }
     
-    public func update( completion : @escaping ( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
+    public func update( completion : @escaping ( ResultType.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
         TagAPIHandler( tag : self, module : ZCRMModuleDelegate( apiName : self.moduleAPIName ) ).update( completion : { ( result ) in
             completion( result )
         } )
     }
     
-    public func getRecordCount( completion : @escaping ( Result.DataResponse< Int64, APIResponse > ) -> () )
+    public func getRecordCount( completion : @escaping ( ResultType.DataResponse< Int64, APIResponse > ) -> () )
     {
         if self.moduleAPIName == APIConstants.STRING_MOCK
         {
@@ -47,14 +47,14 @@ open class ZCRMTag : ZCRMEntity
         }
     }
     
-    public func merge( withTag : ZCRMTag, completion : @escaping ( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
+    public func merge( withTag : ZCRMTag, completion : @escaping ( ResultType.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
         TagAPIHandler( tag : self, module : ZCRMModuleDelegate( apiName : self.moduleAPIName ) ).merge( withTag : withTag ) { ( result ) in
             completion( result )
         }
     }
     
-    public func delete( completion : @escaping ( Result.Response< APIResponse > ) -> () )
+    public func delete( completion : @escaping ( ResultType.Response< APIResponse > ) -> () )
     {
         TagAPIHandler().delete( tagId : self.id , completion: { ( result ) in
             completion( result )

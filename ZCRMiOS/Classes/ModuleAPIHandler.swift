@@ -163,7 +163,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
     }
     
 	// MARK: - Handler functions
-    internal func getAllLayouts( modifiedSince : String?, completion: @escaping( Result.DataResponse< [ ZCRMLayout ], BulkAPIResponse > ) -> () )
+    internal func getAllLayouts( modifiedSince : String?, completion: @escaping( ResultType.DataResponse< [ ZCRMLayout ], BulkAPIResponse > ) -> () )
     {
         setIsCacheable(true)
 		setJSONRootKey( key : JSONRootKey.LAYOUTS )
@@ -202,7 +202,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func getLayout( layoutId : Int64, completion: @escaping( Result.DataResponse< ZCRMLayout, APIResponse > ) -> () )
+    internal func getLayout( layoutId : Int64, completion: @escaping( ResultType.DataResponse< ZCRMLayout, APIResponse > ) -> () )
     {
         setIsCacheable(true)
         setJSONRootKey( key : JSONRootKey.LAYOUTS )
@@ -228,7 +228,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getAllFields( modifiedSince : String?, completion: @escaping( Result.DataResponse< [ ZCRMField ], BulkAPIResponse > ) -> () )
+    internal func getAllFields( modifiedSince : String?, completion: @escaping( ResultType.DataResponse< [ ZCRMField ], BulkAPIResponse > ) -> () )
     {
         setIsCacheable( true )
         setJSONRootKey( key : JSONRootKey.FIELDS )
@@ -267,7 +267,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func getField( fieldId : Int64, completion: @escaping( Result.DataResponse< ZCRMField, APIResponse > ) -> () )
+    internal func getField( fieldId : Int64, completion: @escaping( ResultType.DataResponse< ZCRMField, APIResponse > ) -> () )
     {
         setIsCacheable(true)
         setJSONRootKey( key : JSONRootKey.FIELDS )
@@ -293,7 +293,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func getAllCustomViews( modifiedSince : String?, completion: @escaping( Result.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
+    internal func getAllCustomViews( modifiedSince : String?, completion: @escaping( ResultType.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
     {
         setIsCacheable(true)
         setJSONRootKey( key : JSONRootKey.CUSTOM_VIEWS )
@@ -336,7 +336,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func getRelatedList( id : Int64, completion: @escaping( Result.DataResponse< ZCRMModuleRelation, APIResponse > ) -> () )
+    internal func getRelatedList( id : Int64, completion: @escaping( ResultType.DataResponse< ZCRMModuleRelation, APIResponse > ) -> () )
     {
         setIsCacheable(true)
         setJSONRootKey( key : JSONRootKey.RELATED_LISTS )
@@ -361,7 +361,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func getAllRelatedLists( completion: @escaping( Result.DataResponse< [ ZCRMModuleRelation ], BulkAPIResponse > ) -> () )
+    internal func getAllRelatedLists( completion: @escaping( ResultType.DataResponse< [ ZCRMModuleRelation ], BulkAPIResponse > ) -> () )
     {
         setIsCacheable(true)
         setJSONRootKey( key : JSONRootKey.RELATED_LISTS )
@@ -396,7 +396,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func getCustomView( cvId : Int64, completion: @escaping( Result.DataResponse< ZCRMCustomView, APIResponse > ) -> () )
+    internal func getCustomView( cvId : Int64, completion: @escaping( ResultType.DataResponse< ZCRMCustomView, APIResponse > ) -> () )
     {
         setIsCacheable(true)
         setJSONRootKey( key :  JSONRootKey.CUSTOM_VIEWS )
@@ -422,7 +422,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getFilters( cvId : Int64, completion: @escaping( Result.DataResponse< [ ZCRMFilter ], BulkAPIResponse > ) -> () )
+    internal func getFilters( cvId : Int64, completion: @escaping( ResultType.DataResponse< [ ZCRMFilter ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.FILTERS )
         setUrlPath( urlPath : "\( URLPathConstants.settings )/\( URLPathConstants.customViews )/\( cvId )/\( URLPathConstants.filters )" )

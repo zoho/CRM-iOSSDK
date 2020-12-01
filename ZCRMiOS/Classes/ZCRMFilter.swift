@@ -21,7 +21,7 @@ open class ZCRMFilter : ZCRMEntity
         self.moduleAPIName = moduleAPIName
     }
     
-    public func getRecords( recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func getRecords( recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : ZCRMModuleDelegate( apiName : self.moduleAPIName ) ).getRecords( cvId : self.parentCvId, filterId : self.id, recordParams : recordParams ) { ( result ) in
             completion( result )

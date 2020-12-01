@@ -1,9 +1,12 @@
 PODS:
-  - ZCRMiOS (1.3.5)
+  - ZCacheiOS (0.1.0)
+  - ZCRMiOS (1.3.5):
+    - ZCacheiOS
   - ZohoAuth (1.3)
   - ZohoPortalAuth (0.0.3)
 
 DEPENDENCIES:
+  - ZCacheiOS (from `https://git.csez.zohocorpin.com/zoho-crm/ios_cache_framework.git`, branch `USER_RAJA`)
   - ZCRMiOS (from `../`)
   - ZohoAuth (= 1.3)
   - ZohoPortalAuth (= 0.0.3)
@@ -14,14 +17,23 @@ SPEC REPOS:
     - ZohoPortalAuth
 
 EXTERNAL SOURCES:
+  ZCacheiOS:
+    :branch: USER_RAJA
+    :git: https://git.csez.zohocorpin.com/zoho-crm/ios_cache_framework.git
   ZCRMiOS:
     :path: "../"
 
+CHECKOUT OPTIONS:
+  ZCacheiOS:
+    :commit: 224d276503ae5e81c81c241b7b0bc40c09d223cb
+    :git: https://git.csez.zohocorpin.com/zoho-crm/ios_cache_framework.git
+
 SPEC CHECKSUMS:
-  ZCRMiOS: adfdc1cf8ffd8cb825fe910794fc6e782b7c23e0
+  ZCacheiOS: 035b18e12cfdbf7013d0ab03e575303571c9b63d
+  ZCRMiOS: 7cbf33802d8d478b034e69d8b4697f024f1e0b5c
   ZohoAuth: e197f454c4ee6d05d1e7396cf2a5a766ec6c4ab6
   ZohoPortalAuth: d642a6f5a6891c6c0855e39ce88c800188637ce6
 
-PODFILE CHECKSUM: 568d55f28a53219f8a2a91f419ae9683188b5755
+PODFILE CHECKSUM: f9da5b01ff82368e63d35352dbb9fcfa67686359
 
-COCOAPODS: 1.9.1
+COCOAPODS: 1.10.0

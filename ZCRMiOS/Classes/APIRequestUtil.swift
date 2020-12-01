@@ -8,7 +8,7 @@
 import Foundation
 
 internal extension URLSession {
-   func dataTask(with request : URLRequest, completion : @escaping (Result.DataURLResponse<Data, HTTPURLResponse>) -> Void) -> URLSessionDataTask {
+   func dataTask(with request : URLRequest, completion : @escaping (ResultType.DataURLResponse<Data, HTTPURLResponse>) -> Void) -> URLSessionDataTask {
        return dataTask(with: request) { (data, response, error) in
 
            if let error = error {
@@ -31,7 +31,7 @@ internal extension URLSession {
        }
    }
    
-   func uploadTask(with request : URLRequest, fromFile url : URL, completion : @escaping (Result.DataURLResponse<Data, HTTPURLResponse>) -> Void) -> URLSessionUploadTask {
+   func uploadTask(with request : URLRequest, fromFile url : URL, completion : @escaping (ResultType.DataURLResponse<Data, HTTPURLResponse>) -> Void) -> URLSessionUploadTask {
        return uploadTask(with: request, fromFile: url) { (data, response, error) in
            if let error = error {
                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
@@ -53,7 +53,7 @@ internal extension URLSession {
        }
    }
    
-   func downloadTask(with request : URLRequest, completion : @escaping (Result.DataURLResponse<Any, HTTPURLResponse>) -> Void) -> URLSessionDownloadTask {
+   func downloadTask(with request : URLRequest, completion : @escaping (ResultType.DataURLResponse<Any, HTTPURLResponse>) -> Void) -> URLSessionDownloadTask {
        return downloadTask(with: request) { (tempLocalURL, response, error) in
            if let error = error {
                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
@@ -145,5 +145,5 @@ struct ZCRMURLBuilder
 
 public protocol ZohoAuthProvider
 {
-    func getAccessToken( completion : @escaping( Result.Data< String > ) -> ()  )
+    func getAccessToken( completion : @escaping( ResultType.Data< String > ) -> ()  )
 }

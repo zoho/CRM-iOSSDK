@@ -5,6 +5,7 @@
 //  Created by Sarath Kumar Rajendran on 06/09/18.
 //  Copyright © 2017 zohocrm. All rights reserved.
 //
+import ZCacheiOS
 
 public class ZCRMSDKClient
 {
@@ -42,6 +43,7 @@ public class ZCRMSDKClient
     
     private init() {}
     
+    @available(iOS 12.0, *)
     public func initSDK( window : UIWindow, appType : AppType? =  AppType.zcrm, apiBaseURL : String? = nil, oauthScopes : [ Any ]? = nil, clientID : String? = nil, clientSecretID : String? = nil, redirectURLScheme : String? = nil, accountsURL : String? = nil, portalID : String? = nil, groupIdentifier : String? = nil ) throws
     {
         guard let appConfigPlist = Bundle.main.path( forResource : "AppConfiguration", ofType : "plist" ) else
@@ -115,6 +117,17 @@ public class ZCRMSDKClient
         {
             try ZCRMSDKClient.shared.createDB()
             try ZCRMSDKClient.shared.createTables()
+            
+            ZCache.shared.initialize { result in
+                switch result {
+                case .success: do {
+                    ZCRMLogger.logError(message: "ZCache SDK - Init success!")
+                }
+                case .failure(let error): do {
+                    ZCRMLogger.logError(message: "ZCache SDK - Init failed! - \(error)")
+                }
+                }
+            }
         }
         catch
         {
@@ -150,7 +163,7 @@ public class ZCRMSDKClient
         try clearAllCache()
     }
     
-    internal func getAccessToken( completion : @escaping ( Result.Data< String > ) -> ())
+    internal func getAccessToken( completion : @escaping ( ResultType.Data< String > ) -> ())
     {
         self.zohoAuthProvider?.getAccessToken() { result in
             completion( result )
@@ -182,7 +195,7 @@ public class ZCRMSDKClient
         ZCRMLogger.initLogger(isLogEnabled: false)
     }
     
-    public func getLoggedInUser( completion : @escaping( Result.DataResponse< ZCRMUser, APIResponse > ) -> () )
+    public func getLoggedInUser( completion : @escaping( ResultType.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
         UserAPIHandler(cacheFlavour: CacheFlavour.forceCache).getCurrentUser() { ( result ) in
             completion( result )

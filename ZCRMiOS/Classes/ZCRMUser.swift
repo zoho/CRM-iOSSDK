@@ -198,13 +198,13 @@ public class ZCRMUser : ZCRMUserDelegate
         upsertJSON.updateValue(emailId, forKey: UserAPIHandler.ResponseJSONKeys.email)
         upsertJSON.updateValue(String( role.id ), forKey: UserAPIHandler.ResponseJSONKeys.role)
         upsertJSON.updateValue(String( profile.id ), forKey: UserAPIHandler.ResponseJSONKeys.profile)
-        super.init( id : APIConstants.INT64_MOCK, name : APIConstants.STRING_MOCK )
+        super.init( id : APIConstants.STRING_MOCK, name : APIConstants.STRING_MOCK )
     }
     
     internal init( emailId : String )
     {
         self.emailId = emailId
-        super.init(id: APIConstants.INT64_MOCK, name: APIConstants.STRING_MOCK)
+        super.init(id: APIConstants.STRING_MOCK, name: APIConstants.STRING_MOCK)
     }
     
     public func resetModifiedValues()
@@ -334,7 +334,7 @@ public class ZCRMUser : ZCRMUserDelegate
         return data
     }
     
-    public func create( completion : @escaping( Result.DataResponse< ZCRMUser, APIResponse > ) -> () )
+    public func create( completion : @escaping( ResultType.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
         UserAPIHandler().addUser( user : self ) { ( result ) in
             self.isCreate = false
@@ -342,7 +342,7 @@ public class ZCRMUser : ZCRMUserDelegate
         }
     }
     
-    public func update( completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func update( completion : @escaping( ResultType.Response< APIResponse > ) -> () )
     {
         UserAPIHandler().updateUser( user : self ) { ( result ) in
             completion( result )

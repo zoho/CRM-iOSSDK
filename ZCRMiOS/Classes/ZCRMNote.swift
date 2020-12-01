@@ -75,7 +75,7 @@ open class ZCRMNote : ZCRMEntity
         }
     }
     
-    public func getAttachments( withParams : GETEntityRequestParams, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
+    public func getAttachments( withParams : GETEntityRequestParams, completion : @escaping( ResultType.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
     {
         if self.isCreate
         {
@@ -88,7 +88,7 @@ open class ZCRMNote : ZCRMEntity
     }
     
     @available(*, deprecated, message: "Use the method getAttachments( withParams : GETEntityRequestParams, completion : ) instead" )
-    public func getAttachments( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
+    public func getAttachments( page : Int, perPage : Int, completion : @escaping( ResultType.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
     {
         if self.isCreate
         {
@@ -104,7 +104,7 @@ open class ZCRMNote : ZCRMEntity
     }
     
     @available(*, deprecated, message: "Use the method getAttachments( withParams : GETEntityRequestParams, completion : ) instead" )
-    public func getAttachments( page : Int, perPage : Int, modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
+    public func getAttachments( page : Int, perPage : Int, modifiedSince : String, completion : @escaping( ResultType.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
     {
         if self.isCreate
         {
@@ -125,7 +125,7 @@ open class ZCRMNote : ZCRMEntity
     /// - Parameter filePath: file path of the attachment
     /// - Returns: APIResponse of the attachment upload
     /// - Throws: ZCRMSDKError if failed to upload the attachment
-    public func uploadAttachment( filePath : String, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
+    public func uploadAttachment( filePath : String, completion : @escaping( ResultType.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
     {
         RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ) ).uploadAttachment( filePath : filePath, fileName : nil, fileData : nil, note : self ) { ( result ) in
             completion( result )
@@ -137,7 +137,7 @@ open class ZCRMNote : ZCRMEntity
         RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.ATTACHMENTS )).uploadAttachment( fileRefId : fileRefId, filePath : filePath, fileName : nil, fileData : nil, note : self , attachmentUploadDelegate : attachmentUploadDelegate )
     }
     
-    public func uploadAttachment( fileName : String, fileData : Data, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
+    public func uploadAttachment( fileName : String, fileData : Data, completion : @escaping( ResultType.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
     {
         RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ) ).uploadAttachment( filePath : nil, fileName : fileName, fileData : fileData, note : self ) { ( result ) in
             completion( result )
@@ -154,7 +154,7 @@ open class ZCRMNote : ZCRMEntity
     /// - Parameter id: Id of the attachment to be downloaded
     /// - Returns: FileAPIResponse containing the data of the file downloaded.
     /// - Throws: ZCRMSDKError if failed to download the attachment
-    public func downloadAttachment(id : Int64, completion : @escaping( Result.Response< FileAPIResponse > ) -> ())
+    public func downloadAttachment(id : Int64, completion : @escaping( ResultType.Response< FileAPIResponse > ) -> ())
     {
         RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ) ).downloadAttachment( attachmentId : id ) { ( result ) in
             completion( result )
@@ -171,7 +171,7 @@ open class ZCRMNote : ZCRMEntity
     /// - Parameter id: Id of the attachment to be deleted
     /// - Returns: APIResponse of the file deleted.
     /// - Throws: ZCRMSDKError if failed to delete the attachment
-    public func deleteAttachment( id : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func deleteAttachment( id : Int64, completion : @escaping( ResultType.Response< APIResponse > ) -> () )
     {
         RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ) ).deleteAttachment( attachmentId : id ) { ( result ) in
             if case .success( _ ) = result

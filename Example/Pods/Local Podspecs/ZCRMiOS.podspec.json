@@ -20,8 +20,13 @@
     "Example/Pods/ZohoPortalAuth/ZohoPortalAuthKit.framework"
   ],
   "platforms": {
-    "ios": "8.0"
+    "ios": "12.0"
   },
   "source_files": "ZCRMiOS/Classes/**/*",
-  "public_header_files": "Pod/Classes/**/*.h"
+  "public_header_files": "Pod/Classes/**/*.h",
+  "dependencies": {
+    "ZCacheiOS": [
+
+    ]
+  }
 }

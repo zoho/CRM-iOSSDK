@@ -41,7 +41,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         self.requestedModule = parentRecord.moduleAPIName
     }
     
-    internal func getRecords( recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    internal func getRecords( recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
@@ -149,7 +149,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getNotes( withParams : GETEntityRequestParams, completion : @escaping( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
+    internal func getNotes( withParams : GETEntityRequestParams, completion : @escaping( ResultType.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
@@ -224,7 +224,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getNote( noteId : Int64, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
+    internal func getNote( noteId : Int64, completion : @escaping( ResultType.DataResponse< ZCRMNote, APIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
@@ -266,7 +266,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getAttachments( withParams : GETEntityRequestParams, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
+    internal func getAttachments( withParams : GETEntityRequestParams, completion : @escaping( ResultType.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
@@ -334,7 +334,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func uploadLinkAsAttachment( attachmentURL : String, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
+    internal func uploadLinkAsAttachment( attachmentURL : String, completion : @escaping( ResultType.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
@@ -367,7 +367,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func downloadAttachment( attachmentId : Int64, completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
+    internal func downloadAttachment( attachmentId : Int64, completion : @escaping( ResultType.Response< FileAPIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
@@ -413,7 +413,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func deleteAttachment( attachmentId : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    internal func deleteAttachment( attachmentId : Int64, completion : @escaping( ResultType.Response< APIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
@@ -441,7 +441,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func addNote( note : ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
+    internal func addNote( note : ZCRMNote, completion : @escaping( ResultType.DataResponse< ZCRMNote, APIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
@@ -480,7 +480,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func updateNote( note : ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
+    internal func updateNote( note : ZCRMNote, completion : @escaping( ResultType.DataResponse< ZCRMNote, APIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
@@ -529,7 +529,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func deleteNote( noteId : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    internal func deleteNote( noteId : Int64, completion : @escaping( ResultType.Response< APIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
@@ -713,7 +713,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         return noteJSON
     }
 
-    internal func addRelation( completion : @escaping( Result.Response< APIResponse > ) -> () )
+    internal func addRelation( completion : @escaping( ResultType.Response< APIResponse > ) -> () )
     {
         if let junctionRecord = self.junctionRecord
         {
@@ -746,7 +746,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func addRelations( junctionRecords : [ ZCRMJunctionRecord ], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
+    internal func addRelations( junctionRecords : [ ZCRMJunctionRecord ], completion : @escaping( ResultType.Response< BulkAPIResponse > ) -> () )
     {
         var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
         let dataArray : [ [ String : Any? ] ] = self.getRelationsDetailsAsJSON( junctionRecords : junctionRecords )
@@ -772,7 +772,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func deleteRelation( completion : @escaping( Result.Response< APIResponse > ) -> () )
+    internal func deleteRelation( completion : @escaping( ResultType.Response< APIResponse > ) -> () )
     {
         if let junctionRecord = self.junctionRecord
         {
@@ -799,7 +799,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func deleteRelations( junctionRecords : [ ZCRMJunctionRecord ], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
+    internal func deleteRelations( junctionRecords : [ ZCRMJunctionRecord ], completion : @escaping( ResultType.Response< BulkAPIResponse > ) -> () )
     {
         setUrlPath( urlPath : "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\( junctionRecords[ 0 ].apiName )" )
         setRequestMethod(requestMethod: .delete )
@@ -875,7 +875,7 @@ extension RelatedListAPIHandler
         }
     }
     
-    internal func uploadAttachment( filePath : String?, fileName : String?, fileData : Data?, note : ZCRMNote?, completion : @escaping(Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
+    internal func uploadAttachment( filePath : String?, fileName : String?, fileData : Data?, note : ZCRMNote?, completion : @escaping(ResultType.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
     {
         do {
             try buildFileUploadAttachmentRequest(filePath: filePath, fileName: fileName, fileData: fileData, note: note)

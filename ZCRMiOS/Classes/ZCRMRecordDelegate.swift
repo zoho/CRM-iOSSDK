@@ -97,7 +97,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     ///
     /// - Returns: API response of the ZCRMRecord delete
     /// - Throws: ZCRMSDKError if Entity ID of the record is nil
-    public func delete( completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func delete( completion : @escaping( ResultType.Response< APIResponse > ) -> () )
     {
         EntityAPIHandler(recordDelegate: self).deleteRecord { ( result ) in
             completion( result )
@@ -108,7 +108,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     ///
     /// - Returns: dictionary containing deal, contact and account vs its ID of the converted ZCRMRecord
     /// - Throws: ZCRMSDKError if the ZCRMRecord is not convertible
-    public func convert( completion : @escaping( Result.DataResponse< [ String : Int64 ], APIResponse > ) -> () )
+    public func convert( completion : @escaping( ResultType.DataResponse< [ String : Int64 ], APIResponse > ) -> () )
     {
         if( self.moduleAPIName != DefaultModuleAPINames.LEADS )
         {
@@ -128,7 +128,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Parameter newPotential: New ZCRMRecord(Potential) to be created
     /// - Returns: dictionary containing deal, contact and account vs its ID of the converted ZCRMRecord
     /// - Throws: ZCRMSDKError if the ZCRMRecord is not convertible
-    public func convert( newPotential : ZCRMRecord, completion : @escaping( Result.DataResponse< [ String : Int64 ], APIResponse > ) -> () )
+    public func convert( newPotential : ZCRMRecord, completion : @escaping( ResultType.DataResponse< [ String : Int64 ], APIResponse > ) -> () )
     {
         if( self.moduleAPIName != DefaultModuleAPINames.LEADS )
         {
@@ -151,7 +151,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     ///   - assignTo: assignee for the converted ZCRMRecord
     /// - Returns: dictionary containing deal, contact and account vs its ID of the converted ZCRMRecord
     /// - Throws: ZCRMSDKError if the ZCRMRecord is not convertible
-    public func convert(newPotential: ZCRMRecord?, assignTo: ZCRMUser?, completion : @escaping( Result.DataResponse< [ String : Int64 ], APIResponse > ) -> () )
+    public func convert(newPotential: ZCRMRecord?, assignTo: ZCRMUser?, completion : @escaping( ResultType.DataResponse< [ String : Int64 ], APIResponse > ) -> () )
     {
         if( self.moduleAPIName != DefaultModuleAPINames.LEADS )
         {
@@ -172,7 +172,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Parameter note: ZCRMNote to be added
     /// - Returns: APIResponse of the note addition
     /// - Throws: ZCRMSDKError if Note id is not nil
-    public func addNote(note: ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
+    public func addNote(note: ZCRMNote, completion : @escaping( ResultType.DataResponse< ZCRMNote, APIResponse > ) -> () )
     { 
         if !note.isCreate
         {
@@ -188,21 +188,21 @@ open class ZCRMRecordDelegate : ZCRMEntity
         }
     }
     
-    public func addTags( tags : [ String ], completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func addTags( tags : [ String ], completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         EntityAPIHandler( recordDelegate : self ).addTags( tags : tags, overWrite : nil ) { ( result ) in
             completion( result )
         }
     }
     
-    public func addTags( tags : [ String ], overWrite : Bool?, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func addTags( tags : [ String ], overWrite : Bool?, completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         EntityAPIHandler( recordDelegate : self ).addTags( tags : tags, overWrite : overWrite ) { ( result ) in
             completion( result )
         }
     }
     
-    public func removeTags( tags : [ String ], completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func removeTags( tags : [ String ], completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         EntityAPIHandler( recordDelegate : self ).removeTags( tags : tags ) { ( result ) in
             completion( result )
@@ -214,7 +214,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Parameter note: ZCRMNote to be updated
     /// - Returns: APIResponse of the note update
     /// - Throws: ZCRMSDKError if Note id is nil
-    public func updateNote(note: ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> ())
+    public func updateNote(note: ZCRMNote, completion : @escaping( ResultType.DataResponse< ZCRMNote, APIResponse > ) -> ())
     {
         if note.isCreate
         {
@@ -234,7 +234,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Parameter id: Id of the ZCRMNote to be deleted
     /// - Returns: APIResponse of the note deletion
     /// - Throws: ZCRMSDKError if Note id is nil
-    public func deleteNote( id : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func deleteNote( id : Int64, completion : @escaping( ResultType.Response< APIResponse > ) -> () )
     {
         RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).deleteNote( noteId : id ) { ( result ) in
             completion( result )
@@ -245,7 +245,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     ///
     /// - Returns: list of notes of the ZCRMRecord
     /// - Throws: ZCRMSDKError if failed to get notes of the ZCRMRecord
-    public func getNotes( completion : @escaping( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
+    public func getNotes( completion : @escaping( ResultType.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
     {
         RelatedListAPIHandler( parentRecord : self, relatedList :  ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).getNotes( withParams : ZCRMQuery.getEntityRequestParams ) { ( result ) in
             completion( result )
@@ -259,7 +259,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
         - withParams : GetFieldParams Which defines the params required to get the records.
         - completion : Returns an array of ZCRMNotes and a BulkAPIResponse
      */
-    public func getNotes( withParams : GETEntityRequestParams, completion : @escaping ( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> Void )
+    public func getNotes( withParams : GETEntityRequestParams, completion : @escaping ( ResultType.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> Void )
     {
         RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).getNotes( withParams : withParams ) { ( result ) in
             completion( result )
@@ -274,7 +274,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Returns: list of notes of the ZCRMRecord of a requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get notes of the ZCRMRecord
     @available(*, deprecated, message: "Use the method getNotes( withParams : GETEntityRequestParams, completion : ) instead" )
-    public func getNotes( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
+    public func getNotes( page : Int, perPage : Int, completion : @escaping( ResultType.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
     {
         var params = ZCRMQuery.getEntityRequestParams
         params.page = page
@@ -292,7 +292,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Returns: sorted list of notes of the ZCRMRecord
     /// - Throws: ZCRMSDKError if failed to get notes of the ZCRMRecord
     @available(*, deprecated, message: "Use the method getNotes( withParams : GETEntityRequestParams, completion : ) instead" )
-    public func getNotes( sortByField : String, sortOrder : SortOrder, completion : @escaping( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
+    public func getNotes( sortByField : String, sortOrder : SortOrder, completion : @escaping( ResultType.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
     {
         var params = ZCRMQuery.getEntityRequestParams
         params.sortBy = sortByField
@@ -313,7 +313,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Returns: <#return value description#>
     /// - Throws: ZCRMSDKError if failed to get notes of the ZCRMRecord
     @available(*, deprecated, message: "Use the method getNotes( withParams : GETEntityRequestParams, completion : ) instead" )
-    public func getNotes(page : Int, perPage : Int, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String?, completion : @escaping( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
+    public func getNotes(page : Int, perPage : Int, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String?, completion : @escaping( ResultType.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
     {
         var params = ZCRMQuery.getEntityRequestParams
         params.page = page
@@ -326,7 +326,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
         }
     }
     
-    public func getNote( id : Int64, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
+    public func getNote( id : Int64, completion : @escaping( ResultType.DataResponse< ZCRMNote, APIResponse > ) -> () )
     {
         RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).getNote( noteId : id ) { ( result ) in
             completion( result )
@@ -337,7 +337,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     ///
     /// - Returns: list of all attachments of the ZCRMRecord
     /// - Throws: ZCRMSDKError if failed to get the list of attachments
-    public func getAttachments( completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> ())
+    public func getAttachments( completion : @escaping( ResultType.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> ())
     {
         RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : self.moduleAPIName ) ).getAttachments( withParams : ZCRMQuery.getEntityRequestParams ) { ( result ) in
             completion( result )
@@ -351,7 +351,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
         - withParams : GetFieldParams Which defines the params required to get the records.
         - completion : Returns an array of ZCRMAttachment and a BulkAPIResponse
      */
-    public func getAttachments( withParams : GETEntityRequestParams, completion : @escaping ( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> Void )
+    public func getAttachments( withParams : GETEntityRequestParams, completion : @escaping ( ResultType.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> Void )
     {
         RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : self.moduleAPIName ) ).getAttachments( withParams : withParams ) { ( result ) in
             completion( result )
@@ -367,7 +367,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Returns: list of all attachments of the ZCRMRecord of a requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get the list of attachments
     @available(*, deprecated, message: "Use the method getAttachments( withParams : GETEntityRequestParams, completion : ) instead" )
-    public func getAttachments( page : Int, perPage : Int, modifiedSince : String?, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
+    public func getAttachments( page : Int, perPage : Int, modifiedSince : String?, completion : @escaping( ResultType.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
     {
         var params = ZCRMQuery.getEntityRequestParams
         params.page = page
@@ -383,7 +383,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Parameter id: Id of the attachment to be downloaded
     /// - Returns: FileAPIResponse containing the data of the file downloaded.
     /// - Throws: ZCRMSDKError if failed to download the attachment
-    public func downloadAttachment(id: Int64, completion : @escaping( Result.Response< FileAPIResponse > ) -> ())
+    public func downloadAttachment(id: Int64, completion : @escaping( ResultType.Response< FileAPIResponse > ) -> ())
     {
         RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : self.moduleAPIName ) ).downloadAttachment( attachmentId : id ) { ( result ) in
             completion( result )
@@ -395,7 +395,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
         try RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : self.moduleAPIName ) ).downloadAttachment( attachmentId : id, fileDownloadDelegate : fileDownloadDelegate )
     }
     
-    public func deleteAttachment( id : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func deleteAttachment( id : Int64, completion : @escaping( ResultType.Response< APIResponse > ) -> () )
     {
         RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : self.moduleAPIName ) ).deleteAttachment( attachmentId : id ) { ( result ) in
             completion( result )
@@ -407,7 +407,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Parameter filePath: file path of the attachment
     /// - Returns: APIResponse of the attachment upload
     /// - Throws: ZCRMSDKError if failed to upload the attachment
-    public func uploadAttachment( filePath : String, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
+    public func uploadAttachment( filePath : String, completion : @escaping( ResultType.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
     {
         RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : self.moduleAPIName) ).uploadAttachment( filePath : filePath, fileName : nil, fileData : nil, note : nil ) { ( result ) in
             completion( result )
@@ -419,7 +419,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
         RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : self.moduleAPIName)).uploadAttachment( fileRefId : fileRefId, filePath : filePath, fileName : nil, fileData : nil, note : nil , attachmentUploadDelegate: attachmentUploadDelegate)
     }
     
-    public func uploadAttachment( fileName : String, fileData : Data, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
+    public func uploadAttachment( fileName : String, fileData : Data, completion : @escaping( ResultType.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
     {
         RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : self.moduleAPIName ) ).uploadAttachment( filePath : nil, fileName : fileName, fileData : fileData, note : nil ) { ( result ) in
             completion( result )
@@ -436,14 +436,14 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Parameter URL: URL of the attachment
     /// - Returns: APIResponse of the attachment upload
     /// - Throws: ZCRMSDKError if failed to upload the attachment
-    public func uploadLinkAsAttachment( URL : String, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
+    public func uploadLinkAsAttachment( URL : String, completion : @escaping( ResultType.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
     {
         RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : self.moduleAPIName ) ).uploadLinkAsAttachment( attachmentURL : URL ) { ( result ) in
             completion( result )
         }
     }
     
-    public func uploadPhoto( filePath : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func uploadPhoto( filePath : String, completion : @escaping( ResultType.Response< APIResponse > ) -> () )
     {
         EntityAPIHandler( recordDelegate : self ).uploadPhoto(filePath: filePath, fileName: nil, fileData: nil) { ( result ) in
             completion( result )
@@ -455,7 +455,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
         EntityAPIHandler( recordDelegate : self ).uploadPhoto( fileRefId : fileRefId, filePath : filePath, fileName : nil, fileData : nil, fileUploadDelegate : fileUploadDelegate )
     }
     
-    public func uploadPhoto( fileName : String, fileData : Data, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func uploadPhoto( fileName : String, fileData : Data, completion : @escaping( ResultType.Response< APIResponse > ) -> () )
     {
         EntityAPIHandler( recordDelegate : self ).uploadPhoto( filePath : nil, fileName : fileName, fileData : fileData ) { ( result ) in
             completion( result )
@@ -467,7 +467,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
         EntityAPIHandler( recordDelegate : self ).uploadPhoto( fileRefId : fileRefId, filePath : nil, fileName : fileName, fileData : fileData, fileUploadDelegate : fileUploadDelegate )
     }
     
-    public func downloadPhoto( completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
+    public func downloadPhoto( completion : @escaping( ResultType.Response< FileAPIResponse > ) -> () )
     {
         EntityAPIHandler(recordDelegate: self).downloadPhoto { ( result ) in
             completion( result )
@@ -479,7 +479,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
         EntityAPIHandler(recordDelegate: self).downloadPhoto(fileDownloadDelegate: fileDownloadDelegate)
     }
     
-    public func deletePhoto( completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func deletePhoto( completion : @escaping( ResultType.Response< APIResponse > ) -> () )
     {
         EntityAPIHandler( recordDelegate : self ).deletePhoto { ( result ) in
             completion( result )
@@ -491,14 +491,14 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Parameter junctionRecord: ZCRMJuctionRecord to assiciate with the ZCRMRecord
     /// - Returns: APIResponsed of added relation
     /// - Throws: ZCRMError if failed to add relation
-    public func addRelation( junctionRecord : ZCRMJunctionRecord, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func addRelation( junctionRecord : ZCRMJunctionRecord, completion : @escaping( ResultType.Response< APIResponse > ) -> () )
     {
         RelatedListAPIHandler( parentRecord : self, junctionRecord : junctionRecord ).addRelation(completion: { ( result ) in
             completion( result )
         })
     }
     
-    public func addRelations( junctionRecords : [ ZCRMJunctionRecord ], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
+    public func addRelations( junctionRecords : [ ZCRMJunctionRecord ], completion : @escaping( ResultType.Response< BulkAPIResponse > ) -> () )
     {
         let apiName = junctionRecords[0].apiName
         for junctionRecord in junctionRecords
@@ -519,14 +519,14 @@ open class ZCRMRecordDelegate : ZCRMEntity
     /// - Parameter junctionRecord: ZCRMJunctionRecord to be delete.
     /// - Returns: APIResponse of the delete relation
     /// - Throws: ZCRMError if failed to delete the relation
-    public func deleteRelation( junctionRecord : ZCRMJunctionRecord, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func deleteRelation( junctionRecord : ZCRMJunctionRecord, completion : @escaping( ResultType.Response< APIResponse > ) -> () )
     {
         RelatedListAPIHandler( parentRecord : self, junctionRecord : junctionRecord ).deleteRelation { ( result ) in
             completion( result )
         }
     }
     
-    public func deleteRelations( junctionRecords : [ ZCRMJunctionRecord ], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
+    public func deleteRelations( junctionRecords : [ ZCRMJunctionRecord ], completion : @escaping( ResultType.Response< BulkAPIResponse > ) -> () )
     {
         let apiName = junctionRecords[0].apiName
         for junctionRecord in junctionRecords

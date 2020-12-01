@@ -37,21 +37,21 @@ open class ZCRMCustomView : ZCRMEntity
         self.moduleAPIName = moduleAPIName
     }
     
-    public func getFilters( completion: @escaping( Result.DataResponse< [ ZCRMFilter ], BulkAPIResponse > ) -> () )
+    public func getFilters( completion: @escaping( ResultType.DataResponse< [ ZCRMFilter ], BulkAPIResponse > ) -> () )
     {
         ModuleAPIHandler( module : ZCRMModuleDelegate( apiName : self.moduleAPIName ), cacheFlavour : .urlVsResponse ).getFilters( cvId : self.id ) { ( result ) in
             completion( result )
         }
     }
     
-    public func getFiltersFromServer( completion: @escaping( Result.DataResponse< [ ZCRMFilter ], BulkAPIResponse > ) -> () )
+    public func getFiltersFromServer( completion: @escaping( ResultType.DataResponse< [ ZCRMFilter ], BulkAPIResponse > ) -> () )
     {
         ModuleAPIHandler( module : ZCRMModuleDelegate( apiName : self.moduleAPIName ), cacheFlavour : .noCache ).getFilters( cvId : self.id ) { ( result ) in
             completion( result )
         }
     }
     
-    public func getRecords( recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func getRecords( recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : ZCRMModuleDelegate( apiName : self.moduleAPIName ) ).getRecords(cvId: self.id, filterId: nil, recordParams: recordParams) { ( result ) in
             completion( result )
