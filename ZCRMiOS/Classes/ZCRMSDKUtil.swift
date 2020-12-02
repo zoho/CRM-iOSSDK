@@ -11,7 +11,11 @@ import ZCacheiOS
 
 public class ZCRMSDKUtil: ZCacheClient
 {
-    public func getModules<T>(completion: ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheModule {
+    public init() {
+        
+    }
+    
+    public func getModules<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheModule {
         
     }
     
@@ -22,59 +26,58 @@ public class ZCRMSDKUtil: ZCacheClient
                 completion(.success(modules as! [T]))
             }
             case .failure(let error): do {
-//                completion(.failure(error))
+                let code = error.ZCRMErrordetails?.code
+                let message = error.ZCRMErrordetails?.code
+                
+                completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
             }
             }
         }
     }
     
-    public func getModulesFromServer<T>(modifiedSince: String, completion: ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheModule {
+    public func getModulesFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheModule {
         
     }
     
-    public func getModule<T>(withId: String, completion: ((Result<T, ZCacheError>) -> Void)) where T : ZCacheModule {
+    public func getModule<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheModule {
         
     }
     
-    public func getModuleFromServer<T>(withId: String, completion: ((Result<T, ZCacheError>) -> Void)) where T : ZCacheModule {
+    public func getModuleFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheModule {
         
     }
     
-    public func getModule<T>(withName: String, completion: ((Result<T, ZCacheError>) -> Void)) where T : ZCacheModule {
+    public func getModule<T>(withName: String, completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheModule {
         
     }
     
-    public func getModuleFromServer<T>(withName: String, modifiedSince: String, completion: ((Result<T, ZCacheError>) -> Void)) where T : ZCacheModule {
+    public func getModuleFromServer<T>(withName: String, modifiedSince: String, completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheModule {
         
     }
     
-    public func getUsers<T>(completion: ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheUser {
+    public func getUsers<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheUser {
         
     }
     
-    public func getUsersFromServer<T>(completion: ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheUser {
+    public func getUsersFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheUser {
         
     }
     
-    public func getUser<T>(withId: String, completion: ((Result<T, ZCacheError>) -> Void)) where T : ZCacheUser {
+    public func getUser<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheUser {
         
     }
     
-    public func getUserFromServer<T>(withId: String, completion: ((Result<T, ZCacheError>) -> Void)) where T : ZCacheUser {
+    public func getUserFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheUser {
         
     }
     
-    public func getCurrentUser<T>(completion: ((Result<T, ZCacheError>) -> Void)) where T : ZCacheUser {
+    public func getCurrentUser<T>(completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheUser {
         
     }
     
-    public func getCurrentUserFromServer<T>(completion: ((Result<T, ZCacheError>) -> Void)) where T : ZCacheUser {
+    public func getCurrentUserFromServer<T>(completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheUser {
         
     }
-    
-//    func getModules<T: ZCacheModule>(completion: ((Result<[T], ZCacheError>) -> Void)) {
-//
-//    }
     
     public static func getModuleDelegate( apiName : String ) -> ZCRMModuleDelegate
     {

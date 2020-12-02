@@ -9,7 +9,6 @@ import Foundation
 
 let PhotoSupportedModules = ["Leads", "Contacts"]
 
-
 public enum ZCRMError : Error
 {
     case unAuthenticatedError( code : String, message : String, details : Dictionary< String, Any >? )

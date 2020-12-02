@@ -112,13 +112,6 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         
     }
     
-    init( apiName : String )
-    {
-        self.apiName = apiName
-        self.id = String()
-        self.isApiSupported = false
-    }
-    
     public func newRecord() -> ZCRMRecord
     {
         return ZCRMRecord( moduleAPIName : apiName )
@@ -881,6 +874,13 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         MassEntityAPIHandler( module : self ).removeTags( records : records, tags : tags ) { ( result ) in
             completion( result )
         }
+    }
+    
+    init( apiName : String )
+    {
+        self.apiName = apiName
+        self.id = String()
+        self.isApiSupported = false
     }
 }
 
