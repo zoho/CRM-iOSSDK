@@ -8,6 +8,7 @@ import ZCacheiOS
 
 open class ZCRMUserDelegate : ZCRMEntity, ZCacheUser
 {
+    
     public var id: String
     
     public var moduleName: String = "USERS"
@@ -28,6 +29,7 @@ open class ZCRMUserDelegate : ZCRMEntity, ZCacheUser
             completion( result )
         }
     }
+    
 }
 
 extension ZCRMUserDelegate : Hashable

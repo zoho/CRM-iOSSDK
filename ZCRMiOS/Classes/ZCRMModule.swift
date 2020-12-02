@@ -27,7 +27,6 @@ open class ZCRMModule : ZCRMModuleDelegate
     
     public internal( set ) var isGlobalSearchSupported : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var visibility : Int = APIConstants.INT_MOCK
-    public internal( set ) var isAPISupported : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isQuickCreateAvailable : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isScoringSupported : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var sequenceNumber : Int?
@@ -75,7 +74,6 @@ open class ZCRMModule : ZCRMModuleDelegate
         
         case isGlobalSearchSupported
         case visibility
-        case isAPISupported
         case isQuickCreateAvailable
         case isScoringSupported
         case sequenceNumber
@@ -126,39 +124,40 @@ open class ZCRMModule : ZCRMModuleDelegate
         isEditable = try! values.decode(Bool.self, forKey: .isEditable)
         isDeletable = try! values.decode(Bool.self, forKey: .isDeletable)
         
-        modifiedBy = getUserDelegate(from: values, forKey: .modifiedBy)
-        modifiedTime = try! values.decode(String.self, forKey: .isCreatable)
+        ZCRMLogger.logError(message: "Value: \(pluralLabel)")
+        
+        modifiedBy = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .modifiedBy)
+        modifiedTime = try! values.decodeIfPresent(String.self, forKey: .modifiedTime)
         
 //        accessibleProfiles = try! values.decode(String.self, forKey: .isCreatable)
 //        relatedLists = try! values.decode(String.self, forKey: .isCreatable)
         
-        isGlobalSearchSupported = try! values.decode(Bool.self, forKey: .isCreatable)
-        visibility = try! values.decode(Int.self, forKey: .isCreatable)
-        isAPISupported = try! values.decode(Bool.self, forKey: .isCreatable)
-        isQuickCreateAvailable = try! values.decode(Bool.self, forKey: .isCreatable)
-        isScoringSupported = try! values.decode(Bool.self, forKey: .isCreatable)
-        sequenceNumber = try! values.decode(Int.self, forKey: .isCreatable)
-        generatedType = try! values.decode(String.self, forKey: .isCreatable)
-        businessCardFieldLimit = try! values.decode(Int.self, forKey: .isCreatable)
-        webLink = try! values.decode(String.self, forKey: .isCreatable)
+        isGlobalSearchSupported = try! values.decode(Bool.self, forKey: .isGlobalSearchSupported)
+        visibility = try! values.decode(Int.self, forKey: .visibility)
+        isQuickCreateAvailable = try! values.decode(Bool.self, forKey: .isQuickCreateAvailable)
+        isScoringSupported = try! values.decode(Bool.self, forKey: .isScoringSupported)
+        sequenceNumber = try! values.decode(Int.self, forKey: .sequenceNumber)
+        generatedType = try! values.decode(String.self, forKey: .generatedType)
+        businessCardFieldLimit = try! values.decode(Int.self, forKey: .businessCardFieldLimit)
+        webLink = try! values.decodeIfPresent(String.self, forKey: .webLink)
         
 //        arguments = try! values.decodeIfPresent([ [ String : Any ] ].self, forKey: .arguments)
         
-        displayField = try! values.decode(String.self, forKey: .displayField)
-        searchLayoutFields = try! values.decode([String].self, forKey: .searchLayoutFields)
+        displayField = try! values.decodeIfPresent(String.self, forKey: .displayField)
+        searchLayoutFields = try! values.decodeIfPresent([String].self, forKey: .searchLayoutFields)
         
-        parentModule = getModuleDelegate(from: values, forKey: .parentModule)
+        parentModule = try! values.decodeIfPresent(ZCRMModuleDelegate.self, forKey: .parentModule)
         
 //        customView = try! values.decode(String.self, forKey: .customView)
         
         isKanbanViewEnabled = try! values.decode(Bool.self, forKey: .isKanbanViewEnabled)
         filterStatus = try! values.decode(Bool.self, forKey: .filterStatus)
         isSubMenuPresent = try! values.decode(Bool.self, forKey: .isSubMenuPresent)
-        perPage = try! values.decode(Int.self, forKey: .perPage)
+        perPage = try! values.decodeIfPresent(Int.self, forKey: .perPage)
         isFilterSupported = try! values.decode(Bool.self, forKey: .isFilterSupported)
         isFeedsRequired = try! values.decode(Bool.self, forKey: .isFeedsRequired)
         isEmailTemplateSupported = try! values.decode(Bool.self, forKey: .isEmailTemplateSupported)
-        properties = try! values.decode([String].self, forKey: .properties)
+        properties = try! values.decodeIfPresent([String].self, forKey: .properties)
         
     }
     
@@ -180,10 +179,12 @@ open class ZCRMModule : ZCRMModuleDelegate
         try container.encode( self.isEditable, forKey : Keys.isEditable )
         try container.encode( self.isDeletable, forKey : Keys.isDeletable )
         
-        var modifiedByContainer = container.nestedContainer(keyedBy: UserCodingKeys.self, forKey: .modifiedBy)
+//        var modifiedByContainer = container.nestedContainer(keyedBy: UserCodingKeys.self, forKey: .modifiedBy)
+//        try modifiedByContainer.encodeIfPresent( self.modifiedBy?.id, forKey : UserCodingKeys.id )
+//        try modifiedByContainer.encodeIfPresent( self.modifiedBy?.name, forKey : UserCodingKeys.name )
         
-        try modifiedByContainer.encodeIfPresent( self.modifiedBy?.id, forKey : UserCodingKeys.id )
-        try modifiedByContainer.encodeIfPresent( self.modifiedBy?.name, forKey : UserCodingKeys.name )
+        try container.encodeIfPresent( self.modifiedBy, forKey : Keys.modifiedBy )
+
         try container.encodeIfPresent( self.modifiedTime, forKey : Keys.modifiedTime )
         
 //        try container.encode( self.accessibleProfiles, forKey : Keys.accessibleProfiles)
@@ -191,7 +192,6 @@ open class ZCRMModule : ZCRMModuleDelegate
         
         try container.encode( self.isGlobalSearchSupported, forKey : Keys.isGlobalSearchSupported )
         try container.encode( self.visibility, forKey : Keys.visibility )
-        try container.encode( self.isAPISupported, forKey : Keys.isAPISupported )
         try container.encode( self.isQuickCreateAvailable, forKey : Keys.isQuickCreateAvailable )
         try container.encode( self.isScoringSupported, forKey : Keys.isScoringSupported )
         try container.encodeIfPresent( self.sequenceNumber, forKey : Keys.sequenceNumber )
@@ -280,7 +280,7 @@ extension ZCRMModule
             lhs.relatedLists == rhs.relatedLists &&
             lhs.isGlobalSearchSupported == rhs.isGlobalSearchSupported &&
             lhs.visibility == rhs.visibility &&
-            lhs.isAPISupported == rhs.isAPISupported &&
+            lhs.isApiSupported == rhs.isApiSupported &&
             lhs.isQuickCreateAvailable == rhs.isQuickCreateAvailable &&
             lhs.isScoringSupported == rhs.isScoringSupported &&
             lhs.sequenceNumber == rhs.sequenceNumber &&

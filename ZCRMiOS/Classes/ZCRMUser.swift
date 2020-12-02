@@ -8,6 +8,29 @@
 
 public class ZCRMUser : ZCRMUserDelegate
 {
+    enum Keys: String, CodingKey
+    {
+        case name
+        case id
+    }
+    
+    required public init(from decoder: Decoder) throws {
+        emailId = String()
+        super.init(id: String(), name: String())
+        
+        let container = try! decoder.container(keyedBy: Keys.self)
+        
+        id = try! container.decode(String.self, forKey: .id)
+        name = try! container.decode(String.self, forKey: .name)
+    }
+    
+    open override func encode( to encoder : Encoder ) throws
+    {
+        var container = encoder.container( keyedBy : Keys.self )
+        try! container.encode(self.id, forKey: .id)
+        try! container.encode(self.name, forKey: .name)
+    }
+    
     public var lastName : String? {
         didSet
         {

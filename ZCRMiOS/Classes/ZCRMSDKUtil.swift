@@ -51,7 +51,7 @@ public class ZCRMSDKUtil: ZCacheClient
         
     }
     
-    public func getModuleFromServer<T>(withName: String, modifiedSince: String, completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheModule {
+    public func getModuleFromServer<T>(withName: String, completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheModule {
         
     }
     

@@ -85,7 +85,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         module.isDeletable = try moduleDetails.getBoolean( key : ResponseJSONKeys.deletable )
         module.visibility = try moduleDetails.getInt( key : ResponseJSONKeys.visibility )
         module.isGlobalSearchSupported = try moduleDetails.getBoolean( key : ResponseJSONKeys.globalSearchSupported )
-        module.isAPISupported = try moduleDetails.getBoolean( key : ResponseJSONKeys.apiSupported )
+        module.isApiSupported = try moduleDetails.getBoolean( key : ResponseJSONKeys.apiSupported )
         module.isQuickCreateAvailable = try moduleDetails.getBoolean( key : ResponseJSONKeys.quickCreate )
         module.isScoringSupported = try moduleDetails.getBoolean( key : ResponseJSONKeys.scoringSupported )
         module.sequenceNumber = try moduleDetails.getInt( key : ResponseJSONKeys.sequenceNumber )
