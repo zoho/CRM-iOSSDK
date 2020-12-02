@@ -1,0 +1,25 @@
+{
+  "name": "ZCacheiOS",
+  "version": "0.1.0",
+  "summary": "Generic caching for iOS.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://git.csez.zohocorpin.com/zoho-crm/ios_cache_framework",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "RajarajanK": "rajarajan.k@zohocorp.com"
+  },
+  "source": {
+    "git": "https://git.csez.zohocorpin.com/zoho-crm/ios_cache_framework.git",
+    "tag": "0.1.0"
+  },
+  "swift_versions": "5.0",
+  "platforms": {
+    "ios": "12.0"
+  },
+  "source_files": "ZCacheiOS/Classes/**/*",
+  "public_header_files": "ZCacheiOS/**/*.h",
+  "swift_version": "5.0"
+}

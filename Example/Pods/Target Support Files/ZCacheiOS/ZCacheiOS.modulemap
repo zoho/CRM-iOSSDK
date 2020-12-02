@@ -1,0 +1,6 @@
+framework module ZCacheiOS {
+  umbrella header "ZCacheiOS-umbrella.h"
+
+  export *
+  module * { export * }
+}

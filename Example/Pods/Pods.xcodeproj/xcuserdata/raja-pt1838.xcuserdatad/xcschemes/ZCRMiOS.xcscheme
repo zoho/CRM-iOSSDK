@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0700"
+   LastUpgradeVersion = "1100"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -13,11 +13,11 @@
             buildForProfiling = "YES"
             buildForArchiving = "YES">
             <BuildableReference
-               BuildableIdentifier = 'primary'
-               BlueprintIdentifier = '7E071FC8375465BF79EC5EF7134BA3CA'
-               BlueprintName = 'ZCRMiOS'
-               ReferencedContainer = 'container:Pods.xcodeproj'
-               BuildableName = 'ZCRMiOS.framework'>
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D7BE36D9AA703A78F130D6FC97CB6AA3"
+               BuildableName = "ZCRMiOS.framework"
+               BlueprintName = "ZCRMiOS"
+               ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
