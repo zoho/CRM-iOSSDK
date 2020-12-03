@@ -118,13 +118,14 @@ public class ZCRMSDKClient
             try ZCRMSDKClient.shared.createDB()
             try ZCRMSDKClient.shared.createTables()
             
-            ZCache.shared.initialize { result in
+            let configs = ZCacheConfigs()
+            ZCache.shared.initialize(configs: configs) { result in
                 switch result {
                 case .success: do {
-                    ZCRMLogger.logError(message: "ZCache SDK - Init success!")
+                    ZCRMLogger.logError(message: "<<< ZCache SDK - Init success!")
                 }
                 case .failure(let error): do {
-                    ZCRMLogger.logError(message: "ZCache SDK - Init failed! - \(error)")
+                    ZCRMLogger.logError(message: "<<< ZCache SDK - Init failed! - \(error)")
                 }
                 }
             }
