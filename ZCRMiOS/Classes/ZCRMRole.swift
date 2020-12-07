@@ -16,6 +16,11 @@ open class ZCRMRole : ZCRMRoleDelegate
     {
         super.init( id : APIConstants.INT64_MOCK, name : name )
     }
+    
+    public required init( from decoder : Decoder ) throws
+    {
+        try! super.init(from: decoder)
+    }
 }
 
 extension ZCRMRole

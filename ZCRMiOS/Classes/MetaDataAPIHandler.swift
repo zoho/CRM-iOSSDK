@@ -121,7 +121,8 @@ internal class MetaDataAPIHandler : CommonAPIHandler
             }
             module.relatedLists = relatedLists
         }
-        module.arguments = moduleDetails.optArrayOfDictionaries(key: ResponseJSONKeys.arguments)
+        module.arguments = moduleDetails.optArrayOfJSONDictionaries(key: ResponseJSONKeys.arguments)
+        
         if( moduleDetails.hasValue(forKey: ResponseJSONKeys.displayField))
         {
             module.displayField = try moduleDetails.getString( key : ResponseJSONKeys.displayField )

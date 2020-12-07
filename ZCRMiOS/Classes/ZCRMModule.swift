@@ -24,7 +24,6 @@ open class ZCRMModule : ZCRMModuleDelegate
     public internal( set ) var accessibleProfiles : [ZCRMProfileDelegate]?
     public internal( set ) var relatedLists : [ZCRMModuleRelation]?
 
-    
     public internal( set ) var isGlobalSearchSupported : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var visibility : Int = APIConstants.INT_MOCK
     public internal( set ) var isQuickCreateAvailable : Bool = APIConstants.BOOL_MOCK
@@ -34,7 +33,7 @@ open class ZCRMModule : ZCRMModuleDelegate
     public internal( set ) var businessCardFieldLimit : Int?
     public internal( set ) var webLink : String?
     
-    public internal( set ) var arguments : [ [ String : Any ] ]?
+    public internal( set ) var arguments : [ [ String : JSONValue ] ]?
     
     public internal( set ) var displayField : String?
     public internal( set ) var searchLayoutFields : [ String ]?
@@ -124,13 +123,11 @@ open class ZCRMModule : ZCRMModuleDelegate
         isEditable = try! values.decode(Bool.self, forKey: .isEditable)
         isDeletable = try! values.decode(Bool.self, forKey: .isDeletable)
         
-        ZCRMLogger.logError(message: "Value: \(pluralLabel)")
-        
         modifiedBy = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .modifiedBy)
         modifiedTime = try! values.decodeIfPresent(String.self, forKey: .modifiedTime)
         
-//        accessibleProfiles = try! values.decode(String.self, forKey: .isCreatable)
-//        relatedLists = try! values.decode(String.self, forKey: .isCreatable)
+        accessibleProfiles = try! values.decodeIfPresent([ZCRMProfileDelegate].self, forKey: .isCreatable)
+        relatedLists = try! values.decodeIfPresent([ZCRMModuleRelation].self, forKey: .isCreatable)
         
         isGlobalSearchSupported = try! values.decode(Bool.self, forKey: .isGlobalSearchSupported)
         visibility = try! values.decode(Int.self, forKey: .visibility)
@@ -141,14 +138,16 @@ open class ZCRMModule : ZCRMModuleDelegate
         businessCardFieldLimit = try! values.decode(Int.self, forKey: .businessCardFieldLimit)
         webLink = try! values.decodeIfPresent(String.self, forKey: .webLink)
         
-//        arguments = try! values.decodeIfPresent([ [ String : Any ] ].self, forKey: .arguments)
-        
+//        let data = try! values.decode(Data.self, forKey: .arguments)
+//        arguments = try! JSONSerialization.jsonObject(with: data, options: [[]]) as! [[String: Any]]
+        arguments = try! values.decodeIfPresent([[String: JSONValue]].self, forKey: .displayField)
+
         displayField = try! values.decodeIfPresent(String.self, forKey: .displayField)
         searchLayoutFields = try! values.decodeIfPresent([String].self, forKey: .searchLayoutFields)
         
         parentModule = try! values.decodeIfPresent(ZCRMModuleDelegate.self, forKey: .parentModule)
         
-//        customView = try! values.decode(String.self, forKey: .customView)
+        customView = try! values.decodeIfPresent(ZCRMCustomView.self, forKey: .customView)
         
         isKanbanViewEnabled = try! values.decode(Bool.self, forKey: .isKanbanViewEnabled)
         filterStatus = try! values.decode(Bool.self, forKey: .filterStatus)
@@ -179,16 +178,11 @@ open class ZCRMModule : ZCRMModuleDelegate
         try container.encode( self.isEditable, forKey : Keys.isEditable )
         try container.encode( self.isDeletable, forKey : Keys.isDeletable )
         
-//        var modifiedByContainer = container.nestedContainer(keyedBy: UserCodingKeys.self, forKey: .modifiedBy)
-//        try modifiedByContainer.encodeIfPresent( self.modifiedBy?.id, forKey : UserCodingKeys.id )
-//        try modifiedByContainer.encodeIfPresent( self.modifiedBy?.name, forKey : UserCodingKeys.name )
-        
         try container.encodeIfPresent( self.modifiedBy, forKey : Keys.modifiedBy )
-
         try container.encodeIfPresent( self.modifiedTime, forKey : Keys.modifiedTime )
         
-//        try container.encode( self.accessibleProfiles, forKey : Keys.accessibleProfiles)
-//        try container.encode( self.relatedLists, forKey : Keys.relatedLists )
+        try container.encodeIfPresent( self.accessibleProfiles, forKey : Keys.accessibleProfiles)
+        try container.encodeIfPresent( self.relatedLists, forKey : Keys.relatedLists )
         
         try container.encode( self.isGlobalSearchSupported, forKey : Keys.isGlobalSearchSupported )
         try container.encode( self.visibility, forKey : Keys.visibility )
@@ -199,13 +193,15 @@ open class ZCRMModule : ZCRMModuleDelegate
         try container.encodeIfPresent( self.businessCardFieldLimit, forKey : Keys.businessCardFieldLimit )
         try container.encodeIfPresent( self.webLink, forKey : Keys.webLink )
         
-//        try container.encode( self.arguments, forKey : Keys.arguments)
-        
+//        let data = try JSONSerialization.data(withJSONObject: self.arguments ?? [[]], options: [[]])
+//        try container.encode(data, forKey: .arguments)
+        try container.encodeIfPresent( self.arguments, forKey : Keys.arguments )
+
         try container.encodeIfPresent( self.displayField, forKey : Keys.displayField )
         try container.encodeIfPresent( self.searchLayoutFields, forKey : Keys.searchLayoutFields )
         try container.encodeIfPresent( self.parentModule, forKey : Keys.parentModule )
         
-//        try container.encodeIfPresent( self.customView, forKey : Keys.customView )
+        try container.encodeIfPresent( self.customView, forKey : Keys.customView )
         
         try container.encode( self.isKanbanViewEnabled, forKey : Keys.isKanbanViewEnabled )
         try container.encode( self.filterStatus, forKey : Keys.filterStatus )

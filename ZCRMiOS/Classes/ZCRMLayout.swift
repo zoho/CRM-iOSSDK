@@ -19,7 +19,11 @@ open class ZCRMLayout : ZCRMLayoutDelegate
     
     init( name : String )
     {
-        super.init( id : APIConstants.INT64_MOCK, name : name )
+        super.init( id : APIConstants.STRING_MOCK, name : name )
+    }
+    
+    required public init(from decoder: Decoder) throws {
+        try! super.init(from: decoder)
     }
     
     /// Add ZCRMSection to the ZCRMLayout.

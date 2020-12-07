@@ -564,7 +564,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         let layout : ZCRMLayout = ZCRMLayout( name : try layoutDetails.getString( key : ResponseJSONKeys.name ) )
         if( layoutDetails.hasValue(forKey: ResponseJSONKeys.id))
         {
-            layout.id = try layoutDetails.getInt64(key: ResponseJSONKeys.id)
+            layout.id = try layoutDetails.getString(key: ResponseJSONKeys.id)
         }
         if( layoutDetails.hasValue(forKey: ResponseJSONKeys.visible))
         {

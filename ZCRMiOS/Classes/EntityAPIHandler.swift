@@ -1019,7 +1019,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 {
                     if(recordDetails.hasValue(forKey: fieldAPIName)), let layoutObj : [String:Any] = value  as? [String : Any]
                     {
-                        let layout : ZCRMLayoutDelegate = ZCRMLayoutDelegate( id : try layoutObj.getInt64( key : ResponseJSONKeys.id ), name : try layoutObj.getString( key : ResponseJSONKeys.name ) )
+                        let layout : ZCRMLayoutDelegate = ZCRMLayoutDelegate( id : try layoutObj.getString( key : ResponseJSONKeys.id ), name : try layoutObj.getString( key : ResponseJSONKeys.name ) )
                         self.record.layout = layout
                         self.record.data.updateValue( layout, forKey : ResponseJSONKeys.layout )
                     }

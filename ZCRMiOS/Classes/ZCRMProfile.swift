@@ -19,6 +19,11 @@ open class ZCRMProfile : ZCRMProfileDelegate
     {
         super.init( id : APIConstants.INT64_MOCK, name : name )
     }
+    
+    required public init( from decoder : Decoder ) throws
+    {
+        try! super.init(from: decoder)
+    }
 }
 
 extension ZCRMProfile

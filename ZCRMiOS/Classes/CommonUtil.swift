@@ -112,7 +112,7 @@ public extension Error
     }
 }
 
-public enum SortOrder : String
+public enum SortOrder : String, Codable
 {
     case ascending = "asc"
     case descending = "desc"
@@ -385,6 +385,18 @@ internal extension Dictionary
         }
     }
     
+    func optJSONValue(key: Key) -> JSONValue?
+    {
+        if( self.hasValue( forKey : key ) ), let value = self[ key ]
+        {
+            return JSONValue(value: value)
+        }
+        else
+        {
+            return nil
+        }
+    }
+    
     func optString(key : Key) -> String?
     {
         return optValue(key: key) as? String
@@ -427,6 +439,11 @@ internal extension Dictionary
     func optArrayOfDictionaries( key : Key ) -> Array< Dictionary < String, Any > >?
     {
         return ( optValue( key : key ) as? Array< Dictionary < String, Any > > )
+    }
+    
+    func optArrayOfJSONDictionaries( key : Key ) -> Array< Dictionary < String, JSONValue > >?
+    {
+        return ( optValue( key : key ) as? Array< Dictionary < String, JSONValue > > )
     }
     
     func getInt( key : Key ) throws -> Int
