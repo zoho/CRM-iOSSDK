@@ -8,7 +8,7 @@
 
 public class ZCRMUser : ZCRMUserDelegate
 {
-    enum Keys: String, CodingKey
+    enum CodingKeys: String, CodingKey
     {
         case emailId
         case role
@@ -48,7 +48,7 @@ public class ZCRMUser : ZCRMUserDelegate
         
         emailId = String()
         try! super.init(from: decoder)
-        let container = try! decoder.container(keyedBy: Keys.self)
+        let container = try! decoder.container(keyedBy: CodingKeys.self)
         
         emailId = try! container.decode(String.self, forKey: .emailId)
         role = try! container.decodeIfPresent(ZCRMRoleDelegate.self, forKey: .role)
@@ -87,7 +87,7 @@ public class ZCRMUser : ZCRMUserDelegate
     open override func encode( to encoder : Encoder ) throws
     {
         try! super.encode(to: encoder)
-        var container = encoder.container( keyedBy : Keys.self )
+        var container = encoder.container( keyedBy : CodingKeys.self )
         try! container.encode(self.emailId, forKey: .emailId)
         try! container.encodeIfPresent(self.role, forKey: .role)
         try! container.encodeIfPresent(self.profile, forKey: .profile)

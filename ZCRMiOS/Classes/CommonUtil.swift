@@ -161,7 +161,7 @@ public enum ConsentThrough
     }
 }
 
-public enum CurrencyRoundingOption : String
+public enum CurrencyRoundingOption : String, Codable
 {
     case roundOff = "round_off"
     case roundDown = "round_down"
@@ -429,6 +429,11 @@ internal extension Dictionary
     func optDictionary(key : Key) -> Dictionary<String, Any>?
     {
         return optValue(key: key) as? Dictionary<String, Any>
+    }
+    
+    func optJSONDictionary(key : Key) -> Dictionary<String, JSONValue>?
+    {
+        return optValue(key: key) as? Dictionary<String, JSONValue>
     }
     
     func optArray(key : Key) -> Array<Any>?

@@ -47,7 +47,7 @@ public struct JSONValue: Decodable {
       } else if let stringVal = try? container.decode(String.self) {
         value = stringVal
       } else {
-        throw DecodingError.dataCorruptedError(in: container, debugDescription: "the container contains nothing serialisable")
+        throw DecodingError.dataCorruptedError(in: container, debugDescription: "Could not serialise")
       }
     } else {
       throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Could not serialise"))

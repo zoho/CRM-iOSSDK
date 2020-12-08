@@ -5,10 +5,12 @@
 //  Created by Vijayakrishna on 14/11/16.
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
+import ZCacheiOS
 
-public class ZCRMSection : ZCRMEntity
+public class ZCRMSection : ZCRMEntity, ZCacheSection
 {
-    public internal( set ) var apiName : String
+    public var id: String?
+    public var apiName : String
     public internal( set ) var name : String = APIConstants.STRING_MOCK
     public internal( set ) var displayName : String = APIConstants.STRING_MOCK
     public internal( set ) var columnCount : Int = APIConstants.INT_MOCK
@@ -18,6 +20,21 @@ public class ZCRMSection : ZCRMEntity
     public internal( set ) var reorderRows : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var tooltip : String?
     public internal( set ) var maximumRows : Int?
+    
+    public func getFieldFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheField
+    {
+        
+    }
+    
+    public func getFieldsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheField
+    {
+        
+    }
+    
+    public func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheField
+    {
+        
+    }
     
     /// Initialise the instance of a section with the given section name.
     ///
@@ -33,6 +50,52 @@ public class ZCRMSection : ZCRMEntity
     internal func addField(field : ZCRMField)
     {
         self.fields.append( field )
+    }
+    
+    enum CodingKeys: String, CodingKey
+    {
+        case id
+        case apiName
+        case name
+        case displayName
+        case columnCount
+        case sequence
+        case fields
+        case isSubformSection
+        case reorderRows
+        case tooltip
+        case maximumRows
+    }
+    required public init(from decoder: Decoder) throws {
+        let container = try! decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try! container.decodeIfPresent(String.self, forKey: .id)
+        apiName = try! container.decode(String.self, forKey: .apiName)
+        name = try! container.decode(String.self, forKey: .name)
+        displayName = try! container.decode(String.self, forKey: .displayName)
+        columnCount = try! container.decode(Int.self, forKey: .columnCount)
+        sequence = try! container.decode(Int.self, forKey: .sequence)
+        fields = try! container.decode([ZCRMField].self, forKey: .fields)
+        isSubformSection = try! container.decode(Bool.self, forKey: .isSubformSection)
+        reorderRows = try! container.decode(Bool.self, forKey: .reorderRows)
+        tooltip = try! container.decodeIfPresent(String.self, forKey: .tooltip)
+        maximumRows = try! container.decodeIfPresent(Int.self, forKey: .maximumRows)
+    }
+    open func encode( to encoder : Encoder ) throws
+    {
+        var container = encoder.container( keyedBy : CodingKeys.self )
+        
+        try! container.encodeIfPresent(self.id, forKey: .id)
+        try! container.encode(self.apiName, forKey: .apiName)
+        try! container.encode(self.name, forKey: .name)
+        try! container.encode(self.displayName, forKey: .displayName)
+        try! container.encode(self.columnCount, forKey: .columnCount)
+        try! container.encode(self.sequence, forKey: .sequence)
+        try! container.encode(self.fields, forKey: .fields)
+        try! container.encode(self.isSubformSection, forKey: .isSubformSection)
+        try! container.encode(self.reorderRows, forKey: .reorderRows)
+        try! container.encodeIfPresent(self.tooltip, forKey: .tooltip)
+        try! container.encodeIfPresent(self.maximumRows, forKey: .maximumRows)
     }
 }
 

@@ -643,7 +643,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
     internal func getZCRMField(fieldDetails : [String:Any]) throws -> ZCRMField
     {
         let field : ZCRMField = ZCRMField( apiName : try fieldDetails.getString( key : ResponseJSONKeys.apiName ) )
-        field.id = try fieldDetails.getInt64( key : ResponseJSONKeys.id )
+        field.id = try fieldDetails.getString( key : ResponseJSONKeys.id )
         field.displayLabel = try fieldDetails.getString( key : ResponseJSONKeys.fieldLabel )
         if fieldDetails.hasValue(forKey: ResponseJSONKeys.length)
         {
@@ -654,7 +654,9 @@ internal class ModuleAPIHandler : CommonAPIHandler
         field.precision = fieldDetails.optInt(key: ResponseJSONKeys.decimalPlace)
         field.isReadOnly = try fieldDetails.getBoolean(key: ResponseJSONKeys.readOnly)
         field.isCustomField = try fieldDetails.getBoolean(key: ResponseJSONKeys.customField)
-        field.defaultValue = fieldDetails.optValue(key: ResponseJSONKeys.defaultValue)
+        if let anyValue = fieldDetails.optValue(key: ResponseJSONKeys.defaultValue) {
+            field.defaultValue = JSONValue(value: anyValue)
+        }
         if fieldDetails.hasValue( forKey : ResponseJSONKeys.required )
         {
             field.isMandatory = try fieldDetails.getBoolean( key : ResponseJSONKeys.required )
@@ -667,10 +669,36 @@ internal class ModuleAPIHandler : CommonAPIHandler
         field.tooltip = fieldDetails.optString(key: ResponseJSONKeys.toolTip)
         field.webhook = try fieldDetails.getBoolean( key : ResponseJSONKeys.webhook )
         field.createdSource = try fieldDetails.getString( key : ResponseJSONKeys.createdSource )
-        field.lookup = fieldDetails.optDictionary(key: ResponseJSONKeys.lookup)
-        field.multiSelectLookup = fieldDetails.optDictionary(key: ResponseJSONKeys.multiSelectLookup)
+        
+        let lookUpDict = fieldDetails.optDictionary(key: ResponseJSONKeys.lookup)
+        var newLookUpDict: [String: JSONValue] = [:]
+        if let lookUpDict = lookUpDict {
+            for (key, value) in lookUpDict {
+                newLookUpDict[key] = JSONValue(value: value)
+            }
+        }
+        field.lookup = newLookUpDict
+        
+        let multiSelectLookupDict = fieldDetails.optDictionary(key: ResponseJSONKeys.multiSelectLookup)
+        var newMultiSelectLookupDict: [String: JSONValue] = [:]
+        if let multiSelectLookupDict = multiSelectLookupDict {
+            for (key, value) in multiSelectLookupDict {
+                newMultiSelectLookupDict[key] = JSONValue(value: value)
+            }
+        }
+        field.multiSelectLookup = newMultiSelectLookupDict
+        
         field.subFormTabId = fieldDetails.optInt64(key: ResponseJSONKeys.subformTabId)
-        field.subForm = fieldDetails.optDictionary(key: ResponseJSONKeys.subform)
+        
+        let subFormDict = fieldDetails.optDictionary(key: ResponseJSONKeys.subform)
+        var newSubFormDict: [String: JSONValue] = [:]
+        if let subFormDict = subFormDict {
+            for (key, value) in subFormDict {
+                newSubFormDict[key] = JSONValue(value: value)
+            }
+        }
+        field.subForm = newSubFormDict
+        
         if(fieldDetails.hasValue(forKey: ResponseJSONKeys.currency))
         {
             let currencyDetails : [ String : Any ] = try fieldDetails.getDictionary( key : ResponseJSONKeys.currency )
@@ -693,7 +721,20 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 if let displayValue = pickListValueDict.optString( key : ResponseJSONKeys.displayValue ), let actualValue = pickListValueDict.optString( key : ResponseJSONKeys.actualValue )
                 {
                     let pickListValue = ZCRMPickListValue(displayName: displayValue, actualName: actualValue  )
-                    pickListValue.maps = pickListValueDict.optArrayOfDictionaries( key : ResponseJSONKeys.maps ) ?? Array<Dictionary<String, Any>>()
+                    
+                    var newPickListArr: [[String:JSONValue]] = [[:]]
+                    if let pickListArr = pickListValueDict.optArrayOfDictionaries( key : ResponseJSONKeys.maps ) {
+                        
+                        for item in pickListArr {
+                            var newPickListDict: [String:JSONValue] = [:]
+                            for (key, value) in item {
+                                newPickListDict[key] = JSONValue(value: value)
+                            }
+                            newPickListArr.append(newPickListDict)
+                        }
+                    }
+                    pickListValue.maps = newPickListArr
+                    
                     if pickListValueDict.hasValue( forKey : ResponseJSONKeys.sequenceNumber )
                     {
                         pickListValue.sequenceNumber = try pickListValueDict.getInt( key : ResponseJSONKeys.sequenceNumber )

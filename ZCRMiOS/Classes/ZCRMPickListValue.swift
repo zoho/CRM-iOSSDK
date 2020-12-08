@@ -8,17 +8,41 @@
 
 import Foundation
 
-open class ZCRMPickListValue : ZCRMEntity
+open class ZCRMPickListValue : ZCRMEntity, Codable
 {
     public internal( set ) var displayName : String
     public internal( set ) var actualName : String
     public internal( set ) var sequenceNumber : Int?
-    public internal( set ) var maps : Array< Dictionary < String, Any > > = Array< Dictionary < String, Any > >()
+    public internal( set ) var maps : Array< Dictionary < String, JSONValue > > = Array< Dictionary < String, JSONValue > >()
     
     internal init( displayName : String, actualName : String )
     {
         self.displayName = displayName
         self.actualName = actualName
+    }
+    enum CodingKeys: String, CodingKey
+    {
+        case displayName
+        case actualName
+        case sequenceNumber
+        case maps
+    }
+    required public init(from decoder: Decoder) throws {
+        let container = try! decoder.container(keyedBy: CodingKeys.self)
+        
+        displayName = try! container.decode(String.self, forKey: .displayName)
+        actualName = try! container.decode(String.self, forKey: .actualName)
+        sequenceNumber = try! container.decodeIfPresent(Int.self, forKey: .sequenceNumber)
+        maps = try! container.decode([[String:JSONValue]].self, forKey: .maps)
+    }
+    open func encode( to encoder : Encoder ) throws
+    {
+        var container = encoder.container( keyedBy : CodingKeys.self )
+        
+        try! container.encode(self.displayName, forKey: .displayName)
+        try! container.encode(self.actualName, forKey: .actualName)
+        try! container.encodeIfPresent(self.sequenceNumber, forKey: .sequenceNumber)
+        try! container.encode(self.maps, forKey: .maps)
     }
 }
 

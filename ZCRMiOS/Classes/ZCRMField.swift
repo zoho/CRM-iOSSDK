@@ -5,18 +5,23 @@
 //  Created by Vijayakrishna on 14/11/16.
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
+import ZCacheiOS
 
-open class ZCRMField : ZCRMEntity
+open class ZCRMField : ZCRMEntity, ZCacheField
 {
-    public internal( set ) var apiName : String
-    public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
+    public var id: String = APIConstants.STRING_MOCK
+    public var type: DataType = DataType.text
+    public var lookupModules: [String] = []
+    public var constraintType: ConstraintType?
+    public var apiName : String
+    
     public internal( set ) var displayLabel : String = APIConstants.STRING_MOCK
     public internal( set ) var dataType : String = APIConstants.STRING_MOCK
     public internal( set ) var isReadOnly : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isVisible : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isMandatory : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isCustomField : Bool = APIConstants.BOOL_MOCK
-    public internal( set ) var defaultValue : Any?
+    public internal( set ) var defaultValue : JSONValue?
     public internal( set ) var maxLength : Int?
     public internal( set ) var currencyPrecision : Int?
     public internal( set ) var sequenceNo : Int?
@@ -35,14 +40,123 @@ open class ZCRMField : ZCRMEntity
     
     public internal( set ) var roundingOption : CurrencyRoundingOption?
     public internal( set ) var precision : Int?
-    public internal( set ) var lookup : [String : Any]?
-    public internal( set ) var multiSelectLookup : [String : Any]?
+    public internal( set ) var lookup : [String : JSONValue]?
+    public internal( set ) var multiSelectLookup : [String : JSONValue]?
     public internal( set ) var subFormTabId : Int64?
-    public internal( set ) var subForm : [String : Any]?
+    public internal( set ) var subForm : [String : JSONValue]?
     
     init( apiName : String )
     {
         self.apiName = apiName
+    }
+    
+    enum CodingKeys: String, CodingKey
+    {
+        case id
+        case type
+        case lookupModules
+        case constraintType
+        case apiName
+        case displayLabel
+        case dataType
+        case isReadOnly
+        case isVisible
+        case isMandatory
+        case isCustomField
+        case defaultValue
+        case maxLength
+        case currencyPrecision
+        case subLayoutsPresent
+        case pickListValues
+        case sequenceNo
+        case formulaReturnType
+        case formulaExpression
+        case tooltip
+        case webhook
+        case isRestricted
+        case restrictedType
+        case isExportable
+        case createdSource
+        case isBusinessCardSupported
+        case roundingOption
+        case precision
+        case lookup
+        case multiSelectLookup
+        case subFormTabId
+        case subForm
+    }
+    required public init(from decoder: Decoder) throws {
+        let container = try! decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try! container.decode(String.self, forKey: .id)
+        type = try! container.decode(DataType.self, forKey: .id)
+        lookupModules = try! container.decode([String].self, forKey: .id)
+        constraintType = try! container.decodeIfPresent(ConstraintType.self, forKey: .id)
+        apiName = try! container.decode(String.self, forKey: .id)
+        
+        displayLabel = try! container.decode(String.self, forKey: .id)
+        dataType = try! container.decode(String.self, forKey: .id)
+        isReadOnly = try! container.decode(Bool.self, forKey: .id)
+        isVisible = try! container.decode(Bool.self, forKey: .id)
+        isMandatory = try! container.decode(Bool.self, forKey: .id)
+        isCustomField = try! container.decode(Bool.self, forKey: .id)
+        defaultValue = try! container.decodeIfPresent(JSONValue.self, forKey: .id)
+        maxLength = try! container.decodeIfPresent(Int.self, forKey: .id)
+        currencyPrecision = try! container.decodeIfPresent(Int.self, forKey: .id)
+        subLayoutsPresent = try! container.decodeIfPresent([String].self, forKey: .id)
+        pickListValues = try! container.decodeIfPresent([ZCRMPickListValue].self, forKey: .id)
+        sequenceNo = try! container.decodeIfPresent(Int.self, forKey: .id)
+        formulaReturnType = try! container.decodeIfPresent(String.self, forKey: .id)
+        formulaExpression = try! container.decodeIfPresent(String.self, forKey: .id)
+        tooltip = try! container.decodeIfPresent(String.self, forKey: .id)
+        webhook = try! container.decode(Bool.self, forKey: .id)
+        isRestricted = try! container.decodeIfPresent(Bool.self, forKey: .id)
+        restrictedType = try! container.decodeIfPresent(String.self, forKey: .id)
+        isExportable = try! container.decodeIfPresent(Bool.self, forKey: .id)
+        createdSource = try! container.decode(String.self, forKey: .id)
+        isBusinessCardSupported = try! container.decodeIfPresent(Bool.self, forKey: .id)
+        roundingOption = try! container.decodeIfPresent(CurrencyRoundingOption.self, forKey: .id)
+        precision = try! container.decodeIfPresent(Int.self, forKey: .id)
+        lookup = try! container.decodeIfPresent([String: JSONValue].self, forKey: .id)
+        multiSelectLookup = try! container.decodeIfPresent([String: JSONValue].self, forKey: .id)
+        subFormTabId = try! container.decodeIfPresent(Int64.self, forKey: .id)
+        subForm = try! container.decodeIfPresent([String: JSONValue].self, forKey: .id)
+    }
+    open func encode( to encoder : Encoder ) throws
+    {
+        var container = encoder.container( keyedBy : CodingKeys.self )
+      
+        try! container.encode(self.id, forKey: .id)
+        try! container.encode(self.type, forKey: .type)
+        try! container.encode(self.lookupModules, forKey: .lookupModules)
+        try! container.encodeIfPresent(self.constraintType, forKey: .constraintType)
+        try! container.encode(self.apiName, forKey: .apiName)
+        try! container.encode(self.displayLabel, forKey: .displayLabel)
+        try! container.encode(self.dataType, forKey: .dataType)
+        try! container.encode(self.isReadOnly, forKey: .isReadOnly)
+        try! container.encode(self.isVisible, forKey: .isVisible)
+        try! container.encode(self.isMandatory, forKey: .isMandatory)
+        try! container.encode(self.isCustomField, forKey: .isCustomField)
+        try! container.encodeIfPresent(self.defaultValue, forKey: .defaultValue)
+        try! container.encodeIfPresent(self.maxLength, forKey: .maxLength)
+        try! container.encodeIfPresent(self.currencyPrecision, forKey: .currencyPrecision)
+        try! container.encodeIfPresent(self.subLayoutsPresent, forKey: .subLayoutsPresent)
+        try! container.encodeIfPresent(self.pickListValues, forKey: .pickListValues)
+        try! container.encodeIfPresent(self.sequenceNo, forKey: .sequenceNo)
+        try! container.encodeIfPresent(self.formulaReturnType, forKey: .formulaReturnType)
+        try! container.encodeIfPresent(self.formulaExpression, forKey: .formulaExpression)
+        try! container.encodeIfPresent(self.tooltip, forKey: .tooltip)
+        try! container.encode(self.webhook, forKey: .webhook)
+        try! container.encodeIfPresent(self.isRestricted, forKey: .isRestricted)
+        try! container.encodeIfPresent(self.restrictedType, forKey: .restrictedType)
+        try! container.encodeIfPresent(self.isExportable, forKey: .isExportable)
+        try! container.encode(self.createdSource, forKey: .createdSource)
+        try! container.encodeIfPresent(self.isBusinessCardSupported, forKey: .isBusinessCardSupported)
+        try! container.encodeIfPresent(self.roundingOption, forKey: .roundingOption)
+        try! container.encodeIfPresent(self.precision, forKey: .precision)
+        try! container.encodeIfPresent(self.multiSelectLookup, forKey: .multiSelectLookup)
+        try! container.encodeIfPresent(self.subFormTabId, forKey: .subFormTabId)
+        try! container.encodeIfPresent(self.subForm, forKey: .subForm)
     }
         
     /// Add the pick list value to the ZCRMField.

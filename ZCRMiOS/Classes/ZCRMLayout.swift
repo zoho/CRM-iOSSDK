@@ -22,10 +22,44 @@ open class ZCRMLayout : ZCRMLayoutDelegate
         super.init( id : APIConstants.STRING_MOCK, name : name )
     }
     
+    enum CodingKeys: String, CodingKey
+    {
+        case createdBy
+        case createdTime
+        case modifiedBy
+        case modifiedTime
+        case isVisible
+        case status
+        case sections
+        case accessibleProfiles
+    }
     required public init(from decoder: Decoder) throws {
         try! super.init(from: decoder)
+        let container = try! decoder.container(keyedBy: CodingKeys.self)
+        
+        createdBy = try! container.decodeIfPresent(ZCRMUserDelegate.self, forKey: .createdBy)
+        createdTime = try! container.decodeIfPresent(String.self, forKey: .createdTime)
+        modifiedBy = try! container.decodeIfPresent(ZCRMUserDelegate.self, forKey: .modifiedBy)
+        modifiedTime = try! container.decodeIfPresent(String.self, forKey: .modifiedTime)
+        isVisible = try! container.decode(Bool.self, forKey: .isVisible)
+        status = try! container.decode(Int.self, forKey: .status)
+        sections = try! container.decode([ ZCRMSection ].self, forKey: .sections)
+        accessibleProfiles = try! container.decode([ ZCRMProfileDelegate ].self, forKey: .accessibleProfiles)
     }
-    
+    open override func encode( to encoder : Encoder ) throws
+    {
+        try! super.encode(to: encoder)
+        var container = encoder.container( keyedBy : CodingKeys.self )
+        
+        try! container.encodeIfPresent(self.createdBy, forKey: .createdBy)
+        try! container.encodeIfPresent(self.createdTime, forKey: .createdTime)
+        try! container.encodeIfPresent(self.modifiedBy, forKey: .modifiedBy)
+        try! container.encodeIfPresent(self.modifiedTime, forKey: .modifiedTime)
+        try! container.encode(self.isVisible, forKey: .isVisible)
+        try! container.encode(self.status, forKey: .status)
+        try! container.encode(self.sections, forKey: .sections)
+        try! container.encode(self.accessibleProfiles, forKey: .accessibleProfiles)
+    }
     /// Add ZCRMSection to the ZCRMLayout.
     ///
     /// - Parameter section: ZCRMSection to be added

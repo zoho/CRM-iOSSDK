@@ -238,7 +238,7 @@ public class ResponseInfo
             for privateFieldDetails in privateFieldsDetails
             {
                 let field : ZCRMField = ZCRMField( apiName : try privateFieldDetails.getString( key : "api_name" ) )
-                field.id = try privateFieldDetails.getInt64( key : "id" )
+                field.id = try privateFieldDetails.getString( key : "id" )
                 if( privateFieldDetails.hasValue( forKey : "private" ) )
                 {
                     let fieldPrivateDetails = try privateFieldDetails.getDictionary( key : "private" )
