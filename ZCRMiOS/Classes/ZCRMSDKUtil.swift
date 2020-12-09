@@ -15,11 +15,31 @@ public class ZCRMSDKUtil: ZCacheClient
         
     }
     
+    public func newInstance() -> ZCacheClient {
+        return ZCRMSDKUtil()
+    }
+    
+    public func getModuleInstance() -> ZCacheModule {
+        return ZCRMModule(apiName: APIConstants.STRING_MOCK, singularLabel: APIConstants.STRING_MOCK, pluralLabel: APIConstants.STRING_MOCK)
+    }
+    
+    public func getLayoutInstance() -> ZCacheLayout {
+        return ZCRMLayout(name: APIConstants.STRING_MOCK)
+    }
+    
+    public func getSectionInstance() -> ZCacheSection {
+        return ZCRMSection(apiName: APIConstants.STRING_MOCK)
+    }
+    
+    public func getFieldInstance() -> ZCacheField {
+        return ZCRMField(apiName: APIConstants.STRING_MOCK)
+    }
+    
     public func getModules<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheModule {
         
     }
     
-    public func getModulesFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheModule {
+    public func getModulesFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void)) {
         MetaDataAPIHandler().getAllModules( modifiedSince : nil ) { ( result ) in
             switch result {
             case .success(let modules, _): do {

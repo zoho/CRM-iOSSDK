@@ -16,6 +16,23 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     
     public var isApiSupported: Bool
     
+    public func getDataAsDictionary() -> [String: Any]? {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        if let data = try? encoder.encode( self ), let json = try? JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [ String : Any ]
+        {
+            return json
+        }
+        return nil
+    }
+    
+    public func getDictionaryAsData(dict: [String: Any]) -> ZCacheModule? {
+        let jsonData = try! JSONSerialization.data( withJSONObject: dict, options : [] )
+        let decoder = JSONDecoder()
+        let obj = try! decoder.decode( ZCRMModule.self, from : jsonData )
+        return obj
+    }
+    
     public func getLayout<T>(withId: String, completion: ((Result<T, ZCacheError>) -> Void)) where T : ZCacheLayout {
         
     }

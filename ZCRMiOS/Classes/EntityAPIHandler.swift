@@ -1263,7 +1263,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                             }
                             else
                             {
-                                if let apiName = field.lookup?[ ResponseJSONKeys.module ] as? String
+                                if let apiName = field.lookup?[ ResponseJSONKeys.module ]?.value as? String
                                 {
                                     let lookupRecord : ZCRMRecordDelegate = ZCRMRecordDelegate( id : try lookupDetails.getInt64( key : ResponseJSONKeys.id ), moduleAPIName : apiName )
                                     lookupRecord.label = lookupDetails.optString( key : ResponseJSONKeys.name )
@@ -1497,7 +1497,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 {
                     if let field = apiDict?[ fieldAPIName ]
                     {
-                        if let moduleAPIName = field.lookup?[ ResponseJSONKeys.module ] as? String
+                        if let moduleAPIName = field.lookup?[ ResponseJSONKeys.module ]?.value as? String
                         {
                             let lookupRecord : ZCRMRecordDelegate = ZCRMRecordDelegate( id : try lookupDetails.getInt64( key : ResponseJSONKeys.id ), moduleAPIName : moduleAPIName )
                             lookupRecord.label = lookupDetails.optString( key : ResponseJSONKeys.name )

@@ -126,8 +126,8 @@ open class ZCRMModule : ZCRMModuleDelegate
         modifiedBy = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .modifiedBy)
         modifiedTime = try! values.decodeIfPresent(String.self, forKey: .modifiedTime)
         
-        accessibleProfiles = try! values.decodeIfPresent([ZCRMProfileDelegate].self, forKey: .isCreatable)
-        relatedLists = try! values.decodeIfPresent([ZCRMModuleRelation].self, forKey: .isCreatable)
+        accessibleProfiles = try! values.decodeIfPresent([ZCRMProfileDelegate].self, forKey: .accessibleProfiles)
+        relatedLists = try! values.decodeIfPresent([ZCRMModuleRelation].self, forKey: .relatedLists)
         
         isGlobalSearchSupported = try! values.decode(Bool.self, forKey: .isGlobalSearchSupported)
         visibility = try! values.decode(Int.self, forKey: .visibility)
