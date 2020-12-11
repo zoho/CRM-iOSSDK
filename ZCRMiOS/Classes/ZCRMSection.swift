@@ -21,17 +21,17 @@ public class ZCRMSection : ZCRMEntity, ZCacheSection
     public internal( set ) var tooltip : String?
     public internal( set ) var maximumRows : Int?
     
-    public func getFieldFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheField
+    public func getFieldFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
         
     }
     
-    public func getFieldsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheField
+    public func getFieldsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
         
     }
     
-    public func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheField
+    public func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
         
     }

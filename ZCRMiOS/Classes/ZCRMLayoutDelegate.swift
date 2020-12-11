@@ -11,32 +11,32 @@ open class ZCRMLayoutDelegate : ZCRMEntity, ZCacheLayout
     public var id: String
     public internal( set ) var name : String
     
-    public func getSectionFromServer<T>(name: String, completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheSection
+    public func getSectionFromServer<T>(name: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
         
     }
     
-    public func getSectionsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheSection
+    public func getSectionsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
         
     }
     
-    public func getSectionsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheSection
+    public func getSectionsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
         
     }
     
-    public func getFieldFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheField
+    public func getFieldFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
         
     }
     
-    public func getFieldsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheField
+    public func getFieldsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
         
     }
     
-    public func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheField
+    public func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
         
     }

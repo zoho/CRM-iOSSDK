@@ -11,91 +11,87 @@ import ZCacheiOS
 
 public class ZCRMSDKUtil: ZCacheClient
 {
-    public init() {
-        
-    }
-    
-    public func newInstance() -> ZCacheClient {
+    public func newInstance() -> ZCacheClient
+    {
         return ZCRMSDKUtil()
     }
     
-    public func getModuleInstance() -> ZCacheModule {
+    public func getModuleInstance() -> ZCacheModule
+    {
         return ZCRMModule(apiName: APIConstants.STRING_MOCK, singularLabel: APIConstants.STRING_MOCK, pluralLabel: APIConstants.STRING_MOCK)
     }
     
-    public func getLayoutInstance() -> ZCacheLayout {
+    public func getLayoutInstance() -> ZCacheLayout?
+    {
         return ZCRMLayout(name: APIConstants.STRING_MOCK)
     }
     
-    public func getSectionInstance() -> ZCacheSection {
+    public func getSectionInstance() -> ZCacheSection?
+    {
         return ZCRMSection(apiName: APIConstants.STRING_MOCK)
     }
     
-    public func getFieldInstance() -> ZCacheField {
+    public func getFieldInstance() -> ZCacheField
+    {
         return ZCRMField(apiName: APIConstants.STRING_MOCK)
     }
     
-    public func getModules<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheModule {
-        
+    public func getUserInstance() -> ZCacheUser
+    {
+        return ZCRMUser(emailId: APIConstants.STRING_MOCK)
     }
     
-    public func getModulesFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void)) {
-        MetaDataAPIHandler().getAllModules( modifiedSince : nil ) { ( result ) in
-            switch result {
-            case .success(let modules, _): do {
-                completion(.success(modules as! [T]))
-            }
-            case .failure(let error): do {
-                let code = error.ZCRMErrordetails?.code
-                let message = error.ZCRMErrordetails?.code
+    public func getModulesFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    {
+        MetaDataAPIHandler().getAllModules( modifiedSince : nil )
+        {
+            ( result ) in
+            switch result
+            {
+            case .success(let modules, _):
+                do
+                {
+                    completion(.success(modules as! [T]))
+                }
+            case .failure(let error):
+                do
+                {
+                    let code = error.ZCRMErrordetails?.code
+                    let message = error.ZCRMErrordetails?.code
                 
-                completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
-            }
+                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                }
             }
         }
     }
     
-    public func getModulesFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheModule {
+    public func getModulesFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    {
         
     }
     
-    public func getModule<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheModule {
+    public func getModuleFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    {
         
     }
     
-    public func getModuleFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheModule {
+    public func getModuleFromServer<T>(withName: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    {
+        
+    }
+   
+    public func getUsersFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    {
         
     }
     
-    public func getModule<T>(withName: String, completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheModule {
+    public func getUserFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    {
         
     }
     
-    public func getModuleFromServer<T>(withName: String, completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheModule {
-        
-    }
-    
-    public func getUsers<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheUser {
-        
-    }
-    
-    public func getUsersFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheUser {
-        
-    }
-    
-    public func getUser<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheUser {
-        
-    }
-    
-    public func getUserFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheUser {
-        
-    }
-    
-    public func getCurrentUser<T>(completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheUser {
-        
-    }
-    
-    public func getCurrentUserFromServer<T>(completion: @escaping ((Result<T, ZCacheError>) -> Void)) where T : ZCacheUser {
+    public func getCurrentUserFromServer<T>(completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    {
         
     }
     

@@ -118,8 +118,7 @@ public class ZCRMSDKClient
             try ZCRMSDKClient.shared.createDB()
             try ZCRMSDKClient.shared.createTables()
             
-            var configs = ZCacheConfigs()
-            configs.clientInstance = ZCRMSDKUtil()
+            var configs = ZCacheConfigs(clientInstance: ZCRMSDKUtil())
             configs.isDBCachingEnabled = true
             
             ZCache.shared.initialize(configs: configs) { result in

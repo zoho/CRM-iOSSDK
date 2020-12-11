@@ -16,116 +16,123 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     
     public var isApiSupported: Bool
     
-    public func getDataAsDictionary() -> [String: Any]? {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted
-        if let data = try? encoder.encode( self ), let json = try? JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [ String : Any ]
-        {
-            return json
-        }
-        return nil
-    }
-    
-    public func getDictionaryAsData(dict: [String: Any]) -> ZCacheModule? {
-        let jsonData = try! JSONSerialization.data( withJSONObject: dict, options : [] )
-        let decoder = JSONDecoder()
-        let obj = try! decoder.decode( ZCRMModule.self, from : jsonData )
-        return obj
-    }
-    
-    public func getLayout<T>(withId: String, completion: ((Result<T, ZCacheError>) -> Void)) where T : ZCacheLayout {
+    public func getLayout<T>(withId: String, completion: ((Result<T, ZCacheError>) -> Void))
+    {
         
     }
     
-    public func getLayoutFromServer<T>(withId: String, completion: ((Result<T, ZCacheError>) -> Void)) where T : ZCacheLayout {
+    public func getLayoutFromServer<T>(withId: String, completion: ((Result<T, ZCacheError>) -> Void))
+    {
         
     }
     
-    public func getLayouts<T>(completion: ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheLayout {
+    public func getLayouts<T>(completion: ((Result<[T], ZCacheError>) -> Void))
+    {
         
     }
     
-    public func getLayoutsFromServer<T>(completion: ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheLayout {
+    public func getLayoutsFromServer<T>(completion: ((Result<[T], ZCacheError>) -> Void))
+    {
         
     }
     
-    public func getLayoutsFromServer<T>(modifiedSince: String, completion: ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheLayout {
+    public func getLayoutsFromServer<T>(modifiedSince: String, completion: ((Result<[T], ZCacheError>) -> Void))
+    {
         
     }
     
-    public func getField<T>(withId: String, completion: ((Result<T, ZCacheError>) -> Void)) where T : ZCacheField {
+    public func getField<T>(withId: String, completion: ((Result<T, ZCacheError>) -> Void))
+    {
         
     }
     
-    public func getFieldFromServer<T>(withId: String, completion: ((Result<T, ZCacheError>) -> Void)) where T : ZCacheField {
+    public func getFieldFromServer<T>(withId: String, completion: ((Result<T, ZCacheError>) -> Void))
+    {
         
     }
     
-    public func getFields<T>(completion: ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheField {
+    public func getFields<T>(completion: ((Result<[T], ZCacheError>) -> Void))
+    {
         
     }
     
-    public func getFieldsFromServer<T>(completion: ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheField {
+    public func getFieldsFromServer<T>(completion: ((Result<[T], ZCacheError>) -> Void))
+    {
         
     }
     
-    public func getFieldsFromServer<T>(modifiedSince: String, completion: ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheField {
+    public func getFieldsFromServer<T>(modifiedSince: String, completion: ((Result<[T], ZCacheError>) -> Void))
+    {
         
     }
     
-    public func execute<T>(query: String, completion: ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheRecord {
+    public func execute<T>(query: String, completion: ((Result<[T], ZCacheError>) -> Void))
+    {
         
     }
     
-    public func getRecord<T>(witId: String, completion: ((Result<T, ZCacheError>) -> Void)) where T : ZCacheRecord {
+    public func getRecord<T>(withId: String, completion: @escaping ((DataResponseCallback<String, T>) -> Void))
+    {
         
     }
     
-    public func getRecordFromServer<T>(id: String, completion: ((Result<T, ZCacheError>) -> Void)) where T : ZCacheRecord {
+    public func getRecordFromServer<T>(id: String, completion: ((Result<T, ZCacheError>) -> Void))
+    {
         
     }
     
-    public func createRecord<T>(record: ZCacheRecord, completion: ((Result<T, ZCacheError>) -> Void)) where T : ZCacheRecord {
+    public func createRecord<T>(record: ZCacheRecord, completion: ((Result<T, ZCacheError>) -> Void))
+    {
         
     }
     
-    public func updateRecord<T>(record: ZCacheRecord, completion: ((Result<T, ZCacheError>) -> Void)) where T : ZCacheRecord {
+    public func updateRecord<T>(record: ZCacheRecord, completion: ((Result<T, ZCacheError>) -> Void))
+    {
         
     }
     
-    public func deleteRecord(withId: String, completion: ((Result<String, ZCacheError>) -> Void)) {
+    public func deleteRecord(withId: String, completion: ((Result<String, ZCacheError>) -> Void))
+    {
         
     }
     
-    public func createRecords<T>(entities: [T], completion: ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheRecord {
+    public func createRecords<T>(entities: [T], completion: ((Result<[T], ZCacheError>) -> Void))
+    {
         
     }
     
-    public func updateRecords<T>(entities: [T], completion: ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheRecord {
+    public func updateRecords<T>(entities: [T], completion: ((Result<[T], ZCacheError>) -> Void))
+    {
         
     }
     
-    public func deleteRecords<T>(entities: [T], completion: ((Result<[String], ZCacheError>) -> Void)) where T : ZCacheRecord {
+    public func deleteRecords<T>(entities: [T], completion: ((Result<[String], ZCacheError>) -> Void))
+    {
         
     }
     
-    public func deleteAllRecords(ids: [String], completion: ((Result<[String], ZCacheError>) -> Void)) {
+    public func deleteAllRecords(ids: [String], completion: ((Result<[String], ZCacheError>) -> Void))
+    {
         
     }
     
-    public func getRecords<T>(params: [String], completion: ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheRecord {
+    public func getRecords<T>(params: [String], completion: ((Result<[T], ZCacheError>) -> Void))
+    {
         
     }
     
-    public func getRecordsFromServer<T>(params: [String], completion: ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheRecord {
+    public func getRecordsFromServer<T>(params: [String], completion: ((Result<[T], ZCacheError>) -> Void))
+    {
         
     }
     
-    public func getDeletedRecords<T>(params: [String], completion: ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheRecord {
+    public func getDeletedRecords<T>(params: [String], completion: ((Result<[T], ZCacheError>) -> Void))
+    {
         
     }
     
-    public func getDeletedRecordsFromServer<T>(params: [String], completion: ((Result<[T], ZCacheError>) -> Void)) where T : ZCacheRecord {
+    public func getDeletedRecordsFromServer<T>(params: [String], completion: ((Result<[T], ZCacheError>) -> Void))
+    {
         
     }
     
