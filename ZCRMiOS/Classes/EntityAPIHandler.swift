@@ -62,7 +62,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                         {
                             let record = try recordResult.resolve()
                             response.setData(data: record)
-                            self.record.upsertJSON = [ String : Any? ]()
+                            self.record.upsertJSON = [ String : JSONValue? ]()
                             completion( .success( record, response ))
                         }
                         catch
@@ -109,7 +109,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 let recordDetails : [ String : Any ] = try respData.getDictionary( key : APIConstants.DETAILS )
                 for ( key, value ) in self.record.upsertJSON
                 {
-                    self.record.data.updateValue( value, forKey : key )
+                    self.record.data.updateValue( JSONValue(value: value), forKey : key )
                 }
                 self.moduleFieldQueue.async {
                     self.setRecordProperties(recordDetails: recordDetails, completion: { ( recordResult ) in
@@ -117,7 +117,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                         {
                             let record = try recordResult.resolve()
                             response.setData(data: record)
-                            self.record.upsertJSON = [ String : Any? ]()
+                            self.record.upsertJSON = [ String : JSONValue? ]()
                             self.record.isCreate = false
                             completion( .success( record, response ) )
                         }
@@ -170,7 +170,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 let recordDetails : [ String : Any ] = try respData.getDictionary( key : APIConstants.DETAILS )
                 for ( key, value ) in self.record.upsertJSON
                 {
-                    self.record.data.updateValue( value, forKey : key )
+                    self.record.data.updateValue( JSONValue(value: value), forKey : key )
                 }
                 self.moduleFieldQueue.async {
                     self.setRecordProperties(recordDetails: recordDetails, completion: { ( recordResult ) in
@@ -178,7 +178,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                         {
                             let record = try recordResult.resolve()
                             response.setData(data: record)
-                            self.record.upsertJSON = [ String : Any? ]()
+                            self.record.upsertJSON = [ String : JSONValue? ]()
                             completion( .success( record, response ) )
                         }
                         catch
@@ -504,7 +504,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     internal func getZCRMRecordAsJSON() -> [ String : Any? ]
     {
         var recordJSON : [ String : Any? ] = [ String : Any? ]()
-        if self.record.id != APIConstants.INT64_MOCK
+        if self.record.id != APIConstants.STRING_MOCK
         {
             recordJSON.updateValue( record.id, forKey : ResponseJSONKeys.id )
         }
@@ -633,9 +633,9 @@ internal class EntityAPIHandler : CommonAPIHandler
         return recordJSON
     }
     
-    private func getZCRMRecordIdsAsArray( _ recordDelegates : [ ZCRMRecordDelegate ] ) -> [ Int64 ]
+    private func getZCRMRecordIdsAsArray( _ recordDelegates : [ ZCRMRecordDelegate ] ) -> [ String ]
     {
-        var idArray : [ Int64 ] = [ Int64 ]()
+        var idArray : [ String ] = [ String ]()
         for recordDelegate in recordDelegates
         {
             idArray.append( recordDelegate.id )
@@ -647,7 +647,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     {
         var detailsJSON : [ String : Any? ] = [ String : Any? ]()
         let recordData : [ String : Any? ] = subformRecord.data
-        if subformRecord.id != APIConstants.INT64_MOCK
+        if subformRecord.id != APIConstants.STRING_MOCK
         {
             detailsJSON.updateValue( subformRecord.id, forKey : ResponseJSONKeys.id )
         }
@@ -913,28 +913,28 @@ internal class EntityAPIHandler : CommonAPIHandler
                 {
                     throw error
                 }
-                if(ResponseJSONKeys.id == fieldAPIName), let idStr = value as? String, let id = Int64( idStr )
+                if(ResponseJSONKeys.id == fieldAPIName), let idStr = value as? String
                 {
-                    self.record.id = id
+                    self.record.id = idStr
                     self.record.isCreate = false
-                    self.record.data.updateValue( self.record.id, forKey : ResponseJSONKeys.id )
+                    self.record.data.updateValue( JSONValue(value: self.record.id), forKey : ResponseJSONKeys.id )
                 }
                 else if(ResponseJSONKeys.productDetails == fieldAPIName) && ( self.record.moduleAPIName == DefaultModuleAPINames.SALES_ORDERS || self.record.moduleAPIName == DefaultModuleAPINames.PURCHASE_ORDERS || self.record.moduleAPIName == DefaultModuleAPINames.INVOICES || self.record.moduleAPIName == DefaultModuleAPINames.QUOTES ), let lineItems = value as? [[ String : Any ]]
                 {
                     try self.setInventoryLineItems(lineItems: lineItems)
-                    self.record.data.updateValue( lineItems, forKey : ResponseJSONKeys.productDetails )
+                    self.record.data.updateValue( JSONValue(value: lineItems), forKey : ResponseJSONKeys.productDetails )
                 }
                 else if( ResponseJSONKeys.pricingDetails == fieldAPIName ) && (self.record.moduleAPIName == DefaultModuleAPINames.PRICE_BOOKS), let priceDetails = value as? [[ String: Any ]]
                 {
                     try self.setPriceDetails( priceDetails : priceDetails )
-                    self.record.data.updateValue( self.record.priceDetails, forKey : ResponseJSONKeys.pricingDetails )
+                    self.record.data.updateValue( JSONValue(value: self.record.priceDetails), forKey : ResponseJSONKeys.pricingDetails )
                 }
                 else if( ResponseJSONKeys.participants == fieldAPIName ) && (self.record.moduleAPIName == DefaultModuleAPINames.EVENTS)
                 {
                     if recordDetails.hasValue( forKey : ResponseJSONKeys.participants ), let participantsArray = value as? [ [ String : Any ] ]
                     {
                         try self.setParticipants( participantsArray : participantsArray )
-                        self.record.data.updateValue( self.record.participants, forKey : ResponseJSONKeys.participants )
+                        self.record.data.updateValue( JSONValue(value: self.record.participants), forKey : ResponseJSONKeys.participants )
                     }
                     else
                     {
@@ -949,7 +949,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                         tax.value = try taxJSON.getDouble( key : ResponseJSONKeys.value )
                         try self.record.addLineTax( lineTax : tax )
                     }
-                    self.record.data.updateValue( self.record.lineTaxes, forKey : ResponseJSONKeys.dollarLineTax )
+                    self.record.data.updateValue( JSONValue(value: self.record.lineTaxes), forKey : ResponseJSONKeys.dollarLineTax )
                 }
                 else if( ResponseJSONKeys.tax == fieldAPIName && value is [ String ] ), let taxNames = value as? [ String ]
                 {
@@ -957,7 +957,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                     {
                         try self.record.addTax( tax : ZCRMTaxDelegate( name : taxName ) )
                     }
-                    self.record.data.updateValue( self.record.taxes, forKey : ResponseJSONKeys.tax )
+                    self.record.data.updateValue( JSONValue(value: self.record.taxes), forKey : ResponseJSONKeys.tax )
                 }
                 else if( ResponseJSONKeys.tax == fieldAPIName && value is [[ String : Any ]] ), let taxDetails = value as? [[ String : Any ]]
                 {
@@ -965,7 +965,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                     {
                         try self.record.addTax( tax : ZCRMTaxDelegate( name : tax.getString(key: ResponseJSONKeys.value) ) )
                     }
-                    self.record.data.updateValue( self.record.taxes, forKey : ResponseJSONKeys.tax )
+                    self.record.data.updateValue( JSONValue(value: self.record.taxes), forKey : ResponseJSONKeys.tax )
                 }
                 else if ( ResponseJSONKeys.tag == fieldAPIName ), let tagsDetails = value as? [[ String : Any ]]
                 {
@@ -977,43 +977,44 @@ internal class EntityAPIHandler : CommonAPIHandler
                     {
                         self.record.tags?.append( try tagJSON.getString( key : ResponseJSONKeys.name ) )
                     }
-                    self.record.data.updateValue( self.record.tags, forKey : ResponseJSONKeys.tag )
+                    self.record.data.updateValue( JSONValue(value: self.record.tags), forKey : ResponseJSONKeys.tag )
                 }
                 else if(ResponseJSONKeys.createdBy == fieldAPIName), let createdBy = value as? [ String : Any ]
                 {
                     self.record.createdBy = try getUserDelegate(userJSON : createdBy)
-                    self.record.data.updateValue( self.record.createdBy, forKey : ResponseJSONKeys.createdBy )
+                    self.record.data.updateValue( JSONValue(value: self.record.createdBy), forKey : ResponseJSONKeys.createdBy )
                 }
                 else if(ResponseJSONKeys.modifiedBy == fieldAPIName), let modifiedBy : [String:Any] = value as? [String : Any]
                 {
                     self.record.modifiedBy = try getUserDelegate(userJSON : modifiedBy)
-                    self.record.data.updateValue( self.record.modifiedBy, forKey : ResponseJSONKeys.modifiedBy )
+                    self.record.data.updateValue( JSONValue(value: self.record.modifiedBy), forKey : ResponseJSONKeys.modifiedBy )
                 }
                 else if(ResponseJSONKeys.createdTime == fieldAPIName), let createdTime = value as? String
                 {
                     self.record.createdTime = createdTime
-                    self.record.data.updateValue(self.record.createdTime, forKey: ResponseJSONKeys.createdTime)
+                    self.record.data.updateValue(JSONValue(value: self.record.createdTime), forKey: ResponseJSONKeys.createdTime)
                 }
                 else if(ResponseJSONKeys.modifiedTime == fieldAPIName), let modifiedTime = value as? String
                 {
                     self.record.modifiedTime = modifiedTime
-                    self.record.data.updateValue(self.record.modifiedTime, forKey: ResponseJSONKeys.modifiedTime)
+                    self.record.data.updateValue(JSONValue(value: self.record.modifiedTime), forKey: ResponseJSONKeys.modifiedTime)
                 }
                 else if( ResponseJSONKeys.activityType == fieldAPIName ), let activityType = value as? String
                 {
                     self.record.moduleAPIName = activityType
-                    self.record.data.updateValue(self.record.moduleAPIName, forKey: ResponseJSONKeys.activityType)
+                    self.record.data.updateValue(JSONValue(value: self.record.moduleAPIName), forKey: ResponseJSONKeys.activityType)
+                    self.record.data.updateValue(JSONValue(value: self.record.moduleName), forKey: "moduleName")
                 }
                 else if(ResponseJSONKeys.owner == fieldAPIName), let ownerObj : [String:Any] = value as? [String : Any]
                 {
                     self.record.owner = try getUserDelegate(userJSON : ownerObj)
-                    self.record.data.updateValue( self.record.owner, forKey : ResponseJSONKeys.owner )
+                    self.record.data.updateValue( JSONValue(value: self.record.owner), forKey : ResponseJSONKeys.owner )
                 }
                 else if ResponseJSONKeys.dataProcessingBasisDetails == fieldAPIName, let dataProcessingDetails = value as? [String:Any]
                 {
                     let dataProcessingBasisDetails : ZCRMDataProcessBasisDetails = try self.getZCRMDataProcessingBasisDetails(details: dataProcessingDetails)
                     self.record.dataProcessingBasisDetails = dataProcessingBasisDetails
-                    self.record.data.updateValue( self.record.dataProcessingBasisDetails, forKey : ResponseJSONKeys.dataProcessingBasisDetails )
+                    self.record.data.updateValue( JSONValue(value: self.record.dataProcessingBasisDetails), forKey : ResponseJSONKeys.dataProcessingBasisDetails )
                 }
                 else if(ResponseJSONKeys.layout == fieldAPIName)
                 {
@@ -1021,13 +1022,13 @@ internal class EntityAPIHandler : CommonAPIHandler
                     {
                         let layout : ZCRMLayoutDelegate = ZCRMLayoutDelegate( id : try layoutObj.getString( key : ResponseJSONKeys.id ), name : try layoutObj.getString( key : ResponseJSONKeys.name ) )
                         self.record.layout = layout
-                        self.record.data.updateValue( layout, forKey : ResponseJSONKeys.layout )
+                        self.record.data.updateValue( JSONValue(value: self.record.layout), forKey : ResponseJSONKeys.layout )
                     }
                 }
                 else if(ResponseJSONKeys.handler == fieldAPIName && recordDetails.hasValue(forKey: fieldAPIName)), let handlerObj : [String: Any] = value as? [String : Any]
                 {
                     let handler : ZCRMUserDelegate = try getUserDelegate( userJSON : handlerObj )
-                    self.record.data.updateValue(handler, forKey: fieldAPIName)
+                    self.record.data.updateValue( JSONValue(value: handler), forKey: fieldAPIName)
                 }
                 else if(fieldAPIName.hasPrefix("$"))
                 {
@@ -1041,22 +1042,24 @@ internal class EntityAPIHandler : CommonAPIHandler
                             let user : ZCRMUserDelegate = try getUserDelegate( userJSON : userDetails )
                             users.append( user )
                         }
-                        self.record.properties.updateValue(users, forKey: propertyName)
+                        self.record.properties.updateValue( JSONValue(value: users), forKey: propertyName)
                     }
                     else
                     {
-                        self.record.properties.updateValue(value, forKey: propertyName)
+                        self.record.properties.updateValue( JSONValue(value: value), forKey: propertyName)
                     }
                 }
                 else if( ResponseJSONKeys.remindAt == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) && value is [String:Any] )
                 {
                     let alarmDetails = try recordDetails.getDictionary( key : fieldAPIName )
-                    self.record.data.updateValue( try alarmDetails.getString( key : ResponseJSONKeys.ALARM ), forKey : ResponseJSONKeys.remindAt )
+                    let value = JSONValue(value: try alarmDetails.getString( key : ResponseJSONKeys.ALARM))
+                    self.record.data.updateValue( value, forKey : ResponseJSONKeys.remindAt )
                 }
                 else if( ResponseJSONKeys.recurringActivity == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) && value is [String:Any] )
                 {
                     let recurringActivity = try recordDetails.getDictionary( key : fieldAPIName )
-                    self.record.data.updateValue( try recurringActivity.getString( key : ResponseJSONKeys.RRULE ), forKey : ResponseJSONKeys.recurringActivity )
+                    let value = JSONValue(value: try recurringActivity.getString( key : ResponseJSONKeys.RRULE ))
+                    self.record.data.updateValue( value, forKey : ResponseJSONKeys.recurringActivity )
                 }
                 else if( value is [ String : Any ] )
                 {
@@ -1071,7 +1074,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                         else if let lookup = lookup
                         {
                             dispatchQueue.sync {
-                                lookups.updateValue( lookup, forKey : fieldAPIName )
+                                lookups.updateValue( JSONValue(value: lookup), forKey : fieldAPIName )
                                 dispatchGroup.leave()
                             }
                         } else {
@@ -1109,14 +1112,14 @@ internal class EntityAPIHandler : CommonAPIHandler
                         }
                         else
                         {
-                            self.record.data.updateValue(value, forKey: fieldAPIName)
+                            self.record.data.updateValue( JSONValue(value: value), forKey: fieldAPIName)
                             dispatchGroup.leave()
                         }
                     }
                 }
                 else
                 {
-                    self.record.data.updateValue(value, forKey: fieldAPIName)
+                    self.record.data.updateValue( JSONValue(value: value), forKey: fieldAPIName)
                 }
             }
             dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() )
@@ -1128,13 +1131,13 @@ internal class EntityAPIHandler : CommonAPIHandler
                 }
                 for ( key, value ) in lookups
                 {
-                    self.record.data.updateValue( value, forKey : key )
+                    self.record.data.updateValue( JSONValue(value: value), forKey : key )
                 }
                 for ( key, value ) in subforms
                 {
                     dispatchQueue.sync {
                         self.record.subformRecord?.updateValue( value, forKey : key )
-                        self.record.data.updateValue( value, forKey : key )
+                        self.record.data.updateValue( JSONValue(value: value), forKey : key )
                     }
                 }
                 completion( .success( self.record ) )
@@ -1241,7 +1244,7 @@ internal class EntityAPIHandler : CommonAPIHandler
             {
                 if fieldAPIName == ResponseJSONKeys.whatId
                 {
-                    let lookupRecord : ZCRMRecordDelegate = ZCRMRecordDelegate( id : try lookupDetails.getInt64( key : ResponseJSONKeys.id ), moduleAPIName : try recordDetails.getString( key : ResponseJSONKeys.seModule ) )
+                    let lookupRecord : ZCRMRecordDelegate = ZCRMRecordDelegate( id : try lookupDetails.getString( key : ResponseJSONKeys.id ), moduleAPIName : try recordDetails.getString( key : ResponseJSONKeys.seModule ) )
                     lookupRecord.label = lookupDetails.optString( key : ResponseJSONKeys.name )
                     completion( lookupRecord, nil )
                 }
@@ -1265,7 +1268,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                             {
                                 if let apiName = field.lookup?[ ResponseJSONKeys.module ]?.value as? String
                                 {
-                                    let lookupRecord : ZCRMRecordDelegate = ZCRMRecordDelegate( id : try lookupDetails.getInt64( key : ResponseJSONKeys.id ), moduleAPIName : apiName )
+                                    let lookupRecord : ZCRMRecordDelegate = ZCRMRecordDelegate( id : try lookupDetails.getString( key : ResponseJSONKeys.id ), moduleAPIName : apiName )
                                     lookupRecord.label = lookupDetails.optString( key : ResponseJSONKeys.name )
                                     completion( lookupRecord, nil )
                                 }
@@ -1368,7 +1371,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         let dispatchGroup : DispatchGroup = DispatchGroup()
         do
         {
-            let zcrmSubform : ZCRMSubformRecord = ZCRMSubformRecord( name : apiName, id : try subformDetails.getInt64( key : ResponseJSONKeys.id ) )
+            let zcrmSubform : ZCRMSubformRecord = ZCRMSubformRecord( name : apiName, id : try subformDetails.getString( key : ResponseJSONKeys.id ) )
             for ( fieldAPIName, value ) in subformDetails
             {
                 if let error = subformRecErr
@@ -1499,7 +1502,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                     {
                         if let moduleAPIName = field.lookup?[ ResponseJSONKeys.module ]?.value as? String
                         {
-                            let lookupRecord : ZCRMRecordDelegate = ZCRMRecordDelegate( id : try lookupDetails.getInt64( key : ResponseJSONKeys.id ), moduleAPIName : moduleAPIName )
+                            let lookupRecord : ZCRMRecordDelegate = ZCRMRecordDelegate( id : try lookupDetails.getString( key : ResponseJSONKeys.id ), moduleAPIName : moduleAPIName )
                             lookupRecord.label = lookupDetails.optString( key : ResponseJSONKeys.name )
                             completion( lookupRecord, nil )
                         }
@@ -1594,13 +1597,13 @@ internal class EntityAPIHandler : CommonAPIHandler
     {
         let productDetails : [ String : Any ] = try lineItemDetails.getDictionary( key : ResponseJSONKeys.product )
         let product : ZCRMRecord = ZCRMRecord(moduleAPIName: ResponseJSONKeys.products)
-        product.id = try productDetails.getInt64( key : ResponseJSONKeys.id )
+        product.id = try productDetails.getString( key : ResponseJSONKeys.id )
         product.label = try productDetails.getString( key : ResponseJSONKeys.name )
         let lineItem : ZCRMInventoryLineItem = ZCRMInventoryLineItem( id : try lineItemDetails.getInt64( key : ResponseJSONKeys.id ) )
         lineItem.product = product
         if let productCode = lineItemDetails.optString(key: ResponseJSONKeys.productCode)
         {
-            lineItem.product.data.updateValue( productCode, forKey: ResponseJSONKeys.productCode)
+            lineItem.product.data.updateValue( JSONValue(value: productCode), forKey: ResponseJSONKeys.productCode)
         }
         lineItem.description = lineItemDetails.optString(key: ResponseJSONKeys.productDescription)
         lineItem.quantity = try lineItemDetails.getDouble( key : ResponseJSONKeys.quantity )
@@ -1668,13 +1671,13 @@ internal class EntityAPIHandler : CommonAPIHandler
                 break
             
             case .contact :
-                let entity = ZCRMRecordDelegate( id : try participantDetails.getInt64( key : ResponseJSONKeys.participant ), moduleAPIName : DefaultModuleAPINames.CONTACTS )
+                let entity = ZCRMRecordDelegate( id : try participantDetails.getString( key : ResponseJSONKeys.participant ), moduleAPIName : DefaultModuleAPINames.CONTACTS )
                 entity.label = try participantDetails.getString( key : ResponseJSONKeys.name )
                 eventParticipant = EventParticipant.record(entity)
                 break
             
             case .lead :
-                let entity = ZCRMRecordDelegate( id : try participantDetails.getInt64( key : ResponseJSONKeys.participant ), moduleAPIName : DefaultModuleAPINames.LEADS )
+                let entity = ZCRMRecordDelegate( id : try participantDetails.getString( key : ResponseJSONKeys.participant ), moduleAPIName : DefaultModuleAPINames.LEADS )
                 entity.label = try participantDetails.getString( key : ResponseJSONKeys.name )
                 eventParticipant = EventParticipant.record(entity)
                 break

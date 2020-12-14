@@ -8,7 +8,7 @@
 
 open class ZCRMNote : ZCRMEntity
 {
-    public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
+    public internal( set ) var id : String = APIConstants.STRING_MOCK
     internal var isCreate : Bool = APIConstants.BOOL_MOCK
     public var title : String?
     public var content : String?

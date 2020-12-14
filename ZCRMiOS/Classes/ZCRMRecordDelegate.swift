@@ -4,19 +4,108 @@
 //
 //  Created by Umashri R on 13/09/18.
 //
+import ZCacheiOS
 
-open class ZCRMRecordDelegate : ZCRMEntity
+open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
 {
-    public internal(set) var id : Int64
+    public var id : String
+    public var moduleName : String
+    public var layoutId : String?
+    
+    enum CodingKeys: String, CodingKey
+    {
+        case id
+        case moduleName
+        case layoutId
+        case moduleAPIName
+        case label
+    }
+    
+    private struct CustomCodingKeys: CodingKey
+    {
+        var stringValue: String
+        init?(stringValue: String)
+        {
+            self.stringValue = stringValue
+        }
+        var intValue: Int?
+        init?(intValue: Int)
+        {
+            return nil
+        }
+    }
+    
+    required public init(from decoder: Decoder) throws
+    {
+        let values = try! decoder.container(keyedBy: CodingKeys.self)
+        id = try! values.decode(String.self, forKey: .id)
+        moduleName = try! values.decode(String.self, forKey: .moduleName)
+        layoutId = try! values.decodeIfPresent(String.self, forKey: .layoutId)
+        moduleAPIName = try! values.decode(String.self, forKey: .moduleAPIName)
+        label = try! values.decodeIfPresent(String.self, forKey: .label)
+
+        for key in values.allKeys
+        {
+            data[key.rawValue] = try! values.decode(JSONValue.self, forKey: key)
+        }
+    }
+    
+    open func encode( to encoder : Encoder ) throws
+    {
+        var container = encoder.container( keyedBy : CodingKeys.self )
+        try container.encode( self.id, forKey : .id )
+        try container.encode( self.moduleName, forKey : .moduleName )
+        try container.encode( self.moduleAPIName, forKey : .moduleAPIName )
+        try container.encodeIfPresent( self.label, forKey : .label )
+        try container.encodeIfPresent( self.layoutId, forKey : .layoutId )
+        
+        var customContainer = encoder.container(keyedBy: CustomCodingKeys.self)
+        for (key, value) in data
+        {
+            if let customKey = CustomCodingKeys(stringValue: key)
+            {
+                try customContainer.encodeIfPresent( value, forKey : customKey )
+            }
+        }
+        for (key, value) in properties
+        {
+            if let customKey = CustomCodingKeys(stringValue: key)
+            {
+                try customContainer.encodeIfPresent( value, forKey : customKey )
+            }
+        }
+    }
+    
+    public func create< T >(completion: @escaping (DataResponseCallback<ZCacheResponse, T>) -> Void)
+    {
+        
+    }
+    
+    public func update< T >(completion: @escaping (DataResponseCallback<ZCacheResponse, T>) -> Void)
+    {
+        
+    }
+    
+    public func delete(completion: @escaping (DataResponseCallback<ZCacheResponse, String>) -> Void)
+    {
+        
+    }
+    
+    public func reset< T >(completion: @escaping (DataResponseCallback<ZCacheResponse, T>) -> Void)
+    {
+        
+    }
+
     public internal(set) var moduleAPIName : String
     public var label : String?
-    internal var data : [ String : Any? ] = [ String : Any? ]()
-    public internal( set ) var properties : [ String : Any? ] = [ String : Any? ]()
+    internal var data : [ String : JSONValue? ] = [ String : JSONValue? ]()
+    public internal( set ) var properties : [ String : JSONValue? ] = [ String : JSONValue? ]()
     
-    init ( id : Int64, moduleAPIName : String )
+    init ( id : String, moduleAPIName : String )
     {
         self.id = id
         self.moduleAPIName = moduleAPIName
+        self.moduleName = moduleAPIName
     }
     
     /**
@@ -24,7 +113,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
      
      - Returns: ZCRMRecordDelegate's fieldAPIName vs field value dictionary
      */
-    public func getData() -> [ String : Any? ]
+    public func getData() -> [ String : JSONValue? ]
     {
         return self.data
     }
@@ -37,7 +126,8 @@ open class ZCRMRecordDelegate : ZCRMEntity
      */
     public func getValue( ofProperty : String ) -> Any?
     {
-        return self.properties.optValue( key : ofProperty )
+        let value = self.properties.optValue( key : ofProperty )
+        return JSONValue(value: value)
     }
     
     /**
@@ -51,7 +141,8 @@ open class ZCRMRecordDelegate : ZCRMEntity
     {
         if self.data.hasKey( forKey : ofFieldAPIName )
         {
-            return self.data.optValue( key : ofFieldAPIName )
+            let value = self.data.optValue( key : ofFieldAPIName )
+            return JSONValue(value: value)
         }
         else
         {
@@ -67,7 +158,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     ///   - value: value of the ZCRMRecord's property
     public func setValue( ofProperty : String, value : Any? )
     {
-        self.properties.updateValue( value, forKey : ofProperty )
+        self.properties.updateValue( JSONValue(value: value), forKey : ofProperty )
     }
     
     public func newNote( content : String ) -> ZCRMNote
@@ -556,4 +647,4 @@ extension ZCRMRecordDelegate : Hashable
     }
 }
 
-let RECORD_MOCK : ZCRMRecordDelegate = ZCRMRecordDelegate( id : APIConstants.INT64_MOCK, moduleAPIName : APIConstants.STRING_MOCK )
+let RECORD_MOCK : ZCRMRecordDelegate = ZCRMRecordDelegate( id : APIConstants.STRING_MOCK, moduleAPIName : APIConstants.STRING_MOCK )

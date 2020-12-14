@@ -8,7 +8,7 @@
 import Foundation
 
 public struct JSONValue: Decodable {
-  var value: Any
+  var value: Any?
 
   struct CodingKeys: CodingKey {
     var stringValue: String
@@ -20,19 +20,19 @@ public struct JSONValue: Decodable {
     init?(stringValue: String) { self.stringValue = stringValue }
   }
 
-  init(value: Any) {
+  init(value: Any?) {
     self.value = value
   }
 
   public init(from decoder: Decoder) throws {
     if let container = try? decoder.container(keyedBy: CodingKeys.self) {
-      var result = [String: Any]()
+      var result = [String: Any?]()
       try container.allKeys.forEach { (key) throws in
         result[key.stringValue] = try container.decode(JSONValue.self, forKey: key).value
       }
       value = result
     } else if var container = try? decoder.unkeyedContainer() {
-      var result = [Any]()
+      var result = [Any?]()
       while !container.isAtEnd {
         result.append(try container.decode(JSONValue.self).value)
       }
@@ -81,7 +81,7 @@ extension JSONValue: Encodable {
       } else if let stringVal = value as? String {
         try container.encode(stringVal)
       } else {
-        throw EncodingError.invalidValue(value, EncodingError.Context.init(codingPath: [], debugDescription: "The value is not encodable"))
+        throw EncodingError.invalidValue(value ?? "Nil Value.", EncodingError.Context.init(codingPath: [], debugDescription: "The value is not encodable"))
       }
 
     }

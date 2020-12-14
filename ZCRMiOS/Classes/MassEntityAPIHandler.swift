@@ -67,17 +67,17 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                             completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                             return
                         }
-                        records[ index ].id = try recordJSON.getInt64( key : ResponseJSONKeys.id )
+                        records[ index ].id = try recordJSON.getString( key : ResponseJSONKeys.id )
                         for ( key, value ) in records[ index ].upsertJSON
                         {
-                            records[ index ].data.updateValue( value, forKey : key )
+                            records[ index ].data.updateValue( JSONValue(value: value), forKey : key )
                         }
                         dispatchGroup.enter()
                         EntityAPIHandler( record : records[ index ] ).setRecordProperties( recordDetails : recordJSON, completion : { ( recordResult ) in
                             do
                             {
                                 let createdRecord = try recordResult.resolve()
-                                createdRecord.upsertJSON = [ String : Any? ]()
+                                createdRecord.upsertJSON = [ String : JSONValue? ]()
                                 dispatchQueue.sync {
                                     createdRecords.append( createdRecord )
                                 }
@@ -263,13 +263,13 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 for recordDetails in recordsDetailsList
                 {
                     let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
-                    record.id = try recordDetails.getInt64( key : ResponseJSONKeys.id )
+                    record.id = try recordDetails.getString( key : ResponseJSONKeys.id )
                     dispatchGroup.enter()
                     EntityAPIHandler(record: record, moduleFields: getFieldVsApinameMap(fields: fields)).setRecordProperties(recordDetails: recordDetails, completion: { ( recordResult ) in
                         do
                         {
                             let getRecord = try recordResult.resolve()
-                            getRecord.upsertJSON = [ String : Any ]()
+                            getRecord.upsertJSON = [ String : JSONValue ]()
                             dispatchQueue.sync {
                                 records.append(getRecord)
                             }
@@ -506,7 +506,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func massUpdateRecords( triggers : [ Trigger ]?, ids : [ Int64 ], fieldValuePair : [ String : Any? ], completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    internal func massUpdateRecords( triggers : [ Trigger ]?, ids : [ String ], fieldValuePair : [ String : Any? ], completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
 	{
         if(ids.count > 500)
         {
@@ -650,17 +650,17 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                             completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                             return
                         }
-                        records[ index ].id = try recordJSON.getInt64( key : ResponseJSONKeys.id )
+                        records[ index ].id = try recordJSON.getString( key : ResponseJSONKeys.id )
                         for ( key, value ) in records[ index ].upsertJSON
                         {
-                            records[ index ].data.updateValue( value, forKey : key )
+                            records[ index ].data.updateValue( JSONValue(value: value), forKey : key )
                         }
                         dispatchGroup.enter()
                         EntityAPIHandler( record : records[ index ] ).setRecordProperties( recordDetails : recordJSON, completion : { ( recordResult ) in
                             do
                             {
                                 let upsertRecord = try recordResult.resolve()
-                                upsertRecord.upsertJSON = [ String : Any? ]()
+                                upsertRecord.upsertJSON = [ String : JSONValue? ]()
                                 dispatchQueue.sync {
                                     upsertRecords.append( upsertRecord )
                                 }
@@ -773,7 +773,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         return
                     }
                     let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
-                    record.id = try recordJSON.getInt64( key : ResponseJSONKeys.id )
+                    record.id = try recordJSON.getString( key : ResponseJSONKeys.id )
                     entityResponse.setData(data: record)
                 }
                 completion( .success( bulkResponse ) )

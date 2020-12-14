@@ -608,7 +608,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             let parentRecordList : [ String : Any ] = try attachmentDetails.getDictionary(key: ResponseJSONKeys.parentId)
             if let seModule = attachmentDetails.optString( key : ResponseJSONKeys.seModule )
             {
-                attachment.parentRecord = ZCRMRecordDelegate( id : try parentRecordList.getInt64( key : ResponseJSONKeys.id ), moduleAPIName : seModule )
+                attachment.parentRecord = ZCRMRecordDelegate( id : try parentRecordList.getString( key : ResponseJSONKeys.id ), moduleAPIName : seModule )
                 if parentRecordList.hasValue(forKey: ResponseJSONKeys.name)
                 {
                     attachment.parentRecord.label = try parentRecordList.getString( key : ResponseJSONKeys.name )
@@ -616,7 +616,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             }
             else
             {
-                attachment.parentRecord = ZCRMRecordDelegate( id : try parentRecordList.getInt64( key : ResponseJSONKeys.id ), moduleAPIName : parentRecord.moduleAPIName )
+                attachment.parentRecord = ZCRMRecordDelegate( id : try parentRecordList.getString( key : ResponseJSONKeys.id ), moduleAPIName : parentRecord.moduleAPIName )
                 if parentRecordList.hasValue(forKey: ResponseJSONKeys.name)
                 {
                     attachment.parentRecord.label = try parentRecordList.getString( key : ResponseJSONKeys.name )
@@ -629,7 +629,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     internal func getZCRMNote(noteDetails : [String:Any?], note : ZCRMNote) throws -> ZCRMNote
     {
         note.isCreate = false
-        note.id = try noteDetails.getInt64( key : ResponseJSONKeys.id )
+        note.id = try noteDetails.getString( key : ResponseJSONKeys.id )
         if ( noteDetails.hasValue( forKey : ResponseJSONKeys.noteContent ) )
         {
             note.content = noteDetails.optString( key : ResponseJSONKeys.noteContent )
@@ -673,7 +673,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             let parentRecordList : [ String : Any ] = try noteDetails.getDictionary(key: ResponseJSONKeys.parentId)
             if let seModule = noteDetails.optString( key : ResponseJSONKeys.seModule )
             {
-                note.parentRecord = ZCRMRecordDelegate( id : try parentRecordList.getInt64( key : ResponseJSONKeys.id ), moduleAPIName : seModule )
+                note.parentRecord = ZCRMRecordDelegate( id : try parentRecordList.getString( key : ResponseJSONKeys.id ), moduleAPIName : seModule )
                 if parentRecordList.hasValue(forKey: ResponseJSONKeys.name)
                 {
                     note.parentRecord.label = try parentRecordList.getString( key : ResponseJSONKeys.name )
@@ -681,7 +681,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             }
             else
             {
-                note.parentRecord = ZCRMRecordDelegate( id : try parentRecordList.getInt64( key : ResponseJSONKeys.id ), moduleAPIName : parentRecord.moduleAPIName )
+                note.parentRecord = ZCRMRecordDelegate( id : try parentRecordList.getString( key : ResponseJSONKeys.id ), moduleAPIName : parentRecord.moduleAPIName )
                 if parentRecordList.hasValue(forKey: ResponseJSONKeys.name)
                 {
                     note.parentRecord.label = try parentRecordList.getString( key : ResponseJSONKeys.name )

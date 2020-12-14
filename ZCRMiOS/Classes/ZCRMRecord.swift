@@ -13,25 +13,116 @@ public protocol ZCRMEntity
 
 open class ZCRMRecord : ZCRMRecordDelegate
 {
+    enum CodingKeys: String, CodingKey
+    {
+        case isCreate
+        case upsertJSON
+        case lineItems
+        case priceDetails
+        case participants
+        case subformRecord
+        case taxes
+        case lineTaxes
+        case tags
+        case dataProcessingBasisDetails
+        case layout
+        case owner
+        case isOwnerSet
+        case createdBy
+        case modifiedBy
+        case createdTime
+        case modifiedTime
+    }
+    
+    private struct CustomCodingKeys: CodingKey
+    {
+        var stringValue: String
+        init?(stringValue: String)
+        {
+            self.stringValue = stringValue
+        }
+        var intValue: Int?
+        init?(intValue: Int)
+        {
+            return nil
+        }
+    }
+    
+    required public init(from decoder: Decoder) throws {
+        
+        try super.init(from: decoder)
+        
+        let values = try! decoder.container(keyedBy: CodingKeys.self)
+        
+        isCreate = try! values.decode(Bool.self, forKey: .isCreate)
+        lineItems = try! values.decodeIfPresent([ ZCRMInventoryLineItem ].self, forKey: .lineItems)
+        priceDetails = try! values.decodeIfPresent([ ZCRMPriceBookPricing ].self, forKey: .priceDetails)
+        participants = try! values.decodeIfPresent([ ZCRMEventParticipant ].self, forKey: .participants)
+        subformRecord = try! values.decodeIfPresent([String:[ZCRMSubformRecord]].self, forKey: .subformRecord)
+        taxes = try! values.decodeIfPresent([ ZCRMTaxDelegate ].self, forKey: .taxes)
+        lineTaxes = try! values.decodeIfPresent([ ZCRMLineTax ].self, forKey: .lineTaxes)
+        tags = try! values.decodeIfPresent([String].self, forKey: .tags)
+        dataProcessingBasisDetails = try! values.decodeIfPresent(ZCRMDataProcessBasisDetails.self, forKey: .dataProcessingBasisDetails)
+        layout = try! values.decodeIfPresent(ZCRMLayoutDelegate.self, forKey: .layout)
+        owner = try! values.decode(ZCRMUserDelegate.self, forKey: .owner)
+        isOwnerSet = try! values.decode(Bool.self, forKey: .isOwnerSet)
+        createdBy = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .createdBy)
+        modifiedBy = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .modifiedBy)
+        createdTime = try! values.decodeIfPresent(String.self, forKey: .createdTime)
+        modifiedTime = try! values.decodeIfPresent(String.self, forKey: .modifiedTime)
+        
+        //        upsertJSON = try! values.decode(String.self, forKey: .upsertJSON)
+    }
+    open override func encode( to encoder : Encoder ) throws
+    {
+        var container = encoder.container( keyedBy : CodingKeys.self )
+        
+        try container.encode( self.isCreate, forKey : .isCreate )
+        try container.encodeIfPresent( self.lineItems, forKey : .lineItems )
+        try container.encodeIfPresent( self.priceDetails, forKey : .priceDetails )
+        try container.encodeIfPresent( self.participants, forKey : .participants )
+        try container.encodeIfPresent( self.subformRecord, forKey : .subformRecord )
+        try container.encodeIfPresent( self.taxes, forKey : .taxes )
+        try container.encodeIfPresent( self.lineTaxes, forKey : .lineTaxes )
+        try container.encodeIfPresent( self.tags, forKey : .tags )
+        try container.encodeIfPresent( self.dataProcessingBasisDetails, forKey : .dataProcessingBasisDetails )
+        try container.encodeIfPresent( self.layout, forKey : .layout )
+        try container.encode( self.owner, forKey : .owner )
+        try container.encode( self.isOwnerSet, forKey : .isOwnerSet )
+        try container.encodeIfPresent( self.createdBy, forKey : .createdBy )
+        try container.encodeIfPresent( self.modifiedBy, forKey : .modifiedBy )
+        try container.encodeIfPresent( self.createdTime, forKey : .createdTime )
+        try container.encodeIfPresent( self.modifiedTime, forKey : .modifiedTime )
+        
+        var customContainer = encoder.container(keyedBy: CustomCodingKeys.self)
+        for (key, value) in upsertJSON
+        {
+            if let customKey = CustomCodingKeys(stringValue: key)
+            {
+                try customContainer.encodeIfPresent( value, forKey : customKey )
+            }
+        }
+    }
+    
     internal var isCreate : Bool = APIConstants.BOOL_MOCK
-    internal var upsertJSON : [ String : Any? ] = [ String : Any? ]()
+    internal var upsertJSON : [ String : JSONValue? ] = [ String : JSONValue? ]()
     
     public var lineItems : [ZCRMInventoryLineItem]?{
         didSet
         {
-            upsertJSON.updateValue(lineItems, forKey: EntityAPIHandler.ResponseJSONKeys.productDetails)
+            upsertJSON.updateValue( JSONValue(value: lineItems), forKey: EntityAPIHandler.ResponseJSONKeys.productDetails)
         }
     }
     public var priceDetails : [ ZCRMPriceBookPricing ]?{
         didSet
         {
-            upsertJSON.updateValue(priceDetails, forKey: EntityAPIHandler.ResponseJSONKeys.pricingDetails)
+            upsertJSON.updateValue( JSONValue(value: priceDetails), forKey: EntityAPIHandler.ResponseJSONKeys.pricingDetails)
         }
     }
     public var participants : [ ZCRMEventParticipant ]?{
         didSet
         {
-            upsertJSON.updateValue(participants, forKey: EntityAPIHandler.ResponseJSONKeys.participants)
+            upsertJSON.updateValue( JSONValue(value: participants), forKey: EntityAPIHandler.ResponseJSONKeys.participants)
         }
     }
     public var subformRecord : [String:[ZCRMSubformRecord]]?{
@@ -41,7 +132,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
             {
                 for ( key, value ) in subformRecord
                 {
-                    upsertJSON.updateValue(value, forKey: key)
+                    upsertJSON.updateValue( JSONValue(value: value), forKey: key)
                 }
             }
         }
@@ -49,38 +140,38 @@ open class ZCRMRecord : ZCRMRecordDelegate
     public var taxes : [ ZCRMTaxDelegate ]?{
         didSet
         {
-            upsertJSON.updateValue( taxes, forKey : EntityAPIHandler.ResponseJSONKeys.tax )
+            upsertJSON.updateValue( JSONValue(value: taxes), forKey : EntityAPIHandler.ResponseJSONKeys.tax )
         }
     }
     public var lineTaxes : [ ZCRMLineTax ]?{
         didSet
         {
-            upsertJSON.updateValue( lineTaxes, forKey : EntityAPIHandler.ResponseJSONKeys.dollarLineTax )
+            upsertJSON.updateValue( JSONValue(value: lineTaxes), forKey : EntityAPIHandler.ResponseJSONKeys.dollarLineTax )
         }
     }
     public var tags : [ String ]?{
         didSet
         {
-            upsertJSON.updateValue(tags, forKey: EntityAPIHandler.ResponseJSONKeys.tag)
+            upsertJSON.updateValue( JSONValue(value: tags), forKey: EntityAPIHandler.ResponseJSONKeys.tag)
         }
     }
     public var dataProcessingBasisDetails : ZCRMDataProcessBasisDetails?{
         didSet
         {
-            upsertJSON.updateValue(dataProcessingBasisDetails, forKey: EntityAPIHandler.ResponseJSONKeys.dataProcessingBasisDetails)
+            upsertJSON.updateValue( JSONValue(value: dataProcessingBasisDetails), forKey: EntityAPIHandler.ResponseJSONKeys.dataProcessingBasisDetails)
         }
     }
     public var layout : ZCRMLayoutDelegate?{
         didSet
         {
-            upsertJSON.updateValue(layout, forKey: EntityAPIHandler.ResponseJSONKeys.layout)
+            upsertJSON.updateValue( JSONValue(value: layout), forKey: EntityAPIHandler.ResponseJSONKeys.layout)
         }
     }
     public var owner : ZCRMUserDelegate = USER_MOCK{
         didSet
         {
             self.isOwnerSet = true
-            upsertJSON.updateValue(owner, forKey: EntityAPIHandler.ResponseJSONKeys.owner)
+            upsertJSON.updateValue( JSONValue(value: owner), forKey: EntityAPIHandler.ResponseJSONKeys.owner)
         }
     }
     internal var isOwnerSet : Bool = APIConstants.BOOL_MOCK
@@ -95,7 +186,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     /// - Parameter moduleAPIName: module whose associated ZCRMRecord to be initialized
     internal init(moduleAPIName : String)
     {
-        super.init( id : APIConstants.INT64_MOCK, moduleAPIName : moduleAPIName )
+        super.init( id : APIConstants.STRING_MOCK, moduleAPIName : moduleAPIName )
         self.isCreate = true
     }
     
@@ -103,39 +194,39 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.productDetails)
         {
-            self.lineItems = self.data[ EntityAPIHandler.ResponseJSONKeys.productDetails ] as? [ ZCRMInventoryLineItem ]
+            self.lineItems = self.data[ EntityAPIHandler.ResponseJSONKeys.productDetails ]??.value as? [ ZCRMInventoryLineItem ]
         }
         if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.pricingDetails)
         {
-            self.priceDetails = self.data[ EntityAPIHandler.ResponseJSONKeys.pricingDetails ] as? [ ZCRMPriceBookPricing ]
+            self.priceDetails = self.data[ EntityAPIHandler.ResponseJSONKeys.pricingDetails ]??.value as? [ ZCRMPriceBookPricing ]
         }
         if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.participants)
         {
-            self.participants = self.data[ EntityAPIHandler.ResponseJSONKeys.participants ] as? [ ZCRMEventParticipant ]
+            self.participants = self.data[ EntityAPIHandler.ResponseJSONKeys.participants ]??.value as? [ ZCRMEventParticipant ]
         }
         if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.tax)
         {
-            self.taxes = self.data[ EntityAPIHandler.ResponseJSONKeys.tax ] as? [ ZCRMTaxDelegate ]
+            self.taxes = self.data[ EntityAPIHandler.ResponseJSONKeys.tax ]??.value as? [ ZCRMTaxDelegate ]
         }
         if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.lineTax)
         {
-            self.lineTaxes = self.data[ EntityAPIHandler.ResponseJSONKeys.lineTax ] as? [ ZCRMLineTax ]
+            self.lineTaxes = self.data[ EntityAPIHandler.ResponseJSONKeys.lineTax ]??.value as? [ ZCRMLineTax ]
         }
         if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.tag)
         {
-            self.tags = self.data[ EntityAPIHandler.ResponseJSONKeys.tag ] as? [ String ]
+            self.tags = self.data[ EntityAPIHandler.ResponseJSONKeys.tag ]??.value as? [ String ]
         }
         if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.dataProcessingBasisDetails)
         {
-            self.dataProcessingBasisDetails = self.data[ EntityAPIHandler.ResponseJSONKeys.dataProcessingBasisDetails ] as? ZCRMDataProcessBasisDetails
+            self.dataProcessingBasisDetails = self.data[ EntityAPIHandler.ResponseJSONKeys.dataProcessingBasisDetails ]??.value as? ZCRMDataProcessBasisDetails
         }
         if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.layout)
         {
-            self.layout = self.data[ EntityAPIHandler.ResponseJSONKeys.layout ] as? ZCRMLayoutDelegate
+            self.layout = self.data[ EntityAPIHandler.ResponseJSONKeys.layout ]??.value as? ZCRMLayoutDelegate
         }
         if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.owner)
         {
-            if let owner = self.data[ EntityAPIHandler.ResponseJSONKeys.owner ] as? ZCRMUserDelegate
+            if let owner = self.data[ EntityAPIHandler.ResponseJSONKeys.owner ]??.value as? ZCRMUserDelegate
             {
                 self.owner = owner
             }
@@ -143,12 +234,12 @@ open class ZCRMRecord : ZCRMRecordDelegate
         self.subformRecord = [ String : [ ZCRMSubformRecord ] ]()
         for ( key, value ) in self.data
         {
-            if let subformRec = value as? [ ZCRMSubformRecord ], self.upsertJSON.hasValue(forKey: key)
+            if let value = value?.value, let subformRec = value as? [ ZCRMSubformRecord ], self.upsertJSON.hasValue(forKey: key)
             {
                 self.subformRecord?[ key ] = subformRec
             }
         }
-        self.upsertJSON = [ String : Any ]()
+        self.upsertJSON = [ String : JSONValue ]()
     }
     
     /// Set the field value to the specified field name is mapped.
@@ -158,7 +249,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     ///   - value: the field value to be mapped
     public func setValue( ofFieldAPIName : String, value : Any? )
     {
-        self.upsertJSON.updateValue( value, forKey : ofFieldAPIName )
+        self.upsertJSON.updateValue( JSONValue(value: value), forKey : ofFieldAPIName )
     }
     
     /**
@@ -171,7 +262,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     public func setParticipants( participantsArray : [ ZCRMEventParticipant ], sendNotification : Bool)
     {
         self.participants = participantsArray
-        self.upsertJSON.updateValue( sendNotification, forKey: EntityAPIHandler.ResponseJSONKeys.sendNotification )
+        self.upsertJSON.updateValue( JSONValue(value: sendNotification), forKey: EntityAPIHandler.ResponseJSONKeys.sendNotification )
     }
     
     /**
@@ -238,13 +329,13 @@ open class ZCRMRecord : ZCRMRecordDelegate
      
      - Returns: ZCRMRecord's fieldAPIName vs field value dictionary
      */
-    override public func getData() -> [ String : Any? ]
+    override public func getData() -> [ String : JSONValue? ]
     {
-        var data : [ String : Any? ] = [ String : Any? ]()
+        var data : [ String : JSONValue? ] = [ String : JSONValue? ]()
         data = self.data
         for ( key, value ) in self.upsertJSON
         {
-            data.updateValue( value, forKey : key )
+            data.updateValue( JSONValue(value: value), forKey : key )
         }
         return data
     }
@@ -357,7 +448,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
             ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to clone the record")
             throw ZCRMError.inValidError( code : ErrorCode.internalError, message : "Unable to clone the record", details : nil )
         }
-        cloneRecord.id = APIConstants.INT64_MOCK
+        cloneRecord.id = APIConstants.STRING_MOCK
         return cloneRecord
     }
     
@@ -520,36 +611,36 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
         else
         {
-            self.upsertJSON.updateValue( checkIn.latitude, forKey : EntityAPIHandler.ResponseJSONKeys.latitude )
-            self.upsertJSON.updateValue( checkIn.longitude, forKey : EntityAPIHandler.ResponseJSONKeys.longitude )
-            self.upsertJSON.updateValue( checkIn.time, forKey : EntityAPIHandler.ResponseJSONKeys.checkInTime )
+            self.upsertJSON.updateValue( JSONValue(value: checkIn.latitude), forKey : EntityAPIHandler.ResponseJSONKeys.latitude )
+            self.upsertJSON.updateValue( JSONValue(value: checkIn.longitude), forKey : EntityAPIHandler.ResponseJSONKeys.longitude )
+            self.upsertJSON.updateValue( JSONValue(value: checkIn.time), forKey : EntityAPIHandler.ResponseJSONKeys.checkInTime )
             if let sublocality = checkIn.subLocality
             {
-                self.upsertJSON.updateValue( sublocality, forKey : EntityAPIHandler.ResponseJSONKeys.checkInSubLocality )
+                self.upsertJSON.updateValue( JSONValue(value: sublocality), forKey : EntityAPIHandler.ResponseJSONKeys.checkInSubLocality )
             }
             if let comment = checkIn.comment
             {
-                self.upsertJSON.updateValue( comment, forKey : EntityAPIHandler.ResponseJSONKeys.checkInComment )
+                self.upsertJSON.updateValue( JSONValue(value: comment), forKey : EntityAPIHandler.ResponseJSONKeys.checkInComment )
             }
             if let city = checkIn.city
             {
-                self.upsertJSON.updateValue( city, forKey : EntityAPIHandler.ResponseJSONKeys.checkInCity )
+                self.upsertJSON.updateValue( JSONValue(value: city), forKey : EntityAPIHandler.ResponseJSONKeys.checkInCity )
             }
             if let state = checkIn.state
             {
-                self.upsertJSON.updateValue( state, forKey : EntityAPIHandler.ResponseJSONKeys.checkInState )
+                self.upsertJSON.updateValue( JSONValue(value: state), forKey : EntityAPIHandler.ResponseJSONKeys.checkInState )
             }
             if let country = checkIn.country
             {
-                self.upsertJSON.updateValue( country, forKey : EntityAPIHandler.ResponseJSONKeys.checkInCountry )
+                self.upsertJSON.updateValue( JSONValue(value: country), forKey : EntityAPIHandler.ResponseJSONKeys.checkInCountry )
             }
             if let zipCode = checkIn.zipCode
             {
-                self.upsertJSON.updateValue( zipCode, forKey : EntityAPIHandler.ResponseJSONKeys.zipCode )
+                self.upsertJSON.updateValue( JSONValue(value: zipCode), forKey : EntityAPIHandler.ResponseJSONKeys.zipCode )
             }
             if let address = checkIn.address
             {
-                self.upsertJSON.updateValue( address, forKey : EntityAPIHandler.ResponseJSONKeys.checkInAddress )
+                self.upsertJSON.updateValue( JSONValue(value: address), forKey : EntityAPIHandler.ResponseJSONKeys.checkInAddress )
             }
         }
     }

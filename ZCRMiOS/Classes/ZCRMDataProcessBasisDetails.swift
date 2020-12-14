@@ -7,8 +7,64 @@
 
 import Foundation
 
-open class ZCRMDataProcessBasisDetails : ZCRMEntity
+open class ZCRMDataProcessBasisDetails : ZCRMEntity, Codable
 {
+    enum CodingKeys: String, CodingKey
+    {
+        case communicationPreferences
+        case owner
+        case modifiedTime
+        case modifiedBy
+        case createdTime
+        case createdBy
+        case mailSentTime
+        case dataProcessingBasis
+        case id
+        case lawfulReason
+        case consentDate
+        case consentRemarks
+        case consentEndsOn
+        case consentThrough
+    }
+    required public init(from decoder: Decoder) throws {
+        
+        let values = try! decoder.container(keyedBy: CodingKeys.self)
+        
+        communicationPreferences = try! values.decode([ CommunicationPreferences ].self, forKey: .communicationPreferences)
+        owner = try! values.decode(ZCRMUserDelegate.self, forKey: .owner)
+        modifiedTime = try! values.decode(String.self, forKey: .modifiedTime)
+        modifiedBy = try! values.decode(ZCRMUserDelegate.self, forKey: .modifiedBy)
+        createdTime = try! values.decode(String.self, forKey: .createdTime)
+        createdBy = try! values.decode(ZCRMUserDelegate.self, forKey: .createdBy)
+        mailSentTime = try! values.decodeIfPresent(String.self, forKey: .mailSentTime)
+        dataProcessingBasis = try! values.decode(String.self, forKey: .dataProcessingBasis)
+        id = try! values.decode(Int64.self, forKey: .id)
+        lawfulReason = try! values.decodeIfPresent(String.self, forKey: .lawfulReason)
+        consentDate = try! values.decodeIfPresent(String.self, forKey: .consentDate)
+        consentRemarks = try! values.decodeIfPresent(String.self, forKey: .consentRemarks)
+        consentEndsOn = try! values.decodeIfPresent(String.self, forKey: .consentEndsOn)
+        consentThrough = try! values.decodeIfPresent(ConsentThrough.Readable.self, forKey: .consentThrough)
+    }
+    open func encode( to encoder : Encoder ) throws
+    {
+        var container = encoder.container( keyedBy : CodingKeys.self )
+        
+        try container.encode( self.communicationPreferences, forKey : CodingKeys.communicationPreferences )
+        try container.encode( self.owner, forKey : CodingKeys.owner )
+        try container.encode( self.modifiedTime, forKey : CodingKeys.modifiedTime )
+        try container.encode( self.modifiedBy, forKey : CodingKeys.modifiedBy )
+        try container.encode( self.createdTime, forKey : CodingKeys.createdTime )
+        try container.encode( self.createdBy, forKey : CodingKeys.createdBy )
+        try container.encodeIfPresent( self.mailSentTime, forKey : CodingKeys.mailSentTime )
+        try container.encode( self.dataProcessingBasis, forKey : CodingKeys.dataProcessingBasis )
+        try container.encode( self.id, forKey : CodingKeys.id )
+        try container.encodeIfPresent( self.lawfulReason, forKey : CodingKeys.lawfulReason )
+        try container.encodeIfPresent( self.consentDate, forKey : CodingKeys.consentDate )
+        try container.encodeIfPresent( self.consentRemarks, forKey : CodingKeys.consentRemarks )
+        try container.encodeIfPresent( self.consentEndsOn, forKey : CodingKeys.consentEndsOn )
+        try container.encodeIfPresent( self.consentThrough, forKey : CodingKeys.consentThrough )
+    }
+    
     public var communicationPreferences : [ CommunicationPreferences ]?
     public var owner : ZCRMUserDelegate = USER_MOCK
     public internal( set ) var modifiedTime : String = APIConstants.STRING_MOCK
@@ -18,7 +74,6 @@ open class ZCRMDataProcessBasisDetails : ZCRMEntity
     public var mailSentTime : String?
     public var dataProcessingBasis : String // Consent - obtained use enum for consent type
     public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
-    
     public var lawfulReason : String?
     public var consentDate : String?
     public var consentRemarks : String?

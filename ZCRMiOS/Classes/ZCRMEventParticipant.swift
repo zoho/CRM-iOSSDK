@@ -8,8 +8,40 @@
 
 import Foundation
 
-open class ZCRMEventParticipant : ZCRMEntity
+open class ZCRMEventParticipant : ZCRMEntity, Codable
 {
+    enum CodingKeys: String, CodingKey
+    {
+        case email
+        case id
+        case type
+        case isInvited
+        case status
+        case participant
+    }
+    required public init(from decoder: Decoder) throws
+    {
+        let values = try! decoder.container(keyedBy: CodingKeys.self)
+        
+        email = try! values.decodeIfPresent(String.self, forKey: .email)
+        id = try! values.decode(Int64.self, forKey: .id)
+        type = try! values.decode(EventParticipantType.self, forKey: .type)
+        isInvited = try! values.decode(Bool.self, forKey: .isInvited)
+        status = try! values.decode(String.self, forKey: .status)
+        participant = try! values.decode(EventParticipant.self, forKey: .participant)
+    }
+    open func encode( to encoder : Encoder ) throws
+    {
+        var container = encoder.container( keyedBy : CodingKeys.self )
+        
+        try container.encodeIfPresent( self.email, forKey : CodingKeys.email )
+        try container.encode( self.id, forKey : CodingKeys.id )
+        try container.encode( self.type, forKey : CodingKeys.type )
+        try container.encode( self.isInvited, forKey : CodingKeys.isInvited )
+        try container.encode( self.status, forKey : CodingKeys.status )
+        try container.encode( self.participant, forKey : CodingKeys.participant )
+    }
+    
     public var email : String?
     public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
     public var type : EventParticipantType

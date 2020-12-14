@@ -71,14 +71,25 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         
     }
     
-    public func getRecord<T>(withId: String, completion: @escaping ((DataResponseCallback<String, T>) -> Void))
+    public func getRecordFromServer<T>(id: String, completion: @escaping ((DataResponseCallback<ZCacheResponse, T>) -> Void))
     {
-        
-    }
-    
-    public func getRecordFromServer<T>(id: String, completion: ((Result<T, ZCacheError>) -> Void))
-    {
-        
+        EntityAPIHandler( recordDelegate : ZCRMRecordDelegate( id : id, moduleAPIName : self.apiName ) ).getRecord( withPrivateFields : false )
+        {
+            result in
+            switch result
+            {
+            case .success(let record, _):
+                do
+                {
+                    completion(.fromServer(info: nil, data: record as? T))
+                }
+            case .failure(let error):
+                do
+                {
+                    completion(.failure(error: ZCacheError.invalidError(code: ErrorCode.invalidData, message: error.description, details: nil)))
+                }
+            }
+        }
     }
     
     public func createRecord<T>(record: ZCacheRecord, completion: ((Result<T, ZCacheError>) -> Void))
@@ -141,7 +152,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         return ZCRMRecord( moduleAPIName : apiName )
     }
     
-    public func getRecordDelegate( id : Int64 ) -> ZCRMRecordDelegate
+    public func getRecordDelegate( id : String ) -> ZCRMRecordDelegate
     {
         return ZCRMRecordDelegate( id : id, moduleAPIName : apiName )
     }
@@ -300,14 +311,14 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     /// - Parameter recordId: Id of the record to be returned
     /// - Returns: ZCRMRecord with the given ID of the module
     /// - Throws: ZCRMSDKError if failed to get the record
-    public func getRecord( id : Int64, completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func getRecord( id : String, completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         EntityAPIHandler( recordDelegate : ZCRMRecordDelegate( id : id, moduleAPIName : self.apiName ) ).getRecord( withPrivateFields : false, completion : { ( result ) in
             completion( result )
         } )
     }
     
-    public func getRecordWithPrivateFields( id : Int64, completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func getRecordWithPrivateFields( id : String, completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         EntityAPIHandler( recordDelegate : ZCRMRecordDelegate( id : id, moduleAPIName : self.apiName ) ).getRecord( withPrivateFields : true, completion : { ( result ) in
             completion( result )
@@ -665,7 +676,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     ///   - value: field value to be updated
     /// - Returns: mass update response of the records
     /// - Throws: ZCRMSDKError if failed to update records
-    public func updateRecords(recordIds: [Int64], fieldAPIName: String, value: Any?, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    public func updateRecords(recordIds: [String], fieldAPIName: String, value: Any?, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
     {
         MassEntityAPIHandler(module: self).massUpdateRecords(triggers: nil, ids: recordIds, fieldValuePair: [ fieldAPIName : value ]) { result in
             completion( result )
@@ -683,7 +694,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             - Success : Returns an array of ZCRMRecords and a BulkAPIResponse
             - Failure : Returns error
      */
-    private func massUpdateRecords( recordIds: [ Int64 ], fieldValuePair : [ String : Any?  ], triggers : [ Trigger ]? = nil, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    private func massUpdateRecords( recordIds: [ String ], fieldValuePair : [ String : Any?  ], triggers : [ Trigger ]? = nil, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
     {
         MassEntityAPIHandler(module: self).massUpdateRecords(triggers: triggers, ids: recordIds, fieldValuePair: fieldValuePair ) { result in
             completion( result )
@@ -702,7 +713,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
            - Success : Returns an array of ZCRMRecord objects and a BulkAPIResponse
            - Failure : Returns error
     */
-    public func updateRecords( recordIds: [Int64], fieldAPIName: String, value: Any?, triggers : [Trigger], completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    public func updateRecords( recordIds: [String], fieldAPIName: String, value: Any?, triggers : [Trigger], completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
     {
         MassEntityAPIHandler(module: self).massUpdateRecords(triggers: triggers, ids: recordIds, fieldValuePair: [ fieldAPIName : value ]) { result in
             completion( result )
@@ -710,7 +721,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     }
     
     @available(*, deprecated, message: "Use the method updateRecords( recordIds :, fieldAPIName:, value:, triggers:, completion : ) instead" )
-    public func updateRecords(triggers : [Trigger], recordIds: [Int64], fieldAPIName: String, value: Any?, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    public func updateRecords(triggers : [Trigger], recordIds: [String], fieldAPIName: String, value: Any?, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
     {
         MassEntityAPIHandler(module: self).massUpdateRecords(triggers: triggers, ids: recordIds, fieldValuePair: [ fieldAPIName : value ]) { result in
             completion( result )
