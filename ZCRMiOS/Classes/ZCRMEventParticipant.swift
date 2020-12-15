@@ -18,6 +18,7 @@ open class ZCRMEventParticipant : ZCRMEntity, Codable
         case isInvited
         case status
         case participant
+        case name
     }
     required public init(from decoder: Decoder) throws
     {
@@ -28,7 +29,40 @@ open class ZCRMEventParticipant : ZCRMEntity, Codable
         type = try! values.decode(EventParticipantType.self, forKey: .type)
         isInvited = try! values.decode(Bool.self, forKey: .isInvited)
         status = try! values.decode(String.self, forKey: .status)
-        participant = try! values.decode(EventParticipant.self, forKey: .participant)
+        
+        switch type
+        {
+        case EventParticipantType.contact:
+            do
+            {
+                let recordId = try! values.decode(String.self, forKey: .participant)
+                let record = ZCRMRecordDelegate( id: recordId, moduleAPIName: DefaultModuleAPINames.CONTACTS )
+                record.label = try! values.decode(String.self, forKey: .name)
+                participant = EventParticipant.record( record )
+            }
+        case EventParticipantType.lead:
+            do
+            {
+                let recordId = try! values.decode(String.self, forKey: .participant)
+                let record = ZCRMRecordDelegate( id: recordId, moduleAPIName: DefaultModuleAPINames.LEADS )
+                record.label = try! values.decode(String.self, forKey: .name)
+                participant = EventParticipant.record( record )
+            }
+        case EventParticipantType.user:
+            do
+            {
+                let userId = try! values.decode(String.self, forKey: .participant)
+                let userName = try! values.decode(String.self, forKey: .name)
+                let user = ZCRMUserDelegate(id: userId, name: userName)
+                participant = EventParticipant.user( user )
+            }
+        case EventParticipantType.email:
+            do
+            {
+                let email = try! values.decode(String.self, forKey: .participant)
+                participant = EventParticipant.email( email )
+            }
+        }
     }
     open func encode( to encoder : Encoder ) throws
     {
@@ -39,7 +73,18 @@ open class ZCRMEventParticipant : ZCRMEntity, Codable
         try container.encode( self.type, forKey : CodingKeys.type )
         try container.encode( self.isInvited, forKey : CodingKeys.isInvited )
         try container.encode( self.status, forKey : CodingKeys.status )
-        try container.encode( self.participant, forKey : CodingKeys.participant )
+        
+        switch type
+        {
+        case EventParticipantType.contact, EventParticipantType.lead:
+            try container.encodeIfPresent( self.participant.getRecord()?.id, forKey : .participant )
+            try container.encodeIfPresent( self.participant.getRecord()?.label, forKey : .name )
+        case EventParticipantType.user:
+            try container.encodeIfPresent( self.participant.getUser()?.id, forKey : .participant )
+            try container.encodeIfPresent( self.participant.getUser()?.name, forKey : .name )
+        case EventParticipantType.email:
+            try container.encodeIfPresent( self.participant.getEmail(), forKey : .participant )
+        }
     }
     
     public var email : String?

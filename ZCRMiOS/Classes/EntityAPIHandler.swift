@@ -510,7 +510,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
         for ( key, value ) in self.record.upsertJSON
         {
-            if key == ResponseJSONKeys.owner, value is ZCRMUserDelegate, let owner = value as? ZCRMUserDelegate
+            if key == ResponseJSONKeys.owner, let value = value?.value, value is ZCRMUserDelegate, let owner = value as? ZCRMUserDelegate
             {
                 recordJSON.updateValue(owner.id, forKey: ResponseJSONKeys.owner)
             }
@@ -520,7 +520,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 {
                     recordJSON.updateValue( nil, forKey : ResponseJSONKeys.layout )
                 }
-                else if value is ZCRMLayout, let layout = value as? ZCRMLayout
+                else if let value = value?.value, value is ZCRMLayout, let layout = value as? ZCRMLayout
                 {
                     recordJSON.updateValue( layout.id, forKey : ResponseJSONKeys.layout )
                 }
@@ -531,7 +531,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 {
                     recordJSON.updateValue( nil, forKey : ResponseJSONKeys.dataProcessingBasisDetails )
                 }
-                else if value is ZCRMDataProcessBasisDetails, let dataProcessingBasisDetails = value as? ZCRMDataProcessBasisDetails
+                else if let value = value?.value, value is ZCRMDataProcessBasisDetails, let dataProcessingBasisDetails = value as? ZCRMDataProcessBasisDetails
                 {
                     recordJSON.updateValue(self.getZCRMDataProcessingDetailsAsJSON(details: dataProcessingBasisDetails), forKey: ResponseJSONKeys.dataProcessingBasisDetails)
                 }
@@ -542,7 +542,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 {
                     recordJSON.updateValue( nil, forKey : ResponseJSONKeys.productDetails )
                 }
-                else if value is [ ZCRMInventoryLineItem ], let lineItems = value as? [ ZCRMInventoryLineItem ]
+                else if let value = value?.value, value is [ ZCRMInventoryLineItem ], let lineItems = value as? [ ZCRMInventoryLineItem ]
                 {
                     recordJSON.updateValue(self.getLineItemsAsJSONArray(lineItems: lineItems), forKey: ResponseJSONKeys.productDetails)
                 }
@@ -553,7 +553,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 {
                     recordJSON.updateValue( nil, forKey : ResponseJSONKeys.dollarLineTax )
                 }
-                else if value is [ ZCRMTax ], let tax = value as? [ ZCRMLineTax ]
+                else if let value = value?.value, value is [ ZCRMTax ], let tax = value as? [ ZCRMLineTax ]
                 {
                     recordJSON.updateValue( self.getLineTaxAsJSONArray( lineTaxes : tax ), forKey : ResponseJSONKeys.dollarLineTax )
                 }
@@ -564,7 +564,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 {
                     recordJSON.updateValue( nil, forKey : ResponseJSONKeys.tax )
                 }
-                else if let taxes = value as? [ ZCRMTaxDelegate ]
+                else if let value = value?.value, let taxes = value as? [ ZCRMTaxDelegate ]
                 {
                     recordJSON.updateValue( self.getTaxAsJSONArray( taxes : taxes ), forKey : ResponseJSONKeys.tax )
                 }
@@ -575,7 +575,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 {
                     recordJSON.updateValue( nil, forKey : ResponseJSONKeys.participants )
                 }
-                else if value is [ ZCRMEventParticipant ], let participants = value as? [ ZCRMEventParticipant ]
+                else if let value = value?.value, value is [ ZCRMEventParticipant ], let participants = value as? [ ZCRMEventParticipant ]
                 {
                     recordJSON.updateValue(self.getParticipantsAsJSONArray(participants: participants), forKey: ResponseJSONKeys.participants)
                 }
@@ -586,7 +586,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 {
                     recordJSON.updateValue( nil, forKey : ResponseJSONKeys.pricingDetails )
                 }
-                else if value is [ ZCRMPriceBookPricing ], let pricingDetails = value as? [ ZCRMPriceBookPricing ]
+                else if let value = value?.value, value is [ ZCRMPriceBookPricing ], let pricingDetails = value as? [ ZCRMPriceBookPricing ]
                 {
                     recordJSON.updateValue(self.getPriceDetailsAsJSONArray(price: pricingDetails), forKey: ResponseJSONKeys.pricingDetails )
                 }
@@ -597,7 +597,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 {
                     recordJSON.updateValue( nil, forKey : ResponseJSONKeys.pricingDetails )
                 }
-                else if value is [ ZCRMTag ], let tags = value as? [ ZCRMTag ]
+                else if let value = value?.value, value is [ ZCRMTag ], let tags = value as? [ ZCRMTag ]
                 {
                     recordJSON.updateValue(self.getTagAsJSONArray(tag: tags), forKey: ResponseJSONKeys.tag)
                 }
@@ -608,19 +608,19 @@ internal class EntityAPIHandler : CommonAPIHandler
                 {
                     recordJSON.updateValue( nil, forKey : key )
                 }
-                else if value is ZCRMUserDelegate, let user = value as? ZCRMUserDelegate
+                else if let value = value?.value, value is ZCRMUserDelegate, let user = value as? ZCRMUserDelegate
                 {
                    recordJSON.updateValue(user.id, forKey: key)
                 }
-                else if value is ZCRMRecordDelegate, let record = value as? ZCRMRecordDelegate
+                else if let value = value?.value, value is ZCRMRecordDelegate, let record = value as? ZCRMRecordDelegate
                 {
                     recordJSON.updateValue( record.id, forKey : key )
                 }
-                else if value is [ ZCRMRecordDelegate ], let record = value as? [ ZCRMRecordDelegate ]
+                else if let value = value?.value, value is [ ZCRMRecordDelegate ], let record = value as? [ ZCRMRecordDelegate ]
                 {
                     recordJSON.updateValue( self.getZCRMRecordIdsAsArray( record ), forKey : key )
                 }
-                else if value is [ ZCRMSubformRecord ], let subformRecords = value as? [ ZCRMSubformRecord ]
+                else if let value = value?.value, value is [ ZCRMSubformRecord ], let subformRecords = value as? [ ZCRMSubformRecord ]
                 {
                     recordJSON.updateValue(self.getAllZCRMSubformRecordAsJSONArray(apiName: key, subformRecords: subformRecords), forKey: key)
                 }
