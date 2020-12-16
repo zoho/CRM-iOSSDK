@@ -41,6 +41,11 @@ public class ZCRMSDKUtil: ZCacheClient
         return ZCRMUser(emailId: APIConstants.STRING_MOCK)
     }
     
+    public func getRecordInstance(moduleName: String) -> ZCacheRecord
+    {
+        return ZCRMRecord(moduleAPIName: moduleName)
+    }
+    
     public func getModulesFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
         MetaDataAPIHandler().getAllModules( modifiedSince : nil )

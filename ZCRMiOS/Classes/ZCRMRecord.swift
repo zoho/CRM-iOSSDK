@@ -102,6 +102,9 @@ open class ZCRMRecord : ZCRMRecordDelegate
                 try customContainer.encodeIfPresent( value, forKey : customKey )
             }
         }
+        
+        let upsertJSONContainer = container.nestedContainer(keyedBy: CustomCodingKeys.self, forKey: .upsertJSON)
+        
     }
     
     internal var isCreate : Bool = APIConstants.BOOL_MOCK

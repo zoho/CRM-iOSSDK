@@ -92,12 +92,12 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
-    public func createRecord<T>(record: ZCacheRecord, completion: @escaping ((DataResponseCallback<ZCacheResponse, T>) -> Void))
+    public func createRecord<T>(record: T, completion: @escaping ((DataResponseCallback<ZCacheResponse, T>) -> Void))
     {
         
     }
     
-    public func updateRecord<T>(record: ZCacheRecord, completion: @escaping ((DataResponseCallback<ZCacheResponse, T>) -> Void))
+    public func updateRecord<T>(record: T, completion: @escaping ((DataResponseCallback<ZCacheResponse, T>) -> Void))
     {
         
     }
