@@ -202,7 +202,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func getLayout( layoutId : Int64, completion: @escaping( ResultType.DataResponse< ZCRMLayout, APIResponse > ) -> () )
+    internal func getLayout( layoutId : String, completion: @escaping( ResultType.DataResponse< ZCRMLayout, APIResponse > ) -> () )
     {
         setIsCacheable(true)
         setJSONRootKey( key : JSONRootKey.LAYOUTS )
@@ -267,7 +267,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func getField( fieldId : Int64, completion: @escaping( ResultType.DataResponse< ZCRMField, APIResponse > ) -> () )
+    internal func getField( fieldId : String, completion: @escaping( ResultType.DataResponse< ZCRMField, APIResponse > ) -> () )
     {
         setIsCacheable(true)
         setJSONRootKey( key : JSONRootKey.FIELDS )

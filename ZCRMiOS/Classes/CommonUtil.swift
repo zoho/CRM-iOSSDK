@@ -60,6 +60,7 @@ public struct ErrorCode
 public struct ErrorMessage
 {
     public static let invalidIdMsg  = "The given id seems to be invalid."
+    public static let invalidNameMsg  = "The given name seems to be invalid."
     public static let apiMaxRecordsMsg = "Cannot process more than 100 records at a time."
     public static let responseNilMsg  = "Response is nil."
     public static let responseJSONNilMsg = "Response JSON is empty."

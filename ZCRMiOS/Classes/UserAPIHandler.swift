@@ -217,7 +217,7 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getUser( userId : Int64?, completion : @escaping( ResultType.DataResponse< ZCRMUser, APIResponse > ) -> () )
+    internal func getUser( userId : String?, completion : @escaping( ResultType.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
         setRequestMethod(requestMethod: .get )

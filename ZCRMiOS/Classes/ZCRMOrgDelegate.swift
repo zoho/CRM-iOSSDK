@@ -198,7 +198,7 @@ open class ZCRMOrgDelegate : ZCRMEntity
         }
     }
     
-    public func getUser( id : Int64, completion : @escaping( ResultType.DataResponse< ZCRMUser, APIResponse > ) -> () )
+    public func getUser( id : String, completion : @escaping( ResultType.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
         UserAPIHandler().getUser( userId : id ) { ( result ) in
             completion( result )

@@ -16,57 +16,151 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     
     public var isApiSupported: Bool
     
-    public func getLayout<T>(withId: String, completion: ((Result<T, ZCacheError>) -> Void))
+    public func getLayoutFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
-        
+        ModuleAPIHandler(module: self, cacheFlavour: .noCache).getLayout(layoutId: withId)
+        {
+            ( result ) in
+            switch result
+            {
+            case .success(let layout, _):
+                do
+                {
+                    completion(.success(layout as! T))
+                }
+            case .failure(let error):
+                do
+                {
+                    let code = error.ZCRMErrordetails?.code
+                    let message = error.ZCRMErrordetails?.code
+                
+                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                }
+            }
+        }
     }
     
-    public func getLayoutFromServer<T>(withId: String, completion: ((Result<T, ZCacheError>) -> Void))
+    public func getLayoutsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
-        
+        ModuleAPIHandler(module: self, cacheFlavour: .noCache).getAllLayouts(modifiedSince: nil)
+        {
+            ( result ) in
+            switch result
+            {
+            case .success(let layouts, _):
+                do
+                {
+                    completion(.success(layouts as! [T]))
+                }
+            case .failure(let error):
+                do
+                {
+                    let code = error.ZCRMErrordetails?.code
+                    let message = error.ZCRMErrordetails?.code
+                
+                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                }
+            }
+        }
     }
     
-    public func getLayouts<T>(completion: ((Result<[T], ZCacheError>) -> Void))
+    public func getLayoutsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
-        
+        ModuleAPIHandler(module: self, cacheFlavour: .noCache).getAllLayouts(modifiedSince: modifiedSince)
+        {
+            ( result ) in
+            switch result
+            {
+            case .success(let layouts, _):
+                do
+                {
+                    completion(.success(layouts as! [T]))
+                }
+            case .failure(let error):
+                do
+                {
+                    let code = error.ZCRMErrordetails?.code
+                    let message = error.ZCRMErrordetails?.code
+                
+                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                }
+            }
+        }
     }
     
-    public func getLayoutsFromServer<T>(completion: ((Result<[T], ZCacheError>) -> Void))
+    public func getFieldFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
-        
+        ModuleAPIHandler(module: self, cacheFlavour: .noCache).getField(fieldId: withId)
+        {
+            ( result ) in
+            switch result
+            {
+            case .success(let field, _):
+                do
+                {
+                    completion(.success(field as! T))
+                }
+            case .failure(let error):
+                do
+                {
+                    let code = error.ZCRMErrordetails?.code
+                    let message = error.ZCRMErrordetails?.code
+                
+                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                }
+            }
+        }
     }
     
-    public func getLayoutsFromServer<T>(modifiedSince: String, completion: ((Result<[T], ZCacheError>) -> Void))
+    public func getFieldsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
-        
+        ModuleAPIHandler(module: self, cacheFlavour: .noCache).getAllFields(modifiedSince: nil)
+        {
+            ( result ) in
+            switch result
+            {
+            case .success(let fields, _):
+                do
+                {
+                    completion(.success(fields as! [T]))
+                }
+            case .failure(let error):
+                do
+                {
+                    let code = error.ZCRMErrordetails?.code
+                    let message = error.ZCRMErrordetails?.code
+                
+                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                }
+            }
+        }
     }
     
-    public func getField<T>(withId: String, completion: ((Result<T, ZCacheError>) -> Void))
+    public func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
-        
+        ModuleAPIHandler(module: self, cacheFlavour: .noCache).getAllFields(modifiedSince: modifiedSince)
+        {
+            ( result ) in
+            switch result
+            {
+            case .success(let fields, _):
+                do
+                {
+                    completion(.success(fields as! [T]))
+                }
+            case .failure(let error):
+                do
+                {
+                    let code = error.ZCRMErrordetails?.code
+                    let message = error.ZCRMErrordetails?.code
+                
+                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                }
+            }
+        }
     }
     
-    public func getFieldFromServer<T>(withId: String, completion: ((Result<T, ZCacheError>) -> Void))
-    {
-        
-    }
-    
-    public func getFields<T>(completion: ((Result<[T], ZCacheError>) -> Void))
-    {
-        
-    }
-    
-    public func getFieldsFromServer<T>(completion: ((Result<[T], ZCacheError>) -> Void))
-    {
-        
-    }
-    
-    public func getFieldsFromServer<T>(modifiedSince: String, completion: ((Result<[T], ZCacheError>) -> Void))
-    {
-        
-    }
-    
-    public func execute<T>(query: String, completion: ((Result<[T], ZCacheError>) -> Void))
+    public func execute<T>(query: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
         
     }
@@ -107,42 +201,42 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         
     }
     
-    public func createRecords<T>(entities: [T], completion: ((Result<[T], ZCacheError>) -> Void))
+    public func createRecords<T>(entities: [T], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
         
     }
     
-    public func updateRecords<T>(entities: [T], completion: ((Result<[T], ZCacheError>) -> Void))
+    public func updateRecords<T>(entities: [T], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
         
     }
     
-    public func deleteRecords<T>(entities: [T], completion: ((Result<[String], ZCacheError>) -> Void))
+    public func deleteRecords<T>(entities: [T], completion: @escaping ((Result<[String], ZCacheError>) -> Void))
     {
         
     }
     
-    public func deleteAllRecords(ids: [String], completion: ((Result<[String], ZCacheError>) -> Void))
+    public func deleteAllRecords(ids: [String], completion: @escaping ((Result<[String], ZCacheError>) -> Void))
     {
         
     }
     
-    public func getRecords<T>(params: [String], completion: ((Result<[T], ZCacheError>) -> Void))
+    public func getRecords<T>(params: [String], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
         
     }
     
-    public func getRecordsFromServer<T>(params: [String], completion: ((Result<[T], ZCacheError>) -> Void))
+    public func getRecordsFromServer<T>(params: [String], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
         
     }
     
-    public func getDeletedRecords<T>(params: [String], completion: ((Result<[T], ZCacheError>) -> Void))
+    public func getDeletedRecords<T>(params: [String], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
         
     }
     
-    public func getDeletedRecordsFromServer<T>(params: [String], completion: ((Result<[T], ZCacheError>) -> Void))
+    public func getDeletedRecordsFromServer<T>(params: [String], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
         
     }
@@ -223,14 +317,14 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     /// - Parameter layoutId: layout id
     /// - Returns: layout with given layout id
     /// - Throws: ZCRMSDKError if failed to get a layout
-    public func getLayout( id : Int64, completion : @escaping( ResultType.DataResponse< ZCRMLayout, APIResponse > ) -> () )
+    public func getLayout( id : String, completion : @escaping( ResultType.DataResponse< ZCRMLayout, APIResponse > ) -> () )
     {
         ModuleAPIHandler( module : self, cacheFlavour : .urlVsResponse ).getLayout( layoutId : id ) { ( result ) in
             completion( result )
         }
     }
     
-    public func getLayoutFromServer( id : Int64, completion : @escaping( ResultType.DataResponse< ZCRMLayout, APIResponse > ) -> () )
+    public func getLayoutFromServer( id : String, completion : @escaping( ResultType.DataResponse< ZCRMLayout, APIResponse > ) -> () )
     {
         ModuleAPIHandler( module : self, cacheFlavour : .noCache ).getLayout( layoutId : id ) { ( result ) in
             completion( result )
@@ -255,14 +349,14 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
-    public func getField( id : Int64, completion : @escaping( ResultType.DataResponse< ZCRMField, APIResponse > ) -> () )
+    public func getField( id : String, completion : @escaping( ResultType.DataResponse< ZCRMField, APIResponse > ) -> () )
     {
         ModuleAPIHandler(module: self, cacheFlavour: .urlVsResponse).getField(fieldId: id) { ( result ) in
             completion( result )
         }
     }
     
-    public func getFieldFromServer( id : Int64, completion : @escaping( ResultType.DataResponse< ZCRMField, APIResponse > ) -> () )
+    public func getFieldFromServer( id : String, completion : @escaping( ResultType.DataResponse< ZCRMField, APIResponse > ) -> () )
     {
         ModuleAPIHandler(module: self, cacheFlavour: .noCache).getField(fieldId: id) { ( result ) in
             completion( result )

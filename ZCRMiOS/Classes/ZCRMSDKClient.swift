@@ -120,6 +120,7 @@ public class ZCRMSDKClient
             
             var configs = ZCacheConfigs(clientInstance: ZCRMSDKUtil())
             configs.isDBCachingEnabled = true
+            configs.cacheableModules["Contacts"] = 100
             
             ZCache.shared.initialize(configs: configs) { result in
                 switch result {

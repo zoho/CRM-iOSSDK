@@ -23,12 +23,12 @@ public class ZCRMSDKUtil: ZCacheClient
     
     public func getLayoutInstance() -> ZCacheLayout?
     {
-        return ZCRMLayout(name: APIConstants.STRING_MOCK)
+        return nil
     }
     
     public func getSectionInstance() -> ZCacheSection?
     {
-        return ZCRMSection(apiName: APIConstants.STRING_MOCK)
+        return nil
     }
     
     public func getFieldInstance() -> ZCacheField
@@ -72,7 +72,26 @@ public class ZCRMSDKUtil: ZCacheClient
     
     public func getModulesFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
-        
+        MetaDataAPIHandler().getAllModules( modifiedSince : modifiedSince )
+        {
+            ( result ) in
+            switch result
+            {
+            case .success(let modules, _):
+                do
+                {
+                    completion(.success(modules as! [T]))
+                }
+            case .failure(let error):
+                do
+                {
+                    let code = error.ZCRMErrordetails?.code
+                    let message = error.ZCRMErrordetails?.code
+                
+                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                }
+            }
+        }
     }
     
     public func getModuleFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
@@ -82,22 +101,98 @@ public class ZCRMSDKUtil: ZCacheClient
     
     public func getModuleFromServer<T>(withName: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
-        
+        MetaDataAPIHandler().getModule(apiName: withName)
+        {
+            ( result ) in
+            switch result
+            {
+            case .success(let module, _):
+                do
+                {
+                    completion(.success(module as! T))
+                }
+            case .failure(let error):
+                do
+                {
+                    let code = error.ZCRMErrordetails?.code
+                    let message = error.ZCRMErrordetails?.code
+                
+                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                }
+            }
+        }
     }
    
     public func getUsersFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
-        
+        UserAPIHandler(cacheFlavour: .noCache).getUsers(ofType: nil, modifiedSince: nil, page: nil, perPage: nil)
+        {
+            ( result ) in
+            switch result
+            {
+            case .success(let users, _):
+                do
+                {
+                    completion(.success(users as! [T]))
+                }
+            case .failure(let error):
+                do
+                {
+                    let code = error.ZCRMErrordetails?.code
+                    let message = error.ZCRMErrordetails?.code
+                
+                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                }
+            }
+        }
     }
     
     public func getUserFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
-        
+        UserAPIHandler(cacheFlavour: .noCache).getUser(userId: withId)
+        {
+            ( result ) in
+            switch result
+            {
+            case .success(let user, _):
+                do
+                {
+                    completion(.success(user as! T))
+                }
+            case .failure(let error):
+                do
+                {
+                    let code = error.ZCRMErrordetails?.code
+                    let message = error.ZCRMErrordetails?.code
+                
+                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                }
+            }
+        }
     }
     
     public func getCurrentUserFromServer<T>(completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
-        
+        UserAPIHandler(cacheFlavour: .noCache).getCurrentUser
+        {
+            ( result ) in
+            switch result
+            {
+            case .success(let user, _):
+                do
+                {
+                    completion(.success(user as! T))
+                }
+            case .failure(let error):
+                do
+                {
+                    let code = error.ZCRMErrordetails?.code
+                    let message = error.ZCRMErrordetails?.code
+                
+                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                }
+            }
+        }
     }
     
     public static func getModuleDelegate( apiName : String ) -> ZCRMModuleDelegate

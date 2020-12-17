@@ -5,6 +5,7 @@
 //  Created by Vijayakrishna on 14/11/16.
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
+import ZCacheiOS
 
 open class ZCRMLayout : ZCRMLayoutDelegate
 {
@@ -60,6 +61,81 @@ open class ZCRMLayout : ZCRMLayoutDelegate
         try! container.encode(self.sections, forKey: .sections)
         try! container.encode(self.accessibleProfiles, forKey: .accessibleProfiles)
     }
+    
+    public override func getSectionFromServer<T>(name: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    {
+        var zcrmSection: ZCRMSection?
+        for section in sections
+        {
+            if section.apiName == name
+            {
+                zcrmSection = section
+            }
+        }
+        if let zcrmSection = zcrmSection
+        {
+            completion(.success(zcrmSection as! T))
+        }
+        else
+        {
+            completion(.failure(ZCacheError.invalidError(code: ErrorCode.invalidData, message: ErrorMessage.invalidNameMsg, details: nil)))
+        }
+    }
+    
+    public override func getSectionsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    {
+        completion(.success(sections as! [T]))
+    }
+    
+    public override func getSectionsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    {
+        completion(.success(sections as! [T]))
+    }
+    
+    public override func getFieldFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    {
+        var zcrmField: ZCRMField?
+        for section in sections
+        {
+            for field in section.fields
+            {
+                if field.id == withId
+                {
+                    zcrmField = field
+                    break
+                }
+            }
+        }
+        if let zcrmField = zcrmField
+        {
+            completion(.success(zcrmField as! T))
+        }
+        else
+        {
+            completion(.failure(ZCacheError.invalidError(code: ErrorCode.invalidData, message: ErrorMessage.invalidNameMsg, details: nil)))
+        }
+    }
+    
+    public override func getFieldsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    {
+        var fields = [ZCacheField]()
+        for section in sections
+        {
+            fields.append(contentsOf: section.fields)
+        }
+        completion(.success(fields as! [T]))
+    }
+    
+    public override func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    {
+        var fields = [ZCacheField]()
+        for section in sections
+        {
+            fields.append(contentsOf: section.fields)
+        }
+        completion(.success(fields as! [T]))
+    }
+    
     /// Add ZCRMSection to the ZCRMLayout.
     ///
     /// - Parameter section: ZCRMSection to be added

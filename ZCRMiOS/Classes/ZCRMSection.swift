@@ -23,17 +23,32 @@ public class ZCRMSection : ZCRMEntity, ZCacheSection
     
     public func getFieldFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
-        
+        var zcrmField: ZCRMField?
+        for field in fields
+        {
+            if field.id == id
+            {
+                zcrmField = field
+            }
+        }
+        if let zcrmField = zcrmField
+        {
+            completion(.success(zcrmField as! T))
+        }
+        else
+        {
+            completion(.failure(ZCacheError.invalidError(code: ErrorCode.invalidData, message: ErrorMessage.invalidIdMsg, details: nil)))
+        }
     }
     
     public func getFieldsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
-        
+        completion(.success(fields as! [T]))
     }
     
     public func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
-        
+        completion(.success(fields as! [T]))
     }
     
     /// Initialise the instance of a section with the given section name.

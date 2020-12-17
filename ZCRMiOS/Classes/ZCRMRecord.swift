@@ -75,6 +75,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     }
     open override func encode( to encoder : Encoder ) throws
     {
+        try super.encode(to: encoder)
         var container = encoder.container( keyedBy : CodingKeys.self )
         
         try container.encode( self.isCreate, forKey : .isCreate )
@@ -84,7 +85,10 @@ open class ZCRMRecord : ZCRMRecordDelegate
         try container.encodeIfPresent( self.subformRecord, forKey : .subformRecord )
         try container.encodeIfPresent( self.taxes, forKey : .taxes )
         try container.encodeIfPresent( self.lineTaxes, forKey : .lineTaxes )
-        try container.encodeIfPresent( self.tags, forKey : .tags )
+        if let _ = tags?.isEmpty
+        {
+            try container.encodeIfPresent( self.tags, forKey : .tags )
+        }
         try container.encodeIfPresent( self.dataProcessingBasisDetails, forKey : .dataProcessingBasisDetails )
         try container.encodeIfPresent( self.layout, forKey : .layout )
         try container.encode( self.owner, forKey : .owner )

@@ -62,15 +62,17 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
         var customContainer = encoder.container(keyedBy: CustomCodingKeys.self)
         for (key, value) in data
         {
-            if let customKey = CustomCodingKeys(stringValue: key)
+            if let customKey = CustomCodingKeys(stringValue: key), let value = value
             {
+                print("<<< Value-data: \(value.value)")
                 try customContainer.encodeIfPresent( value, forKey : customKey )
             }
         }
         for (key, value) in properties
         {
-            if let customKey = CustomCodingKeys(stringValue: key)
+            if let customKey = CustomCodingKeys(stringValue: key), let value = value
             {
+                print("<<< Value-prop: \(value.value)")
                 try customContainer.encodeIfPresent( value, forKey : customKey )
             }
         }
