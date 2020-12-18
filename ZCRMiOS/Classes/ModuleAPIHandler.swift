@@ -5,6 +5,7 @@
 //  Created by Vijayakrishna on 15/11/16.
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
+import ZCacheiOS
 
 internal struct CriteriaHandling
 {
@@ -781,6 +782,73 @@ internal class ModuleAPIHandler : CommonAPIHandler
             field.isExportable = privateDetails.optBoolean( key : ResponseJSONKeys.export )
             field.restrictedType = privateDetails.optString( key : ResponseJSONKeys.type )
         }
+        
+        // Setting config in field for caching
+        if field.dataType == "ownerlookup" || field.dataType == "userlookup" || field.dataType == "multiuserlookup"
+        {
+            field.lookupModules = ["USERS"]
+            field.type = DataType.user_lookup
+        }
+        else if field.dataType == "picklist"
+        {
+            field.type = DataType.picklist
+        }
+        else if field.dataType == "multiselectpicklist" && field.apiName == "Tax"
+        {
+            field.type = DataType.multi_select_picklist
+        }
+        else if (field.apiName == "Tag" && field.dataType == "text") || (field.dataType == "multiselectpicklist")
+        {
+            if field.dataType == "text"
+            {
+                field.type = DataType.text
+            }
+            else
+            {
+                field.type = DataType.multi_select_picklist
+            }
+        }
+        else if (field.dataType == "text" && field.apiName == "Product_Details") || field.dataType == "text" || field.dataType == "email" || field.dataType == "phone" || field.dataType == "date" || field.dataType == "datetime" || field.dataType == "profileimage" || field.dataType == "fileupload" || field.dataType == "multiselectlookup" || field.dataType == "consent_lookup"
+        {
+            field.type = DataType.text
+        }
+        else if field.dataType == "lookup"
+        {
+            field.type = DataType.lookup
+            if let value = field.lookup?["module"], let module = value.value
+            {
+                let moduleName = String(describing: module)
+                if (moduleName != "se_module")
+                {
+                    field.lookupModules = [moduleName]
+                }
+            }
+        }
+        else if field.dataType == "bigint"
+        {
+            field.type = DataType.bigint
+        }
+        else if field.dataType == "boolean"
+        {
+            field.type = DataType.bool
+        }
+        else if field.dataType == "currency" || field.dataType == "double" || field.dataType == "formula"
+        {
+            field.type = DataType.double
+        }
+        else if field.dataType == "subform"
+        {
+            field.type = DataType.subform
+            if let value = field.subForm?["module"], let module = value.value
+            {
+                let moduleName = String(describing: module)
+                if (moduleName != "se_module")
+                {
+                    field.lookupModules = [moduleName]
+                }
+            }
+        }
+        
         return field
     }
     

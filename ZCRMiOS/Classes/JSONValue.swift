@@ -57,33 +57,92 @@ public struct JSONValue: Decodable {
 
 extension JSONValue: Encodable {
   public func encode(to encoder: Encoder) throws {
-    if let array = value as? [Any] {
-      var container = encoder.unkeyedContainer()
-      for value in array {
-        let decodable = JSONValue(value: value)
-        try container.encode(decodable)
-      }
-    } else if let dictionary = value as? [String: Any] {
-      var container = encoder.container(keyedBy: CodingKeys.self)
-      for (key, value) in dictionary {
-        let codingKey = CodingKeys(stringValue: key)!
-        let decodable = JSONValue(value: value)
-        try container.encode(decodable, forKey: codingKey)
-      }
-    } else {
-      var container = encoder.singleValueContainer()
-      if let intVal = value as? Int {
-        try container.encode(intVal)
-      } else if let doubleVal = value as? Double {
-        try container.encode(doubleVal)
-      } else if let boolVal = value as? Bool {
-        try container.encode(boolVal)
-      } else if let stringVal = value as? String {
-        try container.encode(stringVal)
-      } else {
-        throw EncodingError.invalidValue(value ?? "Nil Value.", EncodingError.Context.init(codingPath: [], debugDescription: "The value is not encodable"))
-      }
-
+    if !(value is NSNull)
+    {
+        if let array = value as? [Any]
+        {
+            var container = encoder.unkeyedContainer()
+            for value in array
+            {
+                let decodable = JSONValue(value: value)
+                try container.encode(decodable)
+            }
+        }
+        else if let dictionary = value as? [String: Any]
+        {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            for (key, value) in dictionary
+            {
+                let codingKey = CodingKeys(stringValue: key)!
+                let decodable = JSONValue(value: value)
+                try container.encode(decodable, forKey: codingKey)
+            }
+        }
+        else if let layout = value as? ZCRMLayoutDelegate
+        {
+            try layout.encode(to: encoder)
+        }
+        else if let user = value as? ZCRMUserDelegate
+        {
+            try user.encode(to: encoder)
+        }
+        else if let record = value as? ZCRMRecordDelegate
+        {
+            try record.encode(to: encoder)
+        }
+        else if let lineItem = value as? ZCRMInventoryLineItem
+        {
+            try lineItem.encode(to: encoder)
+        }
+        else if let priceBook = value as? ZCRMPriceBookPricing
+        {
+            try priceBook.encode(to: encoder)
+        }
+        else if let eventParticipant = value as? ZCRMEventParticipant
+        {
+            try eventParticipant.encode(to: encoder)
+        }
+        else if let tax = value as? ZCRMTaxDelegate
+        {
+            try tax.encode(to: encoder)
+        }
+        else if let lineTax = value as? ZCRMLineTax
+        {
+            try lineTax.encode(to: encoder)
+        }
+        else if let dataProcessBasisDetails = value as? ZCRMDataProcessBasisDetails
+        {
+            try dataProcessBasisDetails.encode(to: encoder)
+        }
+        else if let subform = value as? ZCRMSubformRecord
+        {
+            print("<<< SF: \(subform.name)")
+            try subform.encode(to: encoder)
+        }
+        else
+        {
+          var container = encoder.singleValueContainer()
+          if let intVal = value as? Int
+          {
+            try container.encode(intVal)
+          }
+          else if let doubleVal = value as? Double
+          {
+            try container.encode(doubleVal)
+          }
+          else if let boolVal = value as? Bool
+          {
+            try container.encode(boolVal)
+          }
+          else if let stringVal = value as? String
+          {
+            try container.encode(stringVal)
+          }
+          else
+          {
+            throw EncodingError.invalidValue(value ?? "Nil Value.", EncodingError.Context.init(codingPath: [], debugDescription: "The value is not encodable"))
+          }
+        }
     }
   }
 }

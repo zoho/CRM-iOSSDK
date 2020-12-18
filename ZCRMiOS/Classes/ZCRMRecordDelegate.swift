@@ -19,6 +19,7 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
         case layoutId
         case moduleAPIName
         case label
+        case Parent_Id
     }
     
     private struct CustomCodingKeys: CodingKey
@@ -37,16 +38,26 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
     
     required public init(from decoder: Decoder) throws
     {
-        let values = try! decoder.container(keyedBy: CodingKeys.self)
-        id = try! values.decode(String.self, forKey: .id)
-        moduleName = try! values.decode(String.self, forKey: .moduleName)
-        layoutId = try! values.decodeIfPresent(String.self, forKey: .layoutId)
-        moduleAPIName = try! values.decode(String.self, forKey: .moduleAPIName)
-        label = try! values.decodeIfPresent(String.self, forKey: .label)
-
-        for key in values.allKeys
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        if try values.decodeIfPresent(String.self, forKey: .Parent_Id) != nil
         {
-            data[key.rawValue] = try! values.decode(JSONValue.self, forKey: key)
+            try ZCRMSubformRecord(from: decoder)
+            id = String()
+            moduleName = String()
+            moduleAPIName = String()
+        }
+        else
+        {
+            id = try values.decode(String.self, forKey: .id)
+            moduleName = try values.decode(String.self, forKey: .moduleName)
+            layoutId = try values.decodeIfPresent(String.self, forKey: .layoutId)
+            moduleAPIName = try values.decode(String.self, forKey: .moduleAPIName)
+            label = try values.decodeIfPresent(String.self, forKey: .label)
+
+            for key in values.allKeys
+            {
+                data[key.rawValue] = try! values.decodeIfPresent(JSONValue.self, forKey: key)
+            }
         }
     }
     
@@ -62,17 +73,15 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
         var customContainer = encoder.container(keyedBy: CustomCodingKeys.self)
         for (key, value) in data
         {
-            if let customKey = CustomCodingKeys(stringValue: key), let value = value
+            if let customKey = CustomCodingKeys(stringValue: key)
             {
-                print("<<< Value-data: \(value.value)")
                 try customContainer.encodeIfPresent( value, forKey : customKey )
             }
         }
         for (key, value) in properties
         {
-            if let customKey = CustomCodingKeys(stringValue: key), let value = value
+            if let customKey = CustomCodingKeys(stringValue: key)
             {
-                print("<<< Value-prop: \(value.value)")
                 try customContainer.encodeIfPresent( value, forKey : customKey )
             }
         }

@@ -61,6 +61,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                         do
                         {
                             let record = try recordResult.resolve()
+                            record.moduleName = self.record.moduleAPIName
                             response.setData(data: record)
                             self.record.upsertJSON = [ String : JSONValue? ]()
                             completion( .success( record, response ))
@@ -922,7 +923,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 else if(ResponseJSONKeys.productDetails == fieldAPIName) && ( self.record.moduleAPIName == DefaultModuleAPINames.SALES_ORDERS || self.record.moduleAPIName == DefaultModuleAPINames.PURCHASE_ORDERS || self.record.moduleAPIName == DefaultModuleAPINames.INVOICES || self.record.moduleAPIName == DefaultModuleAPINames.QUOTES ), let lineItems = value as? [[ String : Any ]]
                 {
                     try self.setInventoryLineItems(lineItems: lineItems)
-                    self.record.data.updateValue( JSONValue(value: lineItems), forKey : ResponseJSONKeys.productDetails )
+                    self.record.data.updateValue( JSONValue(value: self.record.lineItems), forKey : ResponseJSONKeys.productDetails )
                 }
                 else if( ResponseJSONKeys.pricingDetails == fieldAPIName ) && (self.record.moduleAPIName == DefaultModuleAPINames.PRICE_BOOKS), let priceDetails = value as? [[ String: Any ]]
                 {
@@ -1046,7 +1047,14 @@ internal class EntityAPIHandler : CommonAPIHandler
                     }
                     else
                     {
-                        self.record.properties.updateValue( JSONValue(value: value), forKey: propertyName)
+                        if !(value is NSNull)
+                        {
+                            self.record.properties.updateValue( JSONValue(value: value), forKey: propertyName)
+                        }
+                        else
+                        {
+                            self.record.properties.updateValue( nil, forKey: propertyName)
+                        }
                     }
                 }
                 else if( ResponseJSONKeys.remindAt == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) && value is [String:Any] )
@@ -1119,7 +1127,14 @@ internal class EntityAPIHandler : CommonAPIHandler
                 }
                 else
                 {
-                    self.record.data.updateValue( JSONValue(value: value), forKey: fieldAPIName)
+                    if !(value is NSNull)
+                    {
+                        self.record.data.updateValue( JSONValue(value: value), forKey: fieldAPIName)
+                    }
+                    else
+                    {
+                        self.record.data.updateValue( nil, forKey: fieldAPIName)
+                    }
                 }
             }
             dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() )
@@ -1131,7 +1146,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 }
                 for ( key, value ) in lookups
                 {
-                    self.record.data.updateValue( JSONValue(value: value), forKey : key )
+                    self.record.data.updateValue( value as? JSONValue, forKey : key )
                 }
                 for ( key, value ) in subforms
                 {
@@ -1244,7 +1259,9 @@ internal class EntityAPIHandler : CommonAPIHandler
             {
                 if fieldAPIName == ResponseJSONKeys.whatId
                 {
-                    let lookupRecord : ZCRMRecordDelegate = ZCRMRecordDelegate( id : try lookupDetails.getString( key : ResponseJSONKeys.id ), moduleAPIName : try recordDetails.getString( key : ResponseJSONKeys.seModule ) )
+                    let moduleName = try recordDetails.getString( key : ResponseJSONKeys.seModule )
+                    let lookupRecord : ZCRMRecordDelegate = ZCRMRecordDelegate( id : try lookupDetails.getString( key : ResponseJSONKeys.id ), moduleAPIName : moduleName )
+                    lookupRecord.moduleName = moduleName
                     lookupRecord.label = lookupDetails.optString( key : ResponseJSONKeys.name )
                     completion( lookupRecord, nil )
                 }
@@ -1268,7 +1285,9 @@ internal class EntityAPIHandler : CommonAPIHandler
                             {
                                 if let apiName = field.lookup?[ ResponseJSONKeys.module ]?.value as? String
                                 {
+                                    
                                     let lookupRecord : ZCRMRecordDelegate = ZCRMRecordDelegate( id : try lookupDetails.getString( key : ResponseJSONKeys.id ), moduleAPIName : apiName )
+                                    lookupRecord.moduleName = apiName
                                     lookupRecord.label = lookupDetails.optString( key : ResponseJSONKeys.name )
                                     completion( lookupRecord, nil )
                                 }
@@ -1503,6 +1522,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                         if let moduleAPIName = field.lookup?[ ResponseJSONKeys.module ]?.value as? String
                         {
                             let lookupRecord : ZCRMRecordDelegate = ZCRMRecordDelegate( id : try lookupDetails.getString( key : ResponseJSONKeys.id ), moduleAPIName : moduleAPIName )
+                            lookupRecord.moduleName = moduleAPIName
                             lookupRecord.label = lookupDetails.optString( key : ResponseJSONKeys.name )
                             completion( lookupRecord, nil )
                         }
@@ -1672,12 +1692,14 @@ internal class EntityAPIHandler : CommonAPIHandler
             
             case .contact :
                 let entity = ZCRMRecordDelegate( id : try participantDetails.getString( key : ResponseJSONKeys.participant ), moduleAPIName : DefaultModuleAPINames.CONTACTS )
+                entity.moduleName = DefaultModuleAPINames.CONTACTS
                 entity.label = try participantDetails.getString( key : ResponseJSONKeys.name )
                 eventParticipant = EventParticipant.record(entity)
                 break
             
             case .lead :
                 let entity = ZCRMRecordDelegate( id : try participantDetails.getString( key : ResponseJSONKeys.participant ), moduleAPIName : DefaultModuleAPINames.LEADS )
+                entity.moduleName = DefaultModuleAPINames.LEADS
                 entity.label = try participantDetails.getString( key : ResponseJSONKeys.name )
                 eventParticipant = EventParticipant.record(entity)
                 break

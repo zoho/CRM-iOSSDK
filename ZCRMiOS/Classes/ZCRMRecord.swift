@@ -16,6 +16,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     enum CodingKeys: String, CodingKey
     {
         case isCreate
+        case Parent_Id
         case upsertJSON
         case lineItems
         case priceDetails
@@ -52,51 +53,63 @@ open class ZCRMRecord : ZCRMRecordDelegate
         
         try super.init(from: decoder)
         
-        let values = try! decoder.container(keyedBy: CodingKeys.self)
-        
-        isCreate = try! values.decode(Bool.self, forKey: .isCreate)
-        lineItems = try! values.decodeIfPresent([ ZCRMInventoryLineItem ].self, forKey: .lineItems)
-        priceDetails = try! values.decodeIfPresent([ ZCRMPriceBookPricing ].self, forKey: .priceDetails)
-        participants = try! values.decodeIfPresent([ ZCRMEventParticipant ].self, forKey: .participants)
-        subformRecord = try! values.decodeIfPresent([String:[ZCRMSubformRecord]].self, forKey: .subformRecord)
-        taxes = try! values.decodeIfPresent([ ZCRMTaxDelegate ].self, forKey: .taxes)
-        lineTaxes = try! values.decodeIfPresent([ ZCRMLineTax ].self, forKey: .lineTaxes)
-        tags = try! values.decodeIfPresent([String].self, forKey: .tags)
-        dataProcessingBasisDetails = try! values.decodeIfPresent(ZCRMDataProcessBasisDetails.self, forKey: .dataProcessingBasisDetails)
-        layout = try! values.decodeIfPresent(ZCRMLayoutDelegate.self, forKey: .layout)
-        owner = try! values.decode(ZCRMUserDelegate.self, forKey: .owner)
-        isOwnerSet = try! values.decode(Bool.self, forKey: .isOwnerSet)
-        createdBy = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .createdBy)
-        modifiedBy = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .modifiedBy)
-        createdTime = try! values.decodeIfPresent(String.self, forKey: .createdTime)
-        modifiedTime = try! values.decodeIfPresent(String.self, forKey: .modifiedTime)
-        
-        //        upsertJSON = try! values.decode(String.self, forKey: .upsertJSON)
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        if try values.decodeIfPresent(String.self, forKey: .Parent_Id) != nil
+        {
+            if let value = try! values.decodeIfPresent(Bool.self, forKey: .isCreate)
+            {
+                isCreate = value
+            }
+            lineItems = try! values.decodeIfPresent([ ZCRMInventoryLineItem ].self, forKey: .lineItems)
+            priceDetails = try! values.decodeIfPresent([ ZCRMPriceBookPricing ].self, forKey: .priceDetails)
+            participants = try! values.decodeIfPresent([ ZCRMEventParticipant ].self, forKey: .participants)
+            subformRecord = try! values.decodeIfPresent([String:[ZCRMSubformRecord]].self, forKey: .subformRecord)
+            taxes = try! values.decodeIfPresent([ ZCRMTaxDelegate ].self, forKey: .taxes)
+            lineTaxes = try! values.decodeIfPresent([ ZCRMLineTax ].self, forKey: .lineTaxes)
+            tags = try! values.decodeIfPresent([String].self, forKey: .tags)
+            dataProcessingBasisDetails = try! values.decodeIfPresent(ZCRMDataProcessBasisDetails.self, forKey: .dataProcessingBasisDetails)
+            layout = try! values.decodeIfPresent(ZCRMLayoutDelegate.self, forKey: .layout)
+            if let value = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .owner)
+            {
+                owner = value
+            }
+            if let value = try! values.decodeIfPresent(Bool.self, forKey: .isOwnerSet)
+            {
+                isOwnerSet = value
+            }
+            
+            createdBy = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .createdBy)
+            modifiedBy = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .modifiedBy)
+            createdTime = try! values.decodeIfPresent(String.self, forKey: .createdTime)
+            modifiedTime = try! values.decodeIfPresent(String.self, forKey: .modifiedTime)
+            
+            //        upsertJSON = try! values.decode(String.self, forKey: .upsertJSON)
+        }
     }
     open override func encode( to encoder : Encoder ) throws
     {
         try super.encode(to: encoder)
-        var container = encoder.container( keyedBy : CodingKeys.self )
         
-        try container.encode( self.isCreate, forKey : .isCreate )
-        try container.encodeIfPresent( self.lineItems, forKey : .lineItems )
-        try container.encodeIfPresent( self.priceDetails, forKey : .priceDetails )
-        try container.encodeIfPresent( self.participants, forKey : .participants )
-        try container.encodeIfPresent( self.subformRecord, forKey : .subformRecord )
-        try container.encodeIfPresent( self.taxes, forKey : .taxes )
-        try container.encodeIfPresent( self.lineTaxes, forKey : .lineTaxes )
-        if let _ = tags?.isEmpty
-        {
-            try container.encodeIfPresent( self.tags, forKey : .tags )
-        }
-        try container.encodeIfPresent( self.dataProcessingBasisDetails, forKey : .dataProcessingBasisDetails )
-        try container.encodeIfPresent( self.layout, forKey : .layout )
-        try container.encode( self.owner, forKey : .owner )
-        try container.encode( self.isOwnerSet, forKey : .isOwnerSet )
-        try container.encodeIfPresent( self.createdBy, forKey : .createdBy )
-        try container.encodeIfPresent( self.modifiedBy, forKey : .modifiedBy )
-        try container.encodeIfPresent( self.createdTime, forKey : .createdTime )
-        try container.encodeIfPresent( self.modifiedTime, forKey : .modifiedTime )
+//        var container = encoder.container( keyedBy : CodingKeys.self )
+//        try container.encode( self.isCreate, forKey : .isCreate )
+//        try container.encodeIfPresent( self.lineItems, forKey : .lineItems )
+//        try container.encodeIfPresent( self.priceDetails, forKey : .priceDetails )
+//        try container.encodeIfPresent( self.participants, forKey : .participants )
+//        try container.encodeIfPresent( self.subformRecord, forKey : .subformRecord )
+//        try container.encodeIfPresent( self.taxes, forKey : .taxes )
+//        try container.encodeIfPresent( self.lineTaxes, forKey : .lineTaxes )
+//        if let _ = tags?.isEmpty
+//        {
+//            try container.encodeIfPresent( self.tags, forKey : .tags )
+//        }
+//        try container.encodeIfPresent( self.dataProcessingBasisDetails, forKey : .dataProcessingBasisDetails )
+//        try container.encodeIfPresent( self.layout, forKey : .layout )
+//        try container.encode( self.owner, forKey : .owner )
+//        try container.encode( self.isOwnerSet, forKey : .isOwnerSet )
+//        try container.encodeIfPresent( self.createdBy, forKey : .createdBy )
+//        try container.encodeIfPresent( self.modifiedBy, forKey : .modifiedBy )
+//        try container.encodeIfPresent( self.createdTime, forKey : .createdTime )
+//        try container.encodeIfPresent( self.modifiedTime, forKey : .createdBy )
         
         var customContainer = encoder.container(keyedBy: CustomCodingKeys.self)
         for (key, value) in upsertJSON
@@ -107,8 +120,14 @@ open class ZCRMRecord : ZCRMRecordDelegate
             }
         }
         
-        let upsertJSONContainer = container.nestedContainer(keyedBy: CustomCodingKeys.self, forKey: .upsertJSON)
-        
+        var upsertJSONContainer = customContainer.nestedContainer(keyedBy: CustomCodingKeys.self, forKey: CustomCodingKeys(stringValue: "upsertJSON")!)
+        for (key, value) in upsertJSON
+        {
+            if let customKey = CustomCodingKeys(stringValue: key)
+            {
+                try upsertJSONContainer.encodeIfPresent( value, forKey : customKey )
+            }
+        }
     }
     
     internal var isCreate : Bool = APIConstants.BOOL_MOCK

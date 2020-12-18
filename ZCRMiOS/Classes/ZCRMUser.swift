@@ -50,38 +50,50 @@ public class ZCRMUser : ZCRMUserDelegate
         try! super.init(from: decoder)
         let container = try! decoder.container(keyedBy: CodingKeys.self)
         
-        emailId = try! container.decode(String.self, forKey: .emailId)
+        if let email = try! container.decodeIfPresent(String.self, forKey: .emailId)
+        {
+            emailId = email
+        }
         role = try! container.decodeIfPresent(ZCRMRoleDelegate.self, forKey: .role)
-        profile = try! container.decodeIfPresent(ZCRMProfileDelegate.self, forKey: .emailId)
-        lastName = try! container.decodeIfPresent(String.self, forKey: .role)
-        zuId = try! container.decodeIfPresent(Int64.self, forKey: .emailId)
-        firstName = try! container.decodeIfPresent(String.self, forKey: .role)
-        alias = try! container.decodeIfPresent(String.self, forKey: .emailId)
-        dateOfBirth = try! container.decodeIfPresent(String.self, forKey: .role)
-        mobile = try! container.decodeIfPresent(String.self, forKey: .emailId)
-        phone = try! container.decodeIfPresent(String.self, forKey: .role)
-        fax = try! container.decodeIfPresent(String.self, forKey: .emailId)
-        street = try! container.decodeIfPresent(String.self, forKey: .role)
-        city = try! container.decodeIfPresent(String.self, forKey: .emailId)
-        state = try! container.decodeIfPresent(String.self, forKey: .role)
-        country = try! container.decodeIfPresent(String.self, forKey: .emailId)
-        zip = try! container.decodeIfPresent(Int64.self, forKey: .role)
-        language = try! container.decodeIfPresent(String.self, forKey: .emailId)
-        locale = try! container.decodeIfPresent(String.self, forKey: .role)
-        countryLocale = try! container.decodeIfPresent(String.self, forKey: .emailId)
-        nameFormat = try! container.decodeIfPresent(String.self, forKey: .role)
-        sortOrderPreference = try! container.decodeIfPresent(String.self, forKey: .emailId)
-        dateFormat = try! container.decodeIfPresent(String.self, forKey: .role)
-        timeFormat = try! container.decodeIfPresent(String.self, forKey: .emailId)
-        timeZone = try! container.decodeIfPresent(String.self, forKey: .role)
-        website = try! container.decodeIfPresent(String.self, forKey: .emailId)
-        isConfirmed = try! container.decode(Bool.self, forKey: .role)
-        status = try! container.decode(String.self, forKey: .emailId)
-        createdBy = try! container.decodeIfPresent(ZCRMUserDelegate.self, forKey: .role)
-        modifiedBy = try! container.decodeIfPresent(ZCRMUserDelegate.self, forKey: .emailId)
-        createdTime = try! container.decodeIfPresent(String.self, forKey: .role)
-        modifiedTime = try! container.decodeIfPresent(String.self, forKey: .role)
-        reportingTo = try! container.decodeIfPresent(ZCRMUserDelegate.self, forKey: .role)
+        profile = try! container.decodeIfPresent(ZCRMProfileDelegate.self, forKey: .profile)
+        lastName = try! container.decodeIfPresent(String.self, forKey: .lastName)
+        zuId = try! container.decodeIfPresent(Int64.self, forKey: .zuId)
+        firstName = try! container.decodeIfPresent(String.self, forKey: .firstName)
+        alias = try! container.decodeIfPresent(String.self, forKey: .alias)
+        dateOfBirth = try! container.decodeIfPresent(String.self, forKey: .dateOfBirth)
+        mobile = try! container.decodeIfPresent(String.self, forKey: .mobile)
+        phone = try! container.decodeIfPresent(String.self, forKey: .phone)
+        fax = try! container.decodeIfPresent(String.self, forKey: .fax)
+        street = try! container.decodeIfPresent(String.self, forKey: .street)
+        city = try! container.decodeIfPresent(String.self, forKey: .city)
+        state = try! container.decodeIfPresent(String.self, forKey: .state)
+        country = try! container.decodeIfPresent(String.self, forKey: .country)
+        zip = try! container.decodeIfPresent(Int64.self, forKey: .zip)
+        language = try! container.decodeIfPresent(String.self, forKey: .language)
+        locale = try! container.decodeIfPresent(String.self, forKey: .locale)
+        countryLocale = try! container.decodeIfPresent(String.self, forKey: .countryLocale)
+        nameFormat = try! container.decodeIfPresent(String.self, forKey: .nameFormat)
+        sortOrderPreference = try! container.decodeIfPresent(String.self, forKey: .sortOrderPreference)
+        dateFormat = try! container.decodeIfPresent(String.self, forKey: .dateFormat)
+        timeFormat = try! container.decodeIfPresent(String.self, forKey: .timeFormat)
+        timeZone = try! container.decodeIfPresent(String.self, forKey: .timeZone)
+        website = try! container.decodeIfPresent(String.self, forKey: .website)
+        
+        if let value = try! container.decodeIfPresent(Bool.self, forKey: .isConfirmed)
+        {
+            isConfirmed = value
+        }
+        if let value = try! container.decodeIfPresent(String.self, forKey: .status)
+        {
+            status = value
+        }
+        
+        
+        createdBy = try! container.decodeIfPresent(ZCRMUserDelegate.self, forKey: .createdBy)
+        modifiedBy = try! container.decodeIfPresent(ZCRMUserDelegate.self, forKey: .modifiedBy)
+        createdTime = try! container.decodeIfPresent(String.self, forKey: .createdTime)
+        modifiedTime = try! container.decodeIfPresent(String.self, forKey: .modifiedTime)
+        reportingTo = try! container.decodeIfPresent(ZCRMUserDelegate.self, forKey: .reportingTo)
     }
     
     open override func encode( to encoder : Encoder ) throws
@@ -113,8 +125,8 @@ public class ZCRMUser : ZCRMUserDelegate
         try! container.encodeIfPresent(self.timeFormat, forKey: .timeFormat)
         try! container.encodeIfPresent(self.timeZone, forKey: .timeZone)
         try! container.encodeIfPresent(self.website, forKey: .website)
-        try! container.encode(self.isConfirmed, forKey: .isConfirmed)
-        try! container.encode(self.status, forKey: .status)
+        try! container.encodeIfPresent(self.isConfirmed, forKey: .isConfirmed)
+        try! container.encodeIfPresent(self.status, forKey: .status)
         try! container.encodeIfPresent(self.createdBy, forKey: .createdBy)
         try! container.encodeIfPresent(self.modifiedBy, forKey: .modifiedBy)
         try! container.encodeIfPresent(self.createdTime, forKey: .createdTime)

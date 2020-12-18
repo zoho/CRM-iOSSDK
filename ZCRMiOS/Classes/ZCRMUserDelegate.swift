@@ -10,19 +10,25 @@ open class ZCRMUserDelegate : ZCRMEntity, ZCacheUser
 {
     enum Keys: String, CodingKey
     {
-        case name
         case id
+        case name
+        case moduleName
+        case orgId
     }
     required public init(from decoder: Decoder) throws {
         let container = try! decoder.container(keyedBy: Keys.self)
         id = try! container.decode(String.self, forKey: .id)
         name = try! container.decode(String.self, forKey: .name)
+        moduleName = try! container.decode(String.self, forKey: .moduleName)
+        orgId = try! container.decodeIfPresent(String.self, forKey: .orgId)
     }
     open func encode( to encoder : Encoder ) throws
     {
         var container = encoder.container( keyedBy : Keys.self )
         try! container.encode(self.id, forKey: .id)
         try! container.encode(self.name, forKey: .name)
+        try! container.encode(self.moduleName, forKey: .moduleName)
+        try! container.encodeIfPresent(self.orgId, forKey: .orgId)
     }
     
     public var id: String
