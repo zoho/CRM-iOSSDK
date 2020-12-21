@@ -11,6 +11,11 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
     public var id : String
     public var moduleName : String
     public var layoutId : String?
+    public var offlineOwner: ZCacheUser?
+    public var offlineCreatedTime: String?
+    public var offlineCreatedBy: ZCacheUser?
+    public var offlineModifiedTime: String?
+    public var offlineModifiedBy: ZCacheUser?
     
     enum CodingKeys: String, CodingKey
     {
@@ -39,7 +44,8 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
     required public init(from decoder: Decoder) throws
     {
         let values = try decoder.container(keyedBy: CodingKeys.self)
-        if try values.decodeIfPresent(String.self, forKey: .Parent_Id) != nil
+        let hasParentId = values.allKeys.contains(.Parent_Id)
+        if hasParentId
         {
             try ZCRMSubformRecord(from: decoder)
             id = String()
@@ -54,9 +60,17 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
             moduleAPIName = try values.decode(String.self, forKey: .moduleAPIName)
             label = try values.decodeIfPresent(String.self, forKey: .label)
 
-            for key in values.allKeys
+            let dynamicValues = try! decoder.container(keyedBy: CustomCodingKeys.self)
+            for key in dynamicValues.allKeys
             {
-                data[key.rawValue] = try! values.decodeIfPresent(JSONValue.self, forKey: key)
+                if let customKey = key.intValue
+                {
+                    data[String(customKey)] = try! dynamicValues.decode(JSONValue.self, forKey: key)
+                }
+                else
+                {
+                    data[key.stringValue] = try! dynamicValues.decode(JSONValue.self, forKey: key)
+                }
             }
         }
     }

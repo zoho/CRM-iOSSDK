@@ -54,7 +54,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
         try super.init(from: decoder)
         
         let values = try decoder.container(keyedBy: CodingKeys.self)
-        if try values.decodeIfPresent(String.self, forKey: .Parent_Id) != nil
+        let hasParentId = values.allKeys.contains(.Parent_Id)
+        if !hasParentId
         {
             if let value = try! values.decodeIfPresent(Bool.self, forKey: .isCreate)
             {
@@ -86,6 +87,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
             //        upsertJSON = try! values.decode(String.self, forKey: .upsertJSON)
         }
     }
+    
     open override func encode( to encoder : Encoder ) throws
     {
         try super.encode(to: encoder)

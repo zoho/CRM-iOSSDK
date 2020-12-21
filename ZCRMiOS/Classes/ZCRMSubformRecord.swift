@@ -39,21 +39,24 @@ public class ZCRMSubformRecord : ZCRMEntity, ZCacheRecord
     required public init(from decoder: Decoder) throws
     {
         let values = try! decoder.container(keyedBy: CodingKeys.self)
-        
+
         id = try! values.decode(String.self, forKey: .id)
         name = try! values.decode(String.self, forKey: .name)
         moduleName = try! values.decode(String.self, forKey: .moduleName)
-        owner = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .owner)
-        modifiedTime = try! values.decodeIfPresent(String.self, forKey: .modifiedTime)
-        createdTime = try! values.decodeIfPresent(String.self, forKey: .createdTime)
-        createdBy = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .createdBy)
-        modifiedBy = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .modifiedBy)
-        
-        for key in values.allKeys
-        {
-            data[key.rawValue] = try! values.decode(JSONValue.self, forKey: key)
-        }
     
+        let dynamicValues = try! decoder.container(keyedBy: CustomCodingKeys.self)
+        for key in dynamicValues.allKeys
+        {
+            if let customKey = key.intValue
+            {
+                data[String(customKey)] = try! dynamicValues.decode(JSONValue.self, forKey: key)
+            }
+            else
+            {
+                data[key.stringValue] = try! dynamicValues.decode(JSONValue.self, forKey: key)
+            }
+        }
+        
 //        properties = try! values.decode(Bool.self, forKey: .properties)
 
     }
@@ -98,6 +101,11 @@ public class ZCRMSubformRecord : ZCRMEntity, ZCacheRecord
     public internal( set ) var modifiedBy : ZCRMUserDelegate?
     public private( set ) var data : [ String : JSONValue? ] = [ String : JSONValue? ]()
     public private( set ) var properties : [ String : JSONValue? ] = [ String : JSONValue? ]()
+    public var offlineOwner: ZCacheUser?
+    public var offlineCreatedTime: String?
+    public var offlineCreatedBy: ZCacheUser?
+    public var offlineModifiedTime: String?
+    public var offlineModifiedBy: ZCacheUser?
     
     internal init( name : String , id : String )
     {

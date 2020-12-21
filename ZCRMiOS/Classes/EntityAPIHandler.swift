@@ -1051,10 +1051,6 @@ internal class EntityAPIHandler : CommonAPIHandler
                         {
                             self.record.properties.updateValue( JSONValue(value: value), forKey: propertyName)
                         }
-                        else
-                        {
-                            self.record.properties.updateValue( nil, forKey: propertyName)
-                        }
                     }
                 }
                 else if( ResponseJSONKeys.remindAt == fieldAPIName && recordDetails.hasValue( forKey : fieldAPIName ) && value is [String:Any] )
@@ -1130,10 +1126,6 @@ internal class EntityAPIHandler : CommonAPIHandler
                     if !(value is NSNull)
                     {
                         self.record.data.updateValue( JSONValue(value: value), forKey: fieldAPIName)
-                    }
-                    else
-                    {
-                        self.record.data.updateValue( nil, forKey: fieldAPIName)
                     }
                 }
             }
@@ -1464,6 +1456,11 @@ internal class EntityAPIHandler : CommonAPIHandler
                 }
                 else
                 {
+//                    if !(value is NSNull)
+//                    {
+//                        print("<<< VALUE: \(value)")
+//                        zcrmSubform.setValue( ofFieldAPIName : fieldAPIName, value : JSONValue(value: value) )
+//                    }
                     zcrmSubform.setValue( ofFieldAPIName : fieldAPIName, value : value )
                 }
             }
