@@ -114,7 +114,7 @@ public class ZCRMSDKUtil: ZCacheClient
         }
     }
     
-    public func getModuleFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    public func getModuleFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
         
     }
@@ -167,9 +167,9 @@ public class ZCRMSDKUtil: ZCacheClient
         }
     }
     
-    public func getUserFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    public func getUserFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
-        UserAPIHandler(cacheFlavour: .noCache).getUser(userId: withId)
+        UserAPIHandler(cacheFlavour: .noCache).getUser(userId: id)
         {
             ( result ) in
             switch result

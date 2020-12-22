@@ -16,7 +16,6 @@ open class ZCRMRecord : ZCRMRecordDelegate
     enum CodingKeys: String, CodingKey
     {
         case isCreate
-        case Parent_Id
         case upsertJSON
         case lineItems
         case priceDetails
@@ -54,38 +53,34 @@ open class ZCRMRecord : ZCRMRecordDelegate
         try super.init(from: decoder)
         
         let values = try decoder.container(keyedBy: CodingKeys.self)
-        let hasParentId = values.allKeys.contains(.Parent_Id)
-        if !hasParentId
+        if let value = try! values.decodeIfPresent(Bool.self, forKey: .isCreate)
         {
-            if let value = try! values.decodeIfPresent(Bool.self, forKey: .isCreate)
-            {
-                isCreate = value
-            }
-            lineItems = try! values.decodeIfPresent([ ZCRMInventoryLineItem ].self, forKey: .lineItems)
-            priceDetails = try! values.decodeIfPresent([ ZCRMPriceBookPricing ].self, forKey: .priceDetails)
-            participants = try! values.decodeIfPresent([ ZCRMEventParticipant ].self, forKey: .participants)
-            subformRecord = try! values.decodeIfPresent([String:[ZCRMSubformRecord]].self, forKey: .subformRecord)
-            taxes = try! values.decodeIfPresent([ ZCRMTaxDelegate ].self, forKey: .taxes)
-            lineTaxes = try! values.decodeIfPresent([ ZCRMLineTax ].self, forKey: .lineTaxes)
-            tags = try! values.decodeIfPresent([String].self, forKey: .tags)
-            dataProcessingBasisDetails = try! values.decodeIfPresent(ZCRMDataProcessBasisDetails.self, forKey: .dataProcessingBasisDetails)
-            layout = try! values.decodeIfPresent(ZCRMLayoutDelegate.self, forKey: .layout)
-            if let value = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .owner)
-            {
-                owner = value
-            }
-            if let value = try! values.decodeIfPresent(Bool.self, forKey: .isOwnerSet)
-            {
-                isOwnerSet = value
-            }
-            
-            createdBy = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .createdBy)
-            modifiedBy = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .modifiedBy)
-            createdTime = try! values.decodeIfPresent(String.self, forKey: .createdTime)
-            modifiedTime = try! values.decodeIfPresent(String.self, forKey: .modifiedTime)
-            
-            //        upsertJSON = try! values.decode(String.self, forKey: .upsertJSON)
+            isCreate = value
         }
+        lineItems = try! values.decodeIfPresent([ ZCRMInventoryLineItem ].self, forKey: .lineItems)
+        priceDetails = try! values.decodeIfPresent([ ZCRMPriceBookPricing ].self, forKey: .priceDetails)
+        participants = try! values.decodeIfPresent([ ZCRMEventParticipant ].self, forKey: .participants)
+        subformRecord = try! values.decodeIfPresent([String:[ZCRMSubformRecord]].self, forKey: .subformRecord)
+        taxes = try! values.decodeIfPresent([ ZCRMTaxDelegate ].self, forKey: .taxes)
+        lineTaxes = try! values.decodeIfPresent([ ZCRMLineTax ].self, forKey: .lineTaxes)
+        tags = try! values.decodeIfPresent([String].self, forKey: .tags)
+        dataProcessingBasisDetails = try! values.decodeIfPresent(ZCRMDataProcessBasisDetails.self, forKey: .dataProcessingBasisDetails)
+        layout = try! values.decodeIfPresent(ZCRMLayoutDelegate.self, forKey: .layout)
+        if let value = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .owner)
+        {
+            owner = value
+        }
+        if let value = try! values.decodeIfPresent(Bool.self, forKey: .isOwnerSet)
+        {
+            isOwnerSet = value
+        }
+        
+        createdBy = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .createdBy)
+        modifiedBy = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .modifiedBy)
+        createdTime = try! values.decodeIfPresent(String.self, forKey: .createdTime)
+        modifiedTime = try! values.decodeIfPresent(String.self, forKey: .modifiedTime)
+        
+        //        upsertJSON = try! values.decode(String.self, forKey: .upsertJSON)
     }
     
     open override func encode( to encoder : Encoder ) throws

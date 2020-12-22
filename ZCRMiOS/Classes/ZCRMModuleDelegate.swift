@@ -16,9 +16,9 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     
     public var isApiSupported: Bool
     
-    public func getLayoutFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    public func getLayoutFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
-        ModuleAPIHandler(module: self, cacheFlavour: .noCache).getLayout(layoutId: withId)
+        ModuleAPIHandler(module: self, cacheFlavour: .noCache).getLayout(layoutId: id)
         {
             ( result ) in
             switch result
@@ -88,9 +88,9 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
-    public func getFieldFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    public func getFieldFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
-        ModuleAPIHandler(module: self, cacheFlavour: .noCache).getField(fieldId: withId)
+        ModuleAPIHandler(module: self, cacheFlavour: .noCache).getField(fieldId: id)
         {
             ( result ) in
             switch result
@@ -196,47 +196,37 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         
     }
     
-    public func deleteRecord(withId: String, completion: @escaping ((DataResponseCallback<ZCacheResponse, String>) -> Void))
+    public func deleteRecord(id: String, completion: @escaping ((DataResponseCallback<ZCacheResponse, String>) -> Void))
     {
         
     }
     
-    public func createRecords<T>(entities: [T], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    public func createRecords<T>(entities: [T], completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
     {
         
     }
     
-    public func updateRecords<T>(entities: [T], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    public func updateRecords<T>(entities: [T], completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
     {
         
     }
     
-    public func deleteRecords<T>(entities: [T], completion: @escaping ((Result<[String], ZCacheError>) -> Void))
+    public func deleteRecords<T>(entities: [T], completion: @escaping ((DataResponseCallback<ZCacheResponse, [String]>) -> Void))
     {
         
     }
     
-    public func deleteAllRecords(ids: [String], completion: @escaping ((Result<[String], ZCacheError>) -> Void))
+    public func deleteAllRecords(ids: [String], completion: @escaping ((DataResponseCallback<ZCacheResponse, [String]>) -> Void))
     {
         
     }
     
-    public func getRecords<T>(params: [String], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    public func getRecordsFromServer<T>(params: [String], completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
     {
         
     }
     
-    public func getRecordsFromServer<T>(params: [String], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
-    {
-        
-    }
-    
-    public func getDeletedRecords<T>(params: [String], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
-    {
-        
-    }
-    
-    public func getDeletedRecordsFromServer<T>(params: [String], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    public func getDeletedRecordsFromServer<T>(params: [String], completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
     {
         
     }

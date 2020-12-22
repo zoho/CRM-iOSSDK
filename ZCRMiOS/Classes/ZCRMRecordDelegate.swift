@@ -24,7 +24,6 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
         case layoutId
         case moduleAPIName
         case label
-        case Parent_Id
     }
     
     private struct CustomCodingKeys: CodingKey
@@ -44,33 +43,22 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
     required public init(from decoder: Decoder) throws
     {
         let values = try decoder.container(keyedBy: CodingKeys.self)
-        let hasParentId = values.allKeys.contains(.Parent_Id)
-        if hasParentId
-        {
-            try ZCRMSubformRecord(from: decoder)
-            id = String()
-            moduleName = String()
-            moduleAPIName = String()
-        }
-        else
-        {
-            id = try values.decode(String.self, forKey: .id)
-            moduleName = try values.decode(String.self, forKey: .moduleName)
-            layoutId = try values.decodeIfPresent(String.self, forKey: .layoutId)
-            moduleAPIName = try values.decode(String.self, forKey: .moduleAPIName)
-            label = try values.decodeIfPresent(String.self, forKey: .label)
+        id = try values.decode(String.self, forKey: .id)
+        moduleName = try values.decode(String.self, forKey: .moduleName)
+        layoutId = try values.decodeIfPresent(String.self, forKey: .layoutId)
+        moduleAPIName = try values.decode(String.self, forKey: .moduleAPIName)
+        label = try values.decodeIfPresent(String.self, forKey: .label)
 
-            let dynamicValues = try! decoder.container(keyedBy: CustomCodingKeys.self)
-            for key in dynamicValues.allKeys
+        let dynamicValues = try! decoder.container(keyedBy: CustomCodingKeys.self)
+        for key in dynamicValues.allKeys
+        {
+            if let customKey = key.intValue
             {
-                if let customKey = key.intValue
-                {
-                    data[String(customKey)] = try! dynamicValues.decode(JSONValue.self, forKey: key)
-                }
-                else
-                {
-                    data[key.stringValue] = try! dynamicValues.decode(JSONValue.self, forKey: key)
-                }
+                data[String(customKey)] = try! dynamicValues.decode(JSONValue.self, forKey: key)
+            }
+            else
+            {
+                data[key.stringValue] = try! dynamicValues.decode(JSONValue.self, forKey: key)
             }
         }
     }

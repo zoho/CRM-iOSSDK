@@ -92,14 +92,14 @@ open class ZCRMLayout : ZCRMLayoutDelegate
         completion(.success(sections as! [T]))
     }
     
-    public override func getFieldFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    public override func getFieldFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
         var zcrmField: ZCRMField?
         for section in sections
         {
             for field in section.fields
             {
-                if field.id == withId
+                if field.id == id
                 {
                     zcrmField = field
                     break

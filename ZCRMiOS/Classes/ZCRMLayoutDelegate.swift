@@ -49,7 +49,7 @@ open class ZCRMLayoutDelegate : ZCRMEntity, ZCacheLayout
        
     }
     
-    public func getFieldFromServer<T>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    public func getFieldFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
         
     }
