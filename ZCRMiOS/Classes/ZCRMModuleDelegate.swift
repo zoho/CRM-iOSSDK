@@ -188,17 +188,67 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     
     public func createRecord<T>(record: T, completion: @escaping ((DataResponseCallback<ZCacheResponse, T>) -> Void))
     {
-        
+        let rec = record as! ZCRMRecord
+        print("<<< isRecordPresent: \(String(describing: try! rec.getValue(ofFieldAPIName: "Last_Name")))")
+        EntityAPIHandler( record : record as! ZCRMRecord ).createRecord(triggers: nil)
+        {
+            result in
+            switch result
+            {
+            case .success(let record, _):
+                do
+                {
+                    completion(.fromServer(info: nil, data: record as? T))
+                }
+            case .failure(let error):
+                do
+                {
+                    completion(.failure(error: ZCacheError.invalidError(code: ErrorCode.invalidData, message: error.description, details: nil)))
+                }
+            }
+        }
     }
     
     public func updateRecord<T>(record: T, completion: @escaping ((DataResponseCallback<ZCacheResponse, T>) -> Void))
     {
-        
+        EntityAPIHandler( recordDelegate : ZCRMRecordDelegate( id : id, moduleAPIName : self.apiName ) ).updateRecord(triggers: nil)
+        {
+            result in
+            switch result
+            {
+            case .success(let record, _):
+                do
+                {
+                    completion(.fromServer(info: nil, data: record as? T))
+                }
+            case .failure(let error):
+                do
+                {
+                    completion(.failure(error: ZCacheError.invalidError(code: ErrorCode.invalidData, message: error.description, details: nil)))
+                }
+            }
+        }
     }
     
     public func deleteRecord(id: String, completion: @escaping ((DataResponseCallback<ZCacheResponse, String>) -> Void))
     {
-        
+        EntityAPIHandler( recordDelegate : ZCRMRecordDelegate( id : id, moduleAPIName : self.apiName ) ).deleteRecord
+        {
+            result in
+            switch result
+            {
+            case .success(_):
+                do
+                {
+                    completion(.fromServer(info: nil, data: id))
+                }
+            case .failure(let error):
+                do
+                {
+                    completion(.failure(error: ZCacheError.invalidError(code: ErrorCode.invalidData, message: error.description, details: nil)))
+                }
+            }
+        }
     }
     
     public func createRecords<T>(entities: [T], completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
@@ -221,12 +271,12 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         
     }
     
-    public func getRecordsFromServer<T>(params: [String], completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
+    public func getRecordsFromServer<T>(params: ZCacheQuery.GetRecordParams, completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
     {
         
     }
     
-    public func getDeletedRecordsFromServer<T>(params: [String], completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
+    public func getDeletedRecordsFromServer<T>(params: ZCacheQuery.GetRecordParams, completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
     {
         
     }

@@ -17,6 +17,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         case isCreate
         case upsertJSON
+        case data
         case lineItems
         case priceDetails
         case participants
@@ -80,35 +81,54 @@ open class ZCRMRecord : ZCRMRecordDelegate
         createdTime = try! values.decodeIfPresent(String.self, forKey: .createdTime)
         modifiedTime = try! values.decodeIfPresent(String.self, forKey: .modifiedTime)
         
-        //        upsertJSON = try! values.decode(String.self, forKey: .upsertJSON)
+        do
+        {
+            let dynamicValues = try values.nestedContainer(keyedBy: CustomCodingKeys.self, forKey: .upsertJSON)
+            for key in dynamicValues.allKeys
+            {
+                if let customKey = key.intValue
+                {
+                    upsertJSON[String(customKey)] = try dynamicValues.decode(JSONValue.self, forKey: key)
+                }
+                else
+                {
+                    upsertJSON[key.stringValue] = try dynamicValues.decode(JSONValue.self, forKey: key)
+                }
+            }
+            
+            let dataValues = try values.nestedContainer(keyedBy: CustomCodingKeys.self, forKey: .data)
+            for key in dataValues.allKeys
+            {
+                if let customKey = key.intValue
+                {
+                    data[String(customKey)] = try dataValues.decode(JSONValue.self, forKey: key)
+                }
+                else
+                {
+                    data[key.stringValue] = try dataValues.decode(JSONValue.self, forKey: key)
+                }
+            }
+        }
+        catch
+        {
+            ZCRMLogger.logError(message: error.description)
+        }
     }
     
     open override func encode( to encoder : Encoder ) throws
     {
         try super.encode(to: encoder)
         
-//        var container = encoder.container( keyedBy : CodingKeys.self )
-//        try container.encode( self.isCreate, forKey : .isCreate )
-//        try container.encodeIfPresent( self.lineItems, forKey : .lineItems )
-//        try container.encodeIfPresent( self.priceDetails, forKey : .priceDetails )
-//        try container.encodeIfPresent( self.participants, forKey : .participants )
-//        try container.encodeIfPresent( self.subformRecord, forKey : .subformRecord )
-//        try container.encodeIfPresent( self.taxes, forKey : .taxes )
-//        try container.encodeIfPresent( self.lineTaxes, forKey : .lineTaxes )
-//        if let _ = tags?.isEmpty
-//        {
-//            try container.encodeIfPresent( self.tags, forKey : .tags )
-//        }
-//        try container.encodeIfPresent( self.dataProcessingBasisDetails, forKey : .dataProcessingBasisDetails )
-//        try container.encodeIfPresent( self.layout, forKey : .layout )
-//        try container.encode( self.owner, forKey : .owner )
-//        try container.encode( self.isOwnerSet, forKey : .isOwnerSet )
-//        try container.encodeIfPresent( self.createdBy, forKey : .createdBy )
-//        try container.encodeIfPresent( self.modifiedBy, forKey : .modifiedBy )
-//        try container.encodeIfPresent( self.createdTime, forKey : .createdTime )
-//        try container.encodeIfPresent( self.modifiedTime, forKey : .createdBy )
-        
         var customContainer = encoder.container(keyedBy: CustomCodingKeys.self)
+        for (key, value) in data
+        {
+            print("<<< REC_DEL2: \(key), \(value)")
+            if let customKey = CustomCodingKeys(stringValue: key)
+            {
+                try customContainer.encodeIfPresent( value, forKey : customKey )
+            }
+        }
+        
         for (key, value) in upsertJSON
         {
             if let customKey = CustomCodingKeys(stringValue: key)
@@ -123,6 +143,15 @@ open class ZCRMRecord : ZCRMRecordDelegate
             if let customKey = CustomCodingKeys(stringValue: key)
             {
                 try upsertJSONContainer.encodeIfPresent( value, forKey : customKey )
+            }
+        }
+        
+        var dataContainer = customContainer.nestedContainer(keyedBy: CustomCodingKeys.self, forKey: CustomCodingKeys(stringValue: "data")!)
+        for (key, value) in data
+        {
+            if let customKey = CustomCodingKeys(stringValue: key)
+            {
+                try dataContainer.encodeIfPresent( value, forKey : customKey )
             }
         }
     }

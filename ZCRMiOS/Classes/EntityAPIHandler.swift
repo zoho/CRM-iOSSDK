@@ -110,7 +110,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 let recordDetails : [ String : Any ] = try respData.getDictionary( key : APIConstants.DETAILS )
                 for ( key, value ) in self.record.upsertJSON
                 {
-                    self.record.data.updateValue( JSONValue(value: value), forKey : key )
+                    self.record.data.updateValue( value, forKey : key )
                 }
                 self.moduleFieldQueue.async {
                     self.setRecordProperties(recordDetails: recordDetails, completion: { ( recordResult ) in
@@ -171,7 +171,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 let recordDetails : [ String : Any ] = try respData.getDictionary( key : APIConstants.DETAILS )
                 for ( key, value ) in self.record.upsertJSON
                 {
-                    self.record.data.updateValue( JSONValue(value: value), forKey : key )
+                    self.record.data.updateValue( value, forKey : key )
                 }
                 self.moduleFieldQueue.async {
                     self.setRecordProperties(recordDetails: recordDetails, completion: { ( recordResult ) in
@@ -615,6 +615,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 }
                 else if let value = value?.value, value is ZCRMRecordDelegate, let record = value as? ZCRMRecordDelegate
                 {
+                    print("<<< MAP: \(key), \(value)")
                     recordJSON.updateValue( record.id, forKey : key )
                 }
                 else if let value = value?.value, value is [ ZCRMRecordDelegate ], let record = value as? [ ZCRMRecordDelegate ]
@@ -627,7 +628,11 @@ internal class EntityAPIHandler : CommonAPIHandler
                 }
                 else
                 {
-                    recordJSON.updateValue( value, forKey : key )
+                    if let value = value?.value
+                    {
+                        print("<<< MAP: \(key), \(value)")
+                        recordJSON.updateValue( value, forKey : key )
+                    }
                 }
             }
         }
@@ -1455,12 +1460,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                     }
                 }
                 else
-                {
-//                    if !(value is NSNull)
-//                    {
-//                        print("<<< VALUE: \(value)")
-//                        zcrmSubform.setValue( ofFieldAPIName : fieldAPIName, value : JSONValue(value: value) )
-//                    }
+                {                   
                     zcrmSubform.setValue( ofFieldAPIName : fieldAPIName, value : value )
                 }
             }
