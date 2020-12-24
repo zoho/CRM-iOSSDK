@@ -75,7 +75,6 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
         var customContainer = encoder.container(keyedBy: CustomCodingKeys.self)
         for (key, value) in data
         {
-            print("<<< REC_DEL1: \(key), \(value)")
             if let customKey = CustomCodingKeys(stringValue: key)
             {
                 try customContainer.encodeIfPresent( value, forKey : customKey )

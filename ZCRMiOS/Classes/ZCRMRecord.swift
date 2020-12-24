@@ -33,6 +33,12 @@ open class ZCRMRecord : ZCRMRecordDelegate
         case modifiedBy
         case createdTime
         case modifiedTime
+        
+        case offlineOwner
+        case offlineCreatedBy
+        case offlineModifiedBy
+        case offlineCreatedTime
+        case offlineModifiedTime
     }
     
     private struct CustomCodingKeys: CodingKey
@@ -81,6 +87,28 @@ open class ZCRMRecord : ZCRMRecordDelegate
         createdTime = try! values.decodeIfPresent(String.self, forKey: .createdTime)
         modifiedTime = try! values.decodeIfPresent(String.self, forKey: .modifiedTime)
         
+        if let value = try! values.decodeIfPresent(ZCRMUser.self, forKey: .offlineOwner)
+        {
+            print("<<< Setting offline owner...")
+            offlineOwner = value
+        }
+        if let value = try! values.decodeIfPresent(ZCRMUser.self, forKey: .offlineCreatedBy)
+        {
+            offlineCreatedBy = value
+        }
+        if let value = try! values.decodeIfPresent(ZCRMUser.self, forKey: .offlineModifiedBy)
+        {
+            offlineModifiedBy = value
+        }
+        if let value = try! values.decodeIfPresent(String.self, forKey: .offlineCreatedTime)
+        {
+            offlineCreatedTime = value
+        }
+        if let value = try! values.decodeIfPresent(String.self, forKey: .offlineModifiedTime)
+        {
+            offlineModifiedTime = value
+        }
+        
         do
         {
             let dynamicValues = try values.nestedContainer(keyedBy: CustomCodingKeys.self, forKey: .upsertJSON)
@@ -119,10 +147,22 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         try super.encode(to: encoder)
         
+        var container = encoder.container( keyedBy : CodingKeys.self )
+        
+        try self.offlineOwner?.encode(to: encoder)
+        let user = self.offlineOwner as? ZCRMUserDelegate
+        print("<<< Encoding user: \(self.offlineOwner), \(user)")
+        try! container.encodeIfPresent(self.offlineOwner as? ZCRMUserDelegate, forKey: .offlineOwner)
+        try! container.encodeIfPresent(self.offlineCreatedBy as? ZCRMUserDelegate, forKey: .offlineCreatedBy)
+        try! container.encodeIfPresent(self.offlineModifiedBy as? ZCRMUserDelegate, forKey: .offlineModifiedBy)
+        try! container.encodeIfPresent(self.offlineCreatedTime, forKey: .offlineCreatedTime)
+        try! container.encodeIfPresent(self.offlineModifiedTime, forKey: .offlineModifiedTime)
+        
+        print("<<< DATA: \(id), \(moduleName)")
+        
         var customContainer = encoder.container(keyedBy: CustomCodingKeys.self)
         for (key, value) in data
         {
-            print("<<< REC_DEL2: \(key), \(value)")
             if let customKey = CustomCodingKeys(stringValue: key)
             {
                 try customContainer.encodeIfPresent( value, forKey : customKey )
@@ -131,6 +171,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         
         for (key, value) in upsertJSON
         {
+            print("<<< DATA: \(key), \(value?.value)")
             if let customKey = CustomCodingKeys(stringValue: key)
             {
                 try customContainer.encodeIfPresent( value, forKey : customKey )

@@ -211,7 +211,8 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     
     public func updateRecord<T>(record: T, completion: @escaping ((DataResponseCallback<ZCacheResponse, T>) -> Void))
     {
-        EntityAPIHandler( recordDelegate : ZCRMRecordDelegate( id : id, moduleAPIName : self.apiName ) ).updateRecord(triggers: nil)
+        let rec = record as! ZCRMRecord
+        EntityAPIHandler( record: rec ).updateRecord(triggers: nil)
         {
             result in
             switch result
