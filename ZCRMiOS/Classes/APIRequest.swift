@@ -571,5 +571,5 @@
     private func useCache() -> Bool
     {
         return ( cacheFlavour.rawValue ==  CacheFlavour.forceCache.rawValue || ( ZCRMSDKClient.shared.isDBCacheEnabled && cacheFlavour.rawValue != CacheFlavour.noCache.rawValue ) )
-    }
+    } 
  }
