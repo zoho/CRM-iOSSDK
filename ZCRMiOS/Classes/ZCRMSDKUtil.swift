@@ -11,42 +11,42 @@ import ZCacheiOS
 
 public class ZCRMSDKUtil: ZCacheClient
 {
-    public func newInstance() -> ZCacheClient
+    public func new() -> ZCacheClient
     {
         return ZCRMSDKUtil()
     }
     
-    public func getModuleInstance() -> ZCacheModule
+    public func getModule() -> ZCacheModule
     {
         return ZCRMModule(apiName: APIConstants.STRING_MOCK, singularLabel: APIConstants.STRING_MOCK, pluralLabel: APIConstants.STRING_MOCK)
     }
     
-    public func getLayoutInstance() -> ZCacheLayout?
+    public func getLayout() -> ZCacheLayout?
     {
         return nil
     }
     
-    public func getSectionInstance() -> ZCacheSection?
+    public func getSection() -> ZCacheSection?
     {
         return nil
     }
     
-    public func getFieldInstance() -> ZCacheField
+    public func getField() -> ZCacheField
     {
         return ZCRMField(apiName: APIConstants.STRING_MOCK)
     }
     
-    public func getUserInstance() -> ZCacheUser
+    public func getUser() -> ZCacheUser
     {
         return ZCRMUser(emailId: APIConstants.STRING_MOCK)
     }
     
-    public func getRecordInstance(moduleName: String) -> ZCacheRecord
+    public func getRecord(moduleName: String) -> ZCacheRecord
     {
         return ZCRMRecord(moduleAPIName: moduleName)
     }
     
-    public func getEntityInstance(ofType type: DataType) -> ZCacheEntity
+    public func getEntity(ofType type: DataType) -> ZCacheEntity
     {
         if type == .subform
         {

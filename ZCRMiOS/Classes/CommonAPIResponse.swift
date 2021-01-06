@@ -7,9 +7,18 @@
 //
 
 import Foundation
+import ZCacheiOS
 
-public class CommonAPIResponse
+public class CommonAPIResponse: ZCacheResponse
 {
+    public var hasMoreRecords: Bool = false
+    
+    public var recordsCount: Int = 0
+    
+    public var json: [String : Any] = [:]
+    
+    public var zCacheEntityInfo: [ZCacheEntityResponse]?
+    
     internal var response : HTTPURLResponse?
     internal var responseJSON : [String:Any] = [String:Any]()
     internal var httpStatusCode : HTTPStatusCode?
@@ -109,6 +118,10 @@ public class CommonAPIResponse
         {
             self.info = try ResponseInfo( privateFields : self.responseJSON.getArrayOfDictionaries( key : APIConstants.PRIVATE_FIELDS ) )
         }
+        
+        hasMoreRecords = info?.moreRecords ?? false
+        recordsCount = info?.recordCount ?? 0
+        json = responseJSON
     }
     
     public func getInfo() -> ResponseInfo?
@@ -180,8 +193,8 @@ public class ResponseHeaders
 
 public class ResponseInfo
 {
-    private var moreRecords : Bool?
-    private var recordCount : Int?
+    var moreRecords : Bool?
+    var recordCount : Int?
     private var pageNo : Int?
     private var perPage : Int?
     private var fieldNameVsValue : [ String : Any ]?

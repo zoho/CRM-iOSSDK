@@ -274,7 +274,31 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     
     public func getRecordsFromServer<T>(params: ZCacheQuery.GetRecordParams, completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
     {
+        var recordParams = ZCRMQuery.GetRecordParams()
+        recordParams.page = params.page
+        recordParams.perPage = params.perPage
+        recordParams.modifiedSince = params.modifiedSince
+        recordParams.sortBy = params.sortByField
         
+        if let sortOrder = params.sortOrder, sortOrder == ZCacheiOS.SortOrder.ascending
+        {
+            recordParams.sortOrder = ZCRMiOS.SortOrder.ascending
+        }
+        else
+        {
+            recordParams.sortOrder = ZCRMiOS.SortOrder.descending
+        }
+        MassEntityAPIHandler( module : self ).getRecords( cvId : nil, filterId : nil, recordParams : recordParams )
+        {
+            ( result ) in
+            switch result
+            {
+            case .success(let records, let response):
+                completion(.fromServer(info: response, data: records as? [T]))
+            case .failure(let error):
+                completion(.failure(error: ZCacheError.invalidError(code: ErrorCode.invalidData, message: error.description, details: nil)))
+            }
+        }
     }
     
     public func getDeletedRecordsFromServer<T>(params: ZCacheQuery.GetRecordParams, completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))

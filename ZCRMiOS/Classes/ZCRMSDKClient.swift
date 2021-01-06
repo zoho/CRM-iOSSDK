@@ -117,22 +117,6 @@ public class ZCRMSDKClient
         {
             try ZCRMSDKClient.shared.createDB()
             try ZCRMSDKClient.shared.createTables()
-            
-            var configs = ZCacheConfigs(clientInstance: ZCRMSDKUtil())
-            configs.isDBCachingEnabled = true
-            configs.isOfflineCacheEnabled = true
-            configs.cacheableModules["Contacts"] = 100
-            
-            ZCache.shared.initialize(configs: configs) { result in
-                switch result {
-                case .success: do {
-                    ZCRMLogger.logError(message: "<<< ZCache SDK - Init success!")
-                }
-                case .failure(let error): do {
-                    ZCRMLogger.logError(message: "<<< ZCache SDK - Init failed! - \(error)")
-                }
-                }
-            }
         }
         catch
         {
@@ -346,23 +330,55 @@ public class ZCRMSDKClient
     
         public func showLogin(completion: @escaping ( ZCRMError? ) -> ())
         {
+            print("<<< showLogin...")
             if isUserSignedIn()
             {
+                self.initCacheSDK()
                 completion( nil )
             }
             else
             {
                 if self.isVerticalCRM
                 {
-                    self.zvcrmLoginHandler?.handleLogin { (success) in
+                    self.zvcrmLoginHandler?.handleLogin
+                    {
+                        (success) in
+                        self.initCacheSDK()
                         completion(success)
                     }
                 }
                 else
                 {
-                    self.zcrmLoginHandler?.handleLogin(completion: { (success) in
+                    self.zcrmLoginHandler?.handleLogin
+                    {
+                        (success) in
+                        self.initCacheSDK()
                         completion(success)
-                    })
+                    }
+                }
+            }
+        }
+    
+        private func initCacheSDK()
+        {
+            var configs = ZCacheConfigs(client: ZCRMSDKUtil())
+            configs.isDBCachingEnabled = true
+            configs.isOfflineCacheEnabled = true
+//            configs.isInitialDataDownloadEnabled = true
+            configs.perPageCount = 30
+            
+            configs.cacheableModules["Contacts"] = 1000
+            configs.cacheableModules["Accounts"] = 1000
+            configs.cacheableModules["Leads"] = 1000
+            
+            ZCache.shared.initialize(configs: configs) { result in
+                switch result {
+                case .success: do {
+                    ZCRMLogger.logError(message: "<<< ZCache SDK - Init success!")
+                }
+                case .failure(let error): do {
+                    ZCRMLogger.logError(message: "<<< ZCache SDK - Init failed! - \(error)")
+                }
                 }
             }
         }

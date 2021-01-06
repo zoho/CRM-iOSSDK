@@ -6,6 +6,7 @@
 //  Copyright © 2017 zohocrm. All rights reserved.
 //
 import Foundation
+import ZCacheiOS
 
 public class  APIResponse : CommonAPIResponse
 {
@@ -118,15 +119,22 @@ public class  APIResponse : CommonAPIResponse
     
     override func processDataResponse() throws
     {
+        self.zCacheEntityInfo = []
         var msgJSON : [ String : Any ] = responseJSON
         if responseJSON.hasValue( forKey : responseJSONRootKey ),
             let recordsArray : [ [ String : Any ] ] = responseJSON.optArrayOfDictionaries(key: responseJSONRootKey)
         {
             msgJSON = recordsArray[ 0 ]
+            
+            let individualResponse = try EntityResponse(entityResponseJSON: msgJSON)
+            self.zCacheEntityInfo?.append(individualResponse)
         }
         else if responseJSON.hasValue(forKey: responseJSONRootKey), let recordsDict : [ String : Any ] = responseJSON.optDictionary(key: responseJSONRootKey)
         {
             msgJSON = recordsDict
+            
+            let individualResponse = try EntityResponse(entityResponseJSON: msgJSON)
+            self.zCacheEntityInfo?.append(individualResponse)
         }
         if ( msgJSON.hasValue( forKey : APIConstants.MESSAGE ) )
         {
@@ -146,7 +154,8 @@ public class  APIResponse : CommonAPIResponse
                 ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(message ?? "There is no message to display"), \( APIConstants.DETAILS ) : -")
                 throw ZCRMError.processingError( code : msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message: message ?? "There is no message to display", details : nil )
             }
-        } 
+        }
+        
     }
 } // end of class
 
@@ -281,6 +290,7 @@ public class BulkAPIResponse : CommonAPIResponse
     
     override func processDataResponse() throws
     {
+        self.zCacheEntityInfo = []
         if(self.responseJSON.hasValue( forKey : responseJSONRootKey ) )
         {
             if let recordsArray : [ [ String : Any ] ] = responseJSON.optArray( key : responseJSONRootKey ) as? [ [ String : Any ] ]
@@ -291,6 +301,7 @@ public class BulkAPIResponse : CommonAPIResponse
                     {
                         let individualResponse : EntityResponse = try EntityResponse( entityResponseJSON : recordJSON )
                         self.bulkEntityResponses.append(individualResponse)
+                        self.zCacheEntityInfo?.append(individualResponse)
                     }
                 }
             }
@@ -306,6 +317,7 @@ public class BulkAPIResponse : CommonAPIResponse
                             {
                                 let individualResponse : EntityResponse = try EntityResponse( entityResponseJSON : recordJSON )
                                 self.bulkEntityResponses.append(individualResponse)
+                                self.zCacheEntityInfo?.append(individualResponse)
                             }
                         }
                     }
@@ -369,21 +381,29 @@ public class BulkAPIResponse : CommonAPIResponse
     }
 }
 
-public class EntityResponse
+public class EntityResponse: ZCacheEntityResponse
 {
+    public var id: String = String()
+        
+    public var details: [String : Any] = [:]
+    
+    public var zCacheEntity: ZCacheEntity?
+    
+    public var apiStatus: Status
+    
     private var responseJSON : [String:Any]
     private var status : String
-    private var code : String
-    private var message : String
+    public var code : String
+    public var message : String
     private var data : ZCRMEntity?
     private var upsertedDetails : [ String : String ] = [ String : String ]()
     
     init( entityResponseJSON : [ String : Any ] ) throws
     {
         self.responseJSON = entityResponseJSON
-        self.status = try entityResponseJSON.getString( key : APIConstants.STATUS )
-        self.code = try entityResponseJSON.getString( key : APIConstants.CODE )
-        self.message = try entityResponseJSON.getString( key : APIConstants.MESSAGE )
+        self.status = entityResponseJSON.optString( key : APIConstants.STATUS ) ?? String()
+        self.code = entityResponseJSON.optString( key : APIConstants.CODE ) ?? String()
+        self.message = entityResponseJSON.optString( key : APIConstants.MESSAGE ) ?? String()
         if entityResponseJSON.hasValue( forKey : APIConstants.ACTION )
         {
             self.upsertedDetails[ "\( APIConstants.ACTION )" ] = entityResponseJSON[ APIConstants.ACTION ] as? String
@@ -392,6 +412,16 @@ public class EntityResponse
         if entityResponseJSON.hasValue( forKey : APIConstants.DUPLICATE_FIELD )
         {
             self.upsertedDetails[ "\( APIConstants.DUPLICATE_FIELD )" ] = entityResponseJSON[ APIConstants.DUPLICATE_FIELD ] as? String
+        }
+        
+        self.details = self.responseJSON
+        if status == APIConstants.CODE_SUCCESS
+        {
+            self.apiStatus = Status.success
+        }
+        else
+        {
+            self.apiStatus = Status.error
         }
     }
     
