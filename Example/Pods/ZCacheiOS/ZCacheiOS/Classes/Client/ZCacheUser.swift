@@ -7,8 +7,21 @@
 
 import Foundation
 
-public protocol ZCacheUser {
-    var id: String { get set }
-    var moduleName: String { get set }
-    var orgId: String? { get set }
+public protocol ZCacheUser: ZCacheEntity
+{
+    var id: String
+    {
+        get
+        set
+    }
+    var moduleName: String
+    {
+        get
+        set
+    }
+    var orgId: String?
+    {
+        get
+        set
+    }
 }

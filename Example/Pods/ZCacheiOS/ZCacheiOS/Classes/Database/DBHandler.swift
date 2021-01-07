@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 @available(iOS 12.0, *)
 struct DBHandler
 {
@@ -16,26 +15,22 @@ struct DBHandler
         
     }
     
+    func closeDB()
+    {
+        ZCache.database?.closeDB()
+    }
+    
     func execSQL(query: String) throws {
         try ZCache.database?.execSQL( dbCommand : query )
     }
     
     func rawQuery(query: String) throws -> OpaquePointer? {
-        let op = try ZCache.database?.rawQuery( dbCommand : query )
-        
-        if sqlite3_step(op) == SQLITE_ROW
-        {
-            return op
-        }
-        else
-        {
-            return nil
-        }
+        return try ZCache.database?.rawQuery( dbCommand : query )
     }
     
     func create( tableName : String, columns : [ Column ] ) throws
     {
-        let createStatement = "\( DBConstant.DML_CREATE ) TABLE IF NOT EXISTS (\( getColumnsAsStringArray( columns : columns ).joined( separator : ", " ) ));"
+        let createStatement = "\( DBConstant.DML_CREATE ) TABLE IF NOT EXISTS \(tableName) (\( getColumnsAsStringArray( columns : columns ).joined( separator : ", " ) ));"
         try ZCache.database?.execSQL( dbCommand : createStatement )
     }
     
@@ -77,7 +72,11 @@ struct DBHandler
         var columnVsValue = [ String ]()
         for contentValue in contentValues
         {
-            columnVsValue.append( "\( contentValue.columnName ) = \( contentValue.value ?? "" )" )
+            if let stringValue = contentValue.value
+            {
+                let newString = stringValue.replacingOccurrences(of: "'", with: "''", options: .literal, range: nil)
+                columnVsValue.append( "\( contentValue.columnName ) = \( "\'\(newString)\'" )" )
+            }
         }
         return columnVsValue.joined( separator : ", " )
     }

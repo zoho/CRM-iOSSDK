@@ -7,15 +7,23 @@
 
 import Foundation
 
-public protocol ZCacheSection {
+public protocol ZCacheSection: ZCacheEntity
+{
+    var id: String?
+    {
+        get
+        set
+    }
     
-    var id: String? { get set }
+    var apiName: String
+    {
+        get
+        set
+    }
     
-    var apiName: String { get set }
-    
-    func getFields<T: ZCacheField>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    func getFieldFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
 
-    func getFieldsFromServer<T: ZCacheField>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    func getFieldsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
 
-    func getFieldsFromServer<T: ZCacheField>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
 }

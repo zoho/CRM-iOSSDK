@@ -7,18 +7,16 @@
 
 import Foundation
 
-public protocol ZCacheTrashRecord {
+public protocol ZCacheTrashRecord: ZCacheEntity {
     var id: String { get set }
     
     var moduleName: String { get set }
 
-    associatedtype User
-    var offlineDeletedBy: User? { get set }
+    var offlineDeletedBy: ZCacheUser? { get set }
 
     var offlineDeletedTime: String? { get set }
 
-    associatedtype TrashRecord
-    var associatedDeletedRecords: [TrashRecord]? { get set }
+    var associatedDeletedRecords: [ZCacheTrashRecord]? { get set }
 
 //    var lookUpRecords: List<LookUpRecord>? { get set }
 

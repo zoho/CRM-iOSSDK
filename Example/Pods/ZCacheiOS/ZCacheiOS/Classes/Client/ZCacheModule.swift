@@ -7,64 +7,51 @@
 
 import Foundation
 
-public protocol ZCacheModule: Codable {
+public protocol ZCacheModule: ZCacheEntity
+{
     var id: String { get set }
+    
     var apiName: String { get set }
+    
     var isApiSupported: Bool { get set }
     
     // Layout contracts
+    func getLayoutFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     
-    func getLayout<T: ZCacheLayout>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
-    
-    func getLayoutFromServer<T: ZCacheLayout>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
-    
-    func getLayouts<T: ZCacheLayout>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
-   
-    func getLayoutsFromServer<T: ZCacheLayout>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    func getLayoutsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
 
-    func getLayoutsFromServer<T: ZCacheLayout>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    func getLayoutsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     
     // Field contracts
+    func getFieldFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     
-    func getField<T: ZCacheField>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
-   
-    func getFieldFromServer<T: ZCacheField>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    func getFieldsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     
-    func getFields<T: ZCacheField>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
-    
-    func getFieldsFromServer<T: ZCacheField>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
-    
-    func getFieldsFromServer<T: ZCacheField>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     
     // Record contracts
     
-    func execute<T: ZCacheRecord>(query: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
-    
-    func getRecord<T: ZCacheRecord>(witId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    func execute<T>(query: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
 
-    func getRecordFromServer<T: ZCacheRecord>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    func getRecordFromServer<T>(id: String, completion: @escaping ((DataResponseCallback<ZCacheResponse, T>) -> Void))
     
-    func createRecord<T: ZCacheRecord>(record: ZCacheRecord, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    func createRecord<T>(record: T, completion: @escaping ((DataResponseCallback<ZCacheResponse, T>) -> Void))
     
-    func updateRecord<T: ZCacheRecord>(record: ZCacheRecord, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    func updateRecord<T>(record: T, completion: @escaping ((DataResponseCallback<ZCacheResponse, T>) -> Void))
     
-    func deleteRecord(withId: String, completion: @escaping ((Result<String, ZCacheError>) -> Void))
+    func deleteRecord(id: String, completion: @escaping ((DataResponseCallback<ZCacheResponse, String>) -> Void))
     
-    func createRecords<T: ZCacheRecord>(entities: [T], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    func createRecords<T>(entities: [T], completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
     
-    func updateRecords<T: ZCacheRecord>(entities: [T], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    func updateRecords<T>(entities: [T], completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
     
-    func deleteRecords<T: ZCacheRecord>(entities: [T], completion: @escaping ((Result<[String], ZCacheError>) -> Void))
+    func deleteRecords<T>(entities: [T], completion: @escaping ((DataResponseCallback<ZCacheResponse, [String]>) -> Void))
     
-    func deleteAllRecords(ids: [String], completion: @escaping ((Result<[String], ZCacheError>) -> Void))
+    func deleteAllRecords(ids: [String], completion: @escaping ((DataResponseCallback<ZCacheResponse, [String]>) -> Void))
     
-    func getRecords<T: ZCacheRecord>(params: [String], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    func getRecordsFromServer<T>(params: ZCacheQuery.GetRecordParams, completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
     
-    func getRecordsFromServer<T: ZCacheRecord>(params: [String], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
-    
-    func getDeletedRecords<T: ZCacheRecord>(params: [String], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
-    
-    func getDeletedRecordsFromServer<T: ZCacheRecord>(params: [String], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    func getDeletedRecordsFromServer<T>(params: ZCacheQuery.GetRecordParams, completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
   
 }
 
@@ -72,37 +59,37 @@ extension ZCacheModule {
     
     // Record contracts
     
-    func restoreRecord<T: ZCacheRecord>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    func restoreRecord<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
 
     }
 
-    func restoreRecords<T: ZCacheRecord>(ids: [String], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    func restoreRecords<T>(ids: [String], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
 
     }
 
-    func resetRecord<T: ZCacheRecord>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    func resetRecord<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
 
     }
 
-    func resetRecords<T: ZCacheRecord>(ids: [String], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    func resetRecords<T>(ids: [String], completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
 
     }
 
-    func getUnSyncedRecords<T: ZCacheRecord>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    func getUnSyncedRecords<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
-
+        
     }
     
-    func getSyncFailedRecords<T: ZCacheRecord>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    func getSyncFailedRecords<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
 
     }
 
-    func clearTrash<T: ZCacheRecord>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    func clearTrash<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
     {
 
     }

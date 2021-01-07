@@ -9,17 +9,17 @@
     "file": "LICENSE"
   },
   "authors": {
-    "RajarajanK": "rajarajan.k@zohocorp.com"
+    "rajarajank": "rajarajan.k@zohocorp.com"
   },
   "source": {
     "git": "https://git.csez.zohocorpin.com/zoho-crm/ios_cache_framework.git",
     "tag": "0.1.0"
   },
-  "swift_versions": "5.0",
+  "swift_versions": "4.0",
   "platforms": {
     "ios": "12.0"
   },
   "source_files": "ZCacheiOS/Classes/**/*",
   "public_header_files": "ZCacheiOS/**/*.h",
-  "swift_version": "5.0"
+  "swift_version": "4.0"
 }

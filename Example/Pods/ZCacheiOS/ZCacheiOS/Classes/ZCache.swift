@@ -11,18 +11,27 @@ import Foundation
 public struct ZCache
 {
     internal static var database : SQLite?
+    internal static var configs = ZCacheConfigs()
+    
     public static let shared = ZCache()
-    
-    private init() {}
-    
-    public func initialize(completion: @escaping (VoidResult) -> Void)
+    private init()
     {
-        do {
+
+    }
+    
+    public func initialize(configs: ZCacheConfigs, completion: @escaping (VoidResult) -> Void)
+    {
+        do
+        {
+            ZCache.configs = configs
             ZCache.database = try SQLite()
+            TableDBHandler().createTables()
             NetworkMonitor.shared.startMonitoring()
+            ZCacheLogger.initLogger(isLogEnabled: true, minLogLevel: configs.minLogLevel)
             completion(.success)
-            
-        } catch {
+        }
+        catch
+        {
             completion(.failure(ZCacheError.invalidError(code: ErrorCode.internalError, message: ErrorMessage.cacheNotInitialised, details: nil)))
         }
     }

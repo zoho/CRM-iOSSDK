@@ -12,4 +12,4 @@ struct ContentValues
     var sequenceNumber : Int
     var columnName : String
     var value : String?
-}
+} 

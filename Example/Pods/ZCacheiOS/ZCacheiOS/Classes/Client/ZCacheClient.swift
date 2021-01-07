@@ -9,35 +9,31 @@ import Foundation
 
 public protocol ZCacheClient {
     
+    // Instance contracts
+    func new() -> ZCacheClient
+    func getUser() -> ZCacheUser
+    func getModule() -> ZCacheModule
+    func getLayout() -> ZCacheLayout?
+    func getSection() -> ZCacheSection?
+    func getField() -> ZCacheField
+    func getRecord(moduleName: String) -> ZCacheRecord
+    func getEntity(ofType type: DataType) -> ZCacheEntity
+
     // Module contracts
-    
-    func getModules<T: ZCacheModule>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
-    
-    func getModulesFromServer<T: ZCacheModule>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
-    
-    func getModulesFromServer<T: ZCacheModule>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
-    
-    func getModule<T: ZCacheModule>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
-    
-    func getModuleFromServer<T: ZCacheModule>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    func getModuleFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
    
-    func getModule<T: ZCacheModule>(withName: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    func getModuleFromServer<T>(withName: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     
-    func getModuleFromServer<T: ZCacheModule>(withName: String, modifiedSince: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    func getModulesFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    
+    func getModulesFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
    
     // User contracts
-    
-    func getUsers<T: ZCacheUser>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
-    
-    func getUsersFromServer<T: ZCacheUser>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    func getUsersFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
    
-    func getUser<T: ZCacheUser>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    func getUserFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
    
-    func getUserFromServer<T: ZCacheUser>(withId: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
-   
-    func getCurrentUser<T: ZCacheUser>(completion: @escaping ((Result<T, ZCacheError>) -> Void))
-   
-    func getCurrentUserFromServer<T: ZCacheUser>(completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    func getCurrentUserFromServer<T>(completion: @escaping ((Result<T, ZCacheError>) -> Void))
     
 }
 

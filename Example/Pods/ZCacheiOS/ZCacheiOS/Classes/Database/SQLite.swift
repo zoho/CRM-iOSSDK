@@ -21,7 +21,7 @@ struct SQLite
     {
         dbURL =  try FileManager.default.url( for :  .documentDirectory, in : .userDomainMask, appropriateFor : nil, create : true )
         dbURL.appendPathComponent( "zCacheSDK.db" )
-        ZCacheLogger.logInfo( message : "Database created in path \( dbURL.absoluteString )" )
+        ZCacheLogger.logError( message : "Database created in path \( dbURL.absoluteString )" )
     }
     
     private mutating func openDB() throws
@@ -142,12 +142,7 @@ struct SQLite
     
     private func getColumnsAsString( contentValues : [ ContentValues ] ) -> String
     {
-        var columns = ""
-        for contentValue in contentValues
-        {
-            columns = columns + contentValue.columnName
-        }
-        return columns
+        return (contentValues.map{ $0.columnName }).joined(separator: ", ")
     }
     
     mutating func noOfRows( tableName : String ) throws -> Int

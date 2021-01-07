@@ -25,11 +25,11 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   ZCacheiOS:
-    :commit: 3061e77a788ac3294acd87c21bde673e99e99640
+    :commit: aa0c090d4f91cf0dfb28eec5ce181194bdcfaaa9
     :git: https://git.csez.zohocorpin.com/zoho-crm/ios_cache_framework.git
 
 SPEC CHECKSUMS:
-  ZCacheiOS: 47284305dcf170201d813dd7c2a8792c4a3318fa
+  ZCacheiOS: a5be9810c54f8b7b66dc0a81427c05817c2faa69
   ZCRMiOS: 7cbf33802d8d478b034e69d8b4697f024f1e0b5c
   ZohoAuth: e197f454c4ee6d05d1e7396cf2a5a766ec6c4ab6
   ZohoPortalAuth: d642a6f5a6891c6c0855e39ce88c800188637ce6

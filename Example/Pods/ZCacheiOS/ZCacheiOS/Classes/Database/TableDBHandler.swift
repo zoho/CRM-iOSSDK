@@ -8,12 +8,15 @@
 import Foundation
 
 @available(iOS 12.0, *)
-struct TableDBHandler {
-    
+class TableDBHandler
+{
     let dbHandler = DBHandler()
+    var modules = [String]()
     
-    func createTables() {
+    func createTables()
+    {
         createModulesTable()
+        createCurrentUserTable()
         createUsersTable()
         createLayoutsTable()
         createModuleFieldsTable()
@@ -25,65 +28,99 @@ struct TableDBHandler {
         createSyncFailedRecordsTable()
         createDynamicModulesTable()
         createLastSyncedTimeTable()
+        
+        ZCacheLogger.logInfo(message: "<<< Created tables.")
     }
     
-    func createModulesTable() {
-        do {
+    func createModulesTable()
+    {
+        do
+        {
             let idColumn = Column(name: "ID", dataType: "VARCHAR", constraint: ["NOT NULL"])
             let nameColumn = Column(name: "NAME", dataType: "VARCHAR", constraint: ["PRIMARY KEY NOT NULL"])
             let dataColumn = Column(name: "DATA", dataType: "VARCHAR", constraint: ["NOT NULL"])
             let isModifiedColumn = Column(name: "IS_MODIFIED", dataType: "VARCHAR", constraint: ["DEFAULT 0"])
             let hasDataChangesColumn = Column(name: "HAS_DATA_CHANGES", dataType: "VARCHAR", constraint: ["DEFAULT 0"])
-            let lastDataSyncedTimeColumn = Column(name: "LAST_DATA_SYNCED_TIME", dataType: "VARCHAR", constraint: nil)
+            let lastDataSyncedTimeColumn = Column(name: "LAST_DATA_SYNCED_TIME", dataType: "VARCHAR", constraint: ["DEFAULT \"\(getCurrentDateTime())\""])
             let isDataModifiedColumn = Column(name: "IS_DATA_MODIFIED", dataType: "VARCHAR", constraint: ["DEFAULT 0"])
             
             let columns = [idColumn, nameColumn, dataColumn, isModifiedColumn, hasDataChangesColumn, lastDataSyncedTimeColumn, isDataModifiedColumn]
             
             try dbHandler.create(tableName: "_MODULES", columns: columns)
             
-        } catch let sqliteError {
+        }
+        catch let sqliteError
+        {
             ZCacheLogger.logError(message: sqliteError.description)
         }
     }
     
-    func createUsersTable() {
-        do {
+    func createCurrentUserTable()
+    {
+        do
+        {
             let idColumn = Column(name: "ID", dataType: "VARCHAR", constraint: ["PRIMARY KEY", "NOT NULL"])
             let orgIdColumn = Column(name: "ORG_ID", dataType: "VARCHAR", constraint: nil)
             let moduleNameColumn = Column(name: "MODULE_NAME", dataType: "VARCHAR", constraint: ["NOT NULL"])
             let dataColumn = Column(name: "DATA", dataType: "VARCHAR", constraint: ["NOT NULL"])
             
-            let isCurrentUserColumn = Column(name: "IS_CURRENT_USER", dataType: "VARCHAR", constraint: ["DEFAULT 0"])
-            
             let entryTimeColumn = Column(name: "ENTRY_TIME", dataType: "DATETIME", constraint: nil)
             let expiryTimeColumn = Column(name: "EXPIRY_TIME", dataType: "DATETIME", constraint: nil)
             
-            let columns = [idColumn, orgIdColumn, moduleNameColumn, dataColumn, isCurrentUserColumn, entryTimeColumn, expiryTimeColumn]
+            let columns = [idColumn, orgIdColumn, moduleNameColumn, dataColumn, entryTimeColumn, expiryTimeColumn]
+            
+            try dbHandler.create(tableName: "_CURRENT_USER", columns: columns)
+            
+        }
+        catch let sqliteError
+        {
+            ZCacheLogger.logError(message: sqliteError.description)
+        }
+    }
+    
+    func createUsersTable()
+    {
+        do
+        {
+            let idColumn = Column(name: "ID", dataType: "VARCHAR", constraint: ["PRIMARY KEY", "NOT NULL"])
+            let orgIdColumn = Column(name: "ORG_ID", dataType: "VARCHAR", constraint: nil)
+            let moduleNameColumn = Column(name: "MODULE_NAME", dataType: "VARCHAR", constraint: ["NOT NULL"])
+            let dataColumn = Column(name: "DATA", dataType: "VARCHAR", constraint: ["NOT NULL"])
+            let entryTimeColumn = Column(name: "ENTRY_TIME", dataType: "DATETIME", constraint: nil)
+            let expiryTimeColumn = Column(name: "EXPIRY_TIME", dataType: "DATETIME", constraint: nil)
+            
+            let columns = [idColumn, orgIdColumn, moduleNameColumn, dataColumn, entryTimeColumn, expiryTimeColumn]
             
             try dbHandler.create(tableName: "_USERS", columns: columns)
             
-        } catch let sqliteError {
+        }
+        catch let sqliteError
+        {
             ZCacheLogger.logError(message: sqliteError.description)
         }
     }
     
-    func createLayoutsTable() {
-        do {
+    func createLayoutsTable()
+    {
+        do
+        {
             let idColumn = Column(name: "ID", dataType: "VARCHAR", constraint: ["PRIMARY KEY", "NOT NULL"])
             let dataColumn = Column(name: "DATA", dataType: "VARCHAR", constraint: ["NOT NULL"])
             let entryTimeColumn = Column(name: "ENTRY_TIME", dataType: "DATETIME", constraint: nil)
-            
             let columns = [idColumn, dataColumn, entryTimeColumn]
-            
             try dbHandler.create(tableName: "_LAYOUTS", columns: columns)
             
-        } catch let sqliteError {
+        }
+        catch let sqliteError
+        {
             ZCacheLogger.logError(message: sqliteError.description)
         }
     }
     
-    func createModuleFieldsTable() {
-        do {
+    func createModuleFieldsTable()
+    {
+        do
+        {
             let query = """
                 CREATE TABLE IF NOT EXISTS _MODULE_FIELDS
                 (
@@ -96,13 +133,17 @@ struct TableDBHandler {
             """
             try dbHandler.execSQL(query: query)
             
-        } catch let sqliteError {
+        }
+        catch let sqliteError
+        {
             ZCacheLogger.logError(message: sqliteError.description)
         }
     }
     
-    func createLayoutSectionsTable() {
-        do {
+    func createLayoutSectionsTable()
+    {
+        do
+        {
             let query = """
                 CREATE TABLE IF NOT EXISTS _LAYOUT_SECTIONS
                 (
@@ -116,13 +157,17 @@ struct TableDBHandler {
             """
             try dbHandler.execSQL(query: query)
             
-        } catch let sqliteError {
+        }
+        catch let sqliteError
+        {
             ZCacheLogger.logError(message: sqliteError.description)
         }
     }
     
-    func createLayoutFieldsTable() {
-        do {
+    func createLayoutFieldsTable()
+    {
+        do
+        {
             let query = """
                 CREATE TABLE IF NOT EXISTS _LAYOUT_FIELDS
                 (
@@ -135,13 +180,17 @@ struct TableDBHandler {
             """
             try dbHandler.execSQL(query: query)
             
-        } catch let sqliteError {
+        }
+        catch let sqliteError
+        {
             ZCacheLogger.logError(message: sqliteError.description)
         }
     }
     
-    func createSectionFieldsTable() {
-        do {
+    func createSectionFieldsTable()
+    {
+        do
+        {
             let query = """
                 CREATE TABLE IF NOT EXISTS _SECTION_FIELDS
                 (
@@ -154,13 +203,17 @@ struct TableDBHandler {
             """
             try dbHandler.execSQL(query: query)
             
-        } catch let sqliteError {
+        }
+        catch let sqliteError
+        {
             ZCacheLogger.logError(message: sqliteError.description)
         }
     }
     
-    func createTrashRecordsTable() {
-        do {
+    func createTrashRecordsTable()
+    {
+        do
+        {
             let idColumn = Column(name: "ID", dataType: "VARCHAR", constraint: ["PRIMARY KEY", "NOT NULL"])
             let moduleNameColumn = Column(name: "MODULE_NAME", dataType: "VARCHAR", constraint: ["NOT NULL"])
             let deletedByColumn = Column(name: "DELETED_BY", dataType: "VARCHAR", constraint: nil)
@@ -175,13 +228,17 @@ struct TableDBHandler {
             
             try dbHandler.create(tableName: "_TRASH_RECORDS", columns: columns)
             
-        } catch let sqliteError {
+        }
+        catch let sqliteError
+        {
             ZCacheLogger.logError(message: sqliteError.description)
         }
     }
     
-    func createLookUpRecordsTable() {
-        do {
+    func createLookUpRecordsTable()
+    {
+        do
+        {
             let query = """
                 CREATE TABLE IF NOT EXISTS _LOOKUP_RECORDS
                 (
@@ -199,14 +256,17 @@ struct TableDBHandler {
                 )
             """
             try dbHandler.execSQL(query: query)
-            
-        } catch let sqliteError {
+        }
+        catch let sqliteError
+        {
             ZCacheLogger.logError(message: sqliteError.description)
         }
     }
     
-    func createSyncFailedRecordsTable() {
-        do {
+    func createSyncFailedRecordsTable()
+    {
+        do
+        {
             let idColumn = Column(name: "ID", dataType: "VARCHAR", constraint: ["PRIMARY KEY", "NOT NULL"])
             let moduleNameColumn = Column(name: "MODULE_NAME", dataType: "VARCHAR", constraint: ["NOT NULL"])
             let errorCodeColumn = Column(name: "ERROR_CODE", dataType: "VARCHAR", constraint: ["NOT NULL"])
@@ -217,28 +277,120 @@ struct TableDBHandler {
             
             try dbHandler.create(tableName: "_SYNC_FAILED_RECORDS", columns: columns)
             
-        } catch let sqliteError {
+        }
+        catch let sqliteError
+        {
             ZCacheLogger.logError(message: sqliteError.description)
         }
     }
     
-    func createDynamicModulesTable() {
-        do {
+    func createDynamicModulesTable()
+    {
+        do
+        {
             let column = Column(name: "NAME", dataType: "VARCHAR", constraint: ["PRIMARY KEY NOT NULL"])
             try dbHandler.create(tableName: "_DYNAMIC_MODULES", columns: [column])
             
-        } catch let sqliteError {
+        }
+        catch let sqliteError
+        {
             ZCacheLogger.logError(message: sqliteError.description)
         }
     }
     
-    func createLastSyncedTimeTable() {
-        do {
+    func createLastSyncedTimeTable()
+    {
+        do
+        {
             let column = Column(name: "TIME", dataType: "VARCHAR", constraint: ["NOT NULL"])
             try dbHandler.create(tableName: "_LAST_META_SYNCED_TIME", columns: [column])
-            
-        } catch let sqliteError {
+        }
+        catch let sqliteError
+        {
             ZCacheLogger.logError(message: sqliteError.description)
+        }
+    }
+    
+    func createRecordTable(moduleName: String, ignoreLookUp: Bool = false, completion: ((VoidResult) throws -> Void)? = nil)
+    {
+        modules.append(moduleName)
+        let mOps = ZCache.getModuleOps(name: moduleName)
+        mOps.getFields
+        {
+            [self] (result: Result<[ZCacheField], ZCacheError>) -> Void in
+            switch result
+            {
+            case .success(let fields):
+                do
+                {
+                var fieldsFromServer = [String]()
+                for field in fields
+                {
+                    if field.lookupModules.isEmpty
+                    {
+                        if !field.type.rawValue.contains("LOOKUP")
+                        {
+                            fieldsFromServer.append("\(field.apiName) VARCHAR ")
+                        }
+                        else
+                        {
+                            fieldsFromServer.append("\(field.apiName) VARCHAR ")
+                            fieldsFromServer.append("\(field.apiName)_LOOKUP_MODULE VARCHAR ")
+                        }
+                    }
+                    else
+                    {
+                        let lUpModules = field.lookupModules
+                        if lUpModules.count == 1
+                        {
+                            if !ignoreLookUp && !modules.contains(lUpModules[0])
+                            {
+                                createRecordTable(moduleName: lUpModules[0], ignoreLookUp: ZCacheFieldOps(apiOps: field).shouldIgnoreLookUp())
+                            }
+                            fieldsFromServer.append("\(field.apiName) VARCHAR ")
+                        }
+                        else
+                        {
+                            for lUpModule in lUpModules
+                            {
+                                if !ignoreLookUp && !modules.contains(lUpModule)
+                                {
+                                    createRecordTable(moduleName: lUpModule, ignoreLookUp: ZCacheFieldOps(apiOps: field).shouldIgnoreLookUp())
+                                }
+                            }
+                            fieldsFromServer.append("\(field.apiName) VARCHAR ")
+                            fieldsFromServer.append("\(field.apiName)_LOOKUP_MODULE VARCHAR ")
+                        }
+                    }
+                }
+                    do
+                    {
+                        if let _ = try ZCache.database?.isTableExists(tableName: moduleName)
+                        {
+                            let list = (fieldsFromServer.map{ $0 }).joined(separator: ", ")
+                            let query = """
+                            CREATE TABLE IF NOT EXISTS \(moduleName) ( _ID VARCHAR PRIMARY KEY NOT NULL, _LAYOUT_ID VARCHAR, OFFLINE_OWNER VARCHAR, OFFLINE_CREATED_BY VARCHAR, OFFLINE_CREATED_TIME VARCHAR, OFFLINE_MODIFIED_BY VARCHAR, OFFLINE_MODIFIED_TIME VARCHAR, ENTRY_TIME DATETIME, IS_REC_AVAIL_IN_SERVER VARCHAR default 1, IS_OFFLINE_DATA VARCHAR default 0, API_OPERATION VARCHAR, actual_record_details VARCHAR, modified_record_details VARCHAR, \(list) )
+                            """
+                            ZCacheLogger.logInfo(message: "<<< Create \(moduleName) Table: \(query)")
+                            try dbHandler.execSQL(query: query)
+                            try completion?(.success)
+                        }
+                        else
+                        {
+                            try completion?(.success)
+                        }
+                    }
+                    catch let error
+                    {
+                        try? completion?(.failure(ZCacheError.sdkError(code: ErrorCode.dbError, message: error.description, details: nil)))
+                    }
+            }
+            case .failure(let error):
+                do
+                {
+                    ZCacheLogger.logError(message: error.description)
+                }
+            }
         }
     }
 }

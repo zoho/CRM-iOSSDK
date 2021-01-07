@@ -1,6 +1,6 @@
 # ZCacheiOS
 
-[![CI Status](https://img.shields.io/travis/UmashriR/ZCacheiOS.svg?style=flat)](https://travis-ci.org/UmashriR/ZCacheiOS)
+[![CI Status](https://img.shields.io/travis/RajarajanK/ZCacheiOS.svg?style=flat)](https://travis-ci.org/RajarajanK/ZCacheiOS)
 [![Version](https://img.shields.io/cocoapods/v/ZCacheiOS.svg?style=flat)](https://cocoapods.org/pods/ZCacheiOS)
 [![License](https://img.shields.io/cocoapods/l/ZCacheiOS.svg?style=flat)](https://cocoapods.org/pods/ZCacheiOS)
 [![Platform](https://img.shields.io/cocoapods/p/ZCacheiOS.svg?style=flat)](https://cocoapods.org/pods/ZCacheiOS)
@@ -22,7 +22,7 @@ pod 'ZCacheiOS'
 
 ## Author
 
-UmashriR, umashri.r@zohocorp.com
+RajarajanK, rajarajan.k@zohocorp.com
 
 ## License
 
