@@ -252,6 +252,11 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
+    public func restoreRecordInServer<T>(id: String, completion: @escaping ((DataResponseCallback<ZCacheResponse, T>) -> Void))
+    {
+        
+    }
+    
     public func createRecords<T>(entities: [T], completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
     {
         
@@ -268,6 +273,11 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     }
     
     public func deleteAllRecords(ids: [String], completion: @escaping ((DataResponseCallback<ZCacheResponse, [String]>) -> Void))
+    {
+        
+    }
+    
+    public func restoreRecordsInServer<T>(ids: [String], completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
     {
         
     }
