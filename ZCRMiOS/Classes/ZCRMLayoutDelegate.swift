@@ -23,15 +23,15 @@ open class ZCRMLayoutDelegate : ZCRMEntity, ZCacheLayout
         case name
     }
     required public init(from decoder: Decoder) throws {
-        let container = try! decoder.container(keyedBy: Keys.self)
-        id = try! container.decode(String.self, forKey: .id)
-        name = try! container.decode(String.self, forKey: .name)
+        let container = try decoder.container(keyedBy: Keys.self)
+        id = try container.decode(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
     }
     open func encode( to encoder : Encoder ) throws
     {
         var container = encoder.container( keyedBy : Keys.self )
-        try! container.encode(self.id, forKey: .id)
-        try! container.encode(self.name, forKey: .name)
+        try container.encode(self.id, forKey: .id)
+        try container.encode(self.name, forKey: .name)
     }
     
     public func getSectionFromServer<T>(name: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))

@@ -22,13 +22,13 @@ open class ZCRMEventParticipant : ZCRMEntity, Codable
     }
     required public init(from decoder: Decoder) throws
     {
-        let values = try! decoder.container(keyedBy: CodingKeys.self)
+        let values = try decoder.container(keyedBy: CodingKeys.self)
         
-        email = try! values.decodeIfPresent(String.self, forKey: .email)
-        id = try! values.decode(Int64.self, forKey: .id)
-        type = try! values.decode(EventParticipantType.self, forKey: .type)
-        isInvited = try! values.decode(Bool.self, forKey: .isInvited)
-        status = try! values.decode(String.self, forKey: .status)
+        email = try values.decodeIfPresent(String.self, forKey: .email)
+        id = try values.decode(Int64.self, forKey: .id)
+        type = try values.decode(EventParticipantType.self, forKey: .type)
+        isInvited = try values.decode(Bool.self, forKey: .isInvited)
+        status = try values.decode(String.self, forKey: .status)
         
         switch type
         {

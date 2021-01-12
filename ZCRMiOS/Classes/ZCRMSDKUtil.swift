@@ -276,7 +276,7 @@ public class ZCRMSDKUtil: ZCacheClient
         }
     }
     
-    public func getModules( completion : @escaping( ResultType.DataResponse< [ ZCRMModule ], BulkAPIResponse > ) -> () )
+    public static func getModules( completion : @escaping( ResultType.DataResponse< [ ZCRMModule ], BulkAPIResponse > ) -> () )
     {
         MetaDataAPIHandler().getAllModules( modifiedSince : nil ) { ( result ) in
             completion( result )

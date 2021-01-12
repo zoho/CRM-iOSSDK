@@ -38,22 +38,22 @@ public class ZCRMSubformRecord : ZCRMEntity, ZCacheRecord
     
     required public init(from decoder: Decoder) throws
     {
-        let values = try! decoder.container(keyedBy: CodingKeys.self)
+        let values = try decoder.container(keyedBy: CodingKeys.self)
 
-        id = try! values.decode(String.self, forKey: .id)
-        name = try! values.decode(String.self, forKey: .name)
-        moduleName = try! values.decode(String.self, forKey: .moduleName)
+        id = try values.decode(String.self, forKey: .id)
+        name = try values.decode(String.self, forKey: .name)
+        moduleName = try values.decode(String.self, forKey: .moduleName)
     
-        let dynamicValues = try! decoder.container(keyedBy: CustomCodingKeys.self)
+        let dynamicValues = try decoder.container(keyedBy: CustomCodingKeys.self)
         for key in dynamicValues.allKeys
         {
             if let customKey = key.intValue
             {
-                data[String(customKey)] = try! dynamicValues.decode(JSONValue.self, forKey: key)
+                data[String(customKey)] = try dynamicValues.decode(JSONValue.self, forKey: key)
             }
             else
             {
-                data[key.stringValue] = try! dynamicValues.decode(JSONValue.self, forKey: key)
+                data[key.stringValue] = try dynamicValues.decode(JSONValue.self, forKey: key)
             }
         }
         

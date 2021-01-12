@@ -823,6 +823,18 @@ internal class ModuleAPIHandler : CommonAPIHandler
                     field.lookupModules = [moduleName]
                 }
             }
+            if !field.lookupModules.isEmpty && field.lookupModules[0] == "Accounts"
+            {
+                field.constraintType = ConstraintType.on_delete_cascade
+            }
+            else if field.apiName == "What_Id"
+            {
+                field.constraintType = ConstraintType.on_delete_cascade
+            }
+            else
+            {
+                field.constraintType = ConstraintType.on_delete_set_null
+            }
         }
         else if field.dataType == "bigint"
         {

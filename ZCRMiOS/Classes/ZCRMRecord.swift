@@ -89,7 +89,6 @@ open class ZCRMRecord : ZCRMRecordDelegate
         
         if let value = try! values.decodeIfPresent(ZCRMUser.self, forKey: .offlineOwner)
         {
-            print("<<< Setting offline owner...")
             offlineOwner = value
         }
         if let value = try! values.decodeIfPresent(ZCRMUser.self, forKey: .offlineCreatedBy)
@@ -133,7 +132,15 @@ open class ZCRMRecord : ZCRMRecordDelegate
                 }
                 else
                 {
-                    data[key.stringValue] = try dataValues.decode(JSONValue.self, forKey: key)
+                    if key.stringValue == "Product_Details"
+                    {
+                        let lineTems = try! dataValues.decodeIfPresent(JSONValue.self, forKey: key)
+                        lineItems = lineTems?.value as? [ZCRMInventoryLineItem]
+                    }
+                    else
+                    {
+                        data[key.stringValue] = try dataValues.decode(JSONValue.self, forKey: key)
+                    }
                 }
             }
         }
@@ -151,46 +158,42 @@ open class ZCRMRecord : ZCRMRecordDelegate
         
         try self.offlineOwner?.encode(to: encoder)
         let user = self.offlineOwner as? ZCRMUserDelegate
-        print("<<< Encoding user: \(self.offlineOwner), \(user)")
         try! container.encodeIfPresent(self.offlineOwner as? ZCRMUserDelegate, forKey: .offlineOwner)
         try! container.encodeIfPresent(self.offlineCreatedBy as? ZCRMUserDelegate, forKey: .offlineCreatedBy)
         try! container.encodeIfPresent(self.offlineModifiedBy as? ZCRMUserDelegate, forKey: .offlineModifiedBy)
         try! container.encodeIfPresent(self.offlineCreatedTime, forKey: .offlineCreatedTime)
         try! container.encodeIfPresent(self.offlineModifiedTime, forKey: .offlineModifiedTime)
         
-        print("<<< DATA: \(id), \(moduleName)")
-        
         var customContainer = encoder.container(keyedBy: CustomCodingKeys.self)
-        for (key, value) in data
+        for (key, jsonValue) in data
         {
-            if let customKey = CustomCodingKeys(stringValue: key)
+            if let customKey = CustomCodingKeys(stringValue: key), let value = jsonValue
             {
                 try customContainer.encodeIfPresent( value, forKey : customKey )
             }
         }
         
-        for (key, value) in upsertJSON
+        for (key, jsonValue) in upsertJSON
         {
-            print("<<< DATA: \(key), \(value?.value)")
-            if let customKey = CustomCodingKeys(stringValue: key)
+            if let customKey = CustomCodingKeys(stringValue: key), let value = jsonValue
             {
                 try customContainer.encodeIfPresent( value, forKey : customKey )
             }
         }
         
         var upsertJSONContainer = customContainer.nestedContainer(keyedBy: CustomCodingKeys.self, forKey: CustomCodingKeys(stringValue: "upsertJSON")!)
-        for (key, value) in upsertJSON
+        for (key, jsonValue) in upsertJSON
         {
-            if let customKey = CustomCodingKeys(stringValue: key)
+            if let customKey = CustomCodingKeys(stringValue: key), let value = jsonValue
             {
                 try upsertJSONContainer.encodeIfPresent( value, forKey : customKey )
             }
         }
         
         var dataContainer = customContainer.nestedContainer(keyedBy: CustomCodingKeys.self, forKey: CustomCodingKeys(stringValue: "data")!)
-        for (key, value) in data
+        for (key, jsonValue) in data
         {
-            if let customKey = CustomCodingKeys(stringValue: key)
+            if let customKey = CustomCodingKeys(stringValue: key), let value = jsonValue
             {
                 try dataContainer.encodeIfPresent( value, forKey : customKey )
             }

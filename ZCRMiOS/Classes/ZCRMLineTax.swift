@@ -16,12 +16,12 @@ open class ZCRMLineTax : ZCRMEntity, Codable
     }
     required public init(from decoder: Decoder) throws
     {
-        let values = try! decoder.container(keyedBy: CodingKeys.self)
+        let values = try decoder.container(keyedBy: CodingKeys.self)
         
-        name = try! values.decode(String.self, forKey: .name)
-        percentage = try! values.decode(Double.self, forKey: .percentage)
-        value = try! values.decode(Double.self, forKey: .value)
-        isValueSet = try! values.decode(Bool.self, forKey: .isValueSet)
+        name = try values.decode(String.self, forKey: .name)
+        percentage = try values.decode(Double.self, forKey: .percentage)
+        value = try values.decode(Double.self, forKey: .value)
+        isValueSet = try values.decode(Bool.self, forKey: .isValueSet)
     }
     open func encode( to encoder : Encoder ) throws
     {

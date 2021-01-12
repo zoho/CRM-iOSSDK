@@ -52,13 +52,18 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
         let dynamicValues = try! decoder.container(keyedBy: CustomCodingKeys.self)
         for key in dynamicValues.allKeys
         {
-            if let customKey = key.intValue
+            if key.stringValue != "data" && key.stringValue != "upsertJSON"
             {
-                data[String(customKey)] = try! dynamicValues.decode(JSONValue.self, forKey: key)
-            }
-            else
-            {
-                data[key.stringValue] = try! dynamicValues.decode(JSONValue.self, forKey: key)
+                if let customKey = key.intValue
+                {
+                    data[String(customKey)] = try! dynamicValues.decodeIfPresent(JSONValue.self, forKey: key)
+                }
+                else
+                {
+                    print("<<< KEY: \(key.stringValue)")
+
+                    data[key.stringValue] = try! dynamicValues.decodeIfPresent(JSONValue.self, forKey: key)
+                }
             }
         }
     }
@@ -77,6 +82,7 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
         {
             if let customKey = CustomCodingKeys(stringValue: key)
             {
+                print("<<< KEY: \(key), \(value)")
                 try customContainer.encodeIfPresent( value, forKey : customKey )
             }
         }
@@ -84,6 +90,7 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
         {
             if let customKey = CustomCodingKeys(stringValue: key)
             {
+                print("<<< KEY: \(key), \(value)")
                 try customContainer.encodeIfPresent( value, forKey : customKey )
             }
         }

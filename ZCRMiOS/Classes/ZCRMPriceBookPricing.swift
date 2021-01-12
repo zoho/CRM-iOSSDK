@@ -18,12 +18,12 @@ open class ZCRMPriceBookPricing : ZCRMEntity, Codable
     }
     required public init(from decoder: Decoder) throws
     {
-        let values = try! decoder.container(keyedBy: CodingKeys.self)
+        let values = try decoder.container(keyedBy: CodingKeys.self)
         
-        id = try! values.decode(Int64.self, forKey: .id)
-        toRange = try! values.decode(Double.self, forKey: .toRange)
-        fromRange = try! values.decode(Double.self, forKey: .fromRange)
-        discount = try! values.decode(Double.self, forKey: .discount)
+        id = try values.decode(Int64.self, forKey: .id)
+        toRange = try values.decode(Double.self, forKey: .toRange)
+        fromRange = try values.decode(Double.self, forKey: .fromRange)
+        discount = try values.decode(Double.self, forKey: .discount)
     }
     open func encode( to encoder : Encoder ) throws
     {

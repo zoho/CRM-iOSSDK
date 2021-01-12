@@ -13,8 +13,8 @@ open class ZCRMTaxDelegate : ZCRMEntity, Codable
     }
     required public init(from decoder: Decoder) throws
     {
-        let values = try! decoder.container(keyedBy: CodingKeys.self)
-        name = try! values.decode(String.self, forKey: .name)
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        name = try values.decode(String.self, forKey: .name)
     }
     open func encode( to encoder : Encoder ) throws
     {

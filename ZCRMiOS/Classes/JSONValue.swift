@@ -24,33 +24,96 @@ public struct JSONValue: Decodable {
     self.value = value
   }
 
-  public init(from decoder: Decoder) throws {
-    if let container = try? decoder.container(keyedBy: CodingKeys.self) {
-      var result = [String: Any?]()
-      try container.allKeys.forEach { (key) throws in
-        result[key.stringValue] = try container.decode(JSONValue.self, forKey: key).value
-      }
-      value = result
-    } else if var container = try? decoder.unkeyedContainer() {
+  public init(from decoder: Decoder) throws
+  {
+    let container = try? decoder.singleValueContainer()
+    if let recordVal = try? container?.decode(ZCRMRecordDelegate.self)
+    {
+        value = recordVal
+    }
+    else if let layoutVal = try? container?.decode(ZCRMLayoutDelegate.self)
+    {
+        value = layoutVal
+    }
+    else if let userVal = try? container?.decode(ZCRMUserDelegate.self)
+    {
+        value = userVal
+    }
+    else if let lineItemVal = try? container?.decode(ZCRMInventoryLineItem.self)
+    {
+        print("<<< LineItem: \(lineItemVal)")
+        value = lineItemVal
+    }
+    else if let priceBookVal = try? container?.decode(ZCRMPriceBookPricing.self)
+    {
+        value = priceBookVal
+    }
+    else if let eventParticipantVal = try? container?.decode(ZCRMEventParticipant.self)
+    {
+        value = eventParticipantVal
+    }
+    else if let taxVal = try? container?.decode(ZCRMTaxDelegate.self)
+    {
+        value = taxVal
+    }
+    else if let lineTaxVal = try? container?.decode(ZCRMLineTax.self)
+    {
+        value = lineTaxVal
+    }
+    else if let dataProcessBasisDetailsVal = try? container?.decode(ZCRMDataProcessBasisDetails.self)
+    {
+        value = dataProcessBasisDetailsVal
+    }
+    else if let subformVal = try? container?.decode(ZCRMSubformRecord.self)
+    {
+        value = subformVal
+    }
+    else if var container = try? decoder.unkeyedContainer()
+    {
       var result = [Any?]()
-      while !container.isAtEnd {
+        print("<<< LineItem unkeyedContainer")
+      while !container.isAtEnd
+      {
         result.append(try container.decode(JSONValue.self).value)
       }
       value = result
-    } else if let container = try? decoder.singleValueContainer() {
-      if let intVal = try? container.decode(Int.self) {
-        value = intVal
-      } else if let doubleVal = try? container.decode(Double.self) {
-        value = doubleVal
-      } else if let boolVal = try? container.decode(Bool.self) {
-        value = boolVal
-      } else if let stringVal = try? container.decode(String.self) {
-        value = stringVal
-      } else {
-        throw DecodingError.dataCorruptedError(in: container, debugDescription: "Could not serialise")
+    }
+    else if let container = try? decoder.container(keyedBy: CodingKeys.self)
+    {
+      var result = [String: Any?]()
+      try container.allKeys.forEach
+      {
+        (key) throws in
+        result[key.stringValue] = try container.decode(JSONValue.self, forKey: key).value
       }
-    } else {
-      throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Could not serialise"))
+      value = result
+    }
+    else if let container = try? decoder.singleValueContainer()
+    {
+        if let intVal = try? container.decode(Int.self)
+        {
+          value = intVal
+        }
+        else if let doubleVal = try? container.decode(Double.self)
+        {
+          value = doubleVal
+        }
+        else if let boolVal = try? container.decode(Bool.self)
+        {
+          value = boolVal
+        }
+        else if let stringVal = try? container.decode(String.self)
+        {
+          value = stringVal
+        }
+        else
+        {
+            value = nil
+        }
+    }
+    else
+    {
+        value = nil
     }
   }
 }
@@ -139,7 +202,8 @@ extension JSONValue: Encodable {
           }
           else
           {
-            throw EncodingError.invalidValue(value ?? "Nil Value.", EncodingError.Context.init(codingPath: [], debugDescription: "The value is not encodable"))
+            ZCRMLogger.logError(message: "<<< The value is not encodable: \(value ?? "Nil Value").")
+//            throw EncodingError.invalidValue(value ?? "Nil Value.", EncodingError.Context.init(codingPath: [], debugDescription: "The value is not encodable"))
           }
         }
     }

@@ -39,7 +39,6 @@ public class ZCRMSDKClient
         private var crmAppConfigs : Dictionary < String, Any >!
     
     internal var sessionCompletionHandlers : [ String : () -> () ] = [ String : () -> () ]()
-
     
     private init() {}
     
@@ -369,7 +368,7 @@ public class ZCRMSDKClient
             
             configs.cacheableModules["Contacts"] = 1000
             configs.cacheableModules["Accounts"] = 1000
-            configs.cacheableModules["Leads"] = 1000
+            configs.cacheableModules["Quotes"] = 1000
             
             ZCache.shared.initialize(configs: configs) { result in
                 switch result {

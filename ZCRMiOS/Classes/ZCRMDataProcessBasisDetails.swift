@@ -28,22 +28,22 @@ open class ZCRMDataProcessBasisDetails : ZCRMEntity, Codable
     }
     required public init(from decoder: Decoder) throws {
         
-        let values = try! decoder.container(keyedBy: CodingKeys.self)
+        let values = try decoder.container(keyedBy: CodingKeys.self)
         
-        communicationPreferences = try! values.decode([ CommunicationPreferences ].self, forKey: .communicationPreferences)
-        owner = try! values.decode(ZCRMUserDelegate.self, forKey: .owner)
-        modifiedTime = try! values.decode(String.self, forKey: .modifiedTime)
-        modifiedBy = try! values.decode(ZCRMUserDelegate.self, forKey: .modifiedBy)
-        createdTime = try! values.decode(String.self, forKey: .createdTime)
-        createdBy = try! values.decode(ZCRMUserDelegate.self, forKey: .createdBy)
-        mailSentTime = try! values.decodeIfPresent(String.self, forKey: .mailSentTime)
-        dataProcessingBasis = try! values.decode(String.self, forKey: .dataProcessingBasis)
-        id = try! values.decode(Int64.self, forKey: .id)
-        lawfulReason = try! values.decodeIfPresent(String.self, forKey: .lawfulReason)
-        consentDate = try! values.decodeIfPresent(String.self, forKey: .consentDate)
-        consentRemarks = try! values.decodeIfPresent(String.self, forKey: .consentRemarks)
-        consentEndsOn = try! values.decodeIfPresent(String.self, forKey: .consentEndsOn)
-        consentThrough = try! values.decodeIfPresent(ConsentThrough.Readable.self, forKey: .consentThrough)
+        communicationPreferences = try values.decode([ CommunicationPreferences ].self, forKey: .communicationPreferences)
+        owner = try values.decode(ZCRMUserDelegate.self, forKey: .owner)
+        modifiedTime = try values.decode(String.self, forKey: .modifiedTime)
+        modifiedBy = try values.decode(ZCRMUserDelegate.self, forKey: .modifiedBy)
+        createdTime = try values.decode(String.self, forKey: .createdTime)
+        createdBy = try values.decode(ZCRMUserDelegate.self, forKey: .createdBy)
+        mailSentTime = try values.decodeIfPresent(String.self, forKey: .mailSentTime)
+        dataProcessingBasis = try values.decode(String.self, forKey: .dataProcessingBasis)
+        id = try values.decode(Int64.self, forKey: .id)
+        lawfulReason = try values.decodeIfPresent(String.self, forKey: .lawfulReason)
+        consentDate = try values.decodeIfPresent(String.self, forKey: .consentDate)
+        consentRemarks = try values.decodeIfPresent(String.self, forKey: .consentRemarks)
+        consentEndsOn = try values.decodeIfPresent(String.self, forKey: .consentEndsOn)
+        consentThrough = try values.decodeIfPresent(ConsentThrough.Readable.self, forKey: .consentThrough)
     }
     open func encode( to encoder : Encoder ) throws
     {
