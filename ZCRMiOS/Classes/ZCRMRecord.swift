@@ -157,7 +157,6 @@ open class ZCRMRecord : ZCRMRecordDelegate
         var container = encoder.container( keyedBy : CodingKeys.self )
         
         try self.offlineOwner?.encode(to: encoder)
-        let user = self.offlineOwner as? ZCRMUserDelegate
         try! container.encodeIfPresent(self.offlineOwner as? ZCRMUserDelegate, forKey: .offlineOwner)
         try! container.encodeIfPresent(self.offlineCreatedBy as? ZCRMUserDelegate, forKey: .offlineCreatedBy)
         try! container.encodeIfPresent(self.offlineModifiedBy as? ZCRMUserDelegate, forKey: .offlineModifiedBy)

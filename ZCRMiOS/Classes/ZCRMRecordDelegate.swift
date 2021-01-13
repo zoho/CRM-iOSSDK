@@ -82,7 +82,7 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
         {
             if let customKey = CustomCodingKeys(stringValue: key)
             {
-                print("<<< KEY: \(key), \(value)")
+                print("<<< KEY: \(key), \(String(describing: value))")
                 try customContainer.encodeIfPresent( value, forKey : customKey )
             }
         }
@@ -90,7 +90,7 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
         {
             if let customKey = CustomCodingKeys(stringValue: key)
             {
-                print("<<< KEY: \(key), \(value)")
+                print("<<< KEY: \(key), \(String(describing: value))")
                 try customContainer.encodeIfPresent( value, forKey : customKey )
             }
         }
