@@ -215,6 +215,34 @@ public class ZCRMSDKUtil: ZCacheClient
         }
     }
     
+    public func searchFromServer<T>(key: String, fromModules: [String], completion: @escaping (DataResponseCallback<ZCacheResponse, [T]>) -> Void)
+    {
+        searchFromServer(key: key, fromModules: fromModules, page: 1, perPage: 200, completion: completion)
+    }
+    
+    public func searchFromServer<T>(key: String, fromModules: [String], page: Int, perPage: Int, completion: @escaping (DataResponseCallback<ZCacheResponse, [T]>) -> Void)
+    {
+        if !fromModules.isEmpty
+        {
+            let moduleDelegate = ZCRMSDKUtil.getModuleDelegate(apiName: fromModules[0])
+            moduleDelegate.searchBy(text: key, page: page, per_page: perPage)
+            {
+                result in
+                switch result
+                {
+                case .success(let records, let response):
+                    completion(.fromServer(info: response, data: records as? [T]))
+                case .failure(let error):
+                    completion(.failure(error: ZCacheError.processingError(code: ErrorCode.invalidData, message: error.description, details: nil)))
+                }
+            }
+        }
+        else
+        {
+            completion(.failure(error: ZCacheError.processingError(code: ErrorCode.invalidData, message: ErrorMessage.responseNilMsg, details: nil)))
+        }
+    }
+    
     public static func getModuleDelegate( apiName : String ) -> ZCRMModuleDelegate
     {
         return ZCRMModuleDelegate(apiName: apiName)
