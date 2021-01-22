@@ -62,7 +62,7 @@ open class ZCRMLayout : ZCRMLayoutDelegate
         try! container.encode(self.accessibleProfiles, forKey: .accessibleProfiles)
     }
     
-    public override func getSectionFromServer<T>(name: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    public override func getSectionFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
         var zcrmSection: ZCRMSection?
         for section in sections
