@@ -615,7 +615,6 @@ internal class EntityAPIHandler : CommonAPIHandler
                 }
                 else if let value = value?.value, value is ZCRMRecordDelegate, let record = value as? ZCRMRecordDelegate
                 {
-                    print("<<< MAP: \(key), \(value)")
                     recordJSON.updateValue( record.id, forKey : key )
                 }
                 else if let value = value?.value, value is [ ZCRMRecordDelegate ], let record = value as? [ ZCRMRecordDelegate ]
@@ -630,7 +629,6 @@ internal class EntityAPIHandler : CommonAPIHandler
                 {
                     if let value = value?.value
                     {
-                        print("<<< MAP: \(key), \(value)")
                         recordJSON.updateValue( value, forKey : key )
                     }
                 }
