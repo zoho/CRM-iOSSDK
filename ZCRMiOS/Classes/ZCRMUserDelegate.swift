@@ -45,7 +45,7 @@ open class ZCRMUserDelegate : ZCRMEntity, ZCacheUser
         self.name = name
     }
     
-    public func delete( completion : @escaping( ResultType.Response< APIResponse > ) -> () )
+    public func delete( completion : @escaping( CRMResultType.Response< APIResponse > ) -> () )
     {
         UserAPIHandler().deleteUser( userId : self.id ) { ( result ) in
             completion( result )

@@ -1338,7 +1338,7 @@ struct JSONRootKey {
 //MARK:  Result types can be handled in 2 ways:
 //MARK:  1) Handle Result Types either by calling Resolve()
 //MARK:  2) on them or use the traditional switch case pattern to handle success and failure seperately
-public struct ResultType {
+public struct CRMResultType {
     
     public enum DataURLResponse<Data: Any, Response: HTTPURLResponse>{
         case success(Data, Response)

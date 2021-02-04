@@ -62,14 +62,14 @@ open class ZCRMCurrency : ZCRMEntity
         }
     }
     
-    public func add( completion : @escaping ( ResultType.DataResponse< ZCRMCurrency, APIResponse > ) -> ())
+    public func add( completion : @escaping ( CRMResultType.DataResponse< ZCRMCurrency, APIResponse > ) -> ())
     {
         OrgAPIHandler().addCurrency( self ) { result in
             completion( result )
         }
     }
     
-    public func update( completion : @escaping ( ResultType.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
+    public func update( completion : @escaping ( CRMResultType.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
     {
         if isBase == true
         {

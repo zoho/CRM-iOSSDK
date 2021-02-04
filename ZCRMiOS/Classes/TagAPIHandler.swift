@@ -31,7 +31,7 @@ internal class TagAPIHandler : CommonAPIHandler
     }
     
     // MARK: - Handler Functions
-    internal func getTags( completion : @escaping( ResultType.DataResponse< [ ZCRMTag ], BulkAPIResponse > ) -> () )
+    internal func getTags( completion : @escaping( CRMResultType.DataResponse< [ ZCRMTag ], BulkAPIResponse > ) -> () )
     {
         if let module = self.module
         {
@@ -79,7 +79,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func getRecordCount( completion : @escaping( ResultType.DataResponse< Int64, APIResponse > ) -> () )
+    internal func getRecordCount( completion : @escaping( CRMResultType.DataResponse< Int64, APIResponse > ) -> () )
     {
         if let tag = self.tag, let module = self.module
         {
@@ -117,7 +117,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func createTag( tag : ZCRMTag, completion : @escaping( ResultType.DataResponse< ZCRMTag, APIResponse > ) -> () )
+    internal func createTag( tag : ZCRMTag, completion : @escaping( CRMResultType.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
         if let module = module
         {
@@ -167,7 +167,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func createTags( tags : [ZCRMTag], completion : @escaping( ResultType.DataResponse< [ ZCRMTag ], BulkAPIResponse > ) -> () )
+    internal func createTags( tags : [ZCRMTag], completion : @escaping( CRMResultType.DataResponse< [ ZCRMTag ], BulkAPIResponse > ) -> () )
     {
         if let module = module
         {
@@ -240,7 +240,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func merge( withTag : ZCRMTag, completion : @escaping( ResultType.DataResponse< ZCRMTag, APIResponse > ) -> () )
+    internal func merge( withTag : ZCRMTag, completion : @escaping( CRMResultType.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
         if let tag = self.tag
         {
@@ -281,7 +281,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func update( completion : @escaping( ResultType.DataResponse< ZCRMTag, APIResponse > ) -> () )
+    internal func update( completion : @escaping( CRMResultType.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
         if let module = self.module, let tag = self.tag
         {
@@ -335,7 +335,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func updateTags( tags : [ZCRMTag], completion : @escaping( ResultType.DataResponse< [ZCRMTag], BulkAPIResponse > ) -> () )
+    internal func updateTags( tags : [ZCRMTag], completion : @escaping( CRMResultType.DataResponse< [ZCRMTag], BulkAPIResponse > ) -> () )
     {
         if let module = self.module
         {
@@ -402,7 +402,7 @@ internal class TagAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func delete( tagId : Int64, completion : @escaping( ResultType.Response< APIResponse > ) -> () )
+    internal func delete( tagId : Int64, completion : @escaping( CRMResultType.Response< APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.TAGS)
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.tags )/\( tagId )" )

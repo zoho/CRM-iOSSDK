@@ -151,7 +151,7 @@ public class ZCRMSDKClient
         try clearAllCache()
     }
     
-    internal func getAccessToken( completion : @escaping ( ResultType.Data< String > ) -> ())
+    internal func getAccessToken( completion : @escaping ( CRMResultType.Data< String > ) -> ())
     {
         self.zohoAuthProvider?.getAccessToken() { result in
             completion( result )
@@ -183,7 +183,7 @@ public class ZCRMSDKClient
         ZCRMLogger.initLogger(isLogEnabled: false)
     }
     
-    public func getLoggedInUser( completion : @escaping( ResultType.DataResponse< ZCRMUser, APIResponse > ) -> () )
+    public func getLoggedInUser( completion : @escaping( CRMResultType.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
         UserAPIHandler(cacheFlavour: CacheFlavour.forceCache).getCurrentUser() { ( result ) in
             completion( result )

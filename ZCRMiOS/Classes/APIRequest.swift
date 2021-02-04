@@ -173,7 +173,7 @@
         - headers : Headers that has to be included for the request ( Optional Value )
         - completion : Returns the raw Data and HTTPURLResponse
      */
-    func initialiseRequest( _ headers : [ String : String ]?, _ requestBody : [ String : Any ]?, completion : @escaping ( ResultType.DataURLResponse<Data, HTTPURLResponse> ) -> Void )
+    func initialiseRequest( _ headers : [ String : String ]?, _ requestBody : [ String : Any ]?, completion : @escaping ( CRMResultType.DataURLResponse<Data, HTTPURLResponse> ) -> Void )
     {
         if let requestHeaders = headers
         {
@@ -209,7 +209,7 @@
         }
     }
     
-    internal func getAPIResponse( completion : @escaping (ResultType.Response<APIResponse>) -> Void )
+    internal func getAPIResponse( completion : @escaping (CRMResultType.Response<APIResponse>) -> Void )
     {
         self.initialiseRequest { ( err ) in
             
@@ -266,7 +266,7 @@
         }
     }
     
-    private func getAPIResponseFromServer( completion : @escaping (ResultType.Response<APIResponse>) -> Void )
+    private func getAPIResponseFromServer( completion : @escaping (CRMResultType.Response<APIResponse>) -> Void )
     {
         self.makeRequest() { result in
             var response : APIResponse
@@ -305,7 +305,7 @@
         }
     }
     
-    internal func getBulkAPIResponse( completion : @escaping(ResultType.Response<BulkAPIResponse>) -> () )
+    internal func getBulkAPIResponse( completion : @escaping(CRMResultType.Response<BulkAPIResponse>) -> () )
     {
         self.initialiseRequest { ( err ) in
             
@@ -358,7 +358,7 @@
         }
     }
     
-    private func getBulkAPIResponseFromServer( completion : @escaping(ResultType.Response<BulkAPIResponse>) -> () )
+    private func getBulkAPIResponseFromServer( completion : @escaping(CRMResultType.Response<BulkAPIResponse>) -> () )
     {
         self.makeRequest() { result in
             var response : BulkAPIResponse
@@ -515,7 +515,7 @@
         }
     }
     
-    internal func makeRequest( completion : @escaping ( ResultType.DataURLResponse<Data, HTTPURLResponse> ) -> () )
+    internal func makeRequest( completion : @escaping ( CRMResultType.DataURLResponse<Data, HTTPURLResponse> ) -> () )
     {
         if let request = self.request
         {
