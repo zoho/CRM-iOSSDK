@@ -551,7 +551,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     ///
     /// - Returns: API response of the ZCRMRecord creation
     /// - Throws: ZCRMSDKError if Entity ID of the record is not nil
-    public func create( completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func create( completion : @escaping( CRMResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         if !self.isCreate
         {
@@ -566,7 +566,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
     }
     
-    public func create( triggers : [Trigger], completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func create( triggers : [Trigger], completion : @escaping( CRMResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         if !self.isCreate
         {
@@ -585,7 +585,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     ///
     /// - Returns: API response of the ZCRMRecord update
     /// - Throws: ZCRMSDKError if Entity ID of the record is nil
-    public func update( completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func update( completion : @escaping( CRMResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         if self.isCreate
         {
@@ -600,7 +600,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
     }
     
-    public func update( triggers : [Trigger], completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func update( triggers : [Trigger], completion : @escaping( CRMResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         if self.isCreate
         {
@@ -615,7 +615,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
     }
     
-    public func checkIn( checkIn : ZCRMCheckIn, completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func checkIn( checkIn : ZCRMCheckIn, completion : @escaping( CRMResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         do
         {
@@ -640,7 +640,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
     }
     
-    public func checkIn( checkIn : ZCRMCheckIn, triggers : [ Trigger ], completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func checkIn( checkIn : ZCRMCheckIn, triggers : [ Trigger ], completion : @escaping( CRMResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         do
         {
@@ -665,7 +665,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
     }
     
-    public func undoCheckIn( completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func undoCheckIn( completion : @escaping( CRMResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         do
         {
@@ -681,7 +681,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
     }
     
-    public func undoCheckIn( triggers : [ Trigger ], completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func undoCheckIn( triggers : [ Trigger ], completion : @escaping( CRMResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         do
         {

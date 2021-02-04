@@ -246,7 +246,7 @@ public class ZCRMLoginHandler : ZohoAuthProvider
         return loginScreenParams
     }
     
-    public func getAccessToken( completion : @escaping ( ResultType.Data< String > ) -> () )
+    public func getAccessToken( completion : @escaping ( CRMResultType.Data< String > ) -> () )
     {
         ZohoAuth.getOauth2Token { ( token, error ) in
             if let error = error

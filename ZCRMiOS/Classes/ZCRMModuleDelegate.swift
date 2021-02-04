@@ -16,7 +16,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     
     public var isApiSupported: Bool
     
-    public func getLayoutFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    public func getLayoutFromServer<T>(id: String, completion: @escaping ((ResultType.Data<T>) -> Void))
     {
         ModuleAPIHandler(module: self, cacheFlavour: .noCache).getLayout(layoutId: id)
         {
@@ -26,7 +26,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             case .success(let layout, _):
                 do
                 {
-                    completion(.success(layout as! T))
+                    completion(.success(data: layout as! T))
                 }
             case .failure(let error):
                 do
@@ -40,7 +40,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
-    public func getLayoutsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    public func getLayoutsFromServer<T>(completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
         ModuleAPIHandler(module: self, cacheFlavour: .noCache).getAllLayouts(modifiedSince: nil)
         {
@@ -50,7 +50,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             case .success(let layouts, _):
                 do
                 {
-                    completion(.success(layouts as! [T]))
+                    completion(.success(data: layouts as! [T]))
                 }
             case .failure(let error):
                 do
@@ -64,7 +64,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
-    public func getLayoutsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    public func getLayoutsFromServer<T>(modifiedSince: String, completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
         ModuleAPIHandler(module: self, cacheFlavour: .noCache).getAllLayouts(modifiedSince: modifiedSince)
         {
@@ -74,7 +74,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             case .success(let layouts, _):
                 do
                 {
-                    completion(.success(layouts as! [T]))
+                    completion(.success(data: layouts as! [T]))
                 }
             case .failure(let error):
                 do
@@ -88,7 +88,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
-    public func getFieldFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    public func getFieldFromServer<T>(id: String, completion: @escaping ((ResultType.Data<T>) -> Void))
     {
         ModuleAPIHandler(module: self, cacheFlavour: .noCache).getField(fieldId: id)
         {
@@ -98,7 +98,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             case .success(let field, _):
                 do
                 {
-                    completion(.success(field as! T))
+                    completion(.success(data: field as! T))
                 }
             case .failure(let error):
                 do
@@ -112,7 +112,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
-    public func getFieldsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    public func getFieldsFromServer<T>(completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
         ModuleAPIHandler(module: self, cacheFlavour: .noCache).getAllFields(modifiedSince: nil)
         {
@@ -122,7 +122,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             case .success(let fields, _):
                 do
                 {
-                    completion(.success(fields as! [T]))
+                    completion(.success(data: fields as! [T]))
                 }
             case .failure(let error):
                 do
@@ -136,7 +136,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
-    public func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    public func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
         ModuleAPIHandler(module: self, cacheFlavour: .noCache).getAllFields(modifiedSince: modifiedSince)
         {
@@ -146,7 +146,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             case .success(let fields, _):
                 do
                 {
-                    completion(.success(fields as! [T]))
+                    completion(.success(data: fields as! [T]))
                 }
             case .failure(let error):
                 do
@@ -160,12 +160,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
-    public func execute<T>(query: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
-    {
-        
-    }
-    
-    public func getRecordFromServer<T>(id: String, completion: @escaping ((DataResponseCallback<ZCacheResponse, T>) -> Void))
+    public func getRecordFromServer<T>(id: String, completion: @escaping ((ResultType.DataResponse<ZCacheResponse, T>) -> Void))
     {
         EntityAPIHandler( recordDelegate : ZCRMRecordDelegate( id : id, moduleAPIName : self.apiName ) ).getRecord( withPrivateFields : false )
         {
@@ -186,7 +181,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
-    public func createRecord<T>(record: T, completion: @escaping ((DataResponseCallback<ZCacheResponse, T>) -> Void))
+    public func createRecord<T>(record: T, completion: @escaping ((ResultType.DataResponse<ZCacheResponse, T>) -> Void))
     {
         EntityAPIHandler( record : record as! ZCRMRecord).createRecord(triggers: nil)
         {
@@ -207,7 +202,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
-    public func updateRecord<T>(record: T, completion: @escaping ((DataResponseCallback<ZCacheResponse, T>) -> Void))
+    public func updateRecord<T>(record: T, completion: @escaping ((ResultType.DataResponse<ZCacheResponse, T>) -> Void))
     {
         let rec = record as! ZCRMRecord
         EntityAPIHandler( record: rec ).updateRecord(triggers: nil)
@@ -229,7 +224,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
-    public func deleteRecord(id: String, completion: @escaping ((DataResponseCallback<ZCacheResponse, String>) -> Void))
+    public func deleteRecord(id: String, completion: @escaping ((ResultType.DataResponse<ZCacheResponse, String>) -> Void))
     {
         EntityAPIHandler( recordDelegate : ZCRMRecordDelegate( id : id, moduleAPIName : self.apiName ) ).deleteRecord
         {
@@ -250,37 +245,37 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
-    public func restoreRecordInServer<T>(id: String, completion: @escaping ((DataResponseCallback<ZCacheResponse, T>) -> Void))
+    public func restoreRecordInServer<T>(id: String, completion: @escaping ((ResultType.DataResponse<ZCacheResponse, T>) -> Void))
     {
         
     }
     
-    public func createRecords<T>(entities: [T], completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
+    public func createRecords<T>(entities: [T], completion: @escaping ((ResultType.DataResponse<ZCacheResponse, [T]>) -> Void))
     {
         
     }
     
-    public func updateRecords<T>(entities: [T], completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
+    public func updateRecords<T>(entities: [T], completion: @escaping ((ResultType.DataResponse<ZCacheResponse, [T]>) -> Void))
     {
         
     }
     
-    public func deleteRecords<T>(entities: [T], completion: @escaping ((DataResponseCallback<ZCacheResponse, [String]>) -> Void))
+    public func deleteRecords<T>(entities: [T], completion: @escaping ((ResultType.DataResponse<ZCacheResponse, [String]>) -> Void))
     {
         
     }
     
-    public func deleteAllRecords(ids: [String], completion: @escaping ((DataResponseCallback<ZCacheResponse, [String]>) -> Void))
+    public func deleteAllRecords(ids: [String], completion: @escaping ((ResultType.DataResponse<ZCacheResponse, [String]>) -> Void))
     {
         
     }
     
-    public func restoreRecordsInServer<T>(ids: [String], completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
+    public func restoreRecordsInServer<T>(ids: [String], completion: @escaping ((ResultType.DataResponse<ZCacheResponse, [T]>) -> Void))
     {
         
     }
     
-    public func getRecordsFromServer<T>(params: ZCacheQuery.GetRecordParams, completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
+    public func getRecordsFromServer<T>(params: ZCacheQuery.GetRecordParams, completion: @escaping ((ResultType.DataResponse<ZCacheResponse, [T]>) -> Void))
     {
         var recordParams = ZCRMQuery.GetRecordParams()
         recordParams.page = params.page
@@ -309,7 +304,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
-    public func getDeletedRecordsFromServer<T>(params: ZCacheQuery.GetRecordParams, completion: @escaping ((DataResponseCallback<ZCacheResponse, [T]>) -> Void))
+    public func getDeletedRecordsFromServer<T>(params: ZCacheQuery.GetRecordParams, completion: @escaping ((ResultType.DataResponse<ZCacheResponse, [T]>) -> Void))
     {
         
     }
@@ -339,28 +334,28 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     /// Returns related list to the module.
     ///
     /// - Returns: related list to the module.
-    public func getRelatedLists( completion : @escaping( ResultType.DataResponse< [ ZCRMModuleRelation ], BulkAPIResponse > ) -> () )
+    public func getRelatedLists( completion : @escaping( CRMResultType.DataResponse< [ ZCRMModuleRelation ], BulkAPIResponse > ) -> () )
     {
         ModuleAPIHandler( module : self, cacheFlavour : .urlVsResponse ).getAllRelatedLists { ( result ) in
             completion( result )
         }
     }
     
-    public func getRelatedListsFromServer( completion : @escaping( ResultType.DataResponse< [ ZCRMModuleRelation ], BulkAPIResponse > ) -> () )
+    public func getRelatedListsFromServer( completion : @escaping( CRMResultType.DataResponse< [ ZCRMModuleRelation ], BulkAPIResponse > ) -> () )
     {
         ModuleAPIHandler( module : self, cacheFlavour : .noCache ).getAllRelatedLists { ( result ) in
             completion( result )
         }
     }
     
-    public func getRelatedList( id : Int64, completion : @escaping( ResultType.DataResponse< ZCRMModuleRelation, APIResponse > ) -> () )
+    public func getRelatedList( id : Int64, completion : @escaping( CRMResultType.DataResponse< ZCRMModuleRelation, APIResponse > ) -> () )
     {
         ModuleAPIHandler( module: self, cacheFlavour: .urlVsResponse ).getRelatedList(id: id) { ( result ) in
             completion( result )
         }
     }
     
-    public func getRelatedListFromServer( id : Int64, completion : @escaping( ResultType.DataResponse< ZCRMModuleRelation, APIResponse > ) -> () )
+    public func getRelatedListFromServer( id : Int64, completion : @escaping( CRMResultType.DataResponse< ZCRMModuleRelation, APIResponse > ) -> () )
     {
         ModuleAPIHandler( module: self, cacheFlavour: .noCache ).getRelatedList(id: id) { ( result ) in
             completion( result )
@@ -371,14 +366,14 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     ///
     /// - Returns: all the layouts of the module
     /// - Throws: ZCRMSDKError if failed to get all layouts
-    public func getLayouts( completion : @escaping( ResultType.DataResponse< [ ZCRMLayout ], BulkAPIResponse > ) -> () )
+    public func getLayouts( completion : @escaping( CRMResultType.DataResponse< [ ZCRMLayout ], BulkAPIResponse > ) -> () )
     {
         ModuleAPIHandler(module: self, cacheFlavour: .urlVsResponse).getAllLayouts( modifiedSince : nil) { ( result ) in
             completion( result )
         }
     }
     
-    public func getLayoutsFromServer( completion : @escaping( ResultType.DataResponse< [ ZCRMLayout ], BulkAPIResponse > ) -> () )
+    public func getLayoutsFromServer( completion : @escaping( CRMResultType.DataResponse< [ ZCRMLayout ], BulkAPIResponse > ) -> () )
     {
         ModuleAPIHandler(module: self, cacheFlavour: .noCache).getAllLayouts( modifiedSince : nil) { ( result ) in
             completion( result )
@@ -390,14 +385,14 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     /// - Parameter layoutId: layout id
     /// - Returns: layout with given layout id
     /// - Throws: ZCRMSDKError if failed to get a layout
-    public func getLayout( id : String, completion : @escaping( ResultType.DataResponse< ZCRMLayout, APIResponse > ) -> () )
+    public func getLayout( id : String, completion : @escaping( CRMResultType.DataResponse< ZCRMLayout, APIResponse > ) -> () )
     {
         ModuleAPIHandler( module : self, cacheFlavour : .urlVsResponse ).getLayout( layoutId : id ) { ( result ) in
             completion( result )
         }
     }
     
-    public func getLayoutFromServer( id : String, completion : @escaping( ResultType.DataResponse< ZCRMLayout, APIResponse > ) -> () )
+    public func getLayoutFromServer( id : String, completion : @escaping( CRMResultType.DataResponse< ZCRMLayout, APIResponse > ) -> () )
     {
         ModuleAPIHandler( module : self, cacheFlavour : .noCache ).getLayout( layoutId : id ) { ( result ) in
             completion( result )
@@ -408,28 +403,28 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     ///
     /// - Returns: list of ZCRMFields of the module
     /// - Throws: ZCRMSDKError if failed to get all fields
-    public func getFields( completion : @escaping( ResultType.DataResponse< [ ZCRMField ], BulkAPIResponse > ) -> () )
+    public func getFields( completion : @escaping( CRMResultType.DataResponse< [ ZCRMField ], BulkAPIResponse > ) -> () )
     {
         ModuleAPIHandler( module : self, cacheFlavour : .urlVsResponse ).getAllFields( modifiedSince : nil ) { ( result ) in
             completion( result )
         }
     }
     
-    public func getFieldsFromServer( completion : @escaping( ResultType.DataResponse< [ ZCRMField ], BulkAPIResponse > ) -> () )
+    public func getFieldsFromServer( completion : @escaping( CRMResultType.DataResponse< [ ZCRMField ], BulkAPIResponse > ) -> () )
     {
         ModuleAPIHandler( module : self, cacheFlavour : .noCache ).getAllFields( modifiedSince : nil ) { ( result ) in
             completion( result )
         }
     }
     
-    public func getField( id : String, completion : @escaping( ResultType.DataResponse< ZCRMField, APIResponse > ) -> () )
+    public func getField( id : String, completion : @escaping( CRMResultType.DataResponse< ZCRMField, APIResponse > ) -> () )
     {
         ModuleAPIHandler(module: self, cacheFlavour: .urlVsResponse).getField(fieldId: id) { ( result ) in
             completion( result )
         }
     }
     
-    public func getFieldFromServer( id : String, completion : @escaping( ResultType.DataResponse< ZCRMField, APIResponse > ) -> () )
+    public func getFieldFromServer( id : String, completion : @escaping( CRMResultType.DataResponse< ZCRMField, APIResponse > ) -> () )
     {
         ModuleAPIHandler(module: self, cacheFlavour: .noCache).getField(fieldId: id) { ( result ) in
             completion( result )
@@ -440,14 +435,14 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     ///
     /// - Returns: custom views of the module
     /// - Throws: ZCRMSDKError if failed to get the custom views
-    public func getCustomViews( completion : @escaping( ResultType.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
+    public func getCustomViews( completion : @escaping( CRMResultType.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
     {
         ModuleAPIHandler(module: self, cacheFlavour: .urlVsResponse).getAllCustomViews( modifiedSince : nil) { ( result ) in
             completion( result )
         }
     }
     
-    public func getCustomViewsFromServer( completion : @escaping( ResultType.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
+    public func getCustomViewsFromServer( completion : @escaping( CRMResultType.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
     {
         ModuleAPIHandler(module: self, cacheFlavour: .noCache).getAllCustomViews( modifiedSince : nil) { ( result ) in
             completion( result )
@@ -459,14 +454,14 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     /// - Parameter cvId: Id of the custom view to be returned
     /// - Returns: custom view with the given cvID of the module
     /// - Throws: ZCRMSDKError if failed to get the custom view
-    public func getCustomView( id : Int64, completion : @escaping( ResultType.DataResponse< ZCRMCustomView, APIResponse > ) -> () )
+    public func getCustomView( id : Int64, completion : @escaping( CRMResultType.DataResponse< ZCRMCustomView, APIResponse > ) -> () )
     {
         ModuleAPIHandler( module : self, cacheFlavour : .urlVsResponse ).getCustomView( cvId : id ) { ( result ) in
             completion( result )
         }
     }
     
-    public func getCustomViewFromServer( id : Int64, completion : @escaping( ResultType.DataResponse< ZCRMCustomView, APIResponse > ) -> () )
+    public func getCustomViewFromServer( id : Int64, completion : @escaping( CRMResultType.DataResponse< ZCRMCustomView, APIResponse > ) -> () )
     {
         ModuleAPIHandler( module : self, cacheFlavour : .noCache ).getCustomView( cvId : id ) { ( result ) in
             completion( result )
@@ -478,35 +473,35 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     /// - Parameter recordId: Id of the record to be returned
     /// - Returns: ZCRMRecord with the given ID of the module
     /// - Throws: ZCRMSDKError if failed to get the record
-    public func getRecord( id : String, completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func getRecord( id : String, completion : @escaping( CRMResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         EntityAPIHandler( recordDelegate : ZCRMRecordDelegate( id : id, moduleAPIName : self.apiName ) ).getRecord( withPrivateFields : false, completion : { ( result ) in
             completion( result )
         } )
     }
     
-    public func getRecordWithPrivateFields( id : String, completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func getRecordWithPrivateFields( id : String, completion : @escaping( CRMResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         EntityAPIHandler( recordDelegate : ZCRMRecordDelegate( id : id, moduleAPIName : self.apiName ) ).getRecord( withPrivateFields : true, completion : { ( result ) in
             completion( result )
         } )
     }
     
-    public func getRecords( recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func getRecords( recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).getRecords( cvId : nil, filterId : nil, recordParams : recordParams ) { ( result ) in
             completion( result )
         }
     }
     
-    public func getRecords( cvId : Int64, recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func getRecords( cvId : Int64, recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).getRecords( cvId : cvId, filterId : nil, recordParams : recordParams ) { ( result ) in
             completion( result )
         }
     }
     
-    public func getRecords( cvId : Int64, filterId : Int64, recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func getRecords( cvId : Int64, filterId : Int64, recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).getRecords( cvId : cvId, filterId : filterId, recordParams : recordParams ) { ( result ) in
             completion( result )
@@ -523,7 +518,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             - permanent : The records that are permanently deleted
         - completion : Returns an array of ZCRMTrashRecord and a bulkresponse
      */
-    public func getTrashRecords( ofType : TrashRecordTypes, completion : @escaping ( ResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> Void )
+    public func getTrashRecords( ofType : TrashRecordTypes, completion : @escaping ( CRMResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> Void )
     {
         MassEntityAPIHandler( module : self ).getDeletedRecords(type: ofType, params: ZCRMQuery.getRequestParams) { result in
             completion( result )
@@ -541,7 +536,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
        - withParams : Specify the params that has to be included in the request
        - completion : Returns an array of ZCRMTrashRecord and a bulkresponse
     */
-    public func getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : @escaping ( ResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> Void )
+    public func getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : @escaping ( CRMResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> Void )
     {
         MassEntityAPIHandler( module : self ).getDeletedRecords(type: ofType, params: withParams) { result in
             completion( result )
@@ -553,7 +548,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
      /// - Returns: List of all deleted records of the module
      /// - Throws: ZCRMSDKError if failed to get the records
      @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, completion : ) instead" )
-     public func getDeletedRecords( completion : @escaping( ResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+     public func getDeletedRecords( completion : @escaping( CRMResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
      {
          MassEntityAPIHandler( module : self ).getDeletedRecords(type: .all, params: ZCRMQuery.getRequestParams ) { ( result ) in
              completion( result )
@@ -561,7 +556,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
      }
      
      @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getDeletedRecords( withParams : GETRequestParams, completion : @escaping ( ResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> Void )
+     public func getDeletedRecords( withParams : GETRequestParams, completion : @escaping ( CRMResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> Void )
      {
          MassEntityAPIHandler( module : self ).getDeletedRecords(type: .all, params: withParams ) { result in
              completion( result )
@@ -569,7 +564,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
      }
      
      @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getDeletedRecords( modifiedSince : String, completion : @escaping( ResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+     public func getDeletedRecords( modifiedSince : String, completion : @escaping( CRMResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
      {
          var params : GETRequestParams = ZCRMQuery.getRequestParams
          params.modifiedSince = modifiedSince
@@ -579,7 +574,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
      }
      
      @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getDeletedRecords( page : Int, perPage : Int, completion : @escaping( ResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+     public func getDeletedRecords( page : Int, perPage : Int, completion : @escaping( CRMResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
      {
          var params : GETRequestParams = ZCRMQuery.getRequestParams
          params.page = page
@@ -590,7 +585,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
      }
      
      @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getDeletedRecords( modifiedSince : String, page : Int, perPage : Int, completion : @escaping( ResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+     public func getDeletedRecords( modifiedSince : String, page : Int, perPage : Int, completion : @escaping( CRMResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
      {
          var params : GETRequestParams = ZCRMQuery.getRequestParams
          params.page = page
@@ -607,7 +602,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
      /// - Returns: List of recycle bin records of the module
      /// - Throws: ZCRMSDKError if failed to get the records
      @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, completion : ) instead" )
-     public func getRecycleBinRecords( completion : @escaping( ResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+     public func getRecycleBinRecords( completion : @escaping( CRMResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
      {
          MassEntityAPIHandler( module : self ).getDeletedRecords(type: .recycle, params: ZCRMQuery.getRequestParams ) { ( result ) in
              completion( result )
@@ -615,7 +610,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
      }
      
      @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getRecycleBinRecords( withParams : GETRequestParams, completion : @escaping ( ResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> Void )
+     public func getRecycleBinRecords( withParams : GETRequestParams, completion : @escaping ( CRMResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> Void )
      {
          MassEntityAPIHandler( module : self ).getDeletedRecords(type: .recycle, params: withParams ) { result in
              completion( result )
@@ -623,7 +618,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
      }
      
      @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getRecycleBinRecords( modifiedSince : String, completion : @escaping( ResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+     public func getRecycleBinRecords( modifiedSince : String, completion : @escaping( CRMResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
      {
          var params : GETRequestParams = ZCRMQuery.getRequestParams
          params.modifiedSince = modifiedSince
@@ -633,7 +628,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
      }
      
     @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getRecycleBinRecords( page : Int, perPage : Int, completion : @escaping( ResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+     public func getRecycleBinRecords( page : Int, perPage : Int, completion : @escaping( CRMResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
      {
          var params : GETRequestParams = ZCRMQuery.getRequestParams
          params.page = page
@@ -644,7 +639,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
      }
      
      @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getRecycleBinRecords( modifiedSince : String, page : Int, perPage : Int, completion : @escaping( ResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+     public func getRecycleBinRecords( modifiedSince : String, page : Int, perPage : Int, completion : @escaping( CRMResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
      {
          var params : GETRequestParams = ZCRMQuery.getRequestParams
          params.page = page
@@ -660,7 +655,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
      /// - Returns: List of permanently records of the module
      /// - Throws: ZCRMSDKError if failed to get the records
      @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, completion : ) instead" )
-     public func getPermanentlyDeletedRecords( completion : @escaping( ResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+     public func getPermanentlyDeletedRecords( completion : @escaping( CRMResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
      {
          MassEntityAPIHandler( module : self ).getDeletedRecords(type: .permanent, params: ZCRMQuery.getRequestParams ) { ( result ) in
              completion( result )
@@ -668,7 +663,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
      }
      
      @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getPermanentlyDeletedRecords( withParams : GETRequestParams, completion : @escaping( ResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+     public func getPermanentlyDeletedRecords( withParams : GETRequestParams, completion : @escaping( CRMResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
      {
          MassEntityAPIHandler( module : self ).getDeletedRecords(type: .permanent, params: withParams ) { ( result ) in
              completion( result )
@@ -676,7 +671,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
      }
      
      @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getPermanentlyDeletedRecords( modifiedSince : String, completion : @escaping( ResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+     public func getPermanentlyDeletedRecords( modifiedSince : String, completion : @escaping( CRMResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
      {
          var params : GETRequestParams = ZCRMQuery.getRequestParams
          params.modifiedSince = modifiedSince
@@ -686,7 +681,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
      }
      
      @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getPermanentlyDeletedRecords( page : Int, perPage : Int, completion : @escaping( ResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+     public func getPermanentlyDeletedRecords( page : Int, perPage : Int, completion : @escaping( CRMResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
      {
          var params : GETRequestParams = ZCRMQuery.getRequestParams
          params.page = page
@@ -697,7 +692,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
      }
      
      @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getPermanentlyDeletedRecords( modifiedSince : String, page : Int, perPage : Int, completion : @escaping( ResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+     public func getPermanentlyDeletedRecords( modifiedSince : String, page : Int, perPage : Int, completion : @escaping( CRMResultType.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
      {
          var params : GETRequestParams = ZCRMQuery.getRequestParams
          params.page = page
@@ -713,7 +708,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     /// - Parameter text: text to be searched
     /// - Returns: list of records which contains the given search text as substring
     /// - Throws: ZCRMSDKError if failed to get the records
-    public func searchBy( text : String, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func searchBy( text : String, completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).searchByText( searchText : text, page : nil, perPage : nil ) { ( result ) in
             completion( result )
@@ -728,7 +723,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     ///   - per_page: number of records to be given for a single page.
     /// - Returns: list of records of the module which contains the given search text as substring, with requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get the records
-    public func searchBy( text : String, page : Int, per_page : Int, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func searchBy( text : String, page : Int, per_page : Int, completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).searchByText( searchText : text, page : page, perPage : per_page ) { ( result ) in
             completion( result )
@@ -740,7 +735,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     /// - Parameter criteria: criteria to be searched
     /// - Returns: list of records which satisfies the given criteria
     /// - Throws: ZCRMSDKError if failed to get the records
-    public func searchBy( criteria : ZCRMQuery.ZCRMCriteria, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func searchBy( criteria : ZCRMQuery.ZCRMCriteria, completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).searchByCriteria( searchCriteria : criteria, page : nil, perPage : nil ) { ( result ) in
             completion( result )
@@ -755,7 +750,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     ///   - perPage: number of records to be given for a single page
     /// - Returns: list of records of the module which satisfies the given criteria, with requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get the records
-    public func searchBy( criteria : ZCRMQuery.ZCRMCriteria, page : Int, perPage : Int, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func searchBy( criteria : ZCRMQuery.ZCRMCriteria, page : Int, perPage : Int, completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).searchByCriteria( searchCriteria : criteria, page : page, perPage : perPage) { ( result ) in
             completion( result )
@@ -767,7 +762,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     /// - Parameter phone: Phone number to be searched
     /// - Returns: list of records of the module which satisfies the given value
     /// - Throws: ZCRMSDKError if failed to get the records
-    public func searchBy( phone : String, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func searchBy( phone : String, completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).searchByPhone( searchValue : phone, page : nil, perPage : nil ) { ( result ) in
             completion( result )
@@ -782,7 +777,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     ///   - perPage: number of records to be given for a single page
     /// - Returns: list of records of the module which satisfies the given value, with requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get the records
-    public func searchBy( phone : String, page : Int, perPage : Int, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func searchBy( phone : String, page : Int, perPage : Int, completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).searchByPhone( searchValue : phone, page : page, perPage : perPage) { ( result ) in
             completion( result )
@@ -794,7 +789,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     /// - Parameter email: email to be searched
     /// - Returns: list of records of the module which satisfies the given value
     /// - Throws: ZCRMSDKError if failed to get the records
-    public func searchBy( email : String, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func searchBy( email : String, completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).searchByEmail( searchValue : email, page : nil, perPage : nil ) { ( result ) in
             completion( result )
@@ -809,7 +804,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     ///   - perPage: number of records to be given for a single page
     /// - Returns: list of records of the module which satisfies the given value, with requested page number with records of per_page count
     /// - Throws: ZCRMSDKError if failed to get the records
-    public func searchBy( email : String, page : Int, perPage : Int, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func searchBy( email : String, page : Int, perPage : Int, completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).searchByEmail( searchValue : email, page : page, perPage : perPage) { ( result ) in
             completion( result )
@@ -821,14 +816,14 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     /// - Parameter records: list of ZCRMRecord objects to be created
     /// - Returns: mass create response of the records
     /// - Throws: ZCRMSDKError if failed to create records
-    public func createRecords(records: [ZCRMRecord], completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    public func createRecords(records: [ZCRMRecord], completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
     {
         MassEntityAPIHandler(module: self).createRecords( triggers: nil, records: records) { ( result ) in
             completion( result )
         }
     }
     
-    public func createRecords(triggers : [Trigger], records: [ZCRMRecord], completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    public func createRecords(triggers : [Trigger], records: [ZCRMRecord], completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
     {
         MassEntityAPIHandler(module: self).createRecords( triggers: triggers, records: records) { ( result ) in
             completion( result )
@@ -843,7 +838,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     ///   - value: field value to be updated
     /// - Returns: mass update response of the records
     /// - Throws: ZCRMSDKError if failed to update records
-    public func updateRecords(recordIds: [String], fieldAPIName: String, value: Any?, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    public func updateRecords(recordIds: [String], fieldAPIName: String, value: Any?, completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
     {
         MassEntityAPIHandler(module: self).massUpdateRecords(triggers: nil, ids: recordIds, fieldValuePair: [ fieldAPIName : value ]) { result in
             completion( result )
@@ -861,7 +856,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             - Success : Returns an array of ZCRMRecords and a BulkAPIResponse
             - Failure : Returns error
      */
-    private func massUpdateRecords( recordIds: [ String ], fieldValuePair : [ String : Any?  ], triggers : [ Trigger ]? = nil, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    private func massUpdateRecords( recordIds: [ String ], fieldValuePair : [ String : Any?  ], triggers : [ Trigger ]? = nil, completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
     {
         MassEntityAPIHandler(module: self).massUpdateRecords(triggers: triggers, ids: recordIds, fieldValuePair: fieldValuePair ) { result in
             completion( result )
@@ -880,7 +875,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
            - Success : Returns an array of ZCRMRecord objects and a BulkAPIResponse
            - Failure : Returns error
     */
-    public func updateRecords( recordIds: [String], fieldAPIName: String, value: Any?, triggers : [Trigger], completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    public func updateRecords( recordIds: [String], fieldAPIName: String, value: Any?, triggers : [Trigger], completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
     {
         MassEntityAPIHandler(module: self).massUpdateRecords(triggers: triggers, ids: recordIds, fieldValuePair: [ fieldAPIName : value ]) { result in
             completion( result )
@@ -888,7 +883,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     }
     
     @available(*, deprecated, message: "Use the method updateRecords( recordIds :, fieldAPIName:, value:, triggers:, completion : ) instead" )
-    public func updateRecords(triggers : [Trigger], recordIds: [String], fieldAPIName: String, value: Any?, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    public func updateRecords(triggers : [Trigger], recordIds: [String], fieldAPIName: String, value: Any?, completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
     {
         MassEntityAPIHandler(module: self).massUpdateRecords(triggers: triggers, ids: recordIds, fieldValuePair: [ fieldAPIName : value ]) { result in
             completion( result )
@@ -905,7 +900,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             - Success : Returns an array of ZCRMRecord objects and a BulkAPIResponse
             - Failure : Returns error
      */
-    public func updateRecords( records: [ ZCRMRecord ], triggers : [ Trigger ]? = nil, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    public func updateRecords( records: [ ZCRMRecord ], triggers : [ Trigger ]? = nil, completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
     {
         MassEntityAPIHandler(module: self).updateRecords(triggers: triggers, records: records) { result in
             completion( result )
@@ -917,7 +912,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     /// - Parameter records: list of ZCRMRecord objects to be upserted
     /// - Returns: upsert response of the records
     /// - Throws: ZCRMSDKError if failed to upsert records
-    public func upsertRecords( records : [ ZCRMRecord ], completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func upsertRecords( records : [ ZCRMRecord ], completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).upsertRecords( triggers: nil, records : records, duplicateCheckFields: nil) { ( result ) in
             completion( result )
@@ -934,7 +929,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             - Returns - upsert response of the records
             - Throws -  ZCRMSDKError if failed to upsert records
      */
-    public func upsertRecords( triggers : [Trigger],  records : [ ZCRMRecord ], completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func upsertRecords( triggers : [Trigger],  records : [ ZCRMRecord ], completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).upsertRecords( triggers: triggers, records : records, duplicateCheckFields: nil) { ( result ) in
             completion( result )
@@ -951,7 +946,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             - Returns - upsert response of the records
             - Throws -  ZCRMSDKError if failed to upsert records
      */
-    public func upsertRecords( records : [ ZCRMRecord ], duplicateCheckFields : [ String ], completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func upsertRecords( records : [ ZCRMRecord ], duplicateCheckFields : [ String ], completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).upsertRecords( triggers: nil, records : records, duplicateCheckFields: duplicateCheckFields) { ( result ) in
             completion( result )
@@ -969,7 +964,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             - Returns - upsert response of the records
             - Throws -  ZCRMSDKError if failed to upsert records
      */
-    public func upsertRecords( triggers : [Trigger],  records : [ ZCRMRecord ], duplicateCheckFields : [ String ], completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func upsertRecords( triggers : [Trigger],  records : [ ZCRMRecord ], duplicateCheckFields : [ String ], completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).upsertRecords( triggers: triggers, records : records, duplicateCheckFields: duplicateCheckFields) { ( result ) in
             completion( result )
@@ -982,7 +977,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     /// - Returns: mass delete response of the record
     /// - Throws: ZCRMSDKError if failed to delete records
     @available(*, deprecated, message: "Use the method deleteRecords method which returns deleted record ids in the completion - deleteRecords( byIds recordIds:, completion: @escaping ( Result.DataResponse< [ Int64 ], BulkAPIResponse > ) -> () )" )
-    public func deleteRecords(recordIds: [Int64], completion : @escaping( ResultType.Response< BulkAPIResponse > ) -> () )
+    public func deleteRecords(recordIds: [Int64], completion : @escaping( CRMResultType.Response< BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler(module: self).deleteRecords( ids : recordIds) { ( result ) in
             completion( result )
@@ -998,21 +993,21 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             - Success : Returns an array of record ID's got deleted and a BulkAPIResponse
             - Failure : Returns Error
      */
-    public func deleteRecords(byIds recordIds: [Int64], completion : @escaping( ResultType.DataResponse< [ Int64 ], BulkAPIResponse > ) -> () )
+    public func deleteRecords(byIds recordIds: [Int64], completion : @escaping( CRMResultType.DataResponse< [ Int64 ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler(module: self).deleteRecords( ids : recordIds) { ( result ) in
             completion( result )
         }
     }
     
-    public func getTags( completion : @escaping ( ResultType.DataResponse< [ ZCRMTag ], BulkAPIResponse > ) -> () )
+    public func getTags( completion : @escaping ( CRMResultType.DataResponse< [ ZCRMTag ], BulkAPIResponse > ) -> () )
     {
         TagAPIHandler(module: self).getTags(completion: { ( result ) in
             completion( result )
         } )
     }
     
-    public func createTag( tag : ZCRMTag, completion : @escaping ( ResultType.DataResponse< ZCRMTag, APIResponse > ) -> () )
+    public func createTag( tag : ZCRMTag, completion : @escaping ( CRMResultType.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
         if !tag.isCreate
         {
@@ -1025,7 +1020,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         } )
     }
     
-    public func createTags( tags : [ZCRMTag], completion : @escaping ( ResultType.DataResponse< [ ZCRMTag ], BulkAPIResponse > ) -> () )
+    public func createTags( tags : [ZCRMTag], completion : @escaping ( CRMResultType.DataResponse< [ ZCRMTag ], BulkAPIResponse > ) -> () )
     {
         for tag in tags
         {
@@ -1041,7 +1036,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         } )
     }
     
-    public func updateTags(tags : [ZCRMTag], completion : @escaping ( ResultType.DataResponse< [ ZCRMTag ], BulkAPIResponse > ) -> () )
+    public func updateTags(tags : [ZCRMTag], completion : @escaping ( CRMResultType.DataResponse< [ ZCRMTag ], BulkAPIResponse > ) -> () )
     {
         for tag in tags
         {
@@ -1057,21 +1052,21 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         } )
     }
     
-    public func addTags( records : [ ZCRMRecord ], tags : [ String ], completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func addTags( records : [ ZCRMRecord ], tags : [ String ], completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).addTags( records : records, tags : tags, overWrite : nil ) { ( result ) in
             completion( result )
         }
     }
     
-    public func addTags( records : [ ZCRMRecord ], tags : [ String ], overWrite : Bool?, completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func addTags( records : [ ZCRMRecord ], tags : [ String ], overWrite : Bool?, completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).addTags( records : records, tags : tags, overWrite : overWrite ) { ( result ) in
             completion( result )
         }
     }
     
-    public func removeTags( records : [ ZCRMRecord ], tags : [ String ], completion : @escaping( ResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func removeTags( records : [ ZCRMRecord ], tags : [ String ], completion : @escaping( CRMResultType.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : self ).removeTags( records : records, tags : tags ) { ( result ) in
             completion( result )

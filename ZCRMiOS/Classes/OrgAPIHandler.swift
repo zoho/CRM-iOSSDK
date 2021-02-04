@@ -35,7 +35,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         self.requestedModule = "org"
     }
 
-    internal func getOrgDetails( _ id : Int64? = nil, completion : @escaping( ResultType.DataResponse< ZCRMOrg, APIResponse > ) -> () )
+    internal func getOrgDetails( _ id : Int64? = nil, completion : @escaping( CRMResultType.DataResponse< ZCRMOrg, APIResponse > ) -> () )
     {
         setIsCacheable( true )
         setJSONRootKey( key : JSONRootKey.ORG )
@@ -67,7 +67,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func createVariables( variables : [ZCRMVariable], completion : @escaping( ResultType.DataResponse< [ZCRMVariable], BulkAPIResponse > ) -> () )
+    internal func createVariables( variables : [ZCRMVariable], completion : @escaping( CRMResultType.DataResponse< [ZCRMVariable], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.VARIABLES)
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
@@ -124,7 +124,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func createVariable( completion : @escaping( ResultType.DataResponse< ZCRMVariable, APIResponse > ) -> () )
+    internal func createVariable( completion : @escaping( CRMResultType.DataResponse< ZCRMVariable, APIResponse > ) -> () )
     {
         if let variable = self.variable
         {
@@ -171,7 +171,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func updateVariables( variables : [ZCRMVariable], completion : @escaping( ResultType.DataResponse< [ZCRMVariable], BulkAPIResponse > ) -> () )
+    internal func updateVariables( variables : [ZCRMVariable], completion : @escaping( CRMResultType.DataResponse< [ZCRMVariable], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.VARIABLES)
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
@@ -228,7 +228,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func updateVariable( completion : @escaping( ResultType.DataResponse< ZCRMVariable, APIResponse > ) -> () )
+    internal func updateVariable( completion : @escaping( CRMResultType.DataResponse< ZCRMVariable, APIResponse > ) -> () )
     {
         if let variable = self.variable
         {
@@ -275,7 +275,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getVariableGroups( completion : @escaping( ResultType.DataResponse< [ZCRMVariableGroup], BulkAPIResponse > ) -> () )
+    internal func getVariableGroups( completion : @escaping( CRMResultType.DataResponse< [ZCRMVariableGroup], BulkAPIResponse > ) -> () )
     {
         var variableGroups : [ZCRMVariableGroup] = [ZCRMVariableGroup]()
         setJSONRootKey(key: JSONRootKey.VARIABLE_GROUPS)
@@ -312,7 +312,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getVariableGroup( id : Int64?, apiName : String?, completion : @escaping( ResultType.DataResponse< ZCRMVariableGroup, APIResponse > ) -> () )
+    internal func getVariableGroup( id : Int64?, apiName : String?, completion : @escaping( CRMResultType.DataResponse< ZCRMVariableGroup, APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.VARIABLE_GROUPS)
         if let id = id
@@ -345,7 +345,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getVariables( completion : @escaping( ResultType.DataResponse< [ZCRMVariable], BulkAPIResponse > ) -> () )
+    internal func getVariables( completion : @escaping( CRMResultType.DataResponse< [ZCRMVariable], BulkAPIResponse > ) -> () )
     {
         var variables : [ZCRMVariable] = [ZCRMVariable]()
         setJSONRootKey(key: JSONRootKey.VARIABLES)
@@ -383,7 +383,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getVariable( variableId : Int64?, variableAPIName : String?, variableGroupId : Int64?, variableGroupAPIName : String?, completion : @escaping( ResultType.DataResponse< ZCRMVariable, APIResponse > ) -> () )
+    internal func getVariable( variableId : Int64?, variableAPIName : String?, variableGroupId : Int64?, variableGroupAPIName : String?, completion : @escaping( CRMResultType.DataResponse< ZCRMVariable, APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.VARIABLES)
         if let variableId = variableId
@@ -425,7 +425,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func deleteVariables( ids : [Int64], completion : @escaping( ResultType.Response< BulkAPIResponse > ) -> () )
+    internal func deleteVariables( ids : [Int64], completion : @escaping( CRMResultType.Response< BulkAPIResponse > ) -> () )
     {
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
         setJSONRootKey(key: JSONRootKey.VARIABLES)
@@ -446,7 +446,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func deleteVariable( id : Int64, completion : @escaping( ResultType.Response< APIResponse > ) -> () )
+    internal func deleteVariable( id : Int64, completion : @escaping( CRMResultType.Response< APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.VARIABLES)
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )/\( id )")
@@ -466,7 +466,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func update( _ org : ZCRMOrg, completion : @escaping( ResultType.DataResponse< ZCRMOrg, APIResponse > ) -> () )
+    internal func update( _ org : ZCRMOrg, completion : @escaping( CRMResultType.DataResponse< ZCRMOrg, APIResponse > ) -> () )
     {
         if !org.upsertJSON.isEmpty
         {
@@ -500,7 +500,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getCurrencies( completion : @escaping( ResultType.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> () )
+    internal func getCurrencies( completion : @escaping( CRMResultType.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> () )
     {
         setIsCacheable( true )
         setJSONRootKey( key : JSONRootKey.CURRENCIES )
@@ -537,7 +537,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getCurrency( byId id : Int64, completion : @escaping( ResultType.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
+    internal func getCurrency( byId id : Int64, completion : @escaping( CRMResultType.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
     {
         setIsCacheable( true )
         setJSONRootKey( key : JSONRootKey.CURRENCIES )
@@ -576,7 +576,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getBaseCurrency( completion : @escaping( ResultType.Data< ZCRMCurrency > ) -> () )
+    internal func getBaseCurrency( completion : @escaping( CRMResultType.Data< ZCRMCurrency > ) -> () )
     {
         self.getCurrencies { ( result ) in
             do
@@ -614,7 +614,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func uploadPhoto( filePath : String?, fileName : String?, fileData : Data?, completion : @escaping(  ResultType.Response< APIResponse > ) -> () )
+    internal func uploadPhoto( filePath : String?, fileName : String?, fileData : Data?, completion : @escaping(  CRMResultType.Response< APIResponse > ) -> () )
     {
         do
         {
@@ -665,7 +665,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func downloadPhoto( withOrgID id : Int64?, completion : @escaping (ResultType.Response< FileAPIResponse >) -> ())
+    internal func downloadPhoto( withOrgID id : Int64?, completion : @escaping (CRMResultType.Response< FileAPIResponse >) -> ())
     {
         setJSONRootKey( key : JSONRootKey.NIL )
         setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.photo )")
@@ -691,7 +691,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getZCRMTerritories( completion : @escaping ( ResultType.DataResponse< [ ZCRMTerritory ], BulkAPIResponse > ) -> () )
+    internal func getZCRMTerritories( completion : @escaping ( CRMResultType.DataResponse< [ ZCRMTerritory ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.TERRITORIES )
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( JSONRootKey.TERRITORIES )")
@@ -734,7 +734,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getZCRMTerritory( byId id : Int64, completion : @escaping ( ResultType.DataResponse< ZCRMTerritory, APIResponse > ) -> () )
+    internal func getZCRMTerritory( byId id : Int64, completion : @escaping ( CRMResultType.DataResponse< ZCRMTerritory, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.TERRITORIES )
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( JSONRootKey.TERRITORIES )/\( id )")
@@ -774,7 +774,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func enableMultiCurrency( _ currency : ZCRMCurrency, completion : @escaping ( ResultType.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
+    internal func enableMultiCurrency( _ currency : ZCRMCurrency, completion : @escaping ( CRMResultType.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.BASE_CURRENCY)
         setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.currencies )/\( URLPathConstants.actions )/\( URLPathConstants.enable )")
@@ -823,7 +823,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func addCurrency( _ currency : ZCRMCurrency, completion : @escaping ( ResultType.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
+    internal func addCurrency( _ currency : ZCRMCurrency, completion : @escaping ( CRMResultType.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.CURRENCIES)
         setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.currencies )")
@@ -880,7 +880,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func addCurrencies( _ currencies : [ ZCRMCurrency ], completion : @escaping ( ResultType.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> () )
+    internal func addCurrencies( _ currencies : [ ZCRMCurrency ], completion : @escaping ( CRMResultType.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.CURRENCIES)
         setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.currencies )")
@@ -946,7 +946,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func updateBaseCurrency( _ currency : ZCRMCurrency, completion : @escaping ( ResultType.DataResponse< ZCRMCurrency, APIResponse > ) -> ())
+    internal func updateBaseCurrency( _ currency : ZCRMCurrency, completion : @escaping ( CRMResultType.DataResponse< ZCRMCurrency, APIResponse > ) -> ())
     {
         setJSONRootKey(key: JSONRootKey.BASE_CURRENCY)
         setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.currencies )/\( URLPathConstants.actions )/\( URLPathConstants.enable )")
@@ -993,7 +993,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func updateCurrencies( _ currencies : [ ZCRMCurrency ], completion : @escaping ( ResultType.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> ())
+    internal func updateCurrencies( _ currencies : [ ZCRMCurrency ], completion : @escaping ( CRMResultType.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> ())
     {
         setJSONRootKey(key: JSONRootKey.CURRENCIES)
         setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.currencies )")
@@ -1060,7 +1060,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func updateCurrency( _ currency : ZCRMCurrency, completion : @escaping ( ResultType.DataResponse< ZCRMCurrency, APIResponse > ) -> ())
+    internal func updateCurrency( _ currency : ZCRMCurrency, completion : @escaping ( CRMResultType.DataResponse< ZCRMCurrency, APIResponse > ) -> ())
     {
         
         guard let currencyId = currency.id else

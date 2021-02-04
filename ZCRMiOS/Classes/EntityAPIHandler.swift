@@ -38,7 +38,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     }
     
 	// MARK: - Handler Functions
-	internal func getRecord( withPrivateFields : Bool, completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+	internal func getRecord( withPrivateFields : Bool, completion : @escaping( CRMResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         let urlPath = "\( self.record.moduleAPIName )/\( self.recordDelegate.id )"
@@ -82,7 +82,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func createRecord( triggers : [Trigger]?, completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    internal func createRecord( triggers : [Trigger]?, completion : @escaping( CRMResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         var reqBodyObj : [ String : Any? ] = [ String : Any? ]()
@@ -138,7 +138,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func updateRecord( triggers : [Trigger]?, completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    internal func updateRecord( triggers : [Trigger]?, completion : @escaping( CRMResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         if self.record.isCreate
@@ -197,7 +197,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func deleteRecord( completion : @escaping( ResultType.Response< APIResponse > ) -> () )
+    internal func deleteRecord( completion : @escaping( CRMResultType.Response< APIResponse > ) -> () )
     {
 		setUrlPath( urlPath : "\( self.recordDelegate.moduleAPIName )/\( self.recordDelegate.id )" )
 		setRequestMethod(requestMethod : .delete )
@@ -216,7 +216,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func convertRecord( newPotential : ZCRMRecord?, assignTo : ZCRMUser?, completion : @escaping( ResultType.DataResponse< [ String : Int64 ], APIResponse > ) -> () )
+    internal func convertRecord( newPotential : ZCRMRecord?, assignTo : ZCRMUser?, completion : @escaping( CRMResultType.DataResponse< [ String : Int64 ], APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
@@ -280,7 +280,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         setRequestMethod(requestMethod : .post )
     }
     
-    internal func uploadPhoto( filePath : String?, fileName : String?, fileData : Data?, completion : @escaping( ResultType.Response< APIResponse > )->Void )
+    internal func uploadPhoto( filePath : String?, fileName : String?, fileData : Data?, completion : @escaping( CRMResultType.Response< APIResponse > )->Void )
     {
         do {
             try buildUploadPhotoRequest(filePath: filePath, fileName: fileName, fileData: fileData)
@@ -337,7 +337,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         
     }
     
-    internal func downloadPhoto( completion : @escaping( ResultType.Response< FileAPIResponse > ) -> () )
+    internal func downloadPhoto( completion : @escaping( CRMResultType.Response< FileAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.NIL )
         setUrlPath( urlPath : "\( self.recordDelegate.moduleAPIName )/\( self.recordDelegate.id )/\( URLPathConstants.photo )" )
@@ -368,7 +368,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         request.downloadFile( fileRefId: String( self.recordDelegate.id ) )
     }
 
-    internal func deletePhoto( completion : @escaping( ResultType.Response< APIResponse > ) -> () )
+    internal func deletePhoto( completion : @escaping( CRMResultType.Response< APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.NIL )
         setUrlPath( urlPath : "\( self.recordDelegate.moduleAPIName )/\( self.recordDelegate.id )/\( URLPathConstants.photo )" )
@@ -389,7 +389,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     }
     
     // TODO : Add response object as List of Tags when overwrite false case is fixed
-    internal func addTags( tags : [ String ], overWrite : Bool?, completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    internal func addTags( tags : [ String ], overWrite : Bool?, completion : @escaping( CRMResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.DATA)
         
@@ -435,7 +435,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func removeTags( tags : [ String ], completion : @escaping( ResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    internal func removeTags( tags : [ String ], completion : @escaping( CRMResultType.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.DATA)
         
@@ -901,7 +901,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         return lineItem
     }
     
-    internal func setRecordProperties(recordDetails : [String:Any], completion : @escaping( ResultType.Data< ZCRMRecord > ) -> ())
+    internal func setRecordProperties(recordDetails : [String:Any], completion : @escaping( CRMResultType.Data< ZCRMRecord > ) -> ())
     {
         var setRecordError : Error?
         let dispatchGroup : DispatchGroup = DispatchGroup()

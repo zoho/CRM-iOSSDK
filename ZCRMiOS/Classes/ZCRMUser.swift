@@ -459,7 +459,7 @@ public class ZCRMUser : ZCRMUserDelegate
         return data
     }
     
-    public func create( completion : @escaping( ResultType.DataResponse< ZCRMUser, APIResponse > ) -> () )
+    public func create( completion : @escaping( CRMResultType.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
         UserAPIHandler().addUser( user : self ) { ( result ) in
             self.isCreate = false
@@ -467,7 +467,7 @@ public class ZCRMUser : ZCRMUserDelegate
         }
     }
     
-    public func update( completion : @escaping( ResultType.Response< APIResponse > ) -> () )
+    public func update( completion : @escaping( CRMResultType.Response< APIResponse > ) -> () )
     {
         UserAPIHandler().updateUser( user : self ) { ( result ) in
             completion( result )

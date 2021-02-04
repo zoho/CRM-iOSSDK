@@ -148,22 +148,22 @@ public class ZCRMSubformRecord : ZCRMEntity, ZCacheRecord
         return self.properties.optValue( key : ofProperty )
     }
     
-    public func create<T>(completion: @escaping (DataResponseCallback<ZCacheResponse, T>) -> Void)
+    public func create<T>(completion: @escaping (ResultType.DataResponse<ZCacheResponse, T>) -> Void)
     {
         
     }
     
-    public func update<T>(completion: @escaping (DataResponseCallback<ZCacheResponse, T>) -> Void)
+    public func update<T>(completion: @escaping (ResultType.DataResponse<ZCacheResponse, T>) -> Void)
     {
         
     }
     
-    public func delete(completion: @escaping (DataResponseCallback<ZCacheResponse, String>) -> Void)
+    public func delete(completion: @escaping (ResultType.DataResponse<ZCacheResponse, String>) -> Void)
     {
         
     }
     
-    public func reset<T>(completion: @escaping (DataResponseCallback<ZCacheResponse, T>) -> Void)
+    public func reset<T>(completion: @escaping (ResultType.DataResponse<ZCacheResponse, T>) -> Void)
     {
         
     }

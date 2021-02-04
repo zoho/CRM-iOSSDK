@@ -30,7 +30,7 @@ open class ZCRMVariable : ZCRMEntity
         self.id = id
     }
     
-    public func create( completion : @escaping( ResultType.DataResponse< ZCRMVariable, APIResponse > ) -> () )
+    public func create( completion : @escaping( CRMResultType.DataResponse< ZCRMVariable, APIResponse > ) -> () )
     {
         OrgAPIHandler(variable: self).createVariable { ( result ) in
             self.isCreate = false
@@ -38,14 +38,14 @@ open class ZCRMVariable : ZCRMEntity
         }
     }
     
-    public func update( completion : @escaping( ResultType.DataResponse< ZCRMVariable, APIResponse > ) -> () )
+    public func update( completion : @escaping( CRMResultType.DataResponse< ZCRMVariable, APIResponse > ) -> () )
     {
         OrgAPIHandler(variable: self).updateVariable { ( result ) in
             completion( result )
         }
     }
     
-    public func delete( completion : @escaping( ResultType.Response< APIResponse > ) -> () )
+    public func delete( completion : @escaping( CRMResultType.Response< APIResponse > ) -> () )
     {
         OrgAPIHandler().deleteVariable(id: self.id) { ( result ) in
             completion( result )
