@@ -49,7 +49,7 @@ public class ZCRMSDKUtil: ZCacheClient
                     let code = error.ZCRMErrordetails?.code
                     let message = error.ZCRMErrordetails?.code
                 
-                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                    completion(.failure(error: ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
                 }
             }
         }
@@ -73,7 +73,7 @@ public class ZCRMSDKUtil: ZCacheClient
                     let code = error.ZCRMErrordetails?.code
                     let message = error.ZCRMErrordetails?.code
                 
-                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                    completion(.failure(error: ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
                 }
             }
         }
@@ -102,7 +102,7 @@ public class ZCRMSDKUtil: ZCacheClient
                     let code = error.ZCRMErrordetails?.code
                     let message = error.ZCRMErrordetails?.code
                 
-                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                    completion(.failure(error: ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
                 }
             }
         }
@@ -126,7 +126,7 @@ public class ZCRMSDKUtil: ZCacheClient
                     let code = error.ZCRMErrordetails?.code
                     let message = error.ZCRMErrordetails?.code
                 
-                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                    completion(.failure(error: ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
                 }
             }
         }
@@ -150,7 +150,7 @@ public class ZCRMSDKUtil: ZCacheClient
                     let code = error.ZCRMErrordetails?.code
                     let message = error.ZCRMErrordetails?.code
                 
-                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                    completion(.failure(error: ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
                 }
             }
         }
@@ -174,18 +174,18 @@ public class ZCRMSDKUtil: ZCacheClient
                     let code = error.ZCRMErrordetails?.code
                     let message = error.ZCRMErrordetails?.code
                 
-                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                    completion(.failure(error: ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
                 }
             }
         }
     }
     
-    public func searchFromServer<T>(key: String, fromModules: [String], completion: @escaping (DataResponseCallback<ZCacheResponse, [T]>) -> Void)
+    public func searchFromServer<T>(key: String, fromModules: [String], completion: @escaping (ResultType.DataResponse<ZCacheResponse, [T]>) -> Void)
     {
         searchFromServer(key: key, fromModules: fromModules, page: 1, perPage: 200, completion: completion)
     }
     
-    public func searchFromServer<T>(key: String, fromModules: [String], page: Int, perPage: Int, completion: @escaping (DataResponseCallback<ZCacheResponse, [T]>) -> Void)
+    public func searchFromServer<T>(key: String, fromModules: [String], page: Int, perPage: Int, completion: @escaping (ResultType.DataResponse<ZCacheResponse, [T]>) -> Void)
     {
         if !fromModules.isEmpty
         {

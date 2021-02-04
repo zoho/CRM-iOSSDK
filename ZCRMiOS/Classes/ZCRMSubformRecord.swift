@@ -163,7 +163,7 @@ public class ZCRMSubformRecord : ZCRMEntity, ZCacheRecord
         
     }
     
-    public func reset<T>(completion: @escaping (ResultType.DataResponse<ZCacheResponse, T>) -> Void)
+    public func reset< T >(completion: @escaping (ResultType.Data<T>) -> Void)
     {
         
     }

@@ -37,7 +37,7 @@ public class ZCRMSection : ZCRMEntity, ZCacheSection
         }
         else
         {
-            completion(.failure(ZCacheError.invalidError(code: ErrorCode.invalidData, message: ErrorMessage.invalidIdMsg, details: nil)))
+            completion(.failure(error: ZCacheError.invalidError(code: ErrorCode.invalidData, message: ErrorMessage.invalidIdMsg, details: nil)))
         }
     }
     

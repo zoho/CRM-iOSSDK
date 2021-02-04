@@ -78,7 +78,7 @@ open class ZCRMLayout : ZCRMLayoutDelegate
         }
         else
         {
-            completion(.failure(ZCacheError.invalidError(code: ErrorCode.invalidData, message: ErrorMessage.invalidNameMsg, details: nil)))
+            completion(.failure(error: ZCacheError.invalidError(code: ErrorCode.invalidData, message: ErrorMessage.invalidNameMsg, details: nil)))
         }
     }
     
@@ -112,7 +112,7 @@ open class ZCRMLayout : ZCRMLayoutDelegate
         }
         else
         {
-            completion(.failure(ZCacheError.invalidError(code: ErrorCode.invalidData, message: ErrorMessage.invalidNameMsg, details: nil)))
+            completion(.failure(error: ZCacheError.invalidError(code: ErrorCode.invalidData, message: ErrorMessage.invalidNameMsg, details: nil)))
         }
     }
     

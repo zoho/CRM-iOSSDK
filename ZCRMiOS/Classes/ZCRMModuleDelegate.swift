@@ -34,7 +34,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
                     let code = error.ZCRMErrordetails?.code
                     let message = error.ZCRMErrordetails?.code
                 
-                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                    completion(.failure(error: ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
                 }
             }
         }
@@ -58,7 +58,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
                     let code = error.ZCRMErrordetails?.code
                     let message = error.ZCRMErrordetails?.code
                 
-                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                    completion(.failure(error: ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
                 }
             }
         }
@@ -82,7 +82,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
                     let code = error.ZCRMErrordetails?.code
                     let message = error.ZCRMErrordetails?.code
                 
-                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                    completion(.failure(error: ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
                 }
             }
         }
@@ -106,7 +106,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
                     let code = error.ZCRMErrordetails?.code
                     let message = error.ZCRMErrordetails?.code
                 
-                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                    completion(.failure(error: ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
                 }
             }
         }
@@ -130,7 +130,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
                     let code = error.ZCRMErrordetails?.code
                     let message = error.ZCRMErrordetails?.code
                 
-                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                    completion(.failure(error: ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
                 }
             }
         }
@@ -154,7 +154,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
                     let code = error.ZCRMErrordetails?.code
                     let message = error.ZCRMErrordetails?.code
                 
-                    completion(.failure(ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
+                    completion(.failure(error: ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
                 }
             }
         }
