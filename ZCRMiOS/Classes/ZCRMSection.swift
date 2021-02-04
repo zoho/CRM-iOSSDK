@@ -9,7 +9,7 @@ import ZCacheiOS
 
 public class ZCRMSection : ZCRMEntity, ZCacheSection
 {
-    public var id: String?
+    public var id: String
     public var apiName : String
     public internal( set ) var name : String = APIConstants.STRING_MOCK
     public internal( set ) var displayName : String = APIConstants.STRING_MOCK
@@ -56,6 +56,7 @@ public class ZCRMSection : ZCRMEntity, ZCacheSection
     /// - Parameter sectionName: section name whose associated section is to be initialised
     internal init( apiName : String )
     {
+        self.id = apiName
         self.apiName = apiName
     }
     
@@ -84,7 +85,7 @@ public class ZCRMSection : ZCRMEntity, ZCacheSection
     required public init(from decoder: Decoder) throws {
         let container = try! decoder.container(keyedBy: CodingKeys.self)
         
-        id = try! container.decodeIfPresent(String.self, forKey: .id)
+        id = try! container.decode(String.self, forKey: .id)
         apiName = try! container.decode(String.self, forKey: .apiName)
         name = try! container.decode(String.self, forKey: .name)
         displayName = try! container.decode(String.self, forKey: .displayName)

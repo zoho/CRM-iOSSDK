@@ -188,9 +188,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
     
     public func createRecord<T>(record: T, completion: @escaping ((DataResponseCallback<ZCacheResponse, T>) -> Void))
     {
-        let rec = record as! ZCRMRecord
-        print("<<< isRecordPresent: \(String(describing: try! rec.getValue(ofFieldAPIName: "Last_Name")))")
-        EntityAPIHandler( record : record as! ZCRMRecord ).createRecord(triggers: nil)
+        EntityAPIHandler( record : record as! ZCRMRecord).createRecord(triggers: nil)
         {
             result in
             switch result

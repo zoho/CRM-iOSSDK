@@ -329,7 +329,6 @@ public class ZCRMSDKClient
     
         public func showLogin(completion: @escaping ( ZCRMError? ) -> ())
         {
-            print("<<< showLogin...")
             if isUserSignedIn()
             {
                 self.initCacheSDK()

@@ -60,8 +60,6 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
                 }
                 else
                 {
-                    print("<<< KEY: \(key.stringValue)")
-
                     data[key.stringValue] = try! dynamicValues.decodeIfPresent(JSONValue.self, forKey: key)
                 }
             }
@@ -82,7 +80,6 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
         {
             if let customKey = CustomCodingKeys(stringValue: key)
             {
-                print("<<< KEY: \(key), \(String(describing: value))")
                 try customContainer.encodeIfPresent( value, forKey : customKey )
             }
         }
@@ -90,7 +87,6 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
         {
             if let customKey = CustomCodingKeys(stringValue: key)
             {
-                print("<<< KEY: \(key), \(String(describing: value))")
                 try customContainer.encodeIfPresent( value, forKey : customKey )
             }
         }

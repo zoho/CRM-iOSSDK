@@ -34,7 +34,7 @@ open class ZCRMLayoutDelegate : ZCRMEntity, ZCacheLayout
         try container.encode(self.name, forKey: .name)
     }
     
-    public func getSectionFromServer<T>(name: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    public func getSectionFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
     {
         
     }

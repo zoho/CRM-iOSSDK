@@ -41,7 +41,6 @@ public struct JSONValue: Decodable {
     }
     else if let lineItemVal = try? container?.decode(ZCRMInventoryLineItem.self)
     {
-        print("<<< LineItem: \(lineItemVal)")
         value = lineItemVal
     }
     else if let priceBookVal = try? container?.decode(ZCRMPriceBookPricing.self)
@@ -71,7 +70,6 @@ public struct JSONValue: Decodable {
     else if var container = try? decoder.unkeyedContainer()
     {
       var result = [Any?]()
-        print("<<< LineItem unkeyedContainer")
       while !container.isAtEnd
       {
         result.append(try container.decode(JSONValue.self).value)
