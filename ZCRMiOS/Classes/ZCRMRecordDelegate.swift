@@ -16,6 +16,7 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
     public var offlineCreatedBy: ZCacheUser?
     public var offlineModifiedTime: String?
     public var offlineModifiedBy: ZCacheUser?
+    public var offlineModifications: [DirtyField]?
     
     enum CodingKeys: String, CodingKey
     {
