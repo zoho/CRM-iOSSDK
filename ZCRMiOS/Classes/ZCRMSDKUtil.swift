@@ -17,7 +17,7 @@ public class ZCRMSDKUtil: ZCacheClient
         {
             return ZCRMSubformRecord(name: APIConstants.STRING_MOCK)
         }
-        else if type == .user_lookup
+        else if type == .user_lookup || type == .user
         {
             return ZCRMUser(emailId: APIConstants.STRING_MOCK)
         }
@@ -25,13 +25,25 @@ public class ZCRMSDKUtil: ZCacheClient
         {
             return ZCRMRecord(moduleAPIName: APIConstants.STRING_MOCK)
         }
+        else if type == .client
+        {
+            return ZCRMSDKUtil()
+        }
+        else if type == .field
+        {
+            return ZCRMField(apiName: APIConstants.STRING_MOCK)
+        }
+        else if type == .module
+        {
+            return ZCRMModule(apiName: APIConstants.STRING_MOCK, singularLabel: APIConstants.STRING_MOCK, pluralLabel: APIConstants.STRING_MOCK)
+        }
         else
         {
             return ZCRMRecord(moduleAPIName: APIConstants.STRING_MOCK)
         }
     }
     
-    public func getModulesFromServer<T>(completion: @escaping ((ResultType.Data<[T]>) -> Void))
+    public func getModulesFromServer<T>( params: ZCacheQuery.GetMetaDataParams, completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
         MetaDataAPIHandler().getAllModules( modifiedSince : nil )
         {
@@ -108,7 +120,7 @@ public class ZCRMSDKUtil: ZCacheClient
         }
     }
    
-    public func getUsersFromServer<T>(completion: @escaping ((ResultType.Data<[T]>) -> Void))
+    public func getUsersFromServer<T>( params: ZCacheQuery.GetMetaDataParams,completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
         UserAPIHandler(cacheFlavour: .noCache).getUsers(ofType: nil, modifiedSince: nil, page: nil, perPage: nil)
         {
