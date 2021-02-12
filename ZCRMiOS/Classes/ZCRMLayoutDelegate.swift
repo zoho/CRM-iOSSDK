@@ -39,14 +39,9 @@ open class ZCRMLayoutDelegate : ZCRMEntity, ZCacheLayout
         
     }
     
-    public func getSectionsFromServer<T>(completion: @escaping ((ResultType.Data<[T]>) -> Void))
+    public func getSectionsFromServer<T>( params: ZCacheQuery.GetMetaDataParams, completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
         
-    }
-    
-    public func getSectionsFromServer<T>(modifiedSince: String, completion: @escaping ((ResultType.Data<[T]>) -> Void))
-    {
-       
     }
     
     public func getFieldFromServer<T>(id: String, completion: @escaping ((ResultType.Data<T>) -> Void))
@@ -54,12 +49,7 @@ open class ZCRMLayoutDelegate : ZCRMEntity, ZCacheLayout
         
     }
     
-    public func getFieldsFromServer<T>(completion: @escaping ((ResultType.Data<[T]>) -> Void))
-    {
-        
-    }
-    
-    public func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((ResultType.Data<[T]>) -> Void))
+    public func getFieldsFromServer<T>( params: ZCacheQuery.GetMetaDataParams, completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
         
     }

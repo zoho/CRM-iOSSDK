@@ -45,31 +45,8 @@ public class ZCRMSDKUtil: ZCacheClient
     
     public func getModulesFromServer<T>( params: ZCacheQuery.GetMetaDataParams, completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
-        MetaDataAPIHandler().getAllModules( modifiedSince : nil )
-        {
-            ( result ) in
-            switch result
-            {
-            case .success(let modules, _):
-                do
-                {
-                    completion(.success(data: modules as! [T]))
-                }
-            case .failure(let error):
-                do
-                {
-                    let code = error.ZCRMErrordetails?.code
-                    let message = error.ZCRMErrordetails?.code
-                
-                    completion(.failure(error: ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
-                }
-            }
-        }
-    }
-    
-    public func getModulesFromServer<T>(modifiedSince: String, completion: @escaping ((ResultType.Data<[T]>) -> Void))
-    {
-        MetaDataAPIHandler().getAllModules( modifiedSince : modifiedSince )
+        
+        MetaDataAPIHandler().getAllModules( modifiedSince : params.modifiedSince )
         {
             ( result ) in
             switch result
@@ -120,17 +97,17 @@ public class ZCRMSDKUtil: ZCacheClient
         }
     }
    
-    public func getUsersFromServer<T>( params: ZCacheQuery.GetMetaDataParams,completion: @escaping ((ResultType.Data<[T]>) -> Void))
+    public func getUsersFromServer<T>( params: ZCacheQuery.GetUserParams, completion: @escaping ((ResultType.DataResponse<ZCacheResponse, [T]>) -> Void))
     {
-        UserAPIHandler(cacheFlavour: .noCache).getUsers(ofType: nil, modifiedSince: nil, page: nil, perPage: nil)
+        UserAPIHandler(cacheFlavour: .noCache).getUsers(ofType: nil, modifiedSince: params.modifiedSince, page: params.page, perPage: params.perPage)
         {
             ( result ) in
             switch result
             {
-            case .success(let users, _):
+            case .success(let users, let response):
                 do
                 {
-                    completion(.success(data: users as! [T]))
+                    completion(.fromServer(info: response, data: users as! [T]))
                 }
             case .failure(let error):
                 do
@@ -192,23 +169,18 @@ public class ZCRMSDKUtil: ZCacheClient
         }
     }
     
-    public func searchFromServer<T>(key: String, fromModules: [String], completion: @escaping (ResultType.DataResponse<ZCacheResponse, [T]>) -> Void)
+    public func searchFromServer<T>(params: ZCacheQuery.SearchRecordParams, completion: @escaping (ResultType.DataResponse<ZCacheResponse, [T]>) -> Void)
     {
-        searchFromServer(key: key, fromModules: fromModules, page: 1, perPage: 200, completion: completion)
-    }
-    
-    public func searchFromServer<T>(key: String, fromModules: [String], page: Int, perPage: Int, completion: @escaping (ResultType.DataResponse<ZCacheResponse, [T]>) -> Void)
-    {
-        if !fromModules.isEmpty
+        if !params.modules.isEmpty
         {
-            let moduleDelegate = ZCRMSDKUtil.getModuleDelegate(apiName: fromModules[0])
-            moduleDelegate.searchBy(text: key, page: page, per_page: perPage)
+            let moduleDelegate = ZCRMSDKUtil.getModuleDelegate(apiName: params.modules[0])
+            moduleDelegate.searchBy(text: params.word, page: params.page, per_page: params.perPage)
             {
                 result in
                 switch result
                 {
                 case .success(let records, let response):
-                    completion(.fromServer(info: response, data: records as? [T]))
+                    completion(.fromServer(info: response, data: records as! [T]))
                 case .failure(let error):
                     completion(.failure(error: ZCacheError.processingError(code: ErrorCode.invalidData, message: error.description, details: nil)))
                 }

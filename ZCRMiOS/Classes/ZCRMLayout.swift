@@ -23,6 +23,7 @@ open class ZCRMLayout : ZCRMLayoutDelegate
         super.init( id : APIConstants.STRING_MOCK, name : name )
     }
     
+    // Start of ZCacheSDK methods.
     enum CodingKeys: String, CodingKey
     {
         case createdBy
@@ -82,12 +83,7 @@ open class ZCRMLayout : ZCRMLayoutDelegate
         }
     }
     
-    public override func getSectionsFromServer<T>(completion: @escaping ((ResultType.Data<[T]>) -> Void))
-    {
-        completion(.success(data: sections as! [T]))
-    }
-    
-    public override func getSectionsFromServer<T>(modifiedSince: String, completion: @escaping ((ResultType.Data<[T]>) -> Void))
+    public override func getSectionsFromServer<T>( params: ZCacheQuery.GetMetaDataParams, completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
         completion(.success(data: sections as! [T]))
     }
@@ -116,7 +112,7 @@ open class ZCRMLayout : ZCRMLayoutDelegate
         }
     }
     
-    public override func getFieldsFromServer<T>(completion: @escaping ((ResultType.Data<[T]>) -> Void))
+    public override func getFieldsFromServer<T>( params: ZCacheQuery.GetMetaDataParams, completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
         var fields = [ZCacheField]()
         for section in sections
@@ -125,16 +121,7 @@ open class ZCRMLayout : ZCRMLayoutDelegate
         }
         completion(.success(data: fields as! [T]))
     }
-    
-    public override func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((ResultType.Data<[T]>) -> Void))
-    {
-        var fields = [ZCacheField]()
-        for section in sections
-        {
-            fields.append(contentsOf: section.fields)
-        }
-        completion(.success(data: fields as! [T]))
-    }
+    // End of ZCacheSDK methods.
     
     /// Add ZCRMSection to the ZCRMLayout.
     ///

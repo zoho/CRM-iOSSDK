@@ -41,12 +41,7 @@ public class ZCRMSection : ZCRMEntity, ZCacheSection
         }
     }
     
-    public func getFieldsFromServer<T>(completion: @escaping ((ResultType.Data<[T]>) -> Void))
-    {
-        completion(.success(data: fields as! [T]))
-    }
-    
-    public func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((ResultType.Data<[T]>) -> Void))
+    public func getFieldsFromServer<T>( params: ZCacheQuery.GetMetaDataParams, completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
         completion(.success(data: fields as! [T]))
     }

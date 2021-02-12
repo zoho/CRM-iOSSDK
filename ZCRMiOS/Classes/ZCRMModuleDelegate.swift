@@ -40,33 +40,9 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
-    public func getLayoutsFromServer<T>(completion: @escaping ((ResultType.Data<[T]>) -> Void))
+    public func getLayoutsFromServer<T>( params: ZCacheQuery.GetMetaDataParams, completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
-        ModuleAPIHandler(module: self, cacheFlavour: .noCache).getAllLayouts(modifiedSince: nil)
-        {
-            ( result ) in
-            switch result
-            {
-            case .success(let layouts, _):
-                do
-                {
-                    completion(.success(data: layouts as! [T]))
-                }
-            case .failure(let error):
-                do
-                {
-                    let code = error.ZCRMErrordetails?.code
-                    let message = error.ZCRMErrordetails?.code
-                
-                    completion(.failure(error: ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
-                }
-            }
-        }
-    }
-    
-    public func getLayoutsFromServer<T>(modifiedSince: String, completion: @escaping ((ResultType.Data<[T]>) -> Void))
-    {
-        ModuleAPIHandler(module: self, cacheFlavour: .noCache).getAllLayouts(modifiedSince: modifiedSince)
+        ModuleAPIHandler(module: self, cacheFlavour: .noCache).getAllLayouts(modifiedSince: params.modifiedSince)
         {
             ( result ) in
             switch result
@@ -112,33 +88,9 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
-    public func getFieldsFromServer<T>(completion: @escaping ((ResultType.Data<[T]>) -> Void))
+    public func getFieldsFromServer<T>( params: ZCacheQuery.GetMetaDataParams, completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
-        ModuleAPIHandler(module: self, cacheFlavour: .noCache).getAllFields(modifiedSince: nil)
-        {
-            ( result ) in
-            switch result
-            {
-            case .success(let fields, _):
-                do
-                {
-                    completion(.success(data: fields as! [T]))
-                }
-            case .failure(let error):
-                do
-                {
-                    let code = error.ZCRMErrordetails?.code
-                    let message = error.ZCRMErrordetails?.code
-                
-                    completion(.failure(error: ZCacheError.processingError(code: code ?? ErrorCode.internalError, message: message ?? ErrorMessage.responseNilMsg, details: nil)))
-                }
-            }
-        }
-    }
-    
-    public func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((ResultType.Data<[T]>) -> Void))
-    {
-        ModuleAPIHandler(module: self, cacheFlavour: .noCache).getAllFields(modifiedSince: modifiedSince)
+        ModuleAPIHandler(module: self, cacheFlavour: .noCache).getAllFields(modifiedSince: params.modifiedSince)
         {
             ( result ) in
             switch result
@@ -167,10 +119,10 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             result in
             switch result
             {
-            case .success(let record, _):
+            case .success(let record, let response):
                 do
                 {
-                    completion(.fromServer(info: nil, data: record as? T))
+                    completion(.fromServer(info: response, data: record as! T))
                 }
             case .failure(let error):
                 do
@@ -188,10 +140,10 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             result in
             switch result
             {
-            case .success(let record, _):
+            case .success(let record, let response):
                 do
                 {
-                    completion(.fromServer(info: nil, data: record as? T))
+                    completion(.fromServer(info: response, data: record as! T))
                 }
             case .failure(let error):
                 do
@@ -210,10 +162,10 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             result in
             switch result
             {
-            case .success(let record, _):
+            case .success(let record, let response):
                 do
                 {
-                    completion(.fromServer(info: nil, data: record as? T))
+                    completion(.fromServer(info: response, data: record as! T))
                 }
             case .failure(let error):
                 do
@@ -231,10 +183,10 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             result in
             switch result
             {
-            case .success(_):
+            case .success(let response):
                 do
                 {
-                    completion(.fromServer(info: nil, data: id))
+                    completion(.fromServer(info: response, data: id))
                 }
             case .failure(let error):
                 do
@@ -297,7 +249,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             switch result
             {
             case .success(let records, let response):
-                completion(.fromServer(info: response, data: records as? [T]))
+                completion(.fromServer(info: response, data: records as! [T]))
             case .failure(let error):
                 completion(.failure(error: ZCacheError.invalidError(code: ErrorCode.invalidData, message: error.description, details: nil)))
             }
