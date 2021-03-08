@@ -34,32 +34,22 @@ open class ZCRMLayoutDelegate : ZCRMEntity, ZCacheLayout
         try container.encode(self.name, forKey: .name)
     }
     
-    public func getSectionFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    public func getSectionFromServer<T>(id: String, completion: @escaping ((ResultType.Data<T>) -> Void))
     {
         
     }
     
-    public func getSectionsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    public func getSectionsFromServer<T>( params: ZCacheQuery.GetMetaDataParams, completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
         
     }
     
-    public func getSectionsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
-    {
-       
-    }
-    
-    public func getFieldFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    public func getFieldFromServer<T>(id: String, completion: @escaping ((ResultType.Data<T>) -> Void))
     {
         
     }
     
-    public func getFieldsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
-    {
-        
-    }
-    
-    public func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    public func getFieldsFromServer<T>( params: ZCacheQuery.GetMetaDataParams, completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
         
     }

@@ -8,7 +8,7 @@
 
 internal class MetaDataAPIHandler : CommonAPIHandler
 {
-    internal func getAllModules( modifiedSince : String?, completion: @escaping( ResultType.DataResponse< [ ZCRMModule ], BulkAPIResponse > ) -> () )
+    internal func getAllModules( modifiedSince : String?, completion: @escaping( CRMResultType.DataResponse< [ ZCRMModule ], BulkAPIResponse > ) -> () )
     {
         var allModules : [ZCRMModule] = [ZCRMModule]()
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.modules )" )
@@ -48,7 +48,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         }
 	}
 
-    internal func getModule( apiName : String, completion: @escaping( ResultType.DataResponse< ZCRMModule, APIResponse > ) -> () )
+    internal func getModule( apiName : String, completion: @escaping( CRMResultType.DataResponse< ZCRMModule, APIResponse > ) -> () )
 	{
 		setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.modules )/\(apiName)" )
 		setRequestMethod(requestMethod: .get )

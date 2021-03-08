@@ -23,6 +23,7 @@ open class ZCRMLayout : ZCRMLayoutDelegate
         super.init( id : APIConstants.STRING_MOCK, name : name )
     }
     
+    // Start of ZCacheSDK methods.
     enum CodingKeys: String, CodingKey
     {
         case createdBy
@@ -62,7 +63,7 @@ open class ZCRMLayout : ZCRMLayoutDelegate
         try! container.encode(self.accessibleProfiles, forKey: .accessibleProfiles)
     }
     
-    public override func getSectionFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    public override func getSectionFromServer<T>(id: String, completion: @escaping ((ResultType.Data<T>) -> Void))
     {
         var zcrmSection: ZCRMSection?
         for section in sections
@@ -74,25 +75,20 @@ open class ZCRMLayout : ZCRMLayoutDelegate
         }
         if let zcrmSection = zcrmSection
         {
-            completion(.success(zcrmSection as! T))
+            completion(.success(data: zcrmSection as! T))
         }
         else
         {
-            completion(.failure(ZCacheError.invalidError(code: ErrorCode.invalidData, message: ErrorMessage.invalidNameMsg, details: nil)))
+            completion(.failure(error: ZCacheError.invalidError(code: ErrorCode.invalidData, message: ErrorMessage.invalidNameMsg, details: nil)))
         }
     }
     
-    public override func getSectionsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    public override func getSectionsFromServer<T>( params: ZCacheQuery.GetMetaDataParams, completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
-        completion(.success(sections as! [T]))
+        completion(.success(data: sections as! [T]))
     }
     
-    public override func getSectionsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
-    {
-        completion(.success(sections as! [T]))
-    }
-    
-    public override func getFieldFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    public override func getFieldFromServer<T>(id: String, completion: @escaping ((ResultType.Data<T>) -> Void))
     {
         var zcrmField: ZCRMField?
         for section in sections
@@ -108,33 +104,24 @@ open class ZCRMLayout : ZCRMLayoutDelegate
         }
         if let zcrmField = zcrmField
         {
-            completion(.success(zcrmField as! T))
+            completion(.success(data: zcrmField as! T))
         }
         else
         {
-            completion(.failure(ZCacheError.invalidError(code: ErrorCode.invalidData, message: ErrorMessage.invalidNameMsg, details: nil)))
+            completion(.failure(error: ZCacheError.invalidError(code: ErrorCode.invalidData, message: ErrorMessage.invalidNameMsg, details: nil)))
         }
     }
     
-    public override func getFieldsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    public override func getFieldsFromServer<T>( params: ZCacheQuery.GetMetaDataParams, completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
         var fields = [ZCacheField]()
         for section in sections
         {
             fields.append(contentsOf: section.fields)
         }
-        completion(.success(fields as! [T]))
+        completion(.success(data: fields as! [T]))
     }
-    
-    public override func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
-    {
-        var fields = [ZCacheField]()
-        for section in sections
-        {
-            fields.append(contentsOf: section.fields)
-        }
-        completion(.success(fields as! [T]))
-    }
+    // End of ZCacheSDK methods.
     
     /// Add ZCRMSection to the ZCRMLayout.
     ///

@@ -19,7 +19,7 @@ open class ZCRMUserDelegate : ZCRMEntity, ZCacheUser
         let container = try decoder.container(keyedBy: Keys.self)
         id = try container.decode(String.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
-        moduleName = try container.decode(String.self, forKey: .moduleName)
+        moduleName = "USERS"
         orgId = try container.decodeIfPresent(String.self, forKey: .orgId)
     }
     open func encode( to encoder : Encoder ) throws
@@ -45,7 +45,7 @@ open class ZCRMUserDelegate : ZCRMEntity, ZCacheUser
         self.name = name
     }
     
-    public func delete( completion : @escaping( ResultType.Response< APIResponse > ) -> () )
+    public func delete( completion : @escaping( CRMResultType.Response< APIResponse > ) -> () )
     {
         UserAPIHandler().deleteUser( userId : self.id ) { ( result ) in
             completion( result )

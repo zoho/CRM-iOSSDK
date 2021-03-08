@@ -116,8 +116,9 @@ public struct JSONValue: Decodable {
   }
 }
 
-extension JSONValue: Encodable {
-  public func encode(to encoder: Encoder) throws {
+extension JSONValue: Encodable
+{
+    public func encode(to encoder: Encoder) throws {
     if !(value is NSNull)
     {
         if let array = value as? [Any]
@@ -201,7 +202,6 @@ extension JSONValue: Encodable {
           else
           {
             ZCRMLogger.logError(message: "<<< The value is not encodable: \(value ?? "Nil Value").")
-//            throw EncodingError.invalidValue(value ?? "Nil Value.", EncodingError.Context.init(codingPath: [], debugDescription: "The value is not encodable"))
           }
         }
     }

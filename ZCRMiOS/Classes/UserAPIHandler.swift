@@ -33,7 +33,7 @@ internal class UserAPIHandler : CommonAPIHandler
         self.cache = CacheFlavour.noCache
     }
     
-    internal func getUsers( ofType : UserTypes?, _ params : GETRequestParams, completion : @escaping ( ResultType.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> Void )
+    internal func getUsers( ofType : UserTypes?, _ params : GETRequestParams, completion : @escaping ( CRMResultType.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> Void )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
         var allUsers : [ZCRMUser] = [ZCRMUser]()
@@ -88,7 +88,7 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getUsers( ofType : UserTypes?, modifiedSince : String?, page : Int?, perPage : Int?, completion : @escaping( ResultType.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal func getUsers( ofType : UserTypes?, modifiedSince : String?, page : Int?, perPage : Int?, completion : @escaping( CRMResultType.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
         var allUsers : [ZCRMUser] = [ZCRMUser]()
@@ -143,7 +143,7 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getAllProfiles( completion : @escaping( ResultType.DataResponse< [ ZCRMProfile ], BulkAPIResponse > ) -> () )
+    internal func getAllProfiles( completion : @escaping( CRMResultType.DataResponse< [ ZCRMProfile ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.PROFILES )
         var allProfiles : [ ZCRMProfile ] = [ ZCRMProfile ] ()
@@ -180,7 +180,7 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getAllRoles( completion : @escaping( ResultType.DataResponse< [ ZCRMRole ], BulkAPIResponse > ) -> () )
+    internal func getAllRoles( completion : @escaping( CRMResultType.DataResponse< [ ZCRMRole ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.ROLES )
         var allRoles : [ ZCRMRole ] = [ ZCRMRole ]()
@@ -217,7 +217,7 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getUser( userId : String?, completion : @escaping( ResultType.DataResponse< ZCRMUser, APIResponse > ) -> () )
+    internal func getUser( userId : String?, completion : @escaping( CRMResultType.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
         setRequestMethod(requestMethod: .get )
@@ -250,7 +250,7 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func addUser( user : ZCRMUser, completion : @escaping( ResultType.DataResponse< ZCRMUser, APIResponse > ) -> () )
+    internal func addUser( user : ZCRMUser, completion : @escaping( CRMResultType.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
         setRequestMethod( requestMethod : .post )
@@ -287,7 +287,7 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func updateUser( user : ZCRMUser, completion : @escaping( ResultType.Response< APIResponse > ) -> () )
+    internal func updateUser( user : ZCRMUser, completion : @escaping( CRMResultType.Response< APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
         setRequestMethod( requestMethod : .patch )
@@ -317,7 +317,7 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func deleteUser( userId : String, completion : @escaping( ResultType.Response< APIResponse > ) -> () )
+    internal func deleteUser( userId : String, completion : @escaping( CRMResultType.Response< APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
         setRequestMethod( requestMethod : .delete )
@@ -337,7 +337,7 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func searchUsers(ofType : UserTypes?, criteria : String, page : Int?, perPage : Int?, completion : @escaping( ResultType.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal func searchUsers(ofType : UserTypes?, criteria : String, page : Int?, perPage : Int?, completion : @escaping( CRMResultType.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
         setRequestMethod( requestMethod : .get )
@@ -388,7 +388,7 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getProfile( profileId : Int64, completion : @escaping( ResultType.DataResponse< ZCRMProfile, APIResponse > ) -> () )
+    internal func getProfile( profileId : Int64, completion : @escaping( CRMResultType.DataResponse< ZCRMProfile, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.PROFILES)
         setUrlPath(urlPath:  "\( URLPathConstants.settings )/\( URLPathConstants.profiles )/\(profileId)" )
@@ -412,7 +412,7 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getRole( roleId : Int64, completion : @escaping( ResultType.DataResponse< ZCRMRole, APIResponse > ) -> () )
+    internal func getRole( roleId : Int64, completion : @escaping( CRMResultType.DataResponse< ZCRMRole, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.ROLES )
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.roles )/\(roleId)" )
@@ -436,7 +436,7 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func getCurrentUser( completion : @escaping( ResultType.DataResponse< ZCRMUser, APIResponse > ) -> () )
+    internal func getCurrentUser( completion : @escaping( CRMResultType.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
         setIsCacheable(true)
         self.getUser( userId : nil) { ( result ) in
@@ -444,35 +444,35 @@ internal class UserAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getAllActiveUsers( page : Int?, perPage : Int?, completion : @escaping( ResultType.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal func getAllActiveUsers( page : Int?, perPage : Int?, completion : @escaping( CRMResultType.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         self.getUsers( ofType : .activeUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
     
-    internal func getAllDeactiveUsers( page : Int?, perPage : Int?, completion : @escaping( ResultType.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal func getAllDeactiveUsers( page : Int?, perPage : Int?, completion : @escaping( CRMResultType.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         self.getUsers( ofType : .deactiveUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
 
-    internal func getAllActiveConfirmedUsers( page : Int?, perPage : Int?, completion : @escaping( ResultType.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal func getAllActiveConfirmedUsers( page : Int?, perPage : Int?, completion : @escaping( CRMResultType.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         self.getUsers( ofType: .activeConfirmedUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
     
-    internal func getAllAdminUsers( page : Int?, perPage : Int?, completion : @escaping( ResultType.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal func getAllAdminUsers( page : Int?, perPage : Int?, completion : @escaping( CRMResultType.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         self.getUsers( ofType: .adminUsers, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )
         }
     }
     
-    internal func getAllActiveConfirmedAdmins( page : Int?, perPage : Int?, completion : @escaping( ResultType.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
+    internal func getAllActiveConfirmedAdmins( page : Int?, perPage : Int?, completion : @escaping( CRMResultType.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         self.getUsers( ofType: .activeConfirmedAdmins, modifiedSince : nil, page : page, perPage : perPage) { ( result ) in
             completion( result )

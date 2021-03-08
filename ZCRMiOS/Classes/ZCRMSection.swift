@@ -21,7 +21,7 @@ public class ZCRMSection : ZCRMEntity, ZCacheSection
     public internal( set ) var tooltip : String?
     public internal( set ) var maximumRows : Int?
     
-    public func getFieldFromServer<T>(id: String, completion: @escaping ((Result<T, ZCacheError>) -> Void))
+    public func getFieldFromServer<T>(id: String, completion: @escaping ((ResultType.Data<T>) -> Void))
     {
         var zcrmField: ZCRMField?
         for field in fields
@@ -33,22 +33,17 @@ public class ZCRMSection : ZCRMEntity, ZCacheSection
         }
         if let zcrmField = zcrmField
         {
-            completion(.success(zcrmField as! T))
+            completion(.success(data: zcrmField as! T))
         }
         else
         {
-            completion(.failure(ZCacheError.invalidError(code: ErrorCode.invalidData, message: ErrorMessage.invalidIdMsg, details: nil)))
+            completion(.failure(error: ZCacheError.invalidError(code: ErrorCode.invalidData, message: ErrorMessage.invalidIdMsg, details: nil)))
         }
     }
     
-    public func getFieldsFromServer<T>(completion: @escaping ((Result<[T], ZCacheError>) -> Void))
+    public func getFieldsFromServer<T>( params: ZCacheQuery.GetMetaDataParams, completion: @escaping ((ResultType.Data<[T]>) -> Void))
     {
-        completion(.success(fields as! [T]))
-    }
-    
-    public func getFieldsFromServer<T>(modifiedSince: String, completion: @escaping ((Result<[T], ZCacheError>) -> Void))
-    {
-        completion(.success(fields as! [T]))
+        completion(.success(data: fields as! [T]))
     }
     
     /// Initialise the instance of a section with the given section name.

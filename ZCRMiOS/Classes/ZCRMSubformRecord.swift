@@ -106,7 +106,8 @@ public class ZCRMSubformRecord : ZCRMEntity, ZCacheRecord
     public var offlineCreatedBy: ZCacheUser?
     public var offlineModifiedTime: String?
     public var offlineModifiedBy: ZCacheUser?
-    
+    public var offlineModifications: [DirtyField]?
+
     internal init( name : String , id : String )
     {
         self.name = name
@@ -148,22 +149,22 @@ public class ZCRMSubformRecord : ZCRMEntity, ZCacheRecord
         return self.properties.optValue( key : ofProperty )
     }
     
-    public func create<T>(completion: @escaping (DataResponseCallback<ZCacheResponse, T>) -> Void)
+    public func create<T>(completion: @escaping (ResultType.DataResponse<ZCacheResponse, T>) -> Void)
     {
         
     }
     
-    public func update<T>(completion: @escaping (DataResponseCallback<ZCacheResponse, T>) -> Void)
+    public func update<T>(completion: @escaping (ResultType.DataResponse<ZCacheResponse, T>) -> Void)
     {
         
     }
     
-    public func delete(completion: @escaping (DataResponseCallback<ZCacheResponse, String>) -> Void)
+    public func delete(completion: @escaping (ResultType.DataResponse<ZCacheResponse, String>) -> Void)
     {
         
     }
     
-    public func reset<T>(completion: @escaping (DataResponseCallback<ZCacheResponse, T>) -> Void)
+    public func reset< T >(completion: @escaping (ResultType.Data<T>) -> Void)
     {
         
     }
