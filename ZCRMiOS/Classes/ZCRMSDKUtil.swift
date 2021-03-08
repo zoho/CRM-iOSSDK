@@ -11,6 +11,11 @@ import ZCacheiOS
 
 public class ZCRMSDKUtil: ZCacheClient
 {
+    public init()
+    {
+        
+    }
+    
     public func getEntity(ofType type: DataType) -> ZCacheEntity
     {
         if type == .subform
@@ -29,6 +34,14 @@ public class ZCRMSDKUtil: ZCacheClient
         {
             return ZCRMSDKUtil()
         }
+        else if type == .section
+        {
+            return ZCRMSection(apiName: APIConstants.STRING_MOCK)
+        }
+        else if type == .layout
+        {
+            return ZCRMLayout(name: APIConstants.STRING_MOCK)
+        }
         else if type == .field
         {
             return ZCRMField(apiName: APIConstants.STRING_MOCK)
@@ -44,9 +57,23 @@ public class ZCRMSDKUtil: ZCacheClient
     }
     
     public func getModulesFromServer<T>( params: ZCacheQuery.GetMetaDataParams, completion: @escaping ((ResultType.Data<[T]>) -> Void))
-    {
+    {        
+        var msStr: String?
+        if let ms = params.modifiedSince
+        {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+            dateFormatter.locale = Locale.init(identifier: "en_US_POSIX")
+            let date = dateFormatter.date(from: ms)
+            
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = TimeZone.current
+            formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssxxx"
+            msStr = formatter.string(from: date!)
+        }
         
-        MetaDataAPIHandler().getAllModules( modifiedSince : params.modifiedSince )
+        MetaDataAPIHandler().getAllModules( modifiedSince : msStr )
         {
             ( result ) in
             switch result
@@ -73,9 +100,9 @@ public class ZCRMSDKUtil: ZCacheClient
         
     }
     
-    public func getModuleFromServer<T>(withName: String, completion: @escaping ((ResultType.Data<T>) -> Void))
+    public func getModuleFromServer<T>(name: String, completion: @escaping ((ResultType.Data<T>) -> Void))
     {
-        MetaDataAPIHandler().getModule(apiName: withName)
+        MetaDataAPIHandler().getModule(apiName: name)
         {
             ( result ) in
             switch result

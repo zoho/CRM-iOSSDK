@@ -106,7 +106,8 @@ public class ZCRMSubformRecord : ZCRMEntity, ZCacheRecord
     public var offlineCreatedBy: ZCacheUser?
     public var offlineModifiedTime: String?
     public var offlineModifiedBy: ZCacheUser?
-    
+    public var offlineModifications: [DirtyField]?
+
     internal init( name : String , id : String )
     {
         self.name = name

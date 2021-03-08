@@ -197,34 +197,60 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
-    public func restoreRecordInServer<T>(id: String, completion: @escaping ((ResultType.DataResponse<ZCacheResponse, T>) -> Void))
-    {
-        
-    }
-    
     public func createRecords<T>(entities: [T], completion: @escaping ((ResultType.DataResponse<ZCacheResponse, [T]>) -> Void))
     {
-        
+        MassEntityAPIHandler( module : self ).createRecords(triggers: nil, records: entities as! [ZCRMRecord])
+        {
+            result in
+            switch result
+            {
+            case .success(let records, let response):
+                completion(.fromServer(info: response, data: records as! [T]))
+            case .failure(let error):
+                completion(.failure(error: ZCacheError.invalidError(code: ErrorCode.invalidData, message: error.description, details: nil)))
+            }
+        }
     }
     
     public func updateRecords<T>(entities: [T], completion: @escaping ((ResultType.DataResponse<ZCacheResponse, [T]>) -> Void))
     {
-        
+        MassEntityAPIHandler( module : self ).updateRecords(triggers: nil, records: entities as! [ZCRMRecord])
+        {
+            result in
+            switch result
+            {
+            case .success(let records, let response):
+                completion(.fromServer(info: response, data: records as! [T]))
+            case .failure(let error):
+                completion(.failure(error: ZCacheError.invalidError(code: ErrorCode.invalidData, message: error.description, details: nil)))
+            }
+        }
     }
     
-    public func deleteRecords<T>(entities: [T], completion: @escaping ((ResultType.DataResponse<ZCacheResponse, [String]>) -> Void))
+    public func deleteRecords<T>(entities list: [T], completion: @escaping ((ResultType.DataResponse<ZCacheResponse, [String]>) -> Void))
     {
-        
+        let records = list as! [ZCRMRecord]
+        var ids = [String]()
+        for record in records
+        {
+            ids.append(record.id)
+        }
+        deleteRecords(ids: ids, completion: completion)
     }
     
-    public func deleteAllRecords(ids: [String], completion: @escaping ((ResultType.DataResponse<ZCacheResponse, [String]>) -> Void))
+    public func deleteRecords(ids list: [String], completion: @escaping ((ResultType.DataResponse<ZCacheResponse, [String]>) -> Void))
     {
-        
-    }
-    
-    public func restoreRecordsInServer<T>(ids: [String], completion: @escaping ((ResultType.DataResponse<ZCacheResponse, [T]>) -> Void))
-    {
-        
+        MassEntityAPIHandler( module : self ).deleteRecords(ids: list)
+        {
+            result in
+            switch result
+            {
+            case .success(let ids, let response):
+                completion(.fromServer(info: response, data: ids))
+            case .failure(let error):
+                completion(.failure(error: ZCacheError.invalidError(code: ErrorCode.invalidData, message: error.description, details: nil)))
+            }
+        }
     }
     
     public func getRecordsFromServer<T>(params: ZCacheQuery.GetRecordParams, completion: @escaping ((ResultType.DataResponse<ZCacheResponse, [T]>) -> Void))
@@ -256,9 +282,19 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
         }
     }
     
-    public func getDeletedRecordsFromServer<T>(params: ZCacheQuery.GetRecordParams, completion: @escaping ((ResultType.DataResponse<ZCacheResponse, [T]>) -> Void))
+    public func getDeletedRecordsFromServer<T>(params: ZCacheQuery.GetDeletedRecordParams, completion: @escaping ((ResultType.DataResponse<ZCacheResponse, [T]>) -> Void))
     {
-        
+        MassEntityAPIHandler( module : self ).getDeletedRecords(type: .all, params: ZCRMQuery.getRequestParams)
+        {
+            result in
+            switch result
+            {
+            case .success(let records, let response):
+                completion(.fromServer(info: response, data: records as! [T]))
+            case .failure(let error):
+                completion(.failure(error: ZCacheError.invalidError(code: ErrorCode.invalidData, message: error.description, details: nil)))
+            }
+        }
     }
     
     public func newRecord() -> ZCRMRecord
@@ -945,7 +981,7 @@ open class ZCRMModuleDelegate : ZCRMEntity, ZCacheModule
             - Success : Returns an array of record ID's got deleted and a BulkAPIResponse
             - Failure : Returns Error
      */
-    public func deleteRecords(byIds recordIds: [Int64], completion : @escaping( CRMResultType.DataResponse< [ Int64 ], BulkAPIResponse > ) -> () )
+    public func deleteRecords(byIds recordIds: [String], completion : @escaping( CRMResultType.DataResponse< [ String ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler(module: self).deleteRecords( ids : recordIds) { ( result ) in
             completion( result )

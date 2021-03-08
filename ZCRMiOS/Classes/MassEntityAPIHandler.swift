@@ -70,7 +70,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         records[ index ].id = try recordJSON.getString( key : ResponseJSONKeys.id )
                         for ( key, value ) in records[ index ].upsertJSON
                         {
-                            records[ index ].data.updateValue( JSONValue(value: value), forKey : key )
+                            records[ index ].data.updateValue( value, forKey : key )
                         }
                         dispatchGroup.enter()
                         EntityAPIHandler( record : records[ index ] ).setRecordProperties( recordDetails : recordJSON, completion : { ( recordResult ) in
@@ -459,20 +459,25 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     var updatedRecords : [ZCRMRecord] = [ZCRMRecord]()
                     let dispatchGroup : DispatchGroup = DispatchGroup()
                     let dispatchQueue : DispatchQueue = DispatchQueue(label: "com.zoho.crm.sdk.massEnityAPIHandler.updateRecords")
-                    for ( index, entityResponse ) in responses.enumerated()
+                    for ( index ) in 0..<responses.count
                     {
+                        let entityResponse = responses[index]
                         if(APIConstants.CODE_SUCCESS == entityResponse.getStatus())
                         {
                             let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
                             let recordJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
-                            let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
-                            record.id = records[ index ].id
                             dispatchGroup.enter()
-                            EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordJSON, completion: { ( recordResult ) in
+                            for ( key, value ) in records[ index ].upsertJSON
+                            {
+                                records[ index ].data.updateValue( value, forKey : key )
+                            }
+                            EntityAPIHandler(record: records[ index ] ).setRecordProperties(recordDetails: recordJSON, completion: { ( recordResult ) in
                                 switch recordResult
                                 {
                                 case .success(let updatedRecord) :
                                     dispatchQueue.sync {
+                                        print("<<< CRM UPDATED: \(updatedRecord.getData())")
+
                                         updatedRecords.append(updatedRecord)
                                     }
                                     entityResponse.setData(data: updatedRecord)
@@ -693,7 +698,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func deleteRecords( ids : [ Int64 ], completion : @escaping( CRMResultType.DataResponse< [ Int64 ] , BulkAPIResponse > ) -> () )
+    internal func deleteRecords( ids : [ String ], completion : @escaping( CRMResultType.DataResponse< [ String ] , BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         if(ids.count > 100)
@@ -713,7 +718,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 switch resultType
                 {
                 case .success(let bulkResponse) :
-                    var deletedIds : [ Int64 ] = []
+                    var deletedIds : [ String ] = []
                     let responses : [EntityResponse] = bulkResponse.getEntityResponses()
                     for entityResponse in responses
                     {
@@ -727,7 +732,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                                 completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                                 return
                             }
-                            deletedIds.append( try recordJSON.getInt64( key: ResponseJSONKeys.id ) )
+                            deletedIds.append( try recordJSON.getString( key: ResponseJSONKeys.id ) )
                         }
                     }
                     completion( .success( deletedIds, bulkResponse ) )
@@ -948,7 +953,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     
 	private func setTrashRecordProperties( recordDetails : [ String : Any ] ) throws -> ZCRMTrashRecord
     {
-        let trashRecord : ZCRMTrashRecord = try ZCRMTrashRecord( type : recordDetails.getString( key : ResponseJSONKeys.type ), id : recordDetails.getInt64( key : ResponseJSONKeys.id ) )
+        let trashRecord : ZCRMTrashRecord = try ZCRMTrashRecord( type : recordDetails.getString( key : ResponseJSONKeys.type ), id : recordDetails.getString( key : ResponseJSONKeys.id ) )
         if recordDetails.hasValue( forKey : ResponseJSONKeys.createdBy )
         {
             let createdBy : [ String : Any ] = try recordDetails.getDictionary( key : ResponseJSONKeys.createdBy )
@@ -959,6 +964,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             let deletedBy : [ String : Any ] = try recordDetails.getDictionary( key : ResponseJSONKeys.deletedBy )
             trashRecord.deletedBy = try getUserDelegate( userJSON : deletedBy )
         }
+        trashRecord.moduleName = module.apiName
         trashRecord.displayName = recordDetails.optString( key : ResponseJSONKeys.displayName )
         trashRecord.deletedTime = try recordDetails.getString( key : ResponseJSONKeys.deletedTime )
         return trashRecord

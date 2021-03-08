@@ -16,7 +16,8 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
     public var offlineCreatedBy: ZCacheUser?
     public var offlineModifiedTime: String?
     public var offlineModifiedBy: ZCacheUser?
-    
+    public var offlineModifications: [DirtyField]?
+
     enum CodingKeys: String, CodingKey
     {
         case id
@@ -44,9 +45,10 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
     {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         id = try values.decode(String.self, forKey: .id)
-        moduleName = try values.decode(String.self, forKey: .moduleName)
-        layoutId = try values.decodeIfPresent(String.self, forKey: .layoutId)
+        print("<<< ID: \(id)")
         moduleAPIName = try values.decode(String.self, forKey: .moduleAPIName)
+        moduleName = moduleAPIName
+        layoutId = try values.decodeIfPresent(String.self, forKey: .layoutId)
         label = try values.decodeIfPresent(String.self, forKey: .label)
 
         let dynamicValues = try! decoder.container(keyedBy: CustomCodingKeys.self)
@@ -107,11 +109,6 @@ open class ZCRMRecordDelegate : ZCRMEntity, ZCacheRecord
         
     }
     
-    public func reset< T >(completion: @escaping (ResultType.Data<T>) -> Void)
-    {
-        
-    }
-
     public internal(set) var moduleAPIName : String
     public var label : String?
     internal var data : [ String : JSONValue? ] = [ String : JSONValue? ]()

@@ -1000,7 +1000,19 @@ internal class EntityAPIHandler : CommonAPIHandler
                 }
                 else if(ResponseJSONKeys.modifiedTime == fieldAPIName), let modifiedTime = value as? String
                 {
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssxxx"
+                    dateFormatter.locale = Locale.init(identifier: "en_US")
+                    let date = dateFormatter.date(from: modifiedTime)
+                    
+                    let formatter = DateFormatter()
+                    formatter.locale = Locale(identifier: "en_US")
+                    formatter.timeZone = TimeZone.current
+                    formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+                    let msStr = formatter.string(from: date!)
+                    
                     self.record.modifiedTime = modifiedTime
+                    self.record.offlineModifiedTime = msStr
                     self.record.data.updateValue(JSONValue(value: self.record.modifiedTime), forKey: ResponseJSONKeys.modifiedTime)
                 }
                 else if( ResponseJSONKeys.activityType == fieldAPIName ), let activityType = value as? String

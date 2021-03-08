@@ -42,7 +42,6 @@ public class ZCRMSDKClient
     
     private init() {}
     
-    @available(iOS 12.0, *)
     public func initSDK( window : UIWindow, appType : AppType? =  AppType.zcrm, apiBaseURL : String? = nil, oauthScopes : [ Any ]? = nil, clientID : String? = nil, clientSecretID : String? = nil, redirectURLScheme : String? = nil, accountsURL : String? = nil, portalID : String? = nil, groupIdentifier : String? = nil ) throws
     {
         guard let appConfigPlist = Bundle.main.path( forResource : "AppConfiguration", ofType : "plist" ) else
@@ -362,13 +361,14 @@ public class ZCRMSDKClient
             var configs = ZCacheConfigs(client: ZCRMSDKUtil())
             configs.isDBCachingEnabled = true
             configs.isOfflineCacheEnabled = true
-//            configs.isInitialDataDownloadEnabled = true
+            configs.isAutoSyncOfflineData = true
             configs.perPageCount = 30
             
-            configs.cacheableModules["Contacts"] = 1000
-            configs.cacheableModules["Accounts"] = 1000
-            configs.cacheableModules["Quotes"] = 1000
-            
+            configs.cacheableModules["Contacts"] = 10
+            configs.cacheableModules["Accounts"] = 10
+            configs.cacheableModules["Invoices"] = 10
+            configs.cacheableModules["Events"] = 10
+
             ZCache.shared.initialize(configs: configs) { result in
                 switch result {
                 case .success: do {

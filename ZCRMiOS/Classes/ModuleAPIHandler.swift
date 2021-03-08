@@ -812,7 +812,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         {
             field.type = DataType.text
         }
-        else if field.dataType == "lookup"
+        else if field.dataType == "lookup" && field.apiName != "role"
         {
             field.type = DataType.lookup
             if let value = field.lookup?["module"], let module = value.value

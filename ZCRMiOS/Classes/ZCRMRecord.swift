@@ -5,6 +5,7 @@
 //  Created by Vijayakrishna on 16/11/16.
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
+import ZCacheiOS
 
 public protocol ZCRMEntity
 {
@@ -39,6 +40,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         case offlineModifiedBy
         case offlineCreatedTime
         case offlineModifiedTime
+        case offlineModifications
     }
     
     private struct CustomCodingKeys: CodingKey
@@ -73,6 +75,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
         tags = try! values.decodeIfPresent([String].self, forKey: .tags)
         dataProcessingBasisDetails = try! values.decodeIfPresent(ZCRMDataProcessBasisDetails.self, forKey: .dataProcessingBasisDetails)
         layout = try! values.decodeIfPresent(ZCRMLayoutDelegate.self, forKey: .layout)
+        offlineModifications = try! values.decodeIfPresent([DirtyField].self, forKey: .offlineModifications)
+        
         if let value = try! values.decodeIfPresent(ZCRMUserDelegate.self, forKey: .owner)
         {
             owner = value
@@ -162,6 +166,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         try! container.encodeIfPresent(self.offlineModifiedBy as? ZCRMUserDelegate, forKey: .offlineModifiedBy)
         try! container.encodeIfPresent(self.offlineCreatedTime, forKey: .offlineCreatedTime)
         try! container.encodeIfPresent(self.offlineModifiedTime, forKey: .offlineModifiedTime)
+        try! container.encodeIfPresent(self.offlineModifications, forKey: .offlineModifications)
         
         var customContainer = encoder.container(keyedBy: CustomCodingKeys.self)
         for (key, jsonValue) in data
@@ -285,6 +290,21 @@ open class ZCRMRecord : ZCRMRecordDelegate
         self.isCreate = true
     }
     
+    public override func update< T >(completion: @escaping (ResultType.DataResponse<ZCacheResponse, T>) -> Void)
+    {
+        EntityAPIHandler(record: self).updateRecord( triggers : nil )
+        {
+            ( result ) in
+            switch result
+            {
+            case .success(let rec, let resp):
+                completion(.fromServer(info: resp, data: rec as! T))
+            case .failure(let err):
+                completion(.failure(error: ZCacheError.invalidError(code: ErrorCode.invalidData, message: err.description, details: nil)))
+            }
+        }
+    }
+
     public func resetModifiedValues()
     {
         if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.productDetails)
@@ -406,7 +426,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
     
     public func getString( ofFieldAPIName : String ) throws -> String?
     {
-        return try self.getValue( ofFieldAPIName : ofFieldAPIName ) as? String
+        let jsonValue = try self.getValue( ofFieldAPIName : ofFieldAPIName ) as? JSONValue
+        return jsonValue?.value as? String
     }
     
     public func getZCRMRecordDelegate( ofFieldAPIName : String ) throws -> ZCRMRecordDelegate?
