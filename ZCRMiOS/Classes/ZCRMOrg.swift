@@ -6,6 +6,7 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
+@available(*, deprecated, message: "Use ZCRMCompanyInfo class instead")
 public class ZCRMOrg : ZCRMOrgDelegate
 {
     public var name : String?
@@ -295,6 +296,7 @@ public class ZCRMOrg : ZCRMOrgDelegate
     }
 }
 
+@available(*, deprecated, message: "Use ZCRMCompanyInfo class instead")
 extension ZCRMOrg : Hashable
 {
     public static func == (lhs: ZCRMOrg, rhs: ZCRMOrg) -> Bool {
@@ -334,6 +336,5 @@ extension ZCRMOrg : Hashable
         hasher.combine( zgid )
     }
 }
-
 
 

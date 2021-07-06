@@ -8,8 +8,8 @@
 
 internal class RelatedListAPIHandler : CommonAPIHandler
 {
-    private var parentRecord : ZCRMRecordDelegate
-    internal var relatedList : ZCRMModuleRelation?
+	private var parentRecord : ZCRMRecordDelegate
+	internal var relatedList : ZCRMModuleRelation?
     private var junctionRecord : ZCRMJunctionRecord?
     private var noteAttachment : ZCRMNote?
     
@@ -19,7 +19,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         self.relatedList = relatedList
         self.junctionRecord = junctionRecord
     }
-    
+	
     init( parentRecord : ZCRMRecordDelegate, relatedList : ZCRMModuleRelation )
     {
         self.parentRecord = parentRecord
@@ -73,7 +73,8 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                 ZCRMLogger.logDebug(message: "Request : \(request.toString())")
                 var zcrmFields : [ZCRMField]?
                 var bulkResponse : BulkAPIResponse?
-                var err : Error?
+                var recordAPIError : Error?
+                var fieldsAPIError : Error?
                 let dispatchGroup : DispatchGroup = DispatchGroup()
                 
                 dispatchGroup.enter()
@@ -86,7 +87,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     }
                     catch
                     {
-                        err = error
+                        fieldsAPIError = error
                         dispatchGroup.leave()
                     }
                 }
@@ -101,12 +102,24 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     }
                     catch
                     {
-                        err = error
+                        recordAPIError = error
                         dispatchGroup.leave()
                     }
                 }
                 
                 dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
+                    if let recordAPIError = recordAPIError
+                    {
+                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( recordAPIError )" )
+                        completion( .failure( typeCastToZCRMError( recordAPIError ) ) )
+                        return
+                    }
+                    else if let fieldsAPIError = fieldsAPIError
+                    {
+                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( fieldsAPIError )" )
+                        completion( .failure( typeCastToZCRMError( fieldsAPIError ) ) )
+                        return
+                    }
                     if let fields = zcrmFields, let response = bulkResponse
                     {
                         MassEntityAPIHandler(module: ZCRMModuleDelegate(apiName: moduleName)).getZCRMRecords(fields: fields, bulkResponse: response, completion: { ( records, error ) in
@@ -123,11 +136,6 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                                 return
                             }
                         })
-                    }
-                    else if let error = err
-                    {
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                        completion( .failure( typeCastToZCRMError( error ) ) )
                     }
                     else
                     {
@@ -332,7 +340,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
-    }
+	}
 
     internal func uploadLinkAsAttachment( attachmentURL : String, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
     {
@@ -368,7 +376,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     }
 
     internal func downloadAttachment( attachmentId : Int64, completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
-    {
+	{
         if let relatedList = self.relatedList
         {
             setJSONRootKey( key : JSONRootKey.NIL )
@@ -393,7 +401,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
-    }
+	}
     
     internal func downloadAttachment( attachmentId : Int64, fileDownloadDelegate : ZCRMFileDownloadDelegate ) throws
     {
@@ -442,7 +450,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     }
 
     internal func addNote( note : ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
-    {
+	{
         if let relatedList = self.relatedList
         {
             var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
@@ -478,10 +486,10 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
-    }
+	}
     
     internal func updateNote( note : ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
-    {
+	{
         if let relatedList = self.relatedList
         {
             if note.isCreate
@@ -527,10 +535,10 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
-    }
+	}
     
     internal func deleteNote( noteId : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
-    {
+	{
         if let relatedList = self.relatedList
         {
             setJSONRootKey( key : JSONRootKey.NIL )
@@ -554,8 +562,8 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
-    }
-    
+	}
+	
     private func getZCRMAttachment(attachmentDetails : [String:Any?]) throws -> ZCRMAttachment
     {
         let attachment : ZCRMAttachment = ZCRMAttachment( parentRecord : parentRecord )
@@ -581,11 +589,11 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             attachment.modifiedBy = try getUserDelegate(userJSON : modifiedByDetails)
             attachment.modifiedTime = try attachmentDetails.getString( key : ResponseJSONKeys.modifiedTime )
         }
-        if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.owner))
-        {
-            let ownerDetails : [ String : Any ] = try attachmentDetails.getDictionary( key : ResponseJSONKeys.owner )
+		if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.owner))
+		{
+			let ownerDetails : [ String : Any ] = try attachmentDetails.getDictionary( key : ResponseJSONKeys.owner )
             attachment.owner = try getUserDelegate(userJSON : ownerDetails)
-        }
+		}
         else if attachmentDetails.hasValue(forKey: ResponseJSONKeys.createdBy)
         {
             let ownerDetails : [String:Any] = try attachmentDetails.getDictionary(key: ResponseJSONKeys.createdBy)
@@ -608,24 +616,16 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             let parentRecordList : [ String : Any ] = try attachmentDetails.getDictionary(key: ResponseJSONKeys.parentId)
             if let seModule = attachmentDetails.optString( key : ResponseJSONKeys.seModule )
             {
-                attachment.parentRecord = ZCRMRecordDelegate( id : try parentRecordList.getInt64( key : ResponseJSONKeys.id ), moduleAPIName : seModule )
-                if parentRecordList.hasValue(forKey: ResponseJSONKeys.name)
-                {
-                    attachment.parentRecord.label = try parentRecordList.getString( key : ResponseJSONKeys.name )
-                }
+                attachment.parentRecord = try EntityAPIHandler.getRecordDelegate(moduleAPIName: seModule, recordJSON: parentRecordList)
             }
             else
             {
-                attachment.parentRecord = ZCRMRecordDelegate( id : try parentRecordList.getInt64( key : ResponseJSONKeys.id ), moduleAPIName : parentRecord.moduleAPIName )
-                if parentRecordList.hasValue(forKey: ResponseJSONKeys.name)
-                {
-                    attachment.parentRecord.label = try parentRecordList.getString( key : ResponseJSONKeys.name )
-                }
+                attachment.parentRecord = try EntityAPIHandler.getRecordDelegate(moduleAPIName: parentRecord.moduleAPIName, recordJSON: parentRecordList)
             }
         }
-        return attachment
-    }
-    
+		return attachment
+	}
+	
     internal func getZCRMNote(noteDetails : [String:Any?], note : ZCRMNote) throws -> ZCRMNote
     {
         note.isCreate = false
@@ -673,19 +673,11 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             let parentRecordList : [ String : Any ] = try noteDetails.getDictionary(key: ResponseJSONKeys.parentId)
             if let seModule = noteDetails.optString( key : ResponseJSONKeys.seModule )
             {
-                note.parentRecord = ZCRMRecordDelegate( id : try parentRecordList.getInt64( key : ResponseJSONKeys.id ), moduleAPIName : seModule )
-                if parentRecordList.hasValue(forKey: ResponseJSONKeys.name)
-                {
-                    note.parentRecord.label = try parentRecordList.getString( key : ResponseJSONKeys.name )
-                }
+                note.parentRecord = try EntityAPIHandler.getRecordDelegate(moduleAPIName: seModule, recordJSON: parentRecordList)
             }
             else
             {
-                note.parentRecord = ZCRMRecordDelegate( id : try parentRecordList.getInt64( key : ResponseJSONKeys.id ), moduleAPIName : parentRecord.moduleAPIName )
-                if parentRecordList.hasValue(forKey: ResponseJSONKeys.name)
-                {
-                    note.parentRecord.label = try parentRecordList.getString( key : ResponseJSONKeys.name )
-                }
+                note.parentRecord = try EntityAPIHandler.getRecordDelegate(moduleAPIName: parentRecord.moduleAPIName, recordJSON: parentRecordList)
             }
         }
         if noteDetails.hasValue(forKey: ResponseJSONKeys.voiceNote)
@@ -700,22 +692,22 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         {
             note.isEditable = try noteDetails.getBoolean( key : ResponseJSONKeys.editable )
         }
-        return note
-    }
-    
-    internal func getZCRMNoteAsJSON(note : ZCRMNote) -> [ String : Any? ]
-    {
-        var noteJSON : [ String : Any? ] = [ String : Any? ]()
+		return note
+	}
+	
+	internal func getZCRMNoteAsJSON(note : ZCRMNote) -> [ String : Any? ]
+	{
+		var noteJSON : [ String : Any? ] = [ String : Any? ]()
         noteJSON.updateValue( note.title, forKey : ResponseJSONKeys.noteTitle )
         noteJSON.updateValue( note.content, forKey : ResponseJSONKeys.noteContent )
         noteJSON.updateValue( note.parentRecord.id, forKey : ResponseJSONKeys.parentId )
         noteJSON.updateValue( note.parentRecord.moduleAPIName, forKey : ResponseJSONKeys.seModule )
-        return noteJSON
-    }
+		return noteJSON
+	}
 
     internal func addRelation( completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
-        if let junctionRecord = self.junctionRecord
+		if let junctionRecord = self.junctionRecord
         {
             var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
             var dataArray : [ [ String : Any? ] ] = [ [ String : Any? ] ]()

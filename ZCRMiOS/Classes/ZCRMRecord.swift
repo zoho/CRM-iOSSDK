@@ -46,19 +46,19 @@ open class ZCRMRecord : ZCRMRecordDelegate
             }
         }
     }
-    public var taxes : [ ZCRMTaxDelegate ]?{
+    public internal( set ) var taxes : [ ZCRMTaxDelegate ]?{
         didSet
         {
             upsertJSON.updateValue( taxes, forKey : EntityAPIHandler.ResponseJSONKeys.tax )
         }
     }
-    public var lineTaxes : [ ZCRMLineTax ]?{
+    public internal( set ) var lineTaxes : [ ZCRMLineTax ]?{
         didSet
         {
             upsertJSON.updateValue( lineTaxes, forKey : EntityAPIHandler.ResponseJSONKeys.dollarLineTax )
         }
     }
-    public var tags : [ String ]?{
+    public internal( set ) var tags : [ String ]?{
         didSet
         {
             upsertJSON.updateValue(tags, forKey: EntityAPIHandler.ResponseJSONKeys.tag)
@@ -283,46 +283,6 @@ open class ZCRMRecord : ZCRMRecordDelegate
             self.participants = [ ZCRMEventParticipant ]()
         }
         self.participants?.append( participant )
-    }
-    
-    /// Add ZCRMTax to the ZCRMRecord
-    ///
-    /// - Parameter tax: ZCRMTax to be added
-    public func addTax( tax : ZCRMTaxDelegate ) throws
-    {
-        if self.moduleAPIName == DefaultModuleAPINames.PRODUCTS
-        {
-            if self.taxes == nil
-            {
-                self.taxes = [ ZCRMTaxDelegate ]()
-            }
-            self.taxes?.append( tax )
-        }
-        else
-        {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \(ErrorCode.invalidOperation) : This feature is not supported for this module" )
-            throw ZCRMError.inValidError( code : ErrorCode.invalidOperation , message : "This feature is not supported for this module", details : nil )
-        }
-    }
-    
-    /// Add ZCRMTax to the ZCRMRecord
-    ///
-    /// - Parameter tax: ZCRMTax to be added
-    public func addLineTax( lineTax : ZCRMLineTax ) throws
-    {
-        if self.moduleAPIName == DefaultModuleAPINames.QUOTES || self.moduleAPIName == DefaultModuleAPINames.PURCHASE_ORDERS || self.moduleAPIName == DefaultModuleAPINames.INVOICES || self.moduleAPIName == DefaultModuleAPINames.SALES_ORDERS
-        {
-            if self.lineTaxes == nil
-            {
-                self.lineTaxes = [ ZCRMLineTax ]()
-            }
-            self.lineTaxes?.append( lineTax )
-        }
-        else
-        {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \(ErrorCode.invalidOperation) : This feature is not supported for this module" )
-            throw ZCRMError.inValidError( code : ErrorCode.invalidOperation , message : "This feature is not supported for this module", details : nil )
-        }
     }
     
     public struct ZCRMCheckIn
@@ -584,6 +544,73 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
     }
     
+    /**
+      To get the details of the Users with whom the record can be shared with
+     
+     - Parameters:
+        - completion :
+            - Success : Returns an array of users with whom the record can be shared with and a BulkAPIResponse
+            - Failure : ZCRMError
+     */
+    public func getShareableUsers( completion : @escaping ( Result.DataResponse< [ ZCRMUserDelegate ], BulkAPIResponse > ) -> () )
+    {
+        EntityAPIHandler(record: self).getShareableUsers(completion: completion)
+    }
+    
+    /**
+      To share a record with other users in the same organization
+     
+     - Parameters:
+        - details : An array of ZCRMSharedRecordDetails objects
+        - completion :
+            - Success : Returns BulkAPIResponse of share operation
+            - Failure : ZCRMError
+     */
+    public func share( details : [ SharedDetails ],completion : @escaping ( Result.Response< BulkAPIResponse > ) -> () )
+    {
+        EntityAPIHandler(record: self).share(details: details, completion: completion)
+    }
+    
+    /**
+      To update the shared details of the record
+     
+     - Parameters:
+        - details : An array of ZCRMSharedRecordDetails objects
+        - completion :
+            - Success : Returns BulkAPIResponse of update share operation
+            - Failure : ZCRMError
+     */
+    public func updateShare( details : [ SharedDetails ],completion : @escaping ( Result.Response< BulkAPIResponse > ) -> () )
+    {
+        EntityAPIHandler(record: self).updateShare(details: details, completion: completion)
+    }
+    
+    /**
+      To get the summary of with whom the record got shared with
+     
+     - Parameters:
+        - completion :
+            - Success : Returns an array of ZCRMSharedRecordDetails objects and a BulkAPIResponse
+            - Failure : ZCRMError
+     */
+    public func getSharedDetails( completion : @escaping ( Result.DataResponse< [ SharedDetails ], BulkAPIResponse > ) -> () )
+    {
+        EntityAPIHandler(record: self).getSharedRecordDetails( completion: completion )
+    }
+    
+    /**
+      To revoke permission for all the users with whom the record got shared with
+     
+     - Parameters:
+        - completion :
+            - Success : Returns an APIResponse of the operation performed
+            - Failure : ZCRMError
+     */
+    public func revokeShare( completion : @escaping ( Result.Response< APIResponse > ) -> () )
+    {
+        EntityAPIHandler(record: self).revokeShare(completion: completion)
+    }
+    
     private func undoCheckIn() throws
     {
         if self.moduleAPIName != DefaultModuleAPINames.EVENTS
@@ -695,4 +722,31 @@ extension ZCRMRecord : NSCopying
         return equals
     }
     
+}
+
+extension ZCRMRecord
+{
+    public struct SharedDetails : Equatable
+    {
+        public var isSharedWithRelatedRecords : Bool
+        public internal( set ) var module : String = APIConstants.STRING_MOCK
+        public var permission : RecordSharePermission.Readable
+        public var user : ZCRMUserDelegate
+        public internal( set ) var sharedTime : String = APIConstants.STRING_MOCK
+        public internal( set ) var sharedBy : ZCRMUserDelegate = USER_MOCK
+        
+        public init( user : ZCRMUserDelegate, permission : RecordSharePermission.Writable, isSharedWithRelatedRecords : Bool )
+        {
+            self.user = user
+            self.permission = permission.toReadable()
+            self.isSharedWithRelatedRecords = isSharedWithRelatedRecords
+        }
+        
+        init( user : ZCRMUserDelegate, permission : RecordSharePermission.Readable, isSharedWithRelatedRecords : Bool )
+        {
+            self.user = user
+            self.permission = permission
+            self.isSharedWithRelatedRecords = isSharedWithRelatedRecords
+        }
+    }
 }

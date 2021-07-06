@@ -771,6 +771,73 @@ internal class ModuleAPIHandler : CommonAPIHandler
         return moduleRelation
     }
     
+    internal func getRecords( withQueryParams params : ZCRMQuery.GetCOQLQueryParams, completion : @escaping ( Result.DataResponse< [[ String : Any ]], BulkAPIResponse > ) -> () )
+    {
+        if params.limit ?? 0 > 200
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.limitExceeded) : \( ErrorMessage.limitExceeded ), \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.maxRecordCountExceeded(code: ErrorCode.limitExceeded, message: ErrorMessage.limitExceeded, details: nil) ) )
+            return
+        }
+        if params.selectColumns.count > 50
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.limitExceeded) : \( ErrorMessage.maxFieldCountExceeded ), \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.maxRecordCountExceeded(code: ErrorCode.limitExceeded, message: "\( ErrorMessage.maxFieldCountExceeded )", details: nil) ) )
+            return
+        }
+        setUrlPath(urlPath: "\( URLPathConstants.coql )")
+        setRequestMethod(requestMethod: .post)
+        setJSONRootKey(key: JSONRootKey.DATA)
+        var selectQuery : String = "\( COQLQueryConstants.select ) " + params.selectColumns.joined(separator: ",") + " \( COQLQueryConstants.from ) " + module.apiName + " \( COQLQueryConstants.where ) " + params.criteria
+        if !params.orderBy.isEmpty
+        {
+            let orderBy = params.orderBy
+            selectQuery += " \( COQLQueryConstants.orderBy ) "
+            for ( index, param ) in orderBy.enumerated()
+            {
+                selectQuery += param.fieldAPIName + " " + param.sortOrder.rawValue
+                if index < orderBy.count - 1
+                {
+                    selectQuery += ", "
+                }
+            }
+        }
+        if let limit = params.limit, let offSet = params.offSet
+        {
+            selectQuery += " \( COQLQueryConstants.limit ) \( offSet ), \( limit )"
+        }
+        else if let limit = params.limit
+        {
+            selectQuery += " \( COQLQueryConstants.limit ) \( limit )"
+        }
+        
+        setRequestBody(requestBody: [ COQLQueryConstants.selectQuery : selectQuery ])
+        
+        let request = APIRequest( handler: self )
+        ZCRMLogger.logDebug( message : "Request : \(request.toString())" )
+        
+        request.getBulkAPIResponse() { result in
+            do
+            {
+                switch result
+                {
+                case .success(let response) :
+                    let responseJSON = response.getResponseJSON()
+                    let responseData = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                    completion( .success( responseData , response ) )
+                case .failure(let error) :
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+            catch
+            {
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
     private func getZCRMFilters( filtersDetails : [ [ String : Any ] ], cvId : Int64 ) throws -> [ ZCRMFilter ]
     {
         var filters : [ ZCRMFilter ] = [ ZCRMFilter ]()
@@ -887,6 +954,7 @@ internal extension ModuleAPIHandler
         static let ignite = "ignite"
         static let activities = "activities"
         static let filters = "filters"
+        static let coql = "coql"
     }
 
     enum SubLayoutViewType : String
@@ -895,6 +963,16 @@ internal extension ModuleAPIHandler
         case edit = "EDIT"
         case view = "VIEW"
         case quickCreate = "QUICK_CREATE"
+    }
+    
+    struct COQLQueryConstants
+    {
+        static let selectQuery = "select_query"
+        static let select = "select"
+        static let from = "from"
+        static let `where` = "where"
+        static let limit = "limit"
+        static let orderBy = "order by"
     }
 }
 

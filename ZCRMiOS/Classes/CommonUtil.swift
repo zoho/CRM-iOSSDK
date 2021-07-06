@@ -56,6 +56,7 @@ public struct ErrorCode
     public static let portalNotFound = "PORTAL_NOT_FOUND"
     public static let duplicateData = "DUPLICATE_DATA"
     public static let initializationError = "INITIALIZATION_ERROR"
+    public static let sandboxDisabled = "SANDBOX_DISABLED"
 }
 
 public struct ErrorMessage
@@ -74,6 +75,9 @@ public struct ErrorMessage
     public static let unableToConstructComponent = "Insufficient data to construct component."
     public static let invalidPortalType = "The portal type seems to be invalid."
     public static let missingPortalName = "Cannot initialise zcrmcp without portal name. Include the header X-CRMPORTAL in headers."
+    public static let limitExceeded = "Limit value cannot be more than 200."
+    public static let maxFieldCountExceeded = "Fields count cannot be more than 50."
+    public static let invalidTax = "Tax id cannot be nil."
 }
 
 public extension Error
@@ -201,8 +205,8 @@ public enum DrillBy : String
 
 internal struct FieldDataTypeConstants
 {
-    static var subform = "subform"
-    static var userLookup = "userlookup"
+    static let subform = "subform"
+    static let userLookup = "userlookup"
     static let ownerLookup = "ownerlookup"
 }
 
@@ -274,12 +278,65 @@ public enum ComponentPeriod : String
     case month = "month"
 }
 
+public enum OrganizationType : String
+{
+    case production = "production"
+    case sandBox = "sandbox"
+    case developer = "developer"
+    case bigin = "bigin"
+}
+
+@available(*, deprecated, message: "Use OrganizationType enum instead")
 public enum PortalType : String
 {
     case production = "production"
     case sandBox = "sandbox"
     case developer = "developer"
     case bigin = "bigin"
+}
+
+public enum RecordSharePermission
+{
+    public enum Readable : String
+    {
+        case fullAccess = "full_access"
+        case readOnly = "read_only"
+        case readWrite = "read_write"
+        case unhandled
+    }
+    
+    public enum Writable : String
+    {
+        case fullAccess = "full_access"
+        case readOnly = "read_only"
+        case readWrite = "read_write"
+        
+        func toReadable() -> RecordSharePermission.Readable
+        {
+            switch self
+            {
+            case .fullAccess :
+                return .fullAccess
+            case .readOnly :
+                return .readOnly
+            case .readWrite :
+                return .readWrite
+            }
+        }
+    }
+    
+    static func getType( rawValue : String ) -> RecordSharePermission.Readable
+    {
+        if let type = RecordSharePermission.Readable( rawValue : rawValue)
+        {
+            return type
+        }
+        else
+        {
+            ZCRMLogger.logDebug(message: "UNHANDLED -> Record Share Permission : \( rawValue )")
+            return .unhandled
+        }
+    }
 }
 
 internal enum ZCRMSDKDataType
@@ -353,18 +410,45 @@ public enum VariableType : String
     case checkbox = "checkbox"
 }
 
-internal extension Dictionary
+public enum CountryDomain : String
 {
+    case eu = "eu"
+    case `in` = "in"
+    case com = "com"
+    case cn = "com.cn"
+    case au = "com.au"
+}
+
+public extension Dictionary
+{
+    /**
+      Returns **true** if the dictionary has the given key
+     
+     - Parameter forKey : Key which needs to be checked
+     - Returns: A Boolean indicating whether the key is present in the dictionary or not
+     */
     func hasKey( forKey : Key ) -> Bool
     {
         return self[ forKey ] != nil
     }
     
+    /**
+      Returns **true** if the given key in the dictionary has a **Non Nil** value
+     
+     - Parameter forKey : Key which needs to be checked
+     - Returns: A Boolean indicating whether the given key has a **Non Nil** value
+     */
     func hasValue(forKey : Key) -> Bool
     {
         return self[forKey] != nil && !(self[forKey] is NSNull)
     }
     
+    /**
+      To Check whether the dictionary has a **Non Nil** value for the given key or not
+     
+     - Parameter forKey : Key which needs to be checked
+     - Throws: When the given key doesn't have a value in the dictionary
+     */
     private func valueCheck( forKey : Key ) throws
     {
         if hasValue(forKey: forKey) == false
@@ -374,6 +458,12 @@ internal extension Dictionary
         }
     }
     
+    /**
+      To get the value of the key from the dictinoary as an optional **Any** type
+     
+     - Parameter key : Key whose value has to be fetched from the dictionary
+     - Returns: The value of the key from the dictionary
+     */
     func optValue(key: Key) -> Any?
     {
         if( self.hasValue( forKey : key ) ), let value = self[ key ]
@@ -386,16 +476,34 @@ internal extension Dictionary
         }
     }
     
+    /**
+      To get the value of the key from the dictinoary as an optional **String** type
+     
+     - Parameter key : Key whose value has to be fetched from the dictionary as **String** type
+     - Returns: The value Conditionally downcasted **( as? )** into type String
+     */
     func optString(key : Key) -> String?
     {
         return optValue(key: key) as? String
     }
     
+    /**
+     To get the value of the key from the dictinoary as an optional **Int** type
+    
+    - Parameter key : Key whose value has to be fetched from the dictionary as **Int** type
+    - Returns: The value Conditionally downcasted **( as? )** into type Int
+    */
     func optInt(key : Key) -> Int?
     {
         return optValue(key: key) as? Int
     }
     
+    /**
+     To get the value of the key from the dictinoary as an optional **Int64** type
+    
+    - Parameter key : Key whose value has to be fetched from the dictionary as **Int64** type
+    - Returns: A Int64 value, if the value can be Converted into Int64 type
+    */
     func optInt64(key : Key) -> Int64?
     {
         guard let stringID = optValue(key: key) as? String else {
@@ -405,31 +513,68 @@ internal extension Dictionary
         return Int64(stringID)
     }
     
+    /**
+     To get the value of the key from the dictinoary as an optional **Double** type
+    
+    - Parameter key : Key whose value has to be fetched from the dictionary as **Double** type
+    - Returns: The value Conditionally downcasted **( as? )** into type Double
+    */
     func optDouble(key : Key) -> Double?
     {
         return optValue(key: key) as? Double
     }
     
+    /**
+     To get the value of the key from the dictinoary as an optional **Boolean** type
+    
+    - Parameter key : Key whose value has to be fetched from the dictionary as **Boolean** type
+    - Returns: The value Conditionally downcasted **( as? )** into type Boolean
+    */
     func optBoolean(key : Key) -> Bool?
     {
         return optValue(key: key) as? Bool
     }
     
+    /**
+     To get the value of the key from the dictinoary as an optional **Dictionary** type with **String type** as Key and **Any type** as value
+    
+    - Parameter key : Key whose value has to be fetched from the dictionary as **Dictionary** type
+    - Returns: The value Conditionally downcasted **( as? )** into a Dictionary
+    */
     func optDictionary(key : Key) -> Dictionary<String, Any>?
     {
         return optValue(key: key) as? Dictionary<String, Any>
     }
     
+    /**
+     To get the value of the key from the dictinoary as an optional **Array of Any**
+    
+    - Parameter key : Key whose value has to be fetched from the dictionary as **Array** type
+    - Returns: The value Conditionally downcasted **( as? )** into an Array
+    */
     func optArray(key : Key) -> Array<Any>?
     {
         return optValue(key: key) as? Array<Any>
     }
     
+    /**
+     To get the value of the key from the dictinoary as an optional **Array of Dictionary** type
+    
+    - Parameter key : Key whose value has to be fetched from the dictionary as **Array of Dictionary** type
+    - Returns: The value Conditionally downcasted **( as? )** into an Array of Dictionary, With the dictionary having String type as Key and Any type as Value
+    */
     func optArrayOfDictionaries( key : Key ) -> Array< Dictionary < String, Any > >?
     {
         return ( optValue( key : key ) as? Array< Dictionary < String, Any > > )
     }
     
+    /**
+     To get the value of the key from the dictinoary as an **Int**
+    
+    - Parameter key : Key whose value has to be fetched from the dictionary as **Int**
+    - Returns: An Int value
+    - Throws : If the value cannot be converted into Int
+    */
     func getInt( key : Key ) throws -> Int
     {
         try self.valueCheck( forKey : key )
@@ -441,6 +586,13 @@ internal extension Dictionary
         return value
     }
     
+    /**
+     To get the value of the key from the dictinoary as an **Int64**
+    
+    - Parameter key : Key whose value has to be fetched from the dictionary as **Int64**
+    - Returns: An Int64 value
+    - Throws : If the value cannot be converted into Int64
+    */
     func getInt64( key : Key ) throws -> Int64
     {
         try self.valueCheck( forKey : key )
@@ -452,6 +604,13 @@ internal extension Dictionary
         return value
     }
     
+    /**
+     To get the value of the key from the dictinoary as a **String**
+    
+    - Parameter key : Key whose value has to be fetched from the dictionary as **String**
+    - Returns: A String value
+    - Throws : If the value cannot be converted into String
+    */
     func getString( key : Key ) throws -> String
     {
         try self.valueCheck( forKey : key )
@@ -463,6 +622,13 @@ internal extension Dictionary
         return value
     }
     
+    /**
+     To get the value of the key from the dictinoary as a **Boolean**
+    
+    - Parameter key : Key whose value has to be fetched from the dictionary as **Boolean**
+    - Returns: A Boolean value
+    - Throws : If the value cannot be converted into Boolean
+    */
     func getBoolean( key : Key ) throws -> Bool
     {
         try self.valueCheck( forKey : key )
@@ -474,6 +640,13 @@ internal extension Dictionary
         return value
     }
     
+    /**
+     To get the value of the key from the dictinoary as a **Double**
+    
+    - Parameter key : Key whose value has to be fetched from the dictionary as **Double**
+    - Returns: A Double value
+    - Throws : If the value cannot be converted into Double
+    */
     func getDouble( key : Key ) throws -> Double
     {
         try self.valueCheck( forKey : key )
@@ -485,6 +658,13 @@ internal extension Dictionary
         return value
     }
     
+    /**
+     To get the value of the key from the dictinoary as an **Array of Any**
+    
+    - Parameter key : Key whose value has to be fetched from the dictionary as **Array of Any**
+    - Returns: An Array of type Any
+    - Throws : If the value cannot be converted into an Array of Any
+    */
     func getArray( key : Key ) throws -> Array< Any >
     {
         try self.valueCheck( forKey : key )
@@ -496,6 +676,13 @@ internal extension Dictionary
         return value
     }
     
+    /**
+     To get the value of the key from the dictinoary as a **Dictionary with String type as key and Any type as Value**
+    
+    - Parameter key : Key whose value has to be fetched from the dictionary as **Dictionary**
+    - Returns: A Dictionary
+    - Throws : If the value cannot be converted into Dictionary
+    */
     func getDictionary( key : Key ) throws -> Dictionary< String, Any >
     {
         try self.valueCheck( forKey : key )
@@ -507,6 +694,13 @@ internal extension Dictionary
         return value
     }
     
+    /**
+     To get the value of the key from the dictinoary as a **Array of Dictionary with String type as key and Any type as Value**
+    
+    - Parameter key : Key whose value has to be fetched from the dictionary as **Array of Dictionary**
+    - Returns: An Array of Dictionary
+    - Throws : If the value cannot be converted into an Array of Dictionary
+    */
     func getArrayOfDictionaries( key : Key ) throws -> Array< Dictionary < String, Any > >
     {
         try self.valueCheck( forKey : key )
@@ -518,6 +712,13 @@ internal extension Dictionary
         return value
     }
     
+    /**
+     To get the value of the key from the dictinoary
+    
+    - Parameter key : Key whose value has to be fetched from the dictionary
+    - Returns: A value ot type **Any**
+    - Throws : If the key is not found in the dictionary or value of the key is nil
+    */
     func getValue( key : Key ) throws -> Any
     {
         guard let value = optValue( key: key ) else
@@ -528,6 +729,11 @@ internal extension Dictionary
         return value
     }
     
+    /**
+      To convert a dictionary into a JSON String with **ascii encoding**
+     
+     - Returns: JSONString
+     */
     func convertToJSON() -> String?
     {
         let jsonData = try? JSONSerialization.data(withJSONObject: self, options: .prettyPrinted)
@@ -539,6 +745,11 @@ internal extension Dictionary
         return nil
     }
     
+    /**
+     To convert a dictionary into a JSON String with **UTF-8 encoding**
+    
+    - Returns: JSONString
+    */
     func toJSON() -> String?
     {
         let jsonData = try? JSONSerialization.data(withJSONObject: self, options: [])
@@ -550,6 +761,12 @@ internal extension Dictionary
         return nil
     }
     
+    /**
+      To check if 2 dictionary has a same Set of Keys
+     
+     - Parameter dictionary : The dictionary whose keys has to be checked with
+     - Returns: **True** if both the dictionary has the same Set of Keys
+     */
     func equateKeys( dictionary : [ String : Any ] ) -> Bool
     {
         let dictKeys = dictionary.keys
@@ -564,6 +781,11 @@ internal extension Dictionary
         return isEqual
     }
     
+    /**
+     To convert a dictionary into a JSON String with **UTF-8 encoding**
+    
+    - Returns: JSONString
+    */
     func toString() -> String?
     {
         let data = try? JSONSerialization.data( withJSONObject: self, options: .prettyPrinted)
@@ -1270,6 +1492,7 @@ internal struct RequestParamKeys
     static let dealsMail : String = "deals_mail"
     static let category : String = "category"
     static let criteria = "criteria"
+    static let view = "view"
 }
 
 var ACCOUNTSURL : String = String()
@@ -1309,6 +1532,8 @@ struct JSONRootKey {
     static let CURRENCIES : String = "currencies"
     static let FEATURES : String = "features"
     static let BASE_CURRENCY : String = "base_currency"
+    static let SHARE : String = "share"
+    static let SHAREABLE_USER : String = "shareable_user"
 }
 
 //MARK:- RESULT TYPES
@@ -1416,15 +1641,11 @@ public func typeCastToZCRMError( _ error : Error ) -> ZCRMError {
 func getUserDelegate( userJSON : [ String : Any ] ) throws -> ZCRMUserDelegate
 {
     let user : ZCRMUserDelegate = ZCRMUserDelegate( id : try userJSON.getInt64( key : "id" ), name : try userJSON.getString( key : "name" ) )
+    for ( key, value ) in userJSON
+    {
+        user.data.updateValue( value, forKey: key)
+    }
     return user
-}
-
-func setUserDelegate( userObj : ZCRMUserDelegate ) -> [ String : Any ]
-{
-    var userJSON : [String:Any] = [String:Any]()
-    userJSON[ "id" ] = userObj.id
-    userJSON[ "name" ] = userObj.name
-    return userJSON
 }
 
 func relatedModuleCheck( module : String ) throws
@@ -1540,7 +1761,7 @@ internal struct DBConstant
     
     // Tables in the database zoho-crm-sdk-persistent.db
     static let TABLE_PUSH_NOTIFICATIONS = "PUSH_NOTIFICATIONS_DETAILS"
-    static let TABLE_CURRENT_PORTAL = "CURRENT_PORTAL"
+    static let TABLE_CURRENT_ORGANIZATION = "CURRENT_ORGANIZATION"
     
     // Columns in the table PUSH_NOTIFICATIONS_DETAILS
     static let COLUMN_APP_ID = "APP_ID"
@@ -1552,7 +1773,7 @@ internal struct DBConstant
     static let COLUMN_MOBILE_VERSION = "MOBILE_VERSION"
     
     // Columns in the table CURRENT_PORTAL
-    static let COLUMN_PORTAL_ID = "PORTAL_ID"
+    static let COLUMN_ORGANIZATION_ID = "ORGANIZATION_ID"
     
     static let DML_CREATE = "CREATE"
     static let DML_INSERT = "INSERT"
@@ -1681,7 +1902,7 @@ extension PropertyTransformer {
         }
             
         else {
-            ZCRMLogger.logError(message: "Proprty transformation is currently not supported for keyPath \(keyPath)!")
+            ZCRMLogger.logError(message: "Property transformation is currently not supported for keyPath \(keyPath)!")
         }
     }
     

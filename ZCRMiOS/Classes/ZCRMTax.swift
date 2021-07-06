@@ -8,29 +8,22 @@
 
 open class ZCRMTax : ZCRMTaxDelegate
 {
-    public internal( set ) var id : Int64
-    public var displayName : String = APIConstants.STRING_MOCK
+    public var name : String = APIConstants.STRING_MOCK
     public var percentage : Double = APIConstants.DOUBLE_MOCK
     internal var isCreate : Bool = APIConstants.BOOL_MOCK
     
     internal init( id : Int64)
     {
+        super.init(displayName: APIConstants.STRING_MOCK)
         self.id = id
-        super.init(name: APIConstants.STRING_MOCK)
-    }
-    
-    init( id : Int64, name : String )
-    {
-        self.id = id
-        super.init( name : name )
     }
     
     init( name : String, percentage : Double )
     {
-        self.id = APIConstants.INT64_MOCK
+        self.name = name
         self.percentage = percentage
         self.isCreate = true
-        super.init( name : name )
+        super.init( displayName : "\( name ) - \( percentage ) %" )
     }
 }
 
@@ -38,6 +31,7 @@ extension ZCRMTax : Hashable
 {
     public static func == (lhs: ZCRMTax, rhs: ZCRMTax) -> Bool {
         let equals : Bool = lhs.id == rhs.id &&
+            lhs.name == rhs.name &&
             lhs.percentage == rhs.percentage &&
             lhs.displayName == rhs.displayName
         return equals

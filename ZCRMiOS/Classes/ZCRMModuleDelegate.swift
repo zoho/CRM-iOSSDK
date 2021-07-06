@@ -117,6 +117,14 @@ open class ZCRMModuleDelegate : ZCRMEntity
         }
     }
     
+    /**
+     Returns list of ZCRMFields of the module from server
+    
+    - Parameters:
+       - completion :
+           - Success : Returns an array of ZCRMField objects and a BulkAPIResponse
+           - Failure : Returns Error
+    */
     public func getFieldsFromServer( completion : @escaping( Result.DataResponse< [ ZCRMField ], BulkAPIResponse > ) -> () )
     {
         ModuleAPIHandler( module : self, cacheFlavour : .noCache ).getAllFields( modifiedSince : nil ) { ( result ) in
@@ -131,6 +139,15 @@ open class ZCRMModuleDelegate : ZCRMEntity
         }
     }
     
+    /**
+     To get the details of the field in a module by it's Id from Servevr.
+    
+    - Parameters:
+       - id : Id of the field whose details to be fetched
+       - completion:
+           - Success : Returns a ZCRMField object and an APIResponse
+           - Failure : Returns Error
+    */
     public func getFieldFromServer( id : Int64, completion : @escaping( Result.DataResponse< ZCRMField, APIResponse > ) -> () )
     {
         ModuleAPIHandler(module: self, cacheFlavour: .noCache).getField(fieldId: id) { ( result ) in
@@ -778,6 +795,26 @@ open class ZCRMModuleDelegate : ZCRMEntity
         MassEntityAPIHandler( module : self ).removeTags( records : records, tags : tags ) { ( result ) in
             completion( result )
         }
+    }
+    
+    /**
+      To pass your own queries to get records from Zoho CRM by using field API names instead of column names and module API names instead of table names
+     
+     ```
+        Limit cannot exceed 200,
+        No of Fields should not be more than 50
+     ```
+     
+     - Parameters:
+        - withQueryParams : Params that are used in creating the query
+        - completion :
+            - Succes : Returns the records with given fields
+            - Failure : Retuens ZCRMError
+            
+     */
+    public func getRecords( withQueryParams params : ZCRMQuery.GetCOQLQueryParams, completion : @escaping ( Result.DataResponse< [[ String : Any ]], BulkAPIResponse > ) -> () )
+    {
+        ModuleAPIHandler( module: self, cacheFlavour: .noCache ).getRecords( withQueryParams : params, completion: completion)
     }
 }
 
