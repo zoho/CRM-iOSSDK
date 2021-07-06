@@ -1,13 +1,11 @@
 //
-//  User.swift
+//  ZCRMCompanyInfo.swift
 //  ZCRMiOS
 //
-//  Created by Vijayakrishna on 09/11/16.
-//  Copyright © 2016 zohocrm. All rights reserved.
+//  Created by gowtham-pt2177 on 08/10/20.
 //
 
-@available(*, deprecated, message: "Use ZCRMCompanyInfo class instead")
-public class ZCRMOrg : ZCRMOrgDelegate
+public class ZCRMCompanyInfo : ZCRMCompanyInfoDelegate
 {
     public var name : String?
     {
@@ -215,9 +213,9 @@ public class ZCRMOrg : ZCRMOrgDelegate
         }
     }
     
-    public func update( completion : @escaping( Result.DataResponse< ZCRMOrg, APIResponse > ) -> () )
+    public func update( completion : @escaping( Result.DataResponse< ZCRMCompanyInfo, APIResponse > ) -> () )
     {
-        OrgAPIHandler( cacheFlavour: .noCache ).update( self ) { result in
+        OrgAPIHandler( cacheFlavour: .noCache ).update( companyInfo : self ) { result in
             completion( result )
         }
     }
@@ -296,10 +294,9 @@ public class ZCRMOrg : ZCRMOrgDelegate
     }
 }
 
-@available(*, deprecated, message: "Use ZCRMCompanyInfo class instead")
-extension ZCRMOrg : Hashable
+extension ZCRMCompanyInfo : Hashable
 {
-    public static func == (lhs: ZCRMOrg, rhs: ZCRMOrg) -> Bool {
+    public static func == (lhs: ZCRMCompanyInfo, rhs: ZCRMCompanyInfo) -> Bool {
         let equals : Bool = lhs.name == rhs.name &&
             lhs.id == rhs.id &&
             lhs.alias == rhs.alias &&

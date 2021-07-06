@@ -8,49 +8,89 @@
 
 public class ZCRMSDKClient
 {
-    public static let shared = ZCRMSDKClient()
+	public static let shared = ZCRMSDKClient()
     public var requestHeaders : Dictionary< String, String >?
     var isDBCacheEnabled : Bool = false
    
     public var fileUploadURLSessionConfiguration : URLSessionConfiguration = .default
     public var fileDownloadURLSessionConfiguration : URLSessionConfiguration = .default
     
-    public var userAgent : String = "ZCRMiOS_unknown_bundle"
+    internal var userAgent : String = "ZCRMiOS_unknown_app"
     internal var apiBaseURL : String = String()
-    public var apiVersion : String = "v2"
+    internal var apiVersion : String = "v2"
     internal var portalId : Int64?
     internal var appType : AppType = AppType.zcrm
     public var requestTimeout : Double = 120.0
+    /**
+      The maximum amount of time that a resource request should be allowed to take.
+     
+     Resource request - Upload and Download operations
+     ```
+     Default value is 7 days
+     ```
+     */
+    public var timeoutIntervalForResource : Double = 604800
+    {
+        didSet
+        {
+            ZCRMSDKClient.shared.fileDownloadURLSessionConfiguration.timeoutIntervalForResource = timeoutIntervalForResource
+            ZCRMSDKClient.shared.fileUploadURLSessionConfiguration.timeoutIntervalForResource = timeoutIntervalForResource
+        }
+    }
     private var zohoAuthProvider : ZohoAuthProvider?
-    
     /**
      The time until the db data can be used for specific URL Request. After the time ends the data will be fetched from the server.
      
-    Default time is 6 hours.
+     ```
+     Default time is 6 hours.
+     ```
      */
     public var cacheValidityTimeInHours : Float = 6
     
     internal static var persistentDB : CacheDBHandler?
     internal static var nonPersistentDB : CacheDBHandler?
-        private var isVerticalCRM: Bool = false
-        internal var zcrmLoginHandler: ZCRMLoginHandler?
-        internal var zvcrmLoginHandler: ZVCRMLoginHandler?
-        private var crmAppConfigs : Dictionary < String, Any >!
+    private var isVerticalCRM: Bool = false
+    internal var zcrmLoginHandler: ZCRMLoginHandler?
+    internal var zvcrmLoginHandler: ZVCRMLoginHandler?
+    private var crmAppConfigs : Dictionary < String, Any >!
     
     internal var sessionCompletionHandlers : [ String : () -> () ] = [ String : () -> () ]()
-
     
     private init() {}
     
+    public func initSDK( window : UIWindow, appConfiguration : ZCRMSDKConfigs ) throws
+    {
+        if let packageName = Bundle.main.infoDictionary?[ kCFBundleNameKey as String ] as? String, let appVersion = Bundle.main.infoDictionary?[ "CFBundleShortVersionString" ] as? String
+        {
+            self.userAgent = "\( packageName )/\( appVersion )(iPhone) ZCRMiOSSDK"
+        }
+        ZCRMSDKClient.shared.apiBaseURL = appConfiguration.apiBaseURL
+        ZCRMSDKClient.shared.apiVersion = appConfiguration.apiVersion
+        try self.handleAppType( appConfigurations : appConfiguration )
+        ZCRMSDKClient.shared.appType = appConfiguration.appType
+        if let groupIdentifier = appConfiguration.groupIdentifier
+        {
+            SQLite.sharedURL = FileManager().containerURL(forSecurityApplicationGroupIdentifier: groupIdentifier)
+        }
+        
+        do
+        {
+            try ZCRMSDKClient.shared.createDB()
+            try ZCRMSDKClient.shared.createTables()
+        }
+        catch
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : Table creation failed!")
+        }
+        try self.initIAMLogin( window : window )
+    }
+    
+    @available(*, deprecated, message: "Use the method initSDK( window:, appConfiguration: ) instead" )
     public func initSDK( window : UIWindow, appType : AppType? =  AppType.zcrm, apiBaseURL : String? = nil, oauthScopes : [ Any ]? = nil, clientID : String? = nil, clientSecretID : String? = nil, redirectURLScheme : String? = nil, accountsURL : String? = nil, portalID : String? = nil, groupIdentifier : String? = nil ) throws
     {
         guard let appConfigPlist = Bundle.main.path( forResource : "AppConfiguration", ofType : "plist" ) else
         {
             throw ZCRMError.sdkError(code: ErrorCode.internalError, message: "AppConfiguration.plist is not found.", details: nil)
-        }
-        if let groupIdentifier = groupIdentifier
-        {
-            SQLite.sharedURL = FileManager().containerURL(forSecurityApplicationGroupIdentifier: groupIdentifier)
         }
         if let appConfiguration = NSDictionary( contentsOfFile : appConfigPlist ) as? [String : Any]
         {
@@ -87,23 +127,39 @@ public class ZCRMSDKClient
             {
                 crmAppConfigs[ CRMAppConfigurationKeys.redirectURLScheme ] = redirectURLScheme
             }
-            if let bundleID = Bundle.main.bundleIdentifier
+            if let packageName = Bundle.main.infoDictionary?[ kCFBundleNameKey as String ] as? String, let appVersion = Bundle.main.infoDictionary?[ "CFBundleShortVersionString" ] as? String
             {
-                self.userAgent = "ZCRMiOS_\(bundleID)"
+                self.userAgent = "\( packageName )/\( appVersion )(iPhone) ZCRMiOSSDK"
             }
-            if let type = appType
+            var type : AppType
+            if let apptype = appType
             {
-                try self.handleAppType( appType : type, appConfigurations : crmAppConfigs )
-                ZCRMSDKClient.shared.appType = type
+                type = apptype
             }
-            else if let type = appConfiguration[ "Type" ] as? String, let appType = AppType(rawValue: type)
+            let apptype = try appConfiguration.getString(key: "Type").lowercased()
+            if let appType = AppType(rawValue: apptype)
             {
-                try self.handleAppType( appType : appType, appConfigurations : crmAppConfigs )
-                ZCRMSDKClient.shared.appType = appType
+                type = appType
             }
             else
             {
-                throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "appType is not specified", details: nil )
+                throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "Not a valid appType - \( apptype )", details: nil )
+            }
+            var zcrmAPPConfiguration : ZCRMSDKConfigs
+            if type != .zcrm
+            {
+                zcrmAPPConfiguration = try ZCRMSDKConfigs.Builder(clientId: crmAppConfigs.getString(key: CRMAppConfigurationKeys.clientId), clientSecret: crmAppConfigs.getString(key: CRMAppConfigurationKeys.clientSecretId), redirectURL: crmAppConfigs.getString(key: CRMAppConfigurationKeys.redirectURLScheme), oauthScopes: crmAppConfigs.getArray(key: CRMAppConfigurationKeys.oAuthScopes) as? [ String ] ?? [], portalId: crmAppConfigs.getString(key: CRMAppConfigurationKeys.portalId)).setAPPType( type ).setAPIBaseURL( crmAppConfigs.getString(key: CRMAppConfigurationKeys.apiBaseURL) ).setAccountsURL( crmAppConfigs.getString(key: CRMAppConfigurationKeys.accountsURL) ).build()
+            }
+            else
+            {
+                zcrmAPPConfiguration = try ZCRMSDKConfigs.Builder(clientId: crmAppConfigs.getString(key: CRMAppConfigurationKeys.clientId), clientSecret: crmAppConfigs.getString(key: CRMAppConfigurationKeys.clientSecretId), redirectURL: crmAppConfigs.getString(key: CRMAppConfigurationKeys.redirectURLScheme), oauthScopes: crmAppConfigs.getArray(key: CRMAppConfigurationKeys.oAuthScopes) as? [ String ] ?? []).setAPPType( type ).setAPIBaseURL( crmAppConfigs.getString(key: CRMAppConfigurationKeys.apiBaseURL) ).setAccessType( AccessType(rawValue: crmAppConfigs.optString(key: CRMAppConfigurationKeys.accessType) ?? "") ?? .production ).setCountryDomain( CountryDomain(rawValue: crmAppConfigs.getString(key: CRMAppConfigurationKeys.countryDomain)) ?? .com ).setAccountsURL( crmAppConfigs.getString(key: CRMAppConfigurationKeys.accountsURL) ).build()
+            }
+            ZCRMSDKClient.shared.appType = type
+            ZCRMSDKClient.shared.apiVersion = zcrmAPPConfiguration.apiVersion
+            try self.handleAppType( appConfigurations : zcrmAPPConfiguration )
+            if let groupIdentifier = groupIdentifier
+            {
+                SQLite.sharedURL = FileManager().containerURL(forSecurityApplicationGroupIdentifier: groupIdentifier)
             }
         }
         else
@@ -120,9 +176,22 @@ public class ZCRMSDKClient
         {
             ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : Table creation failed!")
         }
-        self.initIAMLogin( appType : ZCRMSDKClient.shared.appType, window : window, apiBaseURL : ZCRMSDKClient.shared.apiBaseURL )
+        try self.initIAMLogin( window : window )
     }
     
+    public static func notifyLogout() throws
+    {
+        try shared.clearAllCache()
+        shared.clearAllURLSessionCache()
+        shared.portalId = nil
+    }
+    
+    public func getCurrentOrganization() -> Int64?
+    {
+        return self.portalId
+    }
+    
+    @available(*, deprecated, message: "Use getCurrentOrganization method instead")
     public func getCurrentPortal() -> Int64?
     {
         return self.portalId
@@ -133,7 +202,7 @@ public class ZCRMSDKClient
         try SQLite( dbName : DBConstant.CACHE_DB_NAME ).deleteDB()
     }
     
-    public func clearAllCache() throws
+    internal func clearAllCache() throws
     {
         try SQLite( dbName : DBConstant.CACHE_DB_NAME ).deleteDB()
         try SQLite( dbName : DBConstant.PERSISTENT_DB_NAME ).deleteDB()
@@ -143,7 +212,7 @@ public class ZCRMSDKClient
     {
         isDBCacheEnabled = true
     }
-    
+
     public func disableDBCaching() throws
     {
         isDBCacheEnabled = false
@@ -152,8 +221,16 @@ public class ZCRMSDKClient
     
     internal func getAccessToken( completion : @escaping ( Result.Data< String > ) -> ())
     {
-        self.zohoAuthProvider?.getAccessToken() { result in
-            completion( result )
+        if let zohoAuthProvider = self.zohoAuthProvider
+        {
+            zohoAuthProvider.getAccessToken() { result in
+                completion( result )
+            }
+        }
+        else
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.mandatoryNotFound ) : Zoho Auth provider cannot be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.sdkError(code: ErrorCode.mandatoryNotFound, message: "Zoho Auth provider cannot be nil", details: nil) ) )
         }
     }
     
@@ -177,11 +254,44 @@ public class ZCRMSDKClient
         }
     }
     
+    /// To change the Zoho CRM SDK LogLevel
+    public func changeMinLogLevel( _ minLogLevel : LogLevels )
+    {
+        ZCRMLogger.minLogLevel = minLogLevel
+    }
+    
     public func turnLoggerOff()
     {
         ZCRMLogger.initLogger(isLogEnabled: false)
     }
     
+    public func getCurrentUser( completion : @escaping( Result.Data< ZCRMUser > ) -> () )
+    {
+        UserAPIHandler(cacheFlavour: CacheFlavour.forceCache).getCurrentUser() { ( result ) in
+            switch result
+            {
+            case .success(let currentUser, _) :
+                completion( .success( currentUser ) )
+            case .failure(let error) :
+                completion( .failure( error ) )
+            }
+        }
+    }
+    
+    public func getCurrentUserFromServer( completion : @escaping( Result.Data< ZCRMUser > ) -> () )
+    {
+        UserAPIHandler(cacheFlavour: CacheFlavour.noCache).getCurrentUser() { ( result ) in
+            switch result
+            {
+            case .success(let currentUser, _) :
+                completion( .success( currentUser ) )
+            case .failure(let error) :
+                completion( .failure( error ) )
+            }
+        }
+    }
+    
+    @available(*, deprecated, message: "Use getCurrentUser( completion: ) or getCurrentUserFromServer( completion: ) method instead")
     public func getLoggedInUser( completion : @escaping( Result.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
         UserAPIHandler(cacheFlavour: CacheFlavour.forceCache).getCurrentUser() { ( result ) in
@@ -246,133 +356,115 @@ public class ZCRMSDKClient
         }
     }
         
-        private func clearFirstLaunch()
-        {
-            let alreadyLaunched = UserDefaults.standard.bool( forKey : "first" )
-            if !alreadyLaunched
-            {
-                if self.isVerticalCRM
-                {
-                    self.zvcrmLoginHandler?.clearIAMLoginFirstLaunch()
-                }
-                else
-                {
-                    self.zcrmLoginHandler?.clearIAMLoginFirstLaunch()
-                }
-                UserDefaults.standard.set( true, forKey : "first" )
-            }
-        }
-        
-        public func handle( url : URL, sourceApplication : String?, annotation : Any )
+    private func clearFirstLaunch()
+    {
+        let alreadyLaunched = UserDefaults.standard.bool( forKey : "first" )
+        if !alreadyLaunched
         {
             if self.isVerticalCRM
             {
-                self.zvcrmLoginHandler?.iamLoginHandleURL(url: url, sourceApplication: sourceApplication, annotation: annotation)
+                self.zvcrmLoginHandler?.clearIAMLoginFirstLaunch()
             }
             else
             {
-                self.zcrmLoginHandler?.iamLoginHandleURL(url: url, sourceApplication: sourceApplication, annotation: annotation)
+                self.zcrmLoginHandler?.clearIAMLoginFirstLaunch()
             }
+            UserDefaults.standard.set( true, forKey : "first" )
         }
-        
-        fileprivate func initIAMLogin( appType : AppType, window : UIWindow, apiBaseURL : String? )
+    }
+
+    public func handle( url : URL, sourceApplication : String?, annotation : Any )
+    {
+        if self.isVerticalCRM
         {
-            if self.isVerticalCRM
-            {
-                self.zvcrmLoginHandler?.initIAMLogin(window: window)
-            }
-            else
-            {
-                self.zcrmLoginHandler?.initIAMLogin(window: window)
-                guard let baseURL = apiBaseURL else
-                {
-                    do
-                    {
-                        ZCRMSDKClient.shared.zcrmLoginHandler?.setAppConfigurations()
-                        try ZCRMSDKClient.shared.zcrmLoginHandler?.updateBaseURL( countryDomain : COUNTRYDOMAIN )
-                        ZCRMLogger.logDebug( message : "Country Domain : \( COUNTRYDOMAIN )")
-                    }
-                    catch
-                    {
-                        ZCRMLogger.logDebug( message : "Error in initIAMLogin(): \( error )" )
-                    }
-                    return
-                }
-                ZCRMSDKClient.shared.apiBaseURL = baseURL
-            }
+            self.zvcrmLoginHandler?.iamLoginHandleURL(url: url, sourceApplication: sourceApplication, annotation: annotation)
         }
-        
-        fileprivate func handleAppType( appType : AppType, appConfigurations : Dictionary < String, Any > ) throws
+        else
         {
-            do
-            {
-                if appType == AppType.zcrm
-                {
-                    self.zcrmLoginHandler = try ZCRMLoginHandler( appConfigUtil : appConfigurations )
-                    self.zohoAuthProvider = self.zcrmLoginHandler
-                    self.isVerticalCRM = false
-                }
-                else
-                {
-                    self.zvcrmLoginHandler = try ZVCRMLoginHandler( appConfigUtil : appConfigurations )
-                    self.zohoAuthProvider = self.zvcrmLoginHandler
-                    self.isVerticalCRM = true
-                }
-                self.clearFirstLaunch()
-            }
-            catch
-            {
-                throw ZCRMError.sdkError(code: ErrorCode.internalError, message: error.description, details: nil)
-            }
+            self.zcrmLoginHandler?.iamLoginHandleURL(url: url, sourceApplication: sourceApplication, annotation: annotation)
         }
+    }
+
+    fileprivate func initIAMLogin( window : UIWindow ) throws
+    {
+        if self.isVerticalCRM
+        {
+            try self.zvcrmLoginHandler?.initIAMLogin(window: window)
+        }
+        else
+        {
+            try self.zcrmLoginHandler?.initIAMLogin(window: window)
+        }
+    }
     
-        public func showLogin(completion: @escaping ( ZCRMError? ) -> ())
+    fileprivate func handleAppType( appConfigurations : ZCRMSDKConfigs ) throws
+    {
+        do
         {
-            if isUserSignedIn()
+            if appConfigurations.appType == AppType.zcrm
             {
-                completion( nil )
+                self.zcrmLoginHandler = try ZCRMLoginHandler(appConfiguration: appConfigurations)
+                self.zohoAuthProvider = self.zcrmLoginHandler
+                self.isVerticalCRM = false
             }
             else
             {
-                if self.isVerticalCRM
-                {
-                    self.zvcrmLoginHandler?.handleLogin { (success) in
-                        completion(success)
-                    }
-                }
-                else
-                {
-                    self.zcrmLoginHandler?.handleLogin(completion: { (success) in
-                        completion(success)
-                    })
-                }
+                self.zvcrmLoginHandler = try ZVCRMLoginHandler(appConfiguration: appConfigurations)
+                self.zohoAuthProvider = self.zvcrmLoginHandler
+                self.isVerticalCRM = true
             }
+            self.clearFirstLaunch()
         }
-        
-        public func isUserSignedIn() -> Bool
+        catch
         {
-            if self.isVerticalCRM && self.appType != .solutions
-            {
-                return ZohoPortalAuth.isUserSignedIn()
-            }
-            return ZohoAuth.isUserSignedIn()
+            throw ZCRMError.sdkError(code: ErrorCode.internalError, message: error.description, details: nil)
         }
-        
-        public func logout(completion: @escaping (ZCRMError?) -> ())
+    }
+    
+    public func showLogin(completion: @escaping ( ZCRMError? ) -> ())
+    {
+        if self.isUserSignedIn()
+        {
+            ZCRMLogger.logDebug(message: "User already signed in.")
+            completion( nil )
+        }
+        else
         {
             if self.isVerticalCRM
             {
-                self.zvcrmLoginHandler?.logout { (success) in
-                    completion(success)
-                }
+                self.zvcrmLoginHandler?.handleLogin( completion: completion )
             }
             else
             {
-                self.zcrmLoginHandler?.logout { (success) in
-                    completion(success)
-                }
+                self.zcrmLoginHandler?.handleLogin( completion: completion )
             }
         }
+    }
+    
+    public func isUserSignedIn() -> Bool
+    {
+        if self.isVerticalCRM && self.appType != .solutions
+        {
+            return ZohoPortalAuth.isUserSignedIn()
+        }
+        return ZohoAuth.isUserSignedIn()
+    }
+    
+    public func logout(completion: @escaping (ZCRMError?) -> ())
+    {
+        if self.isVerticalCRM
+        {
+            self.zvcrmLoginHandler?.logout { (success) in
+                completion(success)
+            }
+        }
+        else
+        {
+            self.zcrmLoginHandler?.logout { (success) in
+                completion(success)
+            }
+        }
+    }
     
     /**
      To resume the URLSession delegate method calls when the app transition from background to foreground

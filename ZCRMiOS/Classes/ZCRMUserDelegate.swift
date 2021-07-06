@@ -9,6 +9,16 @@ open class ZCRMUserDelegate : ZCRMEntity
 {
     public internal( set ) var id : Int64
     public var name : String
+    internal var data : [ String : Any? ] = [ String : Any? ](){
+        didSet
+        {
+            for ( key, value ) in data
+            {
+                upsertJSON.updateValue(value, forKey: key)
+            }
+        }
+    }
+    internal var upsertJSON : [ String : Any? ] = [ String : Any? ]()
     
     internal init( id : Int64, name : String )
     {

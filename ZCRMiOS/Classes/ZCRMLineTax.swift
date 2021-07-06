@@ -9,7 +9,7 @@ open class ZCRMLineTax : ZCRMEntity
 {
     public var name : String
     public var percentage : Double
-    public var value : Double = APIConstants.DOUBLE_MOCK{
+    public internal( set ) var value : Double = APIConstants.DOUBLE_MOCK{
         didSet
         {
             self.isValueSet = true

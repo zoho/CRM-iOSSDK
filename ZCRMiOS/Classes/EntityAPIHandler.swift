@@ -553,7 +553,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 {
                     recordJSON.updateValue( nil, forKey : ResponseJSONKeys.dollarLineTax )
                 }
-                else if value is [ ZCRMTax ], let tax = value as? [ ZCRMLineTax ]
+                else if value is [ ZCRMLineTax ], let tax = value as? [ ZCRMLineTax ]
                 {
                     recordJSON.updateValue( self.getLineTaxAsJSONArray( lineTaxes : tax ), forKey : ResponseJSONKeys.dollarLineTax )
                 }
@@ -566,7 +566,14 @@ internal class EntityAPIHandler : CommonAPIHandler
                 }
                 else if let taxes = value as? [ ZCRMTaxDelegate ]
                 {
-                    recordJSON.updateValue( self.getTaxAsJSONArray( taxes : taxes ), forKey : ResponseJSONKeys.tax )
+                    if let headers = ZCRMSDKClient.shared.requestHeaders, headers.hasKey(forKey: X_ZOHO_SERVICE)
+                    {
+                        recordJSON.updateValue( self.getTaxAsJSONArray( taxes : taxes ), forKey : ResponseJSONKeys.tax )
+                    }
+                    else
+                    {
+                        recordJSON.updateValue( taxes.map{ $0.displayName }, forKey: ResponseJSONKeys.tax)
+                    }
                 }
             }
             else if key == ResponseJSONKeys.participants
@@ -631,6 +638,209 @@ internal class EntityAPIHandler : CommonAPIHandler
             }
         }
         return recordJSON
+    }
+    
+    internal func share( details : [ ZCRMRecord.SharedDetails ], completion : @escaping ( Result.Response< BulkAPIResponse > ) -> () )
+    {
+        setJSONRootKey(key: JSONRootKey.SHARE)
+        setUrlPath(urlPath: "\( record.moduleAPIName )/\( record.id )/\( URLPathConstants.actions )/\( URLPathConstants.share )")
+        setRequestMethod(requestMethod: .post)
+        
+        var dataArray : [[ String : Any ]] = []
+        for detail in details
+        {
+            var shareDetails : [ String : Any ] = [:]
+            shareDetails[ ResponseJSONKeys.user ] = [ ResponseJSONKeys.id : detail.user.id ]
+            shareDetails[ ResponseJSONKeys.permission ] = detail.permission.rawValue
+            shareDetails[ ResponseJSONKeys.shareRelatedRecords ] = detail.isSharedWithRelatedRecords
+            dataArray.append( shareDetails )
+        }
+        setRequestBody(requestBody: [ JSONRootKey.SHARE : dataArray ])
+        
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getBulkAPIResponse() { result in
+            switch result
+            {
+            case .success(let response) :
+                completion( .success( response ) )
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func updateShare( details : [ ZCRMRecord.SharedDetails ], completion : @escaping ( Result.Response< BulkAPIResponse > ) -> () )
+    {
+        setJSONRootKey(key: JSONRootKey.SHARE)
+        setUrlPath(urlPath: "\( record.moduleAPIName )/\( record.id )/\( URLPathConstants.actions )/\( URLPathConstants.share )")
+        setRequestMethod(requestMethod: .put)
+        
+        var dataArray : [[ String : Any ]] = []
+        for detail in details
+        {
+            var shareDetails : [ String : Any ] = [:]
+            shareDetails[ ResponseJSONKeys.user ] = [ ResponseJSONKeys.id : detail.user.id ]
+            shareDetails[ ResponseJSONKeys.permission ] = detail.permission.rawValue
+            shareDetails[ ResponseJSONKeys.shareRelatedRecords ] = detail.isSharedWithRelatedRecords
+            dataArray.append( shareDetails )
+        }
+        setRequestBody(requestBody: [ JSONRootKey.SHARE : dataArray ])
+        
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getBulkAPIResponse() { result in
+            switch result
+            {
+            case .success(let response) :
+                completion( .success( response ) )
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func revokeShare( completion : @escaping ( Result.Response< APIResponse >) -> () )
+    {
+        setJSONRootKey(key: JSONRootKey.SHARE)
+        setUrlPath(urlPath: "\( record.moduleAPIName )/\( record.id )/\( URLPathConstants.actions )/\( URLPathConstants.share )")
+        setRequestMethod(requestMethod: .delete)
+        
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getAPIResponse() { result in
+            switch result
+            {
+            case .success(let response) :
+                completion( .success( response ) )
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func getShareableUsers( completion : @escaping ( Result.DataResponse< [ ZCRMUserDelegate ], BulkAPIResponse > ) -> () )
+    {
+        setJSONRootKey(key: JSONRootKey.SHAREABLE_USER)
+        setUrlPath(urlPath: "\( record.moduleAPIName )/\( record.id )/\( URLPathConstants.actions )/\( URLPathConstants.share )")
+        addRequestParam(param: RequestParamKeys.view, value: "manage")
+        setRequestMethod(requestMethod: .get)
+        
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getBulkAPIResponse() { result in
+            switch result
+            {
+            case .success(let bulkResponse) :
+                do
+                {
+                    var shareableUserDetails : [ ZCRMUserDelegate ] = []
+                    let responseJSON : [ String : Any ] = bulkResponse.getResponseJSON()
+                    if responseJSON.isEmpty == true
+                    {
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        return
+                    }
+                    let userDetails : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                    if !userDetails.isEmpty
+                    {
+                        for userDetail in userDetails
+                        {
+                            let user : ZCRMUserDelegate = try ZCRMUserDelegate(id: userDetail.getInt64(key: ResponseJSONKeys.id), name: userDetail.getString(key: ResponseJSONKeys.fullName))
+                            user.data = userDetail
+                            shareableUserDetails.append( user )
+                        }
+                    }
+                    completion( .success( shareableUserDetails, bulkResponse) )
+                }
+                catch
+                {
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func getSharedRecordDetails( completion : @escaping ( Result.DataResponse< [ ZCRMRecord.SharedDetails ], BulkAPIResponse > ) -> () )
+    {
+        setJSONRootKey(key: JSONRootKey.SHARE)
+        setUrlPath(urlPath: "\( record.moduleAPIName )/\( record.id )/\( URLPathConstants.actions )/\( URLPathConstants.share )")
+        addRequestParam(param: RequestParamKeys.view, value: "summary")
+        setRequestMethod(requestMethod: .get)
+        
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        var zcrmSharedRecordDetails : [ ZCRMRecord.SharedDetails ] = []
+        request.getBulkAPIResponse() { result in
+            switch result
+            {
+            case .success(let bulkResponse) :
+                do
+                {
+                    let responseJSON : [ String : Any ] = bulkResponse.getResponseJSON()
+                    if responseJSON.isEmpty == true
+                    {
+                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        return
+                    }
+                    let recordDetails : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                    if !recordDetails.isEmpty
+                    {
+                        for recordDetail in recordDetails
+                        {
+                            try zcrmSharedRecordDetails.append( self.getSharedRecordDetails(fromJSON: recordDetail) )
+                        }
+                    }
+                    completion( .success( zcrmSharedRecordDetails, bulkResponse) )
+                }
+                catch
+                {
+                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    private func getSharedRecordDetails( fromJSON json : [ String : Any ]) throws -> ZCRMRecord.SharedDetails
+    {
+        let userJSON = try json.getDictionary(key: ResponseJSONKeys.user)
+        let user = try ZCRMUserDelegate(id: userJSON.getInt64(key: ResponseJSONKeys.id), name: userJSON.getString(key: ResponseJSONKeys.fullName))
+        user.data = userJSON
+        
+        let permission = try RecordSharePermission.getType(rawValue: json.getString(key: ResponseJSONKeys.permission))
+        let isSharedWithRelatedRecords = try json.getBoolean(key: ResponseJSONKeys.shareRelatedRecords)
+        
+        var zcrmSharedRecord : ZCRMRecord.SharedDetails = ZCRMRecord.SharedDetails(user: user, permission: permission, isSharedWithRelatedRecords: isSharedWithRelatedRecords)
+        
+        let sharedthrough = try json.getDictionary(key: ResponseJSONKeys.sharedThrough)
+        let module = try sharedthrough.getDictionary(key: ResponseJSONKeys.module)
+        zcrmSharedRecord.module = try module.getString(key: ResponseJSONKeys.name)
+        
+        zcrmSharedRecord.sharedTime = try json.getString(key: ResponseJSONKeys.sharedTime)
+        
+        let sharedBy = try json.getDictionary(key: ResponseJSONKeys.sharedBy)
+        zcrmSharedRecord.sharedBy = try ZCRMUserDelegate(id: sharedBy.getInt64(key: ResponseJSONKeys.id), name: sharedBy.getString(key: ResponseJSONKeys.fullName))
+        zcrmSharedRecord.sharedBy.data = sharedBy
+        
+        return zcrmSharedRecord
     }
     
     private func getZCRMRecordIdsAsArray( _ recordDelegates : [ ZCRMRecordDelegate ] ) -> [ Int64 ]
@@ -735,14 +945,17 @@ internal class EntityAPIHandler : CommonAPIHandler
         return detailsJSON
     }
     
-    private func getTaxAsJSONArray( taxes : [ ZCRMTaxDelegate ] ) -> [ String ]
+    private func getTaxAsJSONArray( taxes : [ ZCRMTaxDelegate ] ) -> [[ String : Any? ]]
     {
-        var taxNames : [ String ] = [ String ]()
+        var taxArray : [[ String : Any? ]] = [[ String : Any? ]]()
         for tax in taxes
         {
-            taxNames.append( tax.name )
+            var taxJSON : [ String : Any? ] = [ String : Any? ]()
+            taxJSON.updateValue( tax.id, forKey: ResponseJSONKeys.id )
+            taxJSON.updateValue( tax.displayName, forKey: ResponseJSONKeys.value)
+            taxArray.append( taxJSON )
         }
-        return taxNames
+        return taxArray
     }
     
     private func getLineTaxAsJSONArray( lineTaxes : [ ZCRMLineTax ] ) -> [ [ String : Any ] ]?
@@ -873,9 +1086,15 @@ internal class EntityAPIHandler : CommonAPIHandler
         {
             lineItem.updateValue( description, forKey : ResponseJSONKeys.productDescription )
         }
-        lineItem.updateValue( invLineItem.listPrice, forKey : ResponseJSONKeys.listPrice )
+        if invLineItem.listPrice != APIConstants.DOUBLE_MOCK
+        {
+            lineItem.updateValue( invLineItem.listPrice, forKey : ResponseJSONKeys.listPrice )
+        }
         lineItem.updateValue( invLineItem.quantity, forKey : ResponseJSONKeys.quantity )
-        lineItem.updateValue( invLineItem.discountPercentage, forKey : ResponseJSONKeys.Discount )
+        if let discountPercentage = invLineItem.discountPercentage
+        {
+            lineItem.updateValue( discountPercentage, forKey : ResponseJSONKeys.Discount )
+        }
         var allTaxes : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
         let lineTaxes : [ ZCRMLineTax] = invLineItem.lineTaxes
         for lineTax in lineTaxes
@@ -893,7 +1112,10 @@ internal class EntityAPIHandler : CommonAPIHandler
         {
             lineItem.updateValue( priceBookId, forKey: ResponseJSONKeys.priceBookId )
         }
-        lineItem.updateValue( invLineItem.quantityInStock, forKey: ResponseJSONKeys.quantityInStock)
+        if invLineItem.quantity != APIConstants.DOUBLE_MOCK
+        {
+            lineItem.updateValue( invLineItem.quantityInStock, forKey: ResponseJSONKeys.quantityInStock)
+        }
         return lineItem
     }
     
@@ -943,27 +1165,37 @@ internal class EntityAPIHandler : CommonAPIHandler
                 }
                 else if( ResponseJSONKeys.dollarLineTax == fieldAPIName ) && ( self.record.moduleAPIName == DefaultModuleAPINames.SALES_ORDERS || self.record.moduleAPIName == DefaultModuleAPINames.PURCHASE_ORDERS || self.record.moduleAPIName == DefaultModuleAPINames.INVOICES || self.record.moduleAPIName == DefaultModuleAPINames.QUOTES ), let taxesDetails = value as? [[ String : Any ]]
                 {
+                    var lineTaxes : [ ZCRMLineTax ] = []
                     for taxJSON in taxesDetails
                     {
                         let tax : ZCRMLineTax = try ZCRMLineTax( name : taxJSON.getString( key : ResponseJSONKeys.name ), percentage : taxJSON.getDouble( key : ResponseJSONKeys.percentage ) )
                         tax.value = try taxJSON.getDouble( key : ResponseJSONKeys.value )
-                        try self.record.addLineTax( lineTax : tax )
+                        lineTaxes.append( tax )
                     }
+                    self.record.lineTaxes = lineTaxes
                     self.record.data.updateValue( self.record.lineTaxes, forKey : ResponseJSONKeys.dollarLineTax )
                 }
                 else if( ResponseJSONKeys.tax == fieldAPIName && value is [ String ] ), let taxNames = value as? [ String ]
                 {
+                    var taxes : [ ZCRMTaxDelegate ] = []
                     for taxName in taxNames
                     {
-                        try self.record.addTax( tax : ZCRMTaxDelegate( name : taxName ) )
+                        taxes.append( ZCRMTaxDelegate( displayName : taxName ) )
                     }
+                    self.record.taxes = taxes
                     self.record.data.updateValue( self.record.taxes, forKey : ResponseJSONKeys.tax )
                 }
                 else if( ResponseJSONKeys.tax == fieldAPIName && value is [[ String : Any ]] ), let taxDetails = value as? [[ String : Any ]]
                 {
+                    if self.record.taxes == nil
+                    {
+                        self.record.taxes = []
+                    }
                     for tax in taxDetails
                     {
-                        try self.record.addTax( tax : ZCRMTaxDelegate( name : tax.getString(key: ResponseJSONKeys.value) ) )
+                        let tempTax = try ZCRMTaxDelegate( displayName : tax.getString(key: ResponseJSONKeys.value) )
+                        tempTax.id = tax.optInt64(key: ResponseJSONKeys.id )
+                        self.record.taxes?.append( tempTax )
                     }
                     self.record.data.updateValue( self.record.taxes, forKey : ResponseJSONKeys.tax )
                 }
@@ -979,14 +1211,16 @@ internal class EntityAPIHandler : CommonAPIHandler
                     }
                     self.record.data.updateValue( self.record.tags, forKey : ResponseJSONKeys.tag )
                 }
-                else if(ResponseJSONKeys.createdBy == fieldAPIName), let createdBy = value as? [ String : Any ]
+                else if(ResponseJSONKeys.createdBy == fieldAPIName), let createdByJSON = value as? [ String : Any ]
                 {
-                    self.record.createdBy = try getUserDelegate(userJSON : createdBy)
+                    let createdBy = try getUserDelegate(userJSON : createdByJSON)
+                    self.record.createdBy = createdBy
                     self.record.data.updateValue( self.record.createdBy, forKey : ResponseJSONKeys.createdBy )
                 }
-                else if(ResponseJSONKeys.modifiedBy == fieldAPIName), let modifiedBy : [String:Any] = value as? [String : Any]
+                else if(ResponseJSONKeys.modifiedBy == fieldAPIName), let modifiedByJSON : [String:Any] = value as? [String : Any]
                 {
-                    self.record.modifiedBy = try getUserDelegate(userJSON : modifiedBy)
+                    let modifiedBy = try getUserDelegate(userJSON : modifiedByJSON )
+                    self.record.modifiedBy = modifiedBy
                     self.record.data.updateValue( self.record.modifiedBy, forKey : ResponseJSONKeys.modifiedBy )
                 }
                 else if(ResponseJSONKeys.createdTime == fieldAPIName), let createdTime = value as? String
@@ -1006,7 +1240,8 @@ internal class EntityAPIHandler : CommonAPIHandler
                 }
                 else if(ResponseJSONKeys.owner == fieldAPIName), let ownerObj : [String:Any] = value as? [String : Any]
                 {
-                    self.record.owner = try getUserDelegate(userJSON : ownerObj)
+                    let owner = try getUserDelegate(userJSON : ownerObj)
+                    self.record.owner = owner
                     self.record.data.updateValue( self.record.owner, forKey : ResponseJSONKeys.owner )
                 }
                 else if ResponseJSONKeys.dataProcessingBasisDetails == fieldAPIName, let dataProcessingDetails = value as? [String:Any]
@@ -1085,7 +1320,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                     self.makeFieldAPIRequest(fieldApiName: fieldAPIName) { ( isSubformRecord, error ) in
                         if let err = error
                         {
-                            completion( .failure( typeCastToZCRMError( err ) ))
+                            setRecordError = err
                         }
                         if isSubformRecord
                         {
@@ -1241,8 +1476,7 @@ internal class EntityAPIHandler : CommonAPIHandler
             {
                 if fieldAPIName == ResponseJSONKeys.whatId
                 {
-                    let lookupRecord : ZCRMRecordDelegate = ZCRMRecordDelegate( id : try lookupDetails.getInt64( key : ResponseJSONKeys.id ), moduleAPIName : try recordDetails.getString( key : ResponseJSONKeys.seModule ) )
-                    lookupRecord.label = lookupDetails.optString( key : ResponseJSONKeys.name )
+                    let lookupRecord : ZCRMRecordDelegate = try EntityAPIHandler.getRecordDelegate(moduleAPIName: recordDetails.getString( key : ResponseJSONKeys.seModule ), recordJSON: lookupDetails)
                     completion( lookupRecord, nil )
                 }
                 else
@@ -1265,8 +1499,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                             {
                                 if let apiName = field.lookup?[ ResponseJSONKeys.module ] as? String
                                 {
-                                    let lookupRecord : ZCRMRecordDelegate = ZCRMRecordDelegate( id : try lookupDetails.getInt64( key : ResponseJSONKeys.id ), moduleAPIName : apiName )
-                                    lookupRecord.label = lookupDetails.optString( key : ResponseJSONKeys.name )
+                                    let lookupRecord : ZCRMRecordDelegate = try EntityAPIHandler.getRecordDelegate(moduleAPIName: apiName, recordJSON: lookupDetails)
                                     completion( lookupRecord, nil )
                                 }
                                 else
@@ -1387,17 +1620,20 @@ internal class EntityAPIHandler : CommonAPIHandler
                 }
                 else if(ResponseJSONKeys.owner == fieldAPIName), let ownerObj = value as? [String : Any]
                 {
-                    zcrmSubform.owner = try getUserDelegate(userJSON : ownerObj)
-                    zcrmSubform.setValue( ofFieldAPIName : ResponseJSONKeys.owner, value : ownerObj )
+                    let owner = try getUserDelegate(userJSON : ownerObj)
+                    zcrmSubform.owner = owner
+                    zcrmSubform.setValue( ofFieldAPIName : ResponseJSONKeys.owner, value : zcrmSubform.owner )
                 }
-                else if(ResponseJSONKeys.createdBy == fieldAPIName), let createdBy = value as? [String : Any]
+                else if(ResponseJSONKeys.createdBy == fieldAPIName), let createdByJSON = value as? [String : Any]
                 {
-                    zcrmSubform.createdBy = try getUserDelegate(userJSON : createdBy)
+                    let createdBy = try getUserDelegate(userJSON : createdByJSON)
+                    zcrmSubform.createdBy = createdBy
                     zcrmSubform.setValue( ofFieldAPIName : ResponseJSONKeys.createdBy, value : zcrmSubform.createdBy )
                 }
-                else if(ResponseJSONKeys.modifiedBy == fieldAPIName), let modifiedBy = value as? [String : Any]
+                else if(ResponseJSONKeys.modifiedBy == fieldAPIName), let modifiedByJSON = value as? [String : Any]
                 {
-                    zcrmSubform.modifiedBy = try getUserDelegate(userJSON : modifiedBy)
+                    let modifiedBy = try getUserDelegate(userJSON: modifiedByJSON)
+                    zcrmSubform.modifiedBy = modifiedBy
                     zcrmSubform.setValue( ofFieldAPIName : ResponseJSONKeys.modifiedBy, value : zcrmSubform.modifiedBy )
                 }
                 else if(fieldAPIName.hasPrefix("$"))
@@ -1499,8 +1735,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                     {
                         if let moduleAPIName = field.lookup?[ ResponseJSONKeys.module ] as? String
                         {
-                            let lookupRecord : ZCRMRecordDelegate = ZCRMRecordDelegate( id : try lookupDetails.getInt64( key : ResponseJSONKeys.id ), moduleAPIName : moduleAPIName )
-                            lookupRecord.label = lookupDetails.optString( key : ResponseJSONKeys.name )
+                            let lookupRecord = try EntityAPIHandler.getRecordDelegate(moduleAPIName: moduleAPIName, recordJSON: lookupDetails)
                             completion( lookupRecord, nil )
                         }
                         else
@@ -1664,29 +1899,90 @@ internal class EntityAPIHandler : CommonAPIHandler
             
             case .user :
                 let user = ZCRMUserDelegate( id : try participantDetails.getInt64( key : ResponseJSONKeys.participant ), name : try participantDetails.getString( key : ResponseJSONKeys.name ) )
+                user.data.updateValue( user.id, forKey: ResponseJSONKeys.participant)
+                user.data.updateValue( user.name, forKey: ResponseJSONKeys.name)
+                if let firstName = participantDetails.optString(key: ResponseJSONKeys.firstName)
+                {
+                    user.data.updateValue( firstName, forKey: ResponseJSONKeys.firstName)
+                }
+                if let lastName = participantDetails.optString(key: ResponseJSONKeys.lastName)
+                {
+                    user.data.updateValue( lastName, forKey: ResponseJSONKeys.lastName)
+                }
+                if let email = participantDetails.optString(key: CommunicationPreferences.email.rawValue)
+                {
+                    user.data.updateValue( email, forKey: CommunicationPreferences.email.rawValue)
+                }
                 eventParticipant = EventParticipant.user( user )
                 break
             
             case .contact :
                 let entity = ZCRMRecordDelegate( id : try participantDetails.getInt64( key : ResponseJSONKeys.participant ), moduleAPIName : DefaultModuleAPINames.CONTACTS )
                 entity.label = try participantDetails.getString( key : ResponseJSONKeys.name )
+                entity.data.updateValue( entity.id, forKey: ResponseJSONKeys.participant)
+                entity.data.updateValue( entity.moduleAPIName, forKey: ResponseJSONKeys.module)
+                entity.data.updateValue( entity.label, forKey: ResponseJSONKeys.name )
+                if let firstName = participantDetails.optString(key: ResponseJSONKeys.firstName)
+                {
+                    entity.data.updateValue( firstName, forKey: ResponseJSONKeys.firstName)
+                }
+                if let lastName = participantDetails.optString(key: ResponseJSONKeys.lastName)
+                {
+                    entity.data.updateValue( lastName, forKey: ResponseJSONKeys.lastName)
+                }
+                if let email = participantDetails.optString(key: CommunicationPreferences.email.rawValue)
+                {
+                    entity.data.updateValue( email, forKey: CommunicationPreferences.email.rawValue)
+                }
+                if participantDetails.hasValue(forKey: ResponseJSONKeys.accountName)
+                {
+                    let accountDetails = try EntityAPIHandler.getRecordDelegate(moduleAPIName: DefaultModuleAPINames.ACCOUNTS, recordJSON: participantDetails.getDictionary(key: ResponseJSONKeys.accountName))
+                    entity.data.updateValue( accountDetails, forKey: ResponseJSONKeys.accountName )
+                }
                 eventParticipant = EventParticipant.record(entity)
                 break
             
             case .lead :
                 let entity = ZCRMRecordDelegate( id : try participantDetails.getInt64( key : ResponseJSONKeys.participant ), moduleAPIName : DefaultModuleAPINames.LEADS )
                 entity.label = try participantDetails.getString( key : ResponseJSONKeys.name )
+                entity.data.updateValue( entity.id, forKey: ResponseJSONKeys.participant)
+                entity.data.updateValue( entity.moduleAPIName, forKey: ResponseJSONKeys.module)
+                entity.data.updateValue( entity.label, forKey: ResponseJSONKeys.name )
+                if let firstName = participantDetails.optString(key: ResponseJSONKeys.firstName)
+                {
+                    entity.data.updateValue( firstName, forKey: ResponseJSONKeys.firstName)
+                }
+                if let lastName = participantDetails.optString(key: ResponseJSONKeys.lastName)
+                {
+                    entity.data.updateValue( lastName, forKey: ResponseJSONKeys.lastName)
+                }
+                if let email = participantDetails.optString(key: CommunicationPreferences.email.rawValue)
+                {
+                    entity.data.updateValue( email, forKey: CommunicationPreferences.email.rawValue)
+                }
+                if let company = participantDetails.optString(key: ResponseJSONKeys.company)
+                {
+                    entity.data.updateValue( company, forKey: ResponseJSONKeys.company )
+                }
                 eventParticipant = EventParticipant.record(entity)
                 break
         }
         let participant : ZCRMEventParticipant = ZCRMEventParticipant(type : eventType, id : id, participant : eventParticipant )
         participant.status = try participantDetails.getString( key : ResponseJSONKeys.status )
         participant.isInvited = try participantDetails.getBoolean( key : ResponseJSONKeys.invited )
-        if participantDetails.hasValue(forKey: CommunicationPreferences.email.rawValue)
-        {
-            participant.email = try participantDetails.getString( key : CommunicationPreferences.email.rawValue )
-        }
         return participant
+    }
+    
+    internal static func getRecordDelegate( moduleAPIName : String, recordJSON : [ String : Any ] ) throws -> ZCRMRecordDelegate
+    {
+        let record : ZCRMRecordDelegate = ZCRMRecordDelegate(id: try recordJSON.getInt64( key : "id" ), moduleAPIName: moduleAPIName)
+        record.label = recordJSON.optString(key: "name")
+        for ( key, value ) in recordJSON
+        {
+            record.data.updateValue( value, forKey: key)
+        }
+        record.data.updateValue( record.moduleAPIName, forKey: "module_name" )
+        return record
     }
 }
 
@@ -1794,6 +2090,21 @@ internal extension EntityAPIHandler
         static let checkInCountry = "Check_In_Country"
         static let zipCode = "ZIP_code"
         static let checkInComment = "Check_In_Comment"
+        
+        static let firstName = "First_Name"
+        static let lastName = "Last_Name"
+        static let company = "Company"
+        static let accountName = "Account_Name"
+        
+        static let shareRelatedRecords = "share_related_records"
+        static let sharedThrough = "shared_through"
+        static let sharedTime = "shared_time"
+        static let permission = "permission"
+        static let sharedBy = "shared_by"
+        static let user = "user"
+        static let fullName = "full_name"
+        static let zuid = "zuid"
+        static let entityName = "entity_name"
     }
     
     struct URLPathConstants {
@@ -1809,6 +2120,7 @@ internal extension EntityAPIHandler
         static let detailviewStats = "detailview_stats"
         static let addTags = "add_tags"
         static let removeTags = "remove_tags"
+        static let share = "share"
     }
 }
 

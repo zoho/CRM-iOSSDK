@@ -15,6 +15,12 @@ public class ZCRMSDKUtil
         return ZCRMModuleDelegate(apiName: apiName)
     }
     
+    public static func getCompanyInfoDelegate() -> ZCRMCompanyInfoDelegate
+    {
+        return ZCRMCompanyInfoDelegate()
+    }
+    
+    @available(*, deprecated, message: "Use getCompanyInfoDelegate method instead")
     public static func getOrgDelegate() -> ZCRMOrgDelegate
     {
         return ZCRMOrgDelegate()
@@ -36,32 +42,48 @@ public class ZCRMSDKUtil
         return ZCRMVariable(name: name, apiName: apiName, type: type.rawValue, variableGroup: variableGroup)
     }
     
+    public static func getCompanyDetails( completion : @escaping( Result.DataResponse< ZCRMCompanyInfo, APIResponse > ) -> () )
+    {
+        OrgAPIHandler(cacheFlavour: CacheFlavour.forceCache).getCompanyDetails(completion: completion)
+    }
+    
+    public static func getCompanyDetailsFromServer( completion : @escaping( Result.DataResponse< ZCRMCompanyInfo, APIResponse > ) -> () )
+    {
+        OrgAPIHandler(cacheFlavour: CacheFlavour.noCache).getCompanyDetails(completion: completion)
+    }
+    
+    public static func getCompanyDetails( forId id : Int64, completion : @escaping( Result.DataResponse< ZCRMCompanyInfo, APIResponse > ) -> () )
+    {
+        OrgAPIHandler(cacheFlavour: CacheFlavour.forceCache).getCompanyDetails(id, completion: completion)
+    }
+    
+    public static func getCompanyDetailsFromServer( forId id : Int64, completion : @escaping( Result.DataResponse< ZCRMCompanyInfo, APIResponse > ) -> () )
+    {
+        OrgAPIHandler(cacheFlavour: CacheFlavour.noCache).getCompanyDetails(id, completion: completion)
+    }
+    
+    @available(*, deprecated, message: "Use getCompanyDetails(completion:) method instead")
     public static func getOrgDetails( completion : @escaping( Result.DataResponse< ZCRMOrg, APIResponse > ) -> () )
     {
-        OrgAPIHandler(cacheFlavour: CacheFlavour.forceCache).getOrgDetails { ( result ) in
-            completion( result )
-        }
+        OrgAPIHandler(cacheFlavour: CacheFlavour.forceCache).getOrgDetails(completion : completion)
     }
     
+    @available(*, deprecated, message: "Use getCompanyDetailsFromServer(completion:) method instead")
     public static func getOrgDetailsFromServer( completion : @escaping( Result.DataResponse< ZCRMOrg, APIResponse > ) -> () )
     {
-        OrgAPIHandler(cacheFlavour: CacheFlavour.noCache).getOrgDetails { ( result ) in
-            completion( result )
-        }
+        OrgAPIHandler(cacheFlavour: CacheFlavour.noCache).getOrgDetails(completion : completion)
     }
     
+    @available(*, deprecated, message: "Use getCompanyDetails(forId:, completion:) method instead")
     public static func getOrgDetails( forId id : Int64, completion : @escaping( Result.DataResponse< ZCRMOrg, APIResponse > ) -> () )
     {
-        OrgAPIHandler(cacheFlavour: CacheFlavour.forceCache).getOrgDetails( id ) { ( result ) in
-            completion( result )
-        }
+        OrgAPIHandler(cacheFlavour: CacheFlavour.forceCache).getOrgDetails( id, completion: completion )
     }
     
+    @available(*, deprecated, message: "Use getCompanyDetailsFromServer(forId:, completion:) method instead")
     public static func getOrgDetailsFromServer( forId id : Int64, completion : @escaping( Result.DataResponse< ZCRMOrg, APIResponse > ) -> () )
     {
-        OrgAPIHandler(cacheFlavour: CacheFlavour.noCache).getOrgDetails( id ) { ( result ) in
-            completion( result )
-        }
+        OrgAPIHandler(cacheFlavour: CacheFlavour.noCache).getOrgDetails( id, completion: completion )
     }
     
     public static func getModule( moduleAPIName : String, completion : @escaping( Result.DataResponse< ZCRMModule, APIResponse > ) -> () )
@@ -176,11 +198,15 @@ public class ZCRMSDKUtil
         }
     }
     
+    public static func getCompanyDetails( _ id : Int64, completion : @escaping ( Result.DataResponse< ZCRMCompanyInfo, APIResponse > ) -> Void )
+    {
+        OrgAPIHandler().getCompanyDetails(id, completion: completion)
+    }
+    
+    @available(*, deprecated, message: "Use getCompanyDetails(id:, completion:) method instead")
     public static func getOrgDetails( _ id : Int64, completion : @escaping ( Result.DataResponse< ZCRMOrg, APIResponse > ) -> Void )
     {
-        OrgAPIHandler().getOrgDetails( id ) { result in
-            completion( result )
-        }
+        OrgAPIHandler().getOrgDetails( id, completion: completion )
     }
     
     @available(*, deprecated, message: "Use the method makeRequest with param requestBody instead" )
