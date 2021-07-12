@@ -1,4 +1,4 @@
-framework module Pods_ZCRMiOS_Tests {
+module Pods_ZCRMiOS_Tests {
   umbrella header "Pods-ZCRMiOS_Tests-umbrella.h"
 
   export *
