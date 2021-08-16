@@ -12,7 +12,8 @@ open class ZCRMNote : ZCRMEntity
     internal var isCreate : Bool = APIConstants.BOOL_MOCK
     public var title : String?
     public var content : String?
-    public var owner : ZCRMUserDelegate = USER_MOCK{
+    public var owner : ZCRMUserDelegate = USER_MOCK
+    {
         didSet
         {
             self.isOwnerSet = true
@@ -25,17 +26,17 @@ open class ZCRMNote : ZCRMEntity
     public internal( set ) var modifiedTime : String = APIConstants.STRING_MOCK
     public var attachments : [ZCRMAttachment]?
     public internal(set) var parentRecord : ZCRMRecordDelegate = RECORD_MOCK
-    public var isVoiceNote : Bool = APIConstants.BOOL_MOCK
-    public var size : Int64?
+    public internal(set) var isVoiceNote : Bool = APIConstants.BOOL_MOCK
+    public internal(set) var size : Int64?
     public var isEditable : Bool = APIConstants.BOOL_MOCK
-    
+	
     /// Initialize the instance of ZCRMNote with the given content
     ///
     /// - Parameter content: note content
     init( content : String )
-    {
+	{
         self.content = content
-    }
+	}
     
     init( content : String?, title : String )
     {

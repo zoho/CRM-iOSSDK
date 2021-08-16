@@ -33,7 +33,6 @@ open class ZCRMVariable : ZCRMEntity
     public func create( completion : @escaping( Result.DataResponse< ZCRMVariable, APIResponse > ) -> () )
     {
         OrgAPIHandler(variable: self).createVariable { ( result ) in
-            self.isCreate = false
             completion( result )
         }
     }

@@ -167,6 +167,12 @@ public class ZCRMUser : ZCRMUserDelegate
             upsertJSON.updateValue(website, forKey: UserAPIHandler.ResponseJSONKeys.website)
         }
     }
+    public var signature : String?{
+        didSet
+        {
+            upsertJSON.updateValue(signature, forKey: UserAPIHandler.ResponseJSONKeys.signature)
+        }
+    }
     public internal( set ) var isConfirmed : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var status : String = APIConstants.STRING_MOCK
     
@@ -195,6 +201,7 @@ public class ZCRMUser : ZCRMUserDelegate
     {
         self.emailId = emailId
         super.init(id: APIConstants.INT64_MOCK, name: APIConstants.STRING_MOCK)
+        upsertJSON.updateValue(emailId, forKey: UserAPIHandler.ResponseJSONKeys.email)
     }
     
     public func resetModifiedValues()
@@ -288,6 +295,10 @@ public class ZCRMUser : ZCRMUserDelegate
         {
             self.website = self.data[ UserAPIHandler.ResponseJSONKeys.website ] as? String
         }
+        if self.upsertJSON.hasValue(forKey: UserAPIHandler.ResponseJSONKeys.signature)
+        {
+            self.signature = self.data[ UserAPIHandler.ResponseJSONKeys.signature ] as? String
+        }
         self.upsertJSON = [ String : Any? ]()
     }
     
@@ -327,7 +338,6 @@ public class ZCRMUser : ZCRMUserDelegate
     public func create( completion : @escaping( Result.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
         UserAPIHandler().addUser( user : self ) { ( result ) in
-            self.isCreate = false
             completion( result )
         }
     }
@@ -375,10 +385,11 @@ extension ZCRMUser : NSCopying
         copy.modifiedBy = self.modifiedBy
         copy.modifiedTime = self.modifiedTime
         copy.reportingTo = self.reportingTo
-        copy.data = self.data
         copy.isCreate = self.isCreate
-        copy.upsertJSON = self.upsertJSON
         copy.sortOrderPreference = self.sortOrderPreference
+        copy.signature = self.signature
+        copy.data = self.data
+        copy.upsertJSON = self.upsertJSON
         return copy
     }
     
@@ -434,7 +445,8 @@ extension ZCRMUser : NSCopying
             lhs.modifiedBy == rhs.modifiedBy &&
             lhs.modifiedTime == rhs.modifiedTime &&
             lhs.reportingTo == rhs.reportingTo &&
-            lhs.sortOrderPreference == rhs.sortOrderPreference
+            lhs.sortOrderPreference == rhs.sortOrderPreference &&
+            lhs.signature == rhs.signature
         return equals
     }
 }

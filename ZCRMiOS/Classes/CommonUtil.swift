@@ -57,6 +57,8 @@ public struct ErrorCode
     public static let duplicateData = "DUPLICATE_DATA"
     public static let initializationError = "INITIALIZATION_ERROR"
     public static let sandboxDisabled = "SANDBOX_DISABLED"
+    public static let invalidToken = "INVALID_TOKEN"
+    public static let oauthScopeMismatch = "OAUTH_SCOPE_MISMATCH"
 }
 
 public struct ErrorMessage
@@ -137,35 +139,6 @@ public enum CommunicationPreferences : String
     case survey = "Survey"
 }
 
-public enum ConsentThrough
-{
-    public enum Readable : String
-    {
-        case consentForm = "Consent Form"
-        case customerPortal = "Portal"
-        case webForm = "Web Form"
-        case email = "Email"
-        case call = "Call"
-    }
-    
-    public enum Writable : String
-    {
-        case email = "Email"
-        case call = "Call"
-        
-        func toReadable() -> ConsentThrough.Readable
-        {
-            switch self
-            {
-            case .email :
-                return .email
-            case .call :
-                return .call
-            }
-        }
-    }
-}
-
 public enum CurrencyRoundingOption : String
 {
     case roundOff = "round_off"
@@ -208,6 +181,133 @@ internal struct FieldDataTypeConstants
     static let subform = "subform"
     static let userLookup = "userlookup"
     static let ownerLookup = "ownerlookup"
+    static let picklist = "picklist"
+}
+
+public enum AccessPermission
+{
+    public enum Readable : String
+    {
+        case fullAccess = "full_access"
+        case readOnly = "read_only"
+        case readWrite = "read_write"
+        case unhandled
+    }
+    
+    public enum Writable : String
+    {
+        case fullAccess = "full_access"
+        case readOnly = "read_only"
+        case readWrite = "read_write"
+        
+        func toReadable() -> AccessPermission.Readable
+        {
+            switch self
+            {
+            case .fullAccess :
+                return .fullAccess
+            case .readOnly :
+                return .readOnly
+            case .readWrite :
+                return .readWrite
+            }
+        }
+    }
+    
+    static func getType( rawValue : String ) -> AccessPermission.Readable
+    {
+        if rawValue == "full_access" || rawValue == "read_write_delete"
+        {
+            return .fullAccess
+        }
+        else if rawValue == "read_only"
+        {
+            return .readOnly
+        }
+        else if rawValue == "read_write"
+        {
+            return .readWrite
+        }
+        else
+        {
+            ZCRMLogger.logDebug(message: "UNHANDLED -> Access Permission : \( rawValue )")
+            return .unhandled
+        }
+    }
+}
+
+public enum SharedUsersCategory
+{
+    public enum Readable : String
+    {
+        case all
+        case selected
+        case onlyMe
+        case unHandled
+    }
+    
+    public enum Writable : String
+    {
+        case all = "public"
+        case selected = "shared"
+        case onlyMe = "only_to_me"
+        
+        func toReadable() -> SharedUsersCategory.Readable
+        {
+            switch self
+            {
+            case .all :
+                return .all
+            case .selected :
+                return .selected
+            case .onlyMe :
+                return .onlyMe
+            }
+        }
+    }
+    
+    static func getType( _ rawValue : String ) -> SharedUsersCategory.Readable
+    {
+        if rawValue == "public" || rawValue == "all"
+        {
+            return .all
+        }
+        else if rawValue == "only_me" || rawValue == "only_to_me"
+        {
+            return .onlyMe
+        }
+        else if rawValue == "shared" || rawValue == "selected"
+        {
+            return .selected
+        }
+        else
+        {
+            ZCRMLogger.logDebug(message: "UNHANDLED -> Shared Users Type : \( rawValue )")
+            return .unHandled
+        }
+    }
+}
+
+public enum SelectedUsersType : String
+{
+    case roles
+    case users
+    case territories
+    case groups
+    case unHandled
+    
+    static func getType( _ rawValue : String ) -> SelectedUsersType
+    {
+        if let type = SelectedUsersType(rawValue: rawValue)
+        {
+            return type
+        }
+        else
+        {
+            ZCRMLogger.logDebug(message: "UNHANDLED -> Selected User's Type : \( rawValue )")
+            return .unHandled
+        }
+    }
 }
 
 public enum EventParticipant : Equatable
@@ -271,12 +371,19 @@ public enum AppType : String
     case zcrmcp = "zcrmcp"
 }
 
-public enum ComponentPeriod : String
-{
+public enum ComponentPeriod : String {
     case day = "day"
     case week = "fiscal_week"
     case month = "month"
-}
+    case unhandled
+    
+    static func from(_ rawValue: String) -> Self {
+        guard let period = ComponentPeriod(rawValue: rawValue) else {
+            return .unhandled
+        }
+        return period
+    }
+ }
 
 public enum OrganizationType : String
 {
@@ -293,50 +400,6 @@ public enum PortalType : String
     case sandBox = "sandbox"
     case developer = "developer"
     case bigin = "bigin"
-}
-
-public enum RecordSharePermission
-{
-    public enum Readable : String
-    {
-        case fullAccess = "full_access"
-        case readOnly = "read_only"
-        case readWrite = "read_write"
-        case unhandled
-    }
-    
-    public enum Writable : String
-    {
-        case fullAccess = "full_access"
-        case readOnly = "read_only"
-        case readWrite = "read_write"
-        
-        func toReadable() -> RecordSharePermission.Readable
-        {
-            switch self
-            {
-            case .fullAccess :
-                return .fullAccess
-            case .readOnly :
-                return .readOnly
-            case .readWrite :
-                return .readWrite
-            }
-        }
-    }
-    
-    static func getType( rawValue : String ) -> RecordSharePermission.Readable
-    {
-        if let type = RecordSharePermission.Readable( rawValue : rawValue)
-        {
-            return type
-        }
-        else
-        {
-            ZCRMLogger.logDebug(message: "UNHANDLED -> Record Share Permission : \( rawValue )")
-            return .unhandled
-        }
-    }
 }
 
 internal enum ZCRMSDKDataType
@@ -729,6 +792,16 @@ public extension Dictionary
         return value
     }
     
+    func getValue< T >( key : Key ) throws -> T
+    {
+        guard let value = try getValue( key: key ) as? T else
+        {
+            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.typeCastError) : \( key ) - Expected type -> \( T.self ), \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> \( T.self )", details : nil )
+        }
+        return value
+    }
+    
     /**
       To convert a dictionary into a JSON String with **ascii encoding**
      
@@ -792,6 +865,24 @@ public extension Dictionary
         if let jsonData = data
         {
             let string = String(data: jsonData, encoding: .utf8)
+            return string
+        }
+        return nil
+    }
+    
+    /**
+     To convert a dictionary into a JSON String with **UTF-8 encoding**
+    
+    - Returns: JSONString without white space
+    */
+    internal func toStringWithoutWhiteSpace() -> String?
+    {
+        let data = try? JSONSerialization.data( withJSONObject: self, options: .prettyPrinted)
+        if let jsonData = data
+        {
+            var string = String(data: jsonData, encoding: .utf8)
+            string = string?.components(separatedBy: "\n").joined(separator: "")
+            string = string?.components(separatedBy: "\"").enumerated().map{ ( $0 % 2 == 1 ) ? $1 : $1.replacingOccurrences(of: " ", with: "") }.joined(separator: "\"")
             return string
         }
         return nil
@@ -893,6 +984,11 @@ public extension String
         }
         return nil
     }
+    
+    var removeHTMLTags: String
+    {
+        return self.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression, range: nil).replacingOccurrences(of: "&[^;]+;", with: "", options:.regularExpression, range: nil)
+    }
 	
     func convertToDictionary() -> [String: String]? {
         if let data = self.data(using: .utf8)
@@ -960,6 +1056,16 @@ public extension String
             }
         }
         return nsarray
+    }
+}
+
+extension Int64
+{
+    func millisecondsToDateString( timezone : TimeZone = .current ) -> String
+    {
+        let formatter : DateFormatter = Formatter.iso8601WithTimeZone
+        formatter.timeZone = timezone
+        return formatter.string(from: Date(timeIntervalSince1970: TimeInterval( self ) / 1000).addingTimeInterval( TimeInterval(Double( self % 1000) / 1000  )) )
     }
 }
 
@@ -1422,6 +1528,7 @@ internal struct APIConstants
     static let STATUS : String = "status"
     static let CODE : String = "code"
     static let CODE_ERROR : String = "error"
+    static let CODE_ERRORS : String = "errors"
     static let CODE_SUCCESS : String = "success"
     static let INFO : String = "info"
     static let DETAILS : String = "details"
@@ -1452,7 +1559,11 @@ internal struct APIConstants
     static let MAX_ALLOWED_FILE_SIZE : Int = 20971520
     var ENABLED_DB_CACHE : Bool = true
     
-    static let EXCEPTION_LOG_MSG : String = "ZCRM SDK - "
+    static let EXCEPTION_LOG_MSG : String = "ZCRM SDK - Error Occurred: "
+    
+    static let lineItemModules = [ DefaultModuleAPINames.SALES_ORDERS, DefaultModuleAPINames.PURCHASE_ORDERS, DefaultModuleAPINames.INVOICES, DefaultModuleAPINames.QUOTES ]
+    static let API_VERSION_V2 = "v2"
+    static let API = "api"
 }
 
 public struct DefaultModuleAPINames
@@ -1474,6 +1585,7 @@ public struct DefaultModuleAPINames
     public static let CALLS : String = "Calls"
     public static let ORGANIZATIONS : String = "organizations"
     public static let TASKS : String = "Tasks"
+    public static let ACTIVITIES : String = "Activities"
 }
 
 internal struct RequestParamKeys
@@ -1493,6 +1605,34 @@ internal struct RequestParamKeys
     static let category : String = "category"
     static let criteria = "criteria"
     static let view = "view"
+}
+
+/**
+ To find the matching pattern in the content using regex
+ 
+ - parameters:
+    - regex : The regex that needs to be matched
+    - text : The text from which the pattern needs to be found
+ 
+ - returns: An array of string containing the matched patterns
+ */
+func findMatch(for regex: String, in text: String) -> [String] {
+    
+    do {
+        let regex = try NSRegularExpression(pattern: regex)
+        let results = regex.matches(in: text, range: NSRange(location: 0, length: text.utf16.count))
+        var inlineAttachmentIds : [String] = [String]()
+        _ = results.map {
+            guard let range = Range($0.range, in: text) else {
+                return
+            }
+            inlineAttachmentIds.append(String(text[range]))
+        }
+        return inlineAttachmentIds
+    } catch {
+        ZCRMLogger.logDebug(message: "ZCRM SDK - Invalid RegEx \(error)")
+        return []
+    }
 }
 
 var ACCOUNTSURL : String = String()
@@ -1534,6 +1674,9 @@ struct JSONRootKey {
     static let BASE_CURRENCY : String = "base_currency"
     static let SHARE : String = "share"
     static let SHAREABLE_USER : String = "shareable_user"
+    static let VOC_ANALYTICS = "voc_analytics"
+    static let VOC_ANALYTICS_COMPONENTS = "voc_analytics_components"
+    static let BLUEPRINT = "blueprint"
 }
 
 //MARK:- RESULT TYPES
@@ -1618,7 +1761,7 @@ public func typeCastToZCRMError( _ error : Error ) -> ZCRMError {
     }
     else
     {
-        if error.code == NSURLErrorNotConnectedToInternet
+        if [NSURLErrorDataNotAllowed, NSURLErrorNotConnectedToInternet].contains(error.code)
         {
             return ZCRMError.networkError( code : ErrorCode.noInternetConnection, message : error.localizedDescription, details : nil )
         }
@@ -1828,7 +1971,7 @@ internal struct ResponsesTableStatement
     
     func deleteAll() -> String
     {
-        return "\(DBConstant.DML_DELETE) \(DBConstant.KEYS_FROM) \(DBConstant.TABLE_RESPONSES);"
+        return "\(DBConstant.DML_DELETE) \(DBConstant.KEYS_FROM) \(DBConstant.TABLE_RESPONSES) \( DBConstant.CLAUSE_WHERE ) \( DBConstant.COLUMN_URL ) NOT LIKE \"%organizations%\";"
     }
     
     func fetchData(_ withURL : String ) -> String

@@ -89,6 +89,7 @@ public class ZCRMQuery
         public internal( set ) var startDateTime : String?
         public internal( set ) var endDateTime : String?
         public var filter : ZCRMCriteria?
+        internal var headers : [ String : String ]?
         
         public init()
         { }
@@ -145,7 +146,7 @@ public class ZCRMQuery
             if self.drillBy != nil && self.hierarchyFilterId != nil
             {
                 let drilldown = self.getDrilldownAsJSON()
-                return drilldown.toString()
+                return drilldown.toStringWithoutWhiteSpace()
             }
             return nil
         }
@@ -196,8 +197,8 @@ public class ZCRMQuery
             recordQuery.append( contentsOf : "\( self.value )" )
             recordQuery.append( ")" )
             self.recordQuery = recordQuery
-            self.drilldownQuery = self.criteriaJSON.toString()
-            self.filterQuery = self.filterJSON.toString()
+            self.drilldownQuery = self.criteriaJSON.toStringWithoutWhiteSpace()
+            self.filterQuery = self.filterJSON.toStringWithoutWhiteSpace()
         }
         
         public convenience init( apiName : String, comparator : Comparator, value : Any )
@@ -261,7 +262,7 @@ public class ZCRMQuery
             groups.append( criteria.filterJSON )
             filterJSON[ RequestParamKeys.group ] = groups
             self.filterJSON = filterJSON
-            self.filterQuery = self.filterJSON.toString()
+            self.filterQuery = self.filterJSON.toStringWithoutWhiteSpace()
         }
         
         public struct Constants
