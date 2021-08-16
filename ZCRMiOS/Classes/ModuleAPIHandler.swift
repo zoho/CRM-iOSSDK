@@ -602,12 +602,12 @@ internal class ModuleAPIHandler : CommonAPIHandler
         if let sortBy = sortBy
         {
             reqBodyObj.updateValue( [ ResponseJSONKeys.apiName : sortBy ], forKey: ResponseJSONKeys.sortBy)
+            reqBodyObj.updateValue( sortOrder?.rawValue, forKey: ResponseJSONKeys.sortOrder)
         }
         else
         {
             reqBodyObj.updateValue( nil, forKey: ResponseJSONKeys.sortBy)
         }
-        reqBodyObj.updateValue( sortOrder?.rawValue, forKey: ResponseJSONKeys.sortOrder)
         setRequestBody(requestBody: [ getJSONRootKey() : [ reqBodyObj ] ])
         setRequestMethod(requestMethod: .put)
         
@@ -673,8 +673,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
             {
                 if ZCRMSDKClient.shared.apiVersion < "v2.1"
                 {
-                    ZCRMLogger.logError(message: "\(ErrorCode.invalidOperation) : Unsupported API version to update sharedType - try with API v2.1 and above, \( APIConstants.DETAILS ) : -")
-                    throw ZCRMError.inValidError(code: ErrorCode.invalidOperation, message: "Unsupported API version to update sharedType - try with API v2.1 and above", details: nil)
+                    ZCRMLogger.logError(message: "\(ErrorCode.invalidOperation) : Unsupported API version to update sharedType or sharedDetails - try with API v2.1 and above, \( APIConstants.DETAILS ) : -")
+                    throw ZCRMError.inValidError(code: ErrorCode.invalidOperation, message: "Unsupported API version to update sharedType or sharedDetails - try with API v2.1 and above", details: nil)
                 }
                 let sharedDetailsJSON = try getSharedDetailsJSON( sharedDetails: sharedDetails )
                 updateDetails[ key ] = sharedDetailsJSON
