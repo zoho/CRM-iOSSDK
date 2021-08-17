@@ -48,6 +48,14 @@ open class ZCRMModuleDelegate : ZCRMEntity
         }
     }
     
+    /**
+     Returns list of related list records from server.
+    
+    - Parameters:
+       - completion :
+           - Success : Returns an array of ZCRMModuleRelation objects and a BulkAPIResponse
+           - Failure : Returns Error
+    */
     public func getRelatedListsFromServer( completion : @escaping( Result.DataResponse< [ ZCRMModuleRelation ], BulkAPIResponse > ) -> () )
     {
         ModuleAPIHandler( module : self, cacheFlavour : .noCache ).getAllRelatedLists { ( result ) in
@@ -62,6 +70,15 @@ open class ZCRMModuleDelegate : ZCRMEntity
         }
     }
     
+    /**
+     To get a related List record by its Id from server
+
+    - Parameters:
+       - id : Id of the related list record to be fetched
+       - completion :
+           - Success : Returns a ZCRMModuleRelation object and an APIResponse
+           - Failure : Returns Error
+    */
     public func getRelatedListFromServer( id : Int64, completion : @escaping( Result.DataResponse< ZCRMModuleRelation, APIResponse > ) -> () )
     {
         ModuleAPIHandler( module: self, cacheFlavour: .noCache ).getRelatedList(id: id) { ( result ) in
@@ -80,6 +97,14 @@ open class ZCRMModuleDelegate : ZCRMEntity
         }
     }
     
+    /**
+     Returns list of ZCRMLayouts from server.
+    
+    - Parameters:
+       - completion :
+           - Success : Returns an array of ZCRMLayout objects and a BulkAPIResponse
+           - Failure : Returns Error
+    */
     public func getLayoutsFromServer( completion : @escaping( Result.DataResponse< [ ZCRMLayout ], BulkAPIResponse > ) -> () )
     {
         ModuleAPIHandler(module: self, cacheFlavour: .noCache).getAllLayouts( modifiedSince : nil) { ( result ) in
@@ -99,6 +124,15 @@ open class ZCRMModuleDelegate : ZCRMEntity
         }
     }
     
+    /**
+     To get a layout details from server by it's ID
+
+    - Parameters:
+       - id : Id of the related list record to be fetched
+       - completion :
+           - Success : Returns an array of ZCRMLayout objects and a BulkAPIResponse
+           - Failure : Returns Error
+    */
     public func getLayoutFromServer( id : Int64, completion : @escaping( Result.DataResponse< ZCRMLayout, APIResponse > ) -> () )
     {
         ModuleAPIHandler( module : self, cacheFlavour : .noCache ).getLayout( layoutId : id ) { ( result ) in
@@ -140,7 +174,7 @@ open class ZCRMModuleDelegate : ZCRMEntity
     }
     
     /**
-     To get the details of the field in a module by it's Id from Servevr.
+     To get the details of the field in a module by it's Id from Server.
     
     - Parameters:
        - id : Id of the field whose details to be fetched
@@ -166,6 +200,14 @@ open class ZCRMModuleDelegate : ZCRMEntity
         }
     }
     
+    /**
+       To get all the custom view details from server
+     
+      - Parameters:
+         - completion :
+            - success : Returns an array of ZCRMCustomView objects and a BulkAPIResponse
+            - failure : ZCRMError
+     */
     public func getCustomViewsFromServer( completion : @escaping( Result.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
     {
         ModuleAPIHandler(module: self, cacheFlavour: .noCache).getAllCustomViews( modifiedSince : nil) { ( result ) in
@@ -185,6 +227,15 @@ open class ZCRMModuleDelegate : ZCRMEntity
         }
     }
     
+    /**
+      To get the details of a custom view from server by it's ID
+     
+     - Parameters:
+        - id : Id of the custom view to be fetched
+        - completion :
+            - success : Returns a ZCRMCustomView object and an APIResponse
+            - failure : ZCRMError
+     */
     public func getCustomViewFromServer( id : Int64, completion : @escaping( Result.DataResponse< ZCRMCustomView, APIResponse > ) -> () )
     {
         ModuleAPIHandler( module : self, cacheFlavour : .noCache ).getCustomView( cvId : id ) { ( result ) in
@@ -726,7 +777,7 @@ open class ZCRMModuleDelegate : ZCRMEntity
     
     public func getTags( completion : @escaping ( Result.DataResponse< [ ZCRMTag ], BulkAPIResponse > ) -> () )
     {
-        TagAPIHandler(module: self).getTags(completion: { ( result ) in
+        TagAPIHandler(module: self).getTags( completion: { ( result ) in
             completion( result )
         } )
     }

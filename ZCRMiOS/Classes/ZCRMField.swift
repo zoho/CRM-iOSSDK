@@ -6,24 +6,40 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
-open class ZCRMField : ZCRMEntity
+open class ZCRMFieldDelegate : ZCRMEntity
 {
+    public internal( set ) var id : Int64
+    public internal( set ) var displayLabel : String
+    public internal( set ) var dataType : String
+    public internal( set ) var isMandatory : Bool
     public internal( set ) var apiName : String
-    public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
-    public internal( set ) var displayLabel : String = APIConstants.STRING_MOCK
-    public internal( set ) var dataType : String = APIConstants.STRING_MOCK
+    public internal( set ) var pickListValues : [ ZCRMPickListValue ]?
+    public internal( set ) var related_details : ZCRMModuleRelationDelegate?
+    public internal( set ) var criteria : ZCRMQuery.ZCRMCriteria?
+    public internal( set ) var data : [ String : Any ] = [:]
+    
+    init( id : Int64, displayLabel : String, dataType : String, isMandatory : Bool, apiName : String = APIConstants.STRING_MOCK )
+    {
+        self.id = id
+        self.displayLabel = displayLabel
+        self.dataType = dataType
+        self.isMandatory = isMandatory
+        self.apiName = apiName
+    }
+}
+
+open class ZCRMField : ZCRMFieldDelegate
+{
     public internal( set ) var isReadOnly : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isVisible : Bool = APIConstants.BOOL_MOCK
-    public internal( set ) var isMandatory : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isCustomField : Bool = APIConstants.BOOL_MOCK
-    public internal( set ) var defaultValue : Any?
-    public internal( set ) var maxLength : Int?
-    public internal( set ) var currencyPrecision : Int?
-    public internal( set ) var sequenceNo : Int?
-    public internal( set ) var subLayoutsPresent : [String]?
-    public internal( set ) var pickListValues : [ ZCRMPickListValue ]?
-    public internal( set ) var formulaReturnType : String?
-    public internal( set ) var formulaExpression : String?
+	public internal( set ) var defaultValue : Any?
+	public internal( set ) var maxLength : Int?
+	public internal( set ) var currencyPrecision : Int?
+	public internal( set ) var sequenceNo : Int?
+	public internal( set ) var subLayoutsPresent : [String]?
+	public internal( set ) var formulaReturnType : String?
+	public internal( set ) var formulaExpression : String?
     
     public internal( set ) var tooltip : String?
     public internal( set ) var webhook : Bool = APIConstants.BOOL_MOCK
@@ -42,9 +58,9 @@ open class ZCRMField : ZCRMEntity
     
     init( apiName : String )
     {
-        self.apiName = apiName
+        super.init(id: APIConstants.INT64_MOCK, displayLabel: APIConstants.STRING_MOCK, dataType: APIConstants.STRING_MOCK, isMandatory: APIConstants.BOOL_MOCK, apiName: apiName)
     }
-        
+	    
     /// Add the pick list value to the ZCRMField.
     ///
     /// - Parameter pickListValue: value to be added
@@ -56,30 +72,30 @@ open class ZCRMField : ZCRMEntity
         }
         self.pickListValues?.append( pickListValue )
     }
-    
+	
     /// Returns true if view type includes "create".
     ///
     /// - Returns: true if view type includes "create"
-    public func isPresentInCreateLayout() -> Bool?
-    {
-        return self.subLayoutsPresent?.contains("CREATE")
-    }
-    
+	public func isPresentInCreateLayout() -> Bool?
+	{
+		return self.subLayoutsPresent?.contains("CREATE")
+	}
+	
     /// Returns true if view type includes "view".
     ///
     /// - Returns: true if view type includes "view"
-    public func isPresentInViewLayout() -> Bool?
-    {
-        return self.subLayoutsPresent?.contains("VIEW")
-    }
-    
+	public func isPresentInViewLayout() -> Bool?
+	{
+		return self.subLayoutsPresent?.contains("VIEW")
+	}
+	
     /// Returns true if view type includes "quick create".
     ///
     /// - Returns: true if view type includes "quick create"
-    public func isPresentInQuickCreateLayout() -> Bool?
-    {
-        return self.subLayoutsPresent?.contains("QUICK_CREATE")
-    }
+	public func isPresentInQuickCreateLayout() -> Bool?
+	{
+		return self.subLayoutsPresent?.contains("QUICK_CREATE")
+	}
     
     /// Returns true if view type includes "edit".
     ///

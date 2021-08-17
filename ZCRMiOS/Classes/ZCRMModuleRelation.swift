@@ -6,14 +6,18 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
-public class ZCRMModuleRelation : ZCRMEntity
+public class ZCRMModuleRelationDelegate : ZCRMEntity
 {
-    public internal( set ) var apiName : String = APIConstants.STRING_MOCK
-    var parentModuleAPIName : String = APIConstants.STRING_MOCK
-    public internal( set ) var label : String = APIConstants.STRING_MOCK
     public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
-    public internal( set ) var isVisible : Bool = APIConstants.BOOL_MOCK
-    public internal( set ) var isDefault : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var apiName : String = APIConstants.STRING_MOCK
+    public internal( set ) var label : String = APIConstants.STRING_MOCK
+}
+
+public class ZCRMModuleRelation : ZCRMModuleRelationDelegate
+{
+	var parentModuleAPIName : String = APIConstants.STRING_MOCK
+	public internal( set ) var isVisible : Bool = APIConstants.BOOL_MOCK
+	public internal( set ) var isDefault : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var name : String = APIConstants.STRING_MOCK
     public internal( set ) var type : String = APIConstants.STRING_MOCK
     public internal( set ) var module : String?
@@ -29,12 +33,14 @@ public class ZCRMModuleRelation : ZCRMEntity
     ///   - parentModuleAPIName: parentModuleAPIName to get that module's relation
     internal init( relatedListAPIName : String, parentModuleAPIName : String )
     {
+        super.init()
         self.apiName = relatedListAPIName
         self.parentModuleAPIName = parentModuleAPIName
     }
     
     internal init( parentModuleAPIName : String, relatedListId : Int64 )
     {
+        super.init()
         self.parentModuleAPIName = parentModuleAPIName
         self.id = relatedListId
     }
@@ -52,7 +58,7 @@ public class ZCRMModuleRelation : ZCRMEntity
     /// - Returns: sorted list of module of the ZCRMRecord
     /// - Throws: ZCRMSDKError if falied to get related records
     public func getRelatedRecords( ofParentRecord : ZCRMRecordDelegate, recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
-    {
+	{
         do
         {
             try relatedModuleCheck( module : self.apiName )
@@ -64,7 +70,7 @@ public class ZCRMModuleRelation : ZCRMEntity
         {
             completion( .failure( typeCastToZCRMError( error ) ) )
         }
-    }
+	}
 }
 
 extension ZCRMModuleRelation : Hashable
