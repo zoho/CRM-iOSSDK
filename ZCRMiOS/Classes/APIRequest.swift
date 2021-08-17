@@ -20,17 +20,22 @@
     internal var jsonRootKey = String()
     private var cacheFlavour : CacheFlavour!
     private var isCacheable : Bool
+    private var isForceCacheable : Bool = false
     private static let configuration = URLSessionConfiguration.default
     internal static let session = URLSession( configuration : APIRequest.configuration )
     private var requestedModule : String?
+    internal var includeCommonReqHeaders : Bool = true
     
-    init( absoluteURL : URL, requestMethod : RequestMethod, cacheFlavour : CacheFlavour? = nil, isCacheable : Bool? = false, jsonRootKey : String? = nil )
+    init( absoluteURL : URL, requestMethod : RequestMethod, cacheFlavour : CacheFlavour? = nil, isCacheable : Bool? = false, isForceCacheable : Bool? = false, jsonRootKey : String? = nil, requestHeaders : [ String : String ]? = nil, includeCommonReqHeaders : Bool )
     {
         self.url = absoluteURL
         self.requestMethod = requestMethod
         self.isCacheable = isCacheable ?? false
+        self.isForceCacheable = isForceCacheable ?? false
         self.cacheFlavour = cacheFlavour ?? CacheFlavour.noCache
         self.jsonRootKey = jsonRootKey ?? String()
+        self.includeCommonReqHeaders = includeCommonReqHeaders
+        self.headers = requestHeaders ?? [:]
     }
     
     init( handler : APIHandler, cacheFlavour : CacheFlavour )
@@ -43,6 +48,7 @@
         self.jsonRootKey = handler.getJSONRootKey()
         self.cacheFlavour = cacheFlavour
         self.isCacheable = handler.getIsCacheable()
+        self.isForceCacheable = handler.getIsForceCacheable()
         self.requestedModule = handler.getModuleName()
     }
     
@@ -64,25 +70,13 @@
                     return
                 }
                 self.addHeader( headerName : AUTHORIZATION, headerVal : "\(ZOHO_OAUTHTOKEN) \( accessToken )" )
-                self.addHeader( headerName : USER_AGENT, headerVal : ZCRMSDKClient.shared.userAgent )
-                if let headers = ZCRMSDKClient.shared.requestHeaders
+                if let userAgent = self.headers.optString(key: USER_AGENT)
                 {
-                    for headerName in headers.keys
-                    {
-                        if headers.hasValue( forKey : headerName )
-                        {
-                            do
-                            {
-                                try self.addHeader( headerName : headerName, headerVal : headers.getString( key : headerName ) )
-                            }
-                            catch
-                            {
-                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                                completion( typeCastToZCRMError( error ) )
-                                return
-                            }
-                        }
-                    }
+                    self.addHeader( headerName : USER_AGENT, headerVal : userAgent )
+                }
+                else
+                {
+                    self.addHeader( headerName : USER_AGENT, headerVal : ZCRMSDKClient.shared.userAgent )
                 }
                 if ZCRMSDKClient.shared.appType == .zcrmcp, let organizationName = self.headers[ X_CRM_PORTAL ]
                 {
@@ -91,6 +85,20 @@
                 else if let organizationId = ZCRMSDKClient.shared.portalId, self.headers[ X_CRM_ORG ] == nil , self.url?.absoluteString.lastPathComponent() != "\( DefaultModuleAPINames.ORGANIZATIONS )"
                 {
                     self.addHeader( headerName : X_CRM_ORG, headerVal : String(organizationId) )
+                }
+                if let requestHeaders = ZCRMSDKClient.shared.requestHeaders
+                {
+                    for ( key, value ) in requestHeaders
+                    {
+                        if ( !self.includeCommonReqHeaders && key == X_ZOHO_SERVICE )
+                        {
+                            continue
+                        }
+                        if !self.headers.hasValue(forKey: key)
+                        {
+                            self.addHeader(headerName: key, headerVal: value)
+                        }
+                    }
                 }
                 for ( key, value ) in self.headers
                 {
@@ -395,10 +403,10 @@
     {
         do
         {
-            if self.cacheFlavour == CacheFlavour.forceCache
+            if self.cacheFlavour == CacheFlavour.forceCache || isForceCacheable
             {
                 guard let url = self.request?.url?.absoluteString else {
-                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.unableToConstructURL ) : Unable to fetch url string from urlrequest")
+                    ZCRMLogger.logError(message: "\( ErrorCode.unableToConstructURL ) : Unable to fetch url string from urlrequest")
                     return false
                 }
                 if let resp = ( response != nil ? response : bulkResponse ), let respJSON = resp.getResponseJSON().toJSON()
@@ -409,7 +417,7 @@
             else if self.useCache() || (self.cacheFlavour == CacheFlavour.noCache && ZCRMSDKClient.shared.isDBCacheEnabled && self.isCacheable)
             {
                 guard let url = self.request?.url?.absoluteString else {
-                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.unableToConstructURL ) : Unable to fetch url string from urlrequest")
+                    ZCRMLogger.logError(message: "\( ErrorCode.unableToConstructURL ) : Unable to fetch url string from urlrequest")
                     return false
                 }
                 if let resp = ( response != nil ? response : bulkResponse ), let respJSON = resp.getResponseJSON().toJSON()
@@ -565,7 +573,7 @@
         {
             headers[ AUTHORIZATION ] = "## ***** ##"
         }
-        return "\( self.url?.absoluteString  ??  "nil" ) \n HEADERS : \( headers.description )"
+        return "Request: \( self.url?.absoluteString  ??  "nil" ) \n HEADERS : \( headers.description )"
     }
     
     private func useCache() -> Bool

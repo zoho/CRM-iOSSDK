@@ -126,21 +126,22 @@ public enum RequestMethod : String
 
 struct ZCRMURLBuilder
 {
-   let path : String
-   var queryItems : [ URLQueryItem ]?
-   
-   var url : URL?{
-       var components = URLComponents()
-       components.scheme = "https"
-       components.host = ZCRMSDKClient.shared.apiBaseURL
-       components.path = path
-       if self.queryItems?.isEmpty == false
-       {
+    let path : String
+    var host : String?
+    var queryItems : [ URLQueryItem ]?
+
+    var url : URL? {
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = host ?? ZCRMSDKClient.shared.apiBaseURL
+        components.path = path
+        if self.queryItems?.isEmpty == false
+        {
            components.queryItems = queryItems
-       }
-       components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
-       return components.url
-   }
+        }
+        components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+        return components.url
+    }
 }
 
 public protocol ZohoAuthProvider

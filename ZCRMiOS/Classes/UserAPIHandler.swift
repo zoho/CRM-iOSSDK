@@ -10,11 +10,18 @@ internal class UserAPIHandler : CommonAPIHandler
 {
     let cache : CacheFlavour
     internal var userDelegate : ZCRMUserDelegate?
+    internal var user : ZCRMUser?
     
     internal init( userDelegate : ZCRMUserDelegate )
     {
         self.cache = CacheFlavour.noCache
         self.userDelegate = userDelegate
+    }
+    
+    internal init( user : ZCRMUser )
+    {
+        self.cache = CacheFlavour.noCache
+        self.user = user
     }
     
     internal init( userDelegate : ZCRMUserDelegate, cacheFlavour : CacheFlavour )
@@ -33,7 +40,7 @@ internal class UserAPIHandler : CommonAPIHandler
         self.cache = CacheFlavour.noCache
     }
     
-    internal func getUsers( ofType : UserTypes?, _ params : GETRequestParams, completion : @escaping ( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> Void )
+    internal func getUsers( ofType : UserTypes?, _ params : GETRequestParams, requestHeaders: [ String : String ]? = nil, completion : @escaping ( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> Void )
     {
         setJSONRootKey( key : JSONRootKey.USERS )
         var allUsers : [ZCRMUser] = [ZCRMUser]()
@@ -54,6 +61,11 @@ internal class UserAPIHandler : CommonAPIHandler
         if let perPage = params.perPage
         {
             addRequestParam( param : RequestParamKeys.perPage, value : String( perPage ) )
+        }
+        
+        for ( key, value ) in requestHeaders ?? [:]
+        {
+            addRequestHeader(header: key, value: value)
         }
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -147,9 +159,9 @@ internal class UserAPIHandler : CommonAPIHandler
     {
         setJSONRootKey( key : JSONRootKey.PROFILES )
         var allProfiles : [ ZCRMProfile ] = [ ZCRMProfile ] ()
-        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.profiles )" )
-        setRequestMethod(requestMethod: .get)
-        let request : APIRequest = APIRequest(handler: self)
+		setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.profiles )" )
+		setRequestMethod(requestMethod: .get)
+		let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getBulkAPIResponse { ( resultType ) in
@@ -184,9 +196,9 @@ internal class UserAPIHandler : CommonAPIHandler
     {
         setJSONRootKey( key : JSONRootKey.ROLES )
         var allRoles : [ ZCRMRole ] = [ ZCRMRole ]()
-        setUrlPath(urlPath:  "\( URLPathConstants.settings )/\( URLPathConstants.roles )" )
-        setRequestMethod(requestMethod: .get)
-        let request : APIRequest = APIRequest(handler: self)
+		setUrlPath(urlPath:  "\( URLPathConstants.settings )/\( URLPathConstants.roles )" )
+		setRequestMethod(requestMethod: .get)
+		let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getBulkAPIResponse { ( resultType ) in
@@ -230,7 +242,7 @@ internal class UserAPIHandler : CommonAPIHandler
             setUrlPath(urlPath: "\( URLPathConstants.users )" )
             addRequestParam(param: RequestParamKeys.type , value:  RequestParamKeys.currentUser)
         }
-        let request : APIRequest = APIRequest(handler: self, cacheFlavour: self.cache)
+		let request : APIRequest = APIRequest(handler: self, cacheFlavour: self.cache)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
@@ -244,7 +256,7 @@ internal class UserAPIHandler : CommonAPIHandler
                 completion( .success( user, response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -277,6 +289,7 @@ internal class UserAPIHandler : CommonAPIHandler
                     user.data.updateValue( value, forKey : key )
                 }
                 user.upsertJSON = [ String : Any? ]()
+                user.isCreate = false
                 response.setData( data : user )
                 completion( .success( user, response ) )
             }
@@ -391,9 +404,9 @@ internal class UserAPIHandler : CommonAPIHandler
     internal func getProfile( profileId : Int64, completion : @escaping( Result.DataResponse< ZCRMProfile, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.PROFILES)
-        setUrlPath(urlPath:  "\( URLPathConstants.settings )/\( URLPathConstants.profiles )/\(profileId)" )
-        setRequestMethod(requestMethod: .get )
-        let request : APIRequest = APIRequest(handler: self)
+		setUrlPath(urlPath:  "\( URLPathConstants.settings )/\( URLPathConstants.profiles )/\(profileId)" )
+		setRequestMethod(requestMethod: .get )
+		let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
@@ -438,7 +451,7 @@ internal class UserAPIHandler : CommonAPIHandler
 
     internal func getCurrentUser( completion : @escaping( Result.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
-        setIsCacheable(true)
+        setIsForceCacheable( true )
         self.getUser( userId : nil) { ( result ) in
             completion( result )
         }
@@ -488,6 +501,10 @@ internal class UserAPIHandler : CommonAPIHandler
         user.data.updateValue( user.id, forKey : ResponseJSONKeys.id )
         user.name = try userDict.getString( key : ResponseJSONKeys.fullName )
         user.data.updateValue( user.name, forKey : ResponseJSONKeys.fullName )
+        if userDict.hasValue( forKey : ResponseJSONKeys.signature )
+        {
+            user.signature = try userDict.getString(key: ResponseJSONKeys.signature)
+        }
         if ( userDict.hasValue( forKey : ResponseJSONKeys.profile ) )
         {
             let profileObj : [ String : Any ] = try userDict.getDictionary( key : ResponseJSONKeys.profile )
@@ -659,7 +676,8 @@ internal class UserAPIHandler : CommonAPIHandler
     {
         let profile = ZCRMProfile( name : try profileDetails.getString( key : ResponseJSONKeys.name ) )
         profile.id = try profileDetails.getInt64( key : ResponseJSONKeys.id )
-        profile.category = try profileDetails.getBoolean( key : ResponseJSONKeys.category )
+        profile.category = try profileDetails.optBoolean( key : ResponseJSONKeys.category ) ?? profileDetails.getBoolean(key: ResponseJSONKeys.custom)
+        profile.displayName = try profileDetails.getString(key: ResponseJSONKeys.displayLabel)
         if ( profileDetails.hasValue( forKey : ResponseJSONKeys.description ) )
         {
             profile.description = try profileDetails.getString( key : ResponseJSONKeys.description )
@@ -676,7 +694,83 @@ internal class UserAPIHandler : CommonAPIHandler
             profile.createdBy = try getUserDelegate(userJSON : createdUserObj)
             profile.createdTime = try profileDetails.getString( key : ResponseJSONKeys.createdTime )
         }
+        var profilePermissionDetails : [ Int64 : ZCRMProfile.Permission ] = [:]
+        if profileDetails.hasValue(forKey: ResponseJSONKeys.permissionsDetails)
+        {
+            profilePermissionDetails = try getPermissionsDetails(fromArray: profileDetails.getArrayOfDictionaries(key: ResponseJSONKeys.permissionsDetails) )
+        }
+        if profileDetails.hasValue(forKey: ResponseJSONKeys.sections)
+        {
+            profile.permissionSections = try getPermissionSectionsDetails(fromArray: profileDetails.getArrayOfDictionaries(key: ResponseJSONKeys.sections), profilePermissionDetails)
+        }
         return profile
+    }
+    
+    private func getPermissionsDetails( fromArray permissionDetails : [ [ String : Any ] ] ) throws -> [ Int64 : ZCRMProfile.Permission ]
+    {
+        var permissions : [ Int64 : ZCRMProfile.Permission ] = [:]
+        for permission in permissionDetails
+        {
+            let displayName = try permission.getString(key: ResponseJSONKeys.displayLabel)
+            let name = try permission.getString(key: ResponseJSONKeys.name)
+            let isEnabled = try permission.getBoolean(key: ResponseJSONKeys.enabled)
+            let moduleAPIName = permission.optString(key: ResponseJSONKeys.module)
+            var permissionDetail = ZCRMProfile.Permission(displayName: displayName, name: name, isEnabled: isEnabled, moduleAPIName: moduleAPIName)
+            permissionDetail.id = permission.optInt64(key: ResponseJSONKeys.id)
+            if let permissionDetailId = permissionDetail.id
+            {
+                permissions.updateValue( permissionDetail, forKey: permissionDetailId)
+            }
+        }
+        return permissions
+    }
+    
+    private func getPermissionSectionsDetails( fromArray sectionDetails : [[ String : Any ]], _ profilePermissions : [ Int64 : ZCRMProfile.Permission ]) throws -> [ ZCRMProfile.PermissionSection ]
+    {
+        var sections : [ ZCRMProfile.PermissionSection ] = []
+        for section in sectionDetails
+        {
+            let name = try section.getString(key: ResponseJSONKeys.name)
+            var categoryDetails : [ ZCRMProfile.PermissionSection.Category ] = []
+            let categories = try section.getArrayOfDictionaries(key: ResponseJSONKeys.categories)
+            for categoryJSON in categories
+            {
+                let name = try categoryJSON.getString(key: ResponseJSONKeys.name)
+                let displayName = try categoryJSON.getString(key: ResponseJSONKeys.displayLabel)
+                let permissionDetails = try categoryJSON.getArray(key: ResponseJSONKeys.permissionsDetails)
+                var permissionIds : [ Int64 ] = []
+                if !permissionDetails.isEmpty
+                {
+                    guard let permissions = permissionDetails as? [ String ] else
+                    {
+                        ZCRMLogger.logError(message: "Error Occurred : \(ErrorCode.typeCastError) : Section.Category.permissionsDetails - Expected type -> ARRAY< Int64 >, \( APIConstants.DETAILS ) : -")
+                        throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "Section.Category.permissionsDetails - Expected type -> ARRAY< Int64 >", details : nil )
+                    }
+                    let permissionIdsArray : [ Int64 ] = permissions.compactMap( { Int64( $0 ) } )
+                    if permissionIdsArray.count != permissions.count
+                    {
+                        ZCRMLogger.logError(message: "Error Occurred : \(ErrorCode.typeCastError) : Section.Category.permissionsDetails - Expected type -> Int64, \( APIConstants.DETAILS ) : -")
+                        throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "Section.Category.permissionsDetails - Expected type -> Int64", details : nil )
+                    }
+                    permissionIds = permissionIdsArray
+                }
+                
+                let moduleAPIName = categoryJSON.optString(key: ResponseJSONKeys.module)
+                let permissionsDetails : [ ZCRMProfile.Permission ] = try permissionIds.map( {
+                    do
+                    {
+                        return try profilePermissions.getValue(key: $0)
+                    }
+                    catch
+                    {
+                        throw error
+                    }
+                } )
+                categoryDetails.append( ZCRMProfile.PermissionSection.Category(displayName: displayName, permissions: permissionsDetails, name: name, moduleAPIName: moduleAPIName) )
+            }
+            sections.append( ZCRMProfile.PermissionSection(name: name, categories: categoryDetails) )
+        }
+        return sections
     }
 }
 
@@ -723,6 +817,7 @@ internal extension UserAPIHandler
         static let reportingTo = "reporting_to"
         
         static let category = "category"
+        static let custom = "custom"
         static let description = "description"
         static let modifiedBy = "modified_by"
         static let createdBy = "created_by"
@@ -731,10 +826,18 @@ internal extension UserAPIHandler
         
         static let zip = "zip"
         static let timeFormat = "time_format"
+        
+        static let permissionsDetails = "permissions_details"
+        static let sections = "sections"
+        static let module = "module"
+        static let enabled = "enabled"
+        static let categories = "categories"
+        static let signature = "signature"
     }
     
     struct URLPathConstants {
         static let users = "users"
+        static let user = "user"
         static let settings = "settings"
         static let profiles = "profiles"
         static let roles = "roles"

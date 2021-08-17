@@ -74,6 +74,20 @@ open class ZCRMCompanyInfoDelegate : ZCRMEntity
         }
     }
     
+    public func getUsers( withParams : GETRequestParams, requestHeaders : [ String : String ],completion : @escaping ( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> Void)
+    {
+        UserAPIHandler().getUsers( ofType : .allUsers, withParams, requestHeaders: requestHeaders ) { result in
+            completion( result )
+        }
+    }
+    
+    public func getUsers( ofType : UserTypes, withParams : GETRequestParams, requestHeaders : [ String : String ], completion : @escaping ( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> Void)
+    {
+        UserAPIHandler().getUsers( ofType : ofType, withParams, requestHeaders: requestHeaders ) { result in
+            completion( result )
+        }
+    }
+    
     public func uploadPhoto( filePath : String, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         OrgAPIHandler().uploadPhoto(filePath: filePath, fileName: nil, fileData: nil) { response in

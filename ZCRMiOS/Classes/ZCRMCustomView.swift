@@ -12,20 +12,64 @@ open class ZCRMCustomView : ZCRMEntity
     var moduleAPIName : String
     public internal( set ) var sysName : String?
     public internal( set ) var isDefault : Bool = APIConstants.BOOL_MOCK
-    
-    public internal( set ) var name : String
+    /**
+     Name of the custom view
+     
+     - Note: Cannot update name of system defined custom views
+     */
+    public var name : String
+    {
+        didSet
+        {
+            if oldValue != name
+            {
+                upsertJSON.updateValue( name, forKey: ModuleAPIHandler.ResponseJSONKeys.name )
+            }
+        }
+    }
     public internal( set ) var displayName : String = APIConstants.STRING_MOCK
-    public internal( set ) var fields : [String] = [String]()
+    public var fields : [String] = [String]()
+    {
+        didSet
+        {
+            var fieldsList : [ [ String : Any ] ] = []
+            for fieldName in fields
+            {
+                fieldsList.append( [ ModuleAPIHandler.ResponseJSONKeys.apiName : fieldName ] )
+            }
+            if oldValue != fields
+            {
+                upsertJSON.updateValue( fieldsList, forKey: ModuleAPIHandler.ResponseJSONKeys.fields )
+            }
+        }
+    }
     public internal( set ) var favouriteSequence : Int?
     public internal( set ) var sortByCol : String?
     public internal( set ) var sortOrder : SortOrder?
     public internal( set ) var category : String = APIConstants.STRING_MOCK
     public internal( set ) var isOffline : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isSystemDefined : Bool = APIConstants.BOOL_MOCK
-    public internal( set ) var sharedType : String?
-    public internal( set ) var criteria : ZCRMQuery.ZCRMCriteria?
-    public internal( set ) var sharedDetails : String?
-    
+    public internal( set ) var sharedType : SharedUsersCategory.Readable?
+    /**
+        Criteria of the custom view
+     
+      - Note : Cannot update the criteria of system defined custom views
+     */
+    public var criteria : ZCRMQuery.ZCRMCriteria?
+    {
+        didSet
+        {
+            upsertJSON.updateValue( criteria?.filterJSON, forKey: ModuleAPIHandler.ResponseJSONKeys.criteria )
+        }
+    }
+    public internal( set ) var sharedDetails : [ SharedDetails ]?
+    public internal( set ) var createdBy : ZCRMUserDelegate?
+    public internal( set ) var modifiedBy : ZCRMUserDelegate?
+    public internal( set ) var modifiedTime : String?
+    public internal( set ) var lastAccessedTime : String?
+    internal var data : [ String : Any? ] = [:]
+    internal var upsertJSON : [ String : Any? ] = [:]
+	
     /// Initialise the instance of a custom view with the given custom view Id.
     ///
     /// - Parameters:
@@ -59,6 +103,17 @@ open class ZCRMCustomView : ZCRMEntity
     }
 }
 
+public extension ZCRMCustomView
+{
+    struct SharedDetails : Equatable
+    {
+        public var id : Int64
+        public var name : String
+        public var type : SelectedUsersType
+        public var subordinates : Bool?
+    }
+}
+
 extension ZCRMCustomView : Hashable
 {
     public static func == (lhs: ZCRMCustomView, rhs: ZCRMCustomView) -> Bool {
@@ -87,6 +142,10 @@ extension ZCRMCustomView : Hashable
             lhs.sharedType == rhs.sharedType &&
             lhs.sharedDetails == rhs.sharedDetails &&
             lhs.criteria == rhs.criteria &&
+            lhs.createdBy == rhs.createdBy &&
+            lhs.modifiedBy == rhs.modifiedBy &&
+            lhs.modifiedTime == rhs.modifiedTime &&
+            lhs.lastAccessedTime == rhs.lastAccessedTime &&
             criteriaFlag
         return equals
     }

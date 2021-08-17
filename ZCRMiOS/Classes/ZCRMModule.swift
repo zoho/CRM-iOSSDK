@@ -95,7 +95,7 @@ open class ZCRMModule : ZCRMModuleDelegate
         }
         else
         {
-            ModuleAPIHandler( module : self, cacheFlavour : .urlVsResponse ).getAllFields( modifiedSince : nil ) { ( result ) in
+            ModuleAPIHandler( module : self, cacheFlavour : .noCache ).getAllFields( modifiedSince : nil ) { ( result ) in
                 if case .success( let fields, _) = result
                 {
                     self.fields = fields.reduce( [ Int64 : ZCRMField ](), { dict, field in
@@ -134,7 +134,7 @@ open class ZCRMModule : ZCRMModuleDelegate
         }
         else
         {
-            ModuleAPIHandler(module: self, cacheFlavour: .urlVsResponse).getField(fieldId: id) { ( result ) in
+            ModuleAPIHandler(module: self, cacheFlavour: .noCache).getField(fieldId: id) { ( result ) in
                 completion( result )
             }
         }

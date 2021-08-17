@@ -182,7 +182,6 @@ open class ZCRMRecordDelegate : ZCRMEntity
         else
         {
             RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).addNote( note : note ) { ( result ) in
-                note.isCreate = false
                 completion( result )
             }
         }
@@ -237,6 +236,23 @@ open class ZCRMRecordDelegate : ZCRMEntity
     public func deleteNote( id : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
     {
         RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).deleteNote( noteId : id ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    /**
+       To delete a Note of the ZCRMRecord
+     
+     - Parameters:
+         - id: Id of the ZCRMNote to be deleted
+         - requestHeaders : Headers that needs to be included in the request
+         - completion :
+            - Success : Returns an APIResponse of the delete operation
+            - Failure : ZCRMError
+     */
+    public func deleteNote( id : Int64, requestHeaders : [ String : String ], completion : @escaping( Result.Response< APIResponse > ) -> () )
+    {
+        RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).deleteNote( noteId : id, requestHeaders: requestHeaders ) { ( result ) in
             completion( result )
         }
     }
@@ -500,12 +516,17 @@ open class ZCRMRecordDelegate : ZCRMEntity
     
     public func addRelations( junctionRecords : [ ZCRMJunctionRecord ], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
     {
-        let apiName = junctionRecords[0].apiName
+        guard let apiName = junctionRecords.first?.apiName else
+        {
+            ZCRMLogger.logError(message: "Error Occurred : \(ErrorCode.invalidOperation) : Junction Records cannot be empty, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.inValidError( code : ErrorCode.invalidData , message : "Junction Records cannot be empty", details : nil ) ) )
+            return
+        }
         for junctionRecord in junctionRecords
         {
             if junctionRecord.apiName != apiName
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidOperation) : All relation must be of the same module, \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "Error Occurred : \(ErrorCode.invalidOperation) : All relation must be of the same module, \( APIConstants.DETAILS ) : -")
                 completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidOperation , message : "All relation must be of the same module", details : nil ) ) )
             }
         }
@@ -528,12 +549,17 @@ open class ZCRMRecordDelegate : ZCRMEntity
     
     public func deleteRelations( junctionRecords : [ ZCRMJunctionRecord ], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
     {
-        let apiName = junctionRecords[0].apiName
+        guard let apiName = junctionRecords.first?.apiName else
+        {
+            ZCRMLogger.logError(message: "Error Occurred : \(ErrorCode.invalidOperation) : Junction Records cannot be empty, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.inValidError( code : ErrorCode.invalidData , message : "Junction Records cannot be empty", details : nil ) ) )
+            return
+        }
         for junctionRecord in junctionRecords
         {
             if junctionRecord.apiName != apiName
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidOperation) : All relation must be of the same module, \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "Error Occurred : \(ErrorCode.invalidOperation) : All relation must be of the same module, \( APIConstants.DETAILS ) : -")
                 completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidOperation , message : "All relation must be of the same module", details : nil ) ) )
             }
         }
