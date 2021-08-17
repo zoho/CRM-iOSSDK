@@ -639,6 +639,33 @@ open class ZCRMRecord : ZCRMRecordDelegate
             }
         }
     }
+    
+    /**
+        To get the current state of the record in the blueprint flow and the possible transitions available
+     
+      - parameters:
+          - completion :
+             - success : Returns a ZCRMBlueprint object and an APIResponse
+             - failure : ZCRMError
+     */
+    public func getBlueprintDetails( completion : @escaping ( Result.DataResponse< ZCRMBlueprint, APIResponse > ) -> () )
+    {
+        EntityAPIHandler(record: self).getBlueprintDetails(completion: completion)
+    }
+    
+    /**
+      To move a record from one state of the blueprint flow to another
+    
+     - parameters:
+        - transitionState : Details of the transition to which the record has to be moved
+        - completion :
+            - success : Returns APIResponse of the transition request
+            - failure : ZCRMError
+     */
+    public func moveTo( transitionState : ZCRMBlueprint.Transition, completion : @escaping ( Result.Response< APIResponse > ) -> () )
+    {
+        EntityAPIHandler(record: self).moveTo( transitionState : transitionState, completion: completion)
+    }
 }
 
 extension ZCRMRecord : NSCopying
@@ -726,23 +753,23 @@ extension ZCRMRecord : NSCopying
 
 extension ZCRMRecord
 {
-    public struct SharedDetails : Equatable
+    public struct SharedDetails : Equatable, ZCRMEntity
     {
         public var isSharedWithRelatedRecords : Bool
         public internal( set ) var module : String = APIConstants.STRING_MOCK
-        public var permission : RecordSharePermission.Readable
+        public var permission : AccessPermission.Readable
         public var user : ZCRMUserDelegate
         public internal( set ) var sharedTime : String = APIConstants.STRING_MOCK
         public internal( set ) var sharedBy : ZCRMUserDelegate = USER_MOCK
         
-        public init( user : ZCRMUserDelegate, permission : RecordSharePermission.Writable, isSharedWithRelatedRecords : Bool )
+        public init( user : ZCRMUserDelegate, permission : AccessPermission.Writable, isSharedWithRelatedRecords : Bool )
         {
             self.user = user
             self.permission = permission.toReadable()
             self.isSharedWithRelatedRecords = isSharedWithRelatedRecords
         }
         
-        init( user : ZCRMUserDelegate, permission : RecordSharePermission.Readable, isSharedWithRelatedRecords : Bool )
+        init( user : ZCRMUserDelegate, permission : AccessPermission.Readable, isSharedWithRelatedRecords : Bool )
         {
             self.user = user
             self.permission = permission

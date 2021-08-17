@@ -69,6 +69,14 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                 {
                     addRequestHeader( header : RequestParamKeys.ifModifiedSince, value : modifiedSince )
                 }
+                let requestHeaders = recordParams.headers ?? [:]
+                if !requestHeaders.isEmpty
+                {
+                    for ( key, value ) in requestHeaders
+                    {
+                        addRequestHeader(header: key, value: value)
+                    }
+                }
                 let request : APIRequest = APIRequest(handler: self)
                 ZCRMLogger.logDebug(message: "Request : \(request.toString())")
                 var zcrmFields : [ZCRMField]?
@@ -78,7 +86,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                 let dispatchGroup : DispatchGroup = DispatchGroup()
                 
                 dispatchGroup.enter()
-                ModuleAPIHandler(module: ZCRMModuleDelegate(apiName: moduleName), cacheFlavour: .urlVsResponse).getAllFields( modifiedSince : nil ) { ( result ) in
+                ModuleAPIHandler(module: ZCRMModuleDelegate(apiName: moduleName), cacheFlavour: .urlVsResponse, requestHeaders: requestHeaders ).getAllFields( modifiedSince : nil ) { ( result ) in
                     do
                     {
                         let resp = try result.resolve()
@@ -122,7 +130,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     }
                     if let fields = zcrmFields, let response = bulkResponse
                     {
-                        MassEntityAPIHandler(module: ZCRMModuleDelegate(apiName: moduleName)).getZCRMRecords(fields: fields, bulkResponse: response, completion: { ( records, error ) in
+                        MassEntityAPIHandler(module: ZCRMModuleDelegate(apiName: moduleName)).getZCRMRecords(fields: fields, bulkResponse: response, requestHeaders: recordParams.headers, completion: { ( records, error ) in
                             if let err = error
                             {
                                 ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( err )" )
@@ -449,7 +457,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func addNote( note : ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
+    internal func addNote( note : ZCRMNote, headers : [ String : String ]? = nil, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
 	{
         if let relatedList = self.relatedList
         {
@@ -461,6 +469,14 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             setUrlPath( urlPath : "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\( relatedList.apiName )" )
             setRequestMethod(requestMethod: .post )
             setRequestBody(requestBody: reqBodyObj )
+            if let requestHeaders = headers
+            {
+                for ( key, value ) in requestHeaders
+                {
+                    addRequestHeader(header: key, value: value)
+                }
+            }
+            
             let request : APIRequest = APIRequest(handler: self)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
             
@@ -472,6 +488,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     let respData : [String:Any?] = respDataArr[0]
                     let recordDetails : [ String : Any ] = try respData.getDictionary( key : APIConstants.DETAILS )
                     let note = try self.getZCRMNote(noteDetails: recordDetails, note: note)
+                    note.isCreate = false
                     response.setData(data: note )
                     completion( .success( note, response ) )
                 }
@@ -537,13 +554,18 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
 	}
     
-    internal func deleteNote( noteId : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    internal func deleteNote( noteId : Int64, requestHeaders : [ String : String ]? = nil, completion : @escaping( Result.Response< APIResponse > ) -> () )
 	{
         if let relatedList = self.relatedList
         {
             setJSONRootKey( key : JSONRootKey.NIL )
             setUrlPath( urlPath :  "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\( relatedList.apiName )/\( noteId )" )
             setRequestMethod(requestMethod: .delete )
+            
+            for ( key, value ) in requestHeaders ?? [:]
+            {
+                addRequestHeader(header: key, value: value)
+            }
             let request : APIRequest = APIRequest(handler: self)
             ZCRMLogger.logDebug(message: "Request : \(request.toString())")
             request.getAPIResponse { ( resultType ) in

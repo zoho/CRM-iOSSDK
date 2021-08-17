@@ -93,7 +93,7 @@ internal class CacheDBHandler
         }
         return responseJSON
     }
-    
+
     func deleteData( withURL : String ) throws
     {
         try self.serialQueue.sync {

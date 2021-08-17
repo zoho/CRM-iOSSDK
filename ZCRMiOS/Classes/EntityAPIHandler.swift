@@ -13,23 +13,27 @@ internal class EntityAPIHandler : CommonAPIHandler
     private var moduleFields : [ String : ZCRMField ]?
     private var subformModuleFields : [ String : [ String : ZCRMField ]?] = [ String : [ String : ZCRMField]]()
     internal let moduleFieldQueue = DispatchQueue( label : "com.zoho.crm.EntityAPIHandler.record.properties", qos : .utility, attributes : .concurrent )
+    internal var requestHeaders : [ String : String ]?
 
-    init(record : ZCRMRecord)
+    init(record : ZCRMRecord, requestHeaders : [ String : String ]? = nil)
     {
         self.record = record
+        self.requestHeaders = requestHeaders
         self.recordDelegate = RECORD_MOCK
     }
     
-    init( recordDelegate : ZCRMRecordDelegate )
+    init( recordDelegate : ZCRMRecordDelegate, requestHeaders : [ String : String ]? = nil )
     {
         self.recordDelegate = recordDelegate
         self.record = ZCRMRecord( moduleAPIName : self.recordDelegate.moduleAPIName )
+        self.requestHeaders = requestHeaders
     }
     
-    init(record : ZCRMRecord, moduleFields : [String:ZCRMField])
+    init(record : ZCRMRecord, moduleFields : [String:ZCRMField], requestHeaders : [ String : String ]? = nil)
     {
         self.record = record
         self.moduleFields = moduleFields
+        self.requestHeaders = requestHeaders
         self.recordDelegate = RECORD_MOCK
     }
     
@@ -38,7 +42,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     }
     
 	// MARK: - Handler Functions
-	internal func getRecord( withPrivateFields : Bool, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    internal func getRecord( withPrivateFields : Bool, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         let urlPath = "\( self.record.moduleAPIName )/\( self.recordDelegate.id )"
@@ -47,37 +51,115 @@ internal class EntityAPIHandler : CommonAPIHandler
         {
             addRequestParam( param : RequestParamKeys.include, value : APIConstants.PRIVATE_FIELDS )
         }
+        if let requestHeaders = requestHeaders
+        {
+            for ( key, value ) in requestHeaders
+            {
+                addRequestHeader(header: key, value: value)
+            }
+        }
 		setRequestMethod(requestMethod : .get)
 		let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-        request.getAPIResponse { ( resultType ) in
-            do
+        
+        var zcrmFields : [ ZCRMField ]?
+        var apiResponse : APIResponse?
+        var recordAPIError : Error?
+        var fieldsAPIError : Error?
+        let dispatchGroup : DispatchGroup = DispatchGroup()
+        dispatchGroup.enter()
+        let moduleDelegate : ZCRMModuleDelegate = ZCRMModuleDelegate(apiName: record.moduleAPIName)
+        ModuleAPIHandler(module: moduleDelegate, cacheFlavour: .urlVsResponse).getAllFields(modifiedSince: nil) { result in
+            switch result
             {
-                let response = try resultType.resolve()
-                let responseJSON : [String:Any] = response.getResponseJSON()
-                let responseDataArray : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
-                self.moduleFieldQueue.async {
-                    self.setRecordProperties(recordDetails: responseDataArray[0], completion: { ( recordResult ) in
-                        do
+            case .success(let fields, _) :
+                zcrmFields = fields
+            case .failure(let error) :
+                fieldsAPIError = error
+            }
+            dispatchGroup.leave()
+        }
+        dispatchGroup.enter()
+        request.getAPIResponse { ( resultType ) in
+            switch resultType
+            {
+            case .success(let response) :
+                apiResponse = response
+            case .failure(let error) :
+                recordAPIError = error
+            }
+            dispatchGroup.leave()
+        }
+        dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
+            if let recordAPIError = recordAPIError
+            {
+                ZCRMLogger.logError( message : "\( recordAPIError )" )
+                completion( .failure( typeCastToZCRMError( recordAPIError ) ) )
+                return
+            }
+            else if let fieldsAPIError = fieldsAPIError
+            {
+                ZCRMLogger.logError( message : "\( fieldsAPIError )" )
+                completion( .failure( typeCastToZCRMError( fieldsAPIError ) ) )
+                return
+            }
+            if let fields = zcrmFields, let apiResponse = apiResponse, let recordDetails = ( apiResponse.responseJSON[ self.getJSONRootKey() ] as? [ [ String : Any ] ] )?.first
+            {
+                self.getSubformFields(fields: fields, recordDetails: recordDetails) { ( subformFieldDetails, error ) in
+                    if let error = error
+                    {
+                        ZCRMLogger.logError( message : "\( error )" )
+                        completion( .failure( typeCastToZCRMError( error ) ) )
+                        return
+                    }
+                    EntityAPIHandler(record: self.record, moduleFields: getFieldVsApinameMap(fields: fields)).setRecordProperties(recordDetails: recordDetails, subformFieldDetails: subformFieldDetails, completion: { ( recordResult ) in
+                        switch recordResult
                         {
-                            let record = try recordResult.resolve()
-                            response.setData(data: record)
-                            self.record.upsertJSON = [ String : Any? ]()
-                            completion( .success( record, response ))
-                        }
-                        catch
-                        {
-                            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                        case .success(let record) :
+                            completion( .success( record, apiResponse ) )
+                        case .failure(let error) :
+                            ZCRMLogger.logError( message : "\( error )" )
                             completion( .failure( typeCastToZCRMError( error ) ) )
                         }
                     })
                 }
             }
-            catch
+            else
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                completion( .failure( typeCastToZCRMError( error ) ) )
+                ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : Record details must not be nil, \( APIConstants.DETAILS ) : -")
+                completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Record details must not be nil", details : nil ) ) )
             }
+        }
+    }
+    
+    internal func getSubformFields( fields : [ ZCRMField ], recordDetails : [ String : Any ], completion : @escaping ( [ String : [ ZCRMField ] ], ZCRMError? ) -> () )
+    {
+        let dispatchGroup : DispatchGroup = DispatchGroup()
+        var subformFieldDetails : [ String : [ ZCRMField ] ] = [:]
+        var subformAPIerror : ZCRMError? = nil
+        for field in fields
+        {
+            let fieldAPIName = field.apiName
+            if field.dataType == FieldDataTypeConstants.subform, !( recordDetails[ fieldAPIName ] as? [ [ String : Any ] ] ?? [] ).isEmpty
+            {
+                let moduleDelegate = ZCRMModuleDelegate(apiName: fieldAPIName)
+                dispatchGroup.enter()
+                ModuleAPIHandler(module: moduleDelegate, cacheFlavour: .urlVsResponse).getAllFields(modifiedSince: nil) { result in
+                    switch result
+                    {
+                    case .success(let fields, _) :
+                        DispatchQueue.main.async {
+                            subformFieldDetails.updateValue( fields, forKey: fieldAPIName)
+                        }
+                    case .failure(let error) :
+                        subformAPIerror = error
+                    }
+                    dispatchGroup.leave()
+                }
+            }
+        }
+        dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
+            completion( subformFieldDetails, subformAPIerror )
         }
     }
     
@@ -137,7 +219,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func updateRecord( triggers : [Trigger]?, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    internal func updateRecord( triggers : [Trigger]?, headers : [ String : String ]? = nil, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         if self.record.isCreate
@@ -158,6 +240,14 @@ internal class EntityAPIHandler : CommonAPIHandler
 		setUrlPath( urlPath : "\( self.record.moduleAPIName )/\( self.record.id )" )
 		setRequestMethod( requestMethod : .patch )
 		setRequestBody( requestBody : reqBodyObj )
+        if let requestHeaders = headers
+        {
+            for ( key, value ) in requestHeaders
+            {
+                addRequestHeader(header: key, value: value)
+            }
+        }
+        
 		let request : APIRequest = APIRequest( handler : self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
@@ -336,11 +426,18 @@ internal class EntityAPIHandler : CommonAPIHandler
         
     }
     
-    internal func downloadPhoto( completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
+    internal func downloadPhoto( withHeaders : [ String : String ]? = nil, completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.NIL )
         setUrlPath( urlPath : "\( self.recordDelegate.moduleAPIName )/\( self.recordDelegate.id )/\( URLPathConstants.photo )" )
         setRequestMethod(requestMethod : .get )
+        if let requestHeaders = withHeaders
+        {
+            for ( key, value ) in requestHeaders
+            {
+                addRequestHeader(header: key, value: value)
+            }
+        }
         let request : FileAPIRequest = FileAPIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
@@ -356,11 +453,18 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func downloadPhoto( fileDownloadDelegate : ZCRMFileDownloadDelegate )
+    internal func downloadPhoto( withHeaders: [ String : String ]? = nil, fileDownloadDelegate : ZCRMFileDownloadDelegate )
     {
         setJSONRootKey( key : JSONRootKey.NIL )
         setUrlPath( urlPath : "\( self.recordDelegate.moduleAPIName )/\( self.recordDelegate.id )/\( URLPathConstants.photo )" )
         setRequestMethod(requestMethod : .get )
+        if let requestHeaders = withHeaders
+        {
+            for ( key, value ) in requestHeaders
+            {
+                addRequestHeader(header: key, value: value)
+            }
+        }
         
         let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -425,6 +529,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                         self.record.tags?.append( try tag.getString(key: ResponseJSONKeys.name) )
                     }
                 }
+                self.record.id = self.recordDelegate.id
                 completion( .success( self.record, response ) )
             }
             catch{
@@ -467,6 +572,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                         self.record.tags?.append( try tag.getString(key: ResponseJSONKeys.name) )
                     }
                 }
+                self.record.id = self.recordDelegate.id
                 completion( .success( self.record, response ) )
             }
             catch{
@@ -475,8 +581,283 @@ internal class EntityAPIHandler : CommonAPIHandler
             }
         }
     }
+    
+    internal func getBlueprintDetails( completion : @escaping ( Result.DataResponse< ZCRMBlueprint, APIResponse > ) -> () )
+    {
+        setUrlPath(urlPath: "\( record.moduleAPIName )/\( record.id )/\( URLPathConstants.actions )/\( URLPathConstants.blueprint )")
+        setRequestMethod(requestMethod: .get)
+        setJSONRootKey(key: JSONRootKey.BLUEPRINT)
+        
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "\(request.toString())")
+        
+        request.getAPIResponse() { result in
+            switch result
+            {
+            case .success(let response) :
+                do
+                {
+                    let responseJSON = response.getResponseJSON()
+                    let blueprintDetails = try responseJSON.getDictionary(key: self.getJSONRootKey())
+                    let blueprint = try self.getBlueprintDetails(fromJSON: blueprintDetails)
+                    completion( .success( blueprint, response) )
+                }
+                catch
+                {
+                    ZCRMLogger.logError( message : "\( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "\( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func moveTo( transitionState : ZCRMBlueprint.Transition, completion : @escaping ( Result.Response< APIResponse > ) -> () )
+    {
+        setUrlPath(urlPath: "\( record.moduleAPIName )/\( record.id )/\( URLPathConstants.actions )/\( URLPathConstants.blueprint )")
+        setRequestMethod(requestMethod: .patch)
+        setJSONRootKey(key: JSONRootKey.BLUEPRINT)
+        do
+        {
+            setRequestBody(requestBody: try getUpdateBlueprintDetails( transitionState ))
+        }
+        catch
+        {
+            ZCRMLogger.logError( message : "\( error )" )
+            completion( .failure( typeCastToZCRMError( error ) ) )
+            return
+        }
+        
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "\(request.toString())")
+        
+        request.getAPIResponse() { result in
+            switch result
+            {
+            case .success(let response) :
+                completion( .success( response ) )
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "\( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
 	
 	// MARK: - Utility Functions
+    private func getBlueprintDetails( fromJSON : [ String : Any ] ) throws -> ZCRMBlueprint
+    {
+        let processInfo = try fromJSON.getDictionary(key: ResponseJSONKeys.processInfo)
+        let currentState = try processInfo.getString(key: ResponseJSONKeys.currentState)
+        let isContinuous = try processInfo.getBoolean(key: ResponseJSONKeys.isContinuous)
+        
+        var blueprint = ZCRMBlueprint(currentState: currentState, isContinuous: isContinuous)
+        if let escalationDetails = processInfo.optDictionary(key: ResponseJSONKeys.escalation)
+        {
+            guard let days = try Int( escalationDetails.getString(key: ResponseJSONKeys.days) ) else
+            {
+                ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( ResponseJSONKeys.days ) - Expected type -> INT, \( APIConstants.DETAILS ) : -")
+                throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( ResponseJSONKeys.days ) - Expected type -> INT", details : nil )
+            }
+            let status = try escalationDetails.getString(key: ResponseJSONKeys.status)
+            blueprint.escalation = ZCRMBlueprint.EscalationDetails(days: days, status: status)
+        }
+        if let transitionDetails = fromJSON.optArrayOfDictionaries(key: ResponseJSONKeys.transitions)
+        {
+            blueprint.transitionDetails = try getTransitionDetailsList( transitionDetails, isContinuous : isContinuous )
+        }
+        return blueprint
+    }
+    
+    private func getTransitionDetailsList( _ transitions : [[ String : Any ]], isContinuous : Bool ) throws -> [ ZCRMBlueprint.Transition ]
+    {
+        var transitionDetails : [ ZCRMBlueprint.Transition ] = []
+        
+        for transition in transitions
+        {
+            let id = try transition.getInt64(key: ResponseJSONKeys.id)
+            let isCriteriaMatched = try transition.getBoolean(key: ResponseJSONKeys.criteriaMatched)
+            let name = try transition.getString(key: ResponseJSONKeys.name)
+            let nextFieldValue = try transition.getString(key: ResponseJSONKeys.nextFieldValue )
+            let data = transition.optDictionary(key: ResponseJSONKeys.data) ?? [:]
+            let partialSavePercentage = try transition.getDouble(key: ResponseJSONKeys.percentPartialSave)
+            let fields = try getAllFieldsFrom(fieldsList: transition.getArrayOfDictionaries(key: ResponseJSONKeys.fields))
+            let type = try ZCRMBlueprint.TransitionType(rawValue: transition.getString(key: ResponseJSONKeys.type)) ?? .manual
+            
+            let blueprintTransition = ZCRMBlueprint.Transition(id: id, name: name, nextFieldValue: nextFieldValue, type: type, data: data, partialSavePercentage: partialSavePercentage, fields: fields)
+            blueprintTransition.isCriteriaMatched = isCriteriaMatched
+            blueprintTransition.criteriaMessage = transition.optString(key: ResponseJSONKeys.criteriaMessage)
+            if isContinuous
+            {
+                blueprintTransition.nextTransition = try getNextTransitions( transition.getArrayOfDictionaries(key: ResponseJSONKeys.nextTransitions) )
+            }
+            blueprintTransition.autoTransitionTime = transition.optString(key: ResponseJSONKeys.executionTime)
+            transitionDetails.append( blueprintTransition )
+        }
+        return transitionDetails
+    }
+    
+    internal func getAllFieldsFrom( fieldsList allFieldsDetails : [[String : Any]]) throws -> [ ZCRMFieldDelegate ]
+    {
+        var allFields : [ ZCRMFieldDelegate ] = [ ZCRMFieldDelegate ]()
+        for fieldDetails in allFieldsDetails
+        {
+            allFields.append(try self.getZCRMFieldDelegate(fromFieldJSON: fieldDetails))
+        }
+        return allFields
+    }
+    
+    internal func getZCRMFieldDelegate(fromFieldJSON : [String:Any]) throws -> ZCRMFieldDelegate
+    {
+        let id = try fromFieldJSON.getInt64( key : ResponseJSONKeys.id )
+        let displayLabel = try fromFieldJSON.getString(key: ResponseJSONKeys.displayLabel)
+        let dataType = try fromFieldJSON.getString(key: ResponseJSONKeys.dataType)
+        let isMandatory = try fromFieldJSON.optBoolean(key: ResponseJSONKeys.isMandatory) ?? fromFieldJSON.getBoolean(key: ResponseJSONKeys.systemMandatory)
+        let apiName = fromFieldJSON.optString(key: ResponseJSONKeys.apiName) ?? displayLabel
+        
+        let field : ZCRMFieldDelegate = ZCRMFieldDelegate(id: id, displayLabel: displayLabel, dataType: dataType, isMandatory: isMandatory, apiName: apiName)
+        if dataType == FieldDataTypeConstants.picklist
+        {
+            field.pickListValues = []
+            let picklistValues = try fromFieldJSON.getArrayOfDictionaries(key: ResponseJSONKeys.pickListValues)
+            for pickListValueDict in picklistValues
+            {
+                if let displayValue = pickListValueDict.optString( key : ResponseJSONKeys.displayValue ), let actualValue = pickListValueDict.optString( key : ResponseJSONKeys.actualValue )
+                {
+                    let pickListValue = ZCRMPickListValue(displayName: displayValue, actualName: actualValue  )
+                    pickListValue.maps = pickListValueDict.optArrayOfDictionaries( key : ResponseJSONKeys.maps ) ?? Array<Dictionary<String, Any>>()
+                    if pickListValueDict.hasValue( forKey : ResponseJSONKeys.sequenceNumber )
+                    {
+                        pickListValue.sequenceNumber = try pickListValueDict.getInt( key : ResponseJSONKeys.sequenceNumber )
+                    }
+                    field.pickListValues?.append( pickListValue )
+                }
+            }
+        }
+        if fromFieldJSON.hasValue(forKey: ResponseJSONKeys.relatedDetails)
+        {
+            field.related_details = try getModuleRelation( fromFieldJSON.getDictionary(key: ResponseJSONKeys.relatedDetails) )
+        }
+        if fromFieldJSON.hasValue(forKey: ResponseJSONKeys.criteria)
+        {
+            let criteria = try fromFieldJSON.getDictionary(key: ResponseJSONKeys.criteria)
+            let apiName = try criteria.getString(key: ResponseJSONKeys.field)
+            let comparator = try criteria.getString(key: ResponseJSONKeys.comparator)
+            let value = try criteria.getValue(key: ResponseJSONKeys.value)
+            field.criteria = ZCRMQuery.ZCRMCriteria(apiName: apiName, comparator: comparator, value: value)
+        }
+        field.data = fromFieldJSON
+        return field
+    }
+    
+    private func getModuleRelation( _ relatedDetails : [ String : Any ] ) throws -> ZCRMModuleRelationDelegate
+    {
+        let moduleRelation = ZCRMModuleRelationDelegate()
+        
+        moduleRelation.id = try relatedDetails.getInt64(key: ResponseJSONKeys.id)
+        moduleRelation.apiName = try relatedDetails.getString( key : ResponseJSONKeys.apiName )
+        moduleRelation.label = try relatedDetails.getString( key : ResponseJSONKeys.displayLabel )
+        return moduleRelation
+    }
+    
+    private func getNextTransitions( _ nextTransitionsJSON : [[ String : Any ]]) throws -> [ ZCRMBlueprint.TransitionDelegate ]
+    {
+        var nextTransitions : [ ZCRMBlueprint.TransitionDelegate ] = []
+        for transition in nextTransitionsJSON
+        {
+            let id = try transition.getInt64(key: ResponseJSONKeys.id)
+            let name = try transition.getString(key: ResponseJSONKeys.name)
+            let type = try ZCRMBlueprint.TransitionType(rawValue: transition.getString(key: ResponseJSONKeys.type) ) ?? .manual
+            let isCriteriaMatched = transition.optBoolean(key: ResponseJSONKeys.criteriaMatched)
+            
+            let nextTransition = ZCRMBlueprint.TransitionDelegate(id: id, name: name, type: type)
+            nextTransition.isCriteriaMatched = isCriteriaMatched
+            nextTransitions.append( nextTransition )
+        }
+        return nextTransitions
+    }
+    
+    /**
+      To move a record from one state of the blueprint flow to another
+     
+     - File attachment Ids passed in data has to be in format
+       ~~~
+       "$file_id" : [ "ep1991d3c77488213463db334f5be88f3ed2a", "ep1991d3c77488213463db334f5be88f3ed2b" ]
+       ~~~
+       So modified the transition data to match the format specified.
+     
+     - Checklist data has to be passed without title. So passed only the checklist items in request.
+     
+     - parameter transitionDetails : Details of the transition to which the record has to be moved
+     
+     - Throws: When data type mismatch occurs in transition data
+     */
+    private func getUpdateBlueprintDetails( _ transitionDetails : ZCRMBlueprint.Transition ) throws -> [ String : Any ]
+    {
+        var fieldDataType : [ String : String ] = [:]
+        _ = transitionDetails.fields.map {
+            fieldDataType.updateValue( $0.dataType, forKey: $0.apiName)
+        }
+        var requestBody : [ String : Any? ] = [:]
+        requestBody.updateValue( transitionDetails.id, forKey: ResponseJSONKeys.transitionId)
+        var data : [ String : Any ] = [:]
+        var attachmentsList : [ [ String : Any ] ] = []
+        for ( key, value ) in transitionDetails.data
+        {
+            if key == DefaultModuleAPINames.ATTACHMENTS, let attachments = value as? [[ String : Any ]]
+            {
+                var fileIds : [ String ] = []
+                for attachment in attachments
+                {
+                    if let fileId = attachment.optString(key: ResponseJSONKeys.fileId)
+                    {
+                        fileIds.append( fileId )
+                    }
+                    else if let attachmentIds = attachment.optArray(key: ResponseJSONKeys.fileId) as? [ String ]
+                    {
+                        fileIds += attachmentIds
+                    }
+                    else
+                    {
+                        attachmentsList.append( attachment )
+                    }
+                }
+                attachmentsList.append( [ ResponseJSONKeys.fileId : fileIds ] )
+                data.updateValue( attachmentsList, forKey: key)
+            }
+            else if key == ResponseJSONKeys.checkLists
+            {
+                let items : [ [ String : Any ] ] = try ( value as? [ String : Any ] ?? [:] ).getArrayOfDictionaries(key: ResponseJSONKeys.items)
+                data.updateValue( items, forKey: ResponseJSONKeys.checkLists)
+            }
+            else if let value = value as? [ String : Any ]
+            {
+                if let dataType = fieldDataType[ key ], dataType == FieldDataTypeConstants.userLookup || dataType == FieldDataTypeConstants.ownerLookup || dataType == ModuleAPIHandler.ResponseJSONKeys.lookup
+                {
+                    if let id = value.optValue(key: ResponseJSONKeys.id)
+                    {
+                        data.updateValue( id , forKey: key)
+                    }
+                    else
+                    {
+                        data.updateValue( value , forKey: key)
+                    }
+                }
+                else
+                {
+                    data.updateValue( value , forKey: key)
+                }
+            }
+            else
+            {
+                data.updateValue( value, forKey: key)
+            }
+        }
+        requestBody.updateValue( data, forKey: ResponseJSONKeys.data)
+        return [ getJSONRootKey() : [ requestBody ] ]
+    }
+    
 	private func setPriceDetails(priceDetails priceDetailsArrayOfJSON : [[ String : Any]]) throws
     {
         for priceDetailJSON in priceDetailsArrayOfJSON {
@@ -538,13 +919,28 @@ internal class EntityAPIHandler : CommonAPIHandler
             }
             else if key == ResponseJSONKeys.productDetails
             {
+                var productDetailsKey : String = String()
+                if ZCRMSDKClient.shared.apiVersion == APIConstants.API_VERSION_V2
+                {
+                    productDetailsKey = key
+                }
+                else
+                {
+                    switch self.record.moduleAPIName
+                    {
+                    case DefaultModuleAPINames.INVOICES : productDetailsKey = ResponseJSONKeys.invoicedItems
+                    case DefaultModuleAPINames.QUOTES : productDetailsKey = ResponseJSONKeys.quotedItems
+                    case DefaultModuleAPINames.SALES_ORDERS : productDetailsKey = ResponseJSONKeys.orderedItems
+                    default : productDetailsKey = ResponseJSONKeys.purchaseItems
+                    }
+                }
                 if value == nil
                 {
-                    recordJSON.updateValue( nil, forKey : ResponseJSONKeys.productDetails )
+                    recordJSON.updateValue( nil, forKey : productDetailsKey )
                 }
                 else if value is [ ZCRMInventoryLineItem ], let lineItems = value as? [ ZCRMInventoryLineItem ]
                 {
-                    recordJSON.updateValue(self.getLineItemsAsJSONArray(lineItems: lineItems), forKey: ResponseJSONKeys.productDetails)
+                    recordJSON.updateValue(self.getLineItemsAsJSONArray(lineItems: lineItems), forKey: productDetailsKey)
                 }
             }
             else if key == ResponseJSONKeys.dollarLineTax
@@ -731,6 +1127,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         setUrlPath(urlPath: "\( record.moduleAPIName )/\( record.id )/\( URLPathConstants.actions )/\( URLPathConstants.share )")
         addRequestParam(param: RequestParamKeys.view, value: "manage")
         setRequestMethod(requestMethod: .get)
+        setAPIVersion( "v2" )
         
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -805,6 +1202,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                             try zcrmSharedRecordDetails.append( self.getSharedRecordDetails(fromJSON: recordDetail) )
                         }
                     }
+                    bulkResponse.setData(data: zcrmSharedRecordDetails)
                     completion( .success( zcrmSharedRecordDetails, bulkResponse) )
                 }
                 catch
@@ -825,7 +1223,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         let user = try ZCRMUserDelegate(id: userJSON.getInt64(key: ResponseJSONKeys.id), name: userJSON.getString(key: ResponseJSONKeys.fullName))
         user.data = userJSON
         
-        let permission = try RecordSharePermission.getType(rawValue: json.getString(key: ResponseJSONKeys.permission))
+        let permission = try AccessPermission.getType(rawValue: json.getString(key: ResponseJSONKeys.permission))
         let isSharedWithRelatedRecords = try json.getBoolean(key: ResponseJSONKeys.shareRelatedRecords)
         
         var zcrmSharedRecord : ZCRMRecord.SharedDetails = ZCRMRecord.SharedDetails(user: user, permission: permission, isSharedWithRelatedRecords: isSharedWithRelatedRecords)
@@ -1056,7 +1454,6 @@ internal class EntityAPIHandler : CommonAPIHandler
         {
             participantJSON.updateValue( email, forKey : ResponseJSONKeys.participant )
         }
-        participantJSON.updateValue( participant.email, forKey : CommunicationPreferences.email.rawValue )
         participantJSON.updateValue( participant.isInvited, forKey : ResponseJSONKeys.invited )
         return participantJSON
     }
@@ -1077,23 +1474,9 @@ internal class EntityAPIHandler : CommonAPIHandler
     private func getZCRMInventoryLineItemAsJSON(invLineItem : ZCRMInventoryLineItem) -> [String:Any?]
     {
         var lineItem : [String:Any?] = [String:Any?]()
-        lineItem.updateValue( String( invLineItem.product.id ), forKey : ResponseJSONKeys.product )
         if invLineItem.id != APIConstants.INT64_MOCK
         {
             lineItem.updateValue( invLineItem.id, forKey : ResponseJSONKeys.id )
-        }
-        if let description = invLineItem.description
-        {
-            lineItem.updateValue( description, forKey : ResponseJSONKeys.productDescription )
-        }
-        if invLineItem.listPrice != APIConstants.DOUBLE_MOCK
-        {
-            lineItem.updateValue( invLineItem.listPrice, forKey : ResponseJSONKeys.listPrice )
-        }
-        lineItem.updateValue( invLineItem.quantity, forKey : ResponseJSONKeys.quantity )
-        if let discountPercentage = invLineItem.discountPercentage
-        {
-            lineItem.updateValue( discountPercentage, forKey : ResponseJSONKeys.Discount )
         }
         var allTaxes : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
         let lineTaxes : [ ZCRMLineTax] = invLineItem.lineTaxes
@@ -1104,9 +1487,43 @@ internal class EntityAPIHandler : CommonAPIHandler
             tax.updateValue( lineTax.percentage, forKey : ResponseJSONKeys.percentage )
             allTaxes.append( tax )
         }
-        if !allTaxes.isEmpty
+        if ZCRMSDKClient.shared.apiVersion == APIConstants.API_VERSION_V2
         {
-            lineItem.updateValue( allTaxes, forKey : ResponseJSONKeys.lineTax )
+            lineItem.updateValue( invLineItem.quantity, forKey : ResponseJSONKeys.quantity )
+            lineItem.updateValue( String( invLineItem.product.id ), forKey : ResponseJSONKeys.product )
+            if invLineItem.listPrice != APIConstants.DOUBLE_MOCK
+            {
+                lineItem.updateValue( invLineItem.listPrice, forKey : ResponseJSONKeys.listPrice )
+            }
+            if let description = invLineItem.description
+            {
+                lineItem.updateValue( description, forKey : ResponseJSONKeys.productDescription )
+            }
+            if !allTaxes.isEmpty
+            {
+                lineItem.updateValue( allTaxes, forKey : ResponseJSONKeys.lineTax )
+            }
+        }
+        else
+        {
+            lineItem.updateValue( invLineItem.quantity, forKey : ResponseJSONKeys._quantity )
+            lineItem.updateValue( String( invLineItem.product.id ), forKey : ResponseJSONKeys.productName )
+            if invLineItem.listPrice != APIConstants.DOUBLE_MOCK
+            {
+                lineItem.updateValue( invLineItem.listPrice, forKey : ResponseJSONKeys._listPrice )
+            }
+            if let description = invLineItem.description
+            {
+                lineItem.updateValue( description, forKey : ResponseJSONKeys.description )
+            }
+            if !allTaxes.isEmpty
+            {
+                lineItem.updateValue( allTaxes, forKey : ResponseJSONKeys._lineTax )
+            }
+        }
+        if let discountPercentage = invLineItem.discountPercentage
+        {
+            lineItem.updateValue( discountPercentage, forKey : ResponseJSONKeys.Discount )
         }
         if let priceBookId = invLineItem.priceBookId
         {
@@ -1119,7 +1536,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         return lineItem
     }
     
-    internal func setRecordProperties(recordDetails : [String:Any], completion : @escaping( Result.Data< ZCRMRecord > ) -> ())
+    internal func setRecordProperties(recordDetails : [String:Any], subformFieldDetails : [ String : [ ZCRMField ] ]? = nil, completion : @escaping( Result.Data< ZCRMRecord > ) -> ())
     {
         var setRecordError : Error?
         let dispatchGroup : DispatchGroup = DispatchGroup()
@@ -1141,7 +1558,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                     self.record.isCreate = false
                     self.record.data.updateValue( self.record.id, forKey : ResponseJSONKeys.id )
                 }
-                else if(ResponseJSONKeys.productDetails == fieldAPIName) && ( self.record.moduleAPIName == DefaultModuleAPINames.SALES_ORDERS || self.record.moduleAPIName == DefaultModuleAPINames.PURCHASE_ORDERS || self.record.moduleAPIName == DefaultModuleAPINames.INVOICES || self.record.moduleAPIName == DefaultModuleAPINames.QUOTES ), let lineItems = value as? [[ String : Any ]]
+                else if(ResponseJSONKeys.productDetails == fieldAPIName || ResponseJSONKeys.invoicedItems == fieldAPIName || ResponseJSONKeys.quotedItems == fieldAPIName || ResponseJSONKeys.orderedItems == fieldAPIName || ResponseJSONKeys.purchaseItems == fieldAPIName) && APIConstants.lineItemModules.contains( self.record.moduleAPIName ), let lineItems = value as? [[ String : Any ]]
                 {
                     try self.setInventoryLineItems(lineItems: lineItems)
                     self.record.data.updateValue( lineItems, forKey : ResponseJSONKeys.productDetails )
@@ -1233,7 +1650,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                     self.record.modifiedTime = modifiedTime
                     self.record.data.updateValue(self.record.modifiedTime, forKey: ResponseJSONKeys.modifiedTime)
                 }
-                else if( ResponseJSONKeys.activityType == fieldAPIName ), let activityType = value as? String
+                else if self.record.moduleAPIName == DefaultModuleAPINames.ACTIVITIES, ( ResponseJSONKeys.activityType == fieldAPIName ), let activityType = value as? String
                 {
                     self.record.moduleAPIName = activityType
                     self.record.data.updateValue(self.record.moduleAPIName, forKey: ResponseJSONKeys.activityType)
@@ -1316,36 +1733,58 @@ internal class EntityAPIHandler : CommonAPIHandler
                 }
                 else if let subformRecordsDetails = value as? [[ String : Any]], !subformRecordsDetails.isEmpty
                 {
-                    dispatchGroup.enter()
-                    self.makeFieldAPIRequest(fieldApiName: fieldAPIName) { ( isSubformRecord, error ) in
-                        if let err = error
+                    if let subformFields = subformFieldDetails?[ fieldAPIName ]
+                    {
+                        if self.record.subformRecord == nil
                         {
-                            setRecordError = err
+                            self.record.subformRecord = [ String : [ ZCRMSubformRecord ] ]()
                         }
-                        if isSubformRecord
-                        {
-                            if self.record.subformRecord == nil
+                        dispatchGroup.enter()
+                        self.getZCRMSubformRecords(subformName: fieldAPIName, subforms: subformRecordsDetails, fieldDetails: subformFields, completion: { ( subformRecord, error ) in
+                            if let err = error
                             {
-                                self.record.subformRecord = [ String : [ ZCRMSubformRecord ] ]()
+                                setRecordError = err
                             }
-                            dispatchGroup.enter()
-                            self.getAllZCRMSubformRecords(apiName: fieldAPIName, subforms: subformRecordsDetails, completion: { ( subformRecord, error ) in
-                                if let err = error
+                            if let subformRecord = subformRecord
+                            {
+                                subforms.updateValue( subformRecord, forKey : fieldAPIName )
+                            }
+                            dispatchGroup.leave()
+                        })
+                    }
+                    else
+                    {
+                        dispatchGroup.enter()
+                        self.makeFieldAPIRequest(fieldApiName: fieldAPIName) { ( isSubformRecord, error ) in
+                            if let err = error
+                            {
+                                setRecordError = err
+                            }
+                            if isSubformRecord
+                            {
+                                if self.record.subformRecord == nil
                                 {
-                                    setRecordError = err
+                                    self.record.subformRecord = [ String : [ ZCRMSubformRecord ] ]()
                                 }
-                                if let subformRecord = subformRecord
-                                {
-                                    subforms.updateValue( subformRecord, forKey : fieldAPIName )
-                                }
+                                dispatchGroup.enter()
+                                self.getAllZCRMSubformRecords(apiName: fieldAPIName, subforms: subformRecordsDetails, completion: { ( subformRecord, error ) in
+                                    if let err = error
+                                    {
+                                        setRecordError = err
+                                    }
+                                    if let subformRecord = subformRecord
+                                    {
+                                        subforms.updateValue( subformRecord, forKey : fieldAPIName )
+                                    }
+                                    dispatchGroup.leave()
+                                })
                                 dispatchGroup.leave()
-                            })
-                            dispatchGroup.leave()
-                        }
-                        else
-                        {
-                            self.record.data.updateValue(value, forKey: fieldAPIName)
-                            dispatchGroup.leave()
+                            }
+                            else
+                            {
+                                self.record.data.updateValue(value, forKey: fieldAPIName)
+                                dispatchGroup.leave()
+                            }
                         }
                     }
                 }
@@ -1386,24 +1825,21 @@ internal class EntityAPIHandler : CommonAPIHandler
         if self.moduleFields == nil
         {
             moduleFieldQueue.sync {
-                ModuleAPIHandler( module : ZCRMModuleDelegate( apiName :  self.record.moduleAPIName ), cacheFlavour : .urlVsResponse ).getAllFields( modifiedSince : nil ) { ( result ) in
-                    do
+                ModuleAPIHandler( module : ZCRMModuleDelegate( apiName :  self.record.moduleAPIName ), cacheFlavour : .urlVsResponse, requestHeaders : requestHeaders ).getAllFields( modifiedSince : nil ) { ( result ) in
+                    switch result
                     {
-                        let resp = try result.resolve()
-                        self.moduleFields = getFieldVsApinameMap(fields: resp.data)
+                    case .success(let fields, _) :
+                        self.moduleFields = getFieldVsApinameMap(fields: fields)
                         
                         self.isSubform( fieldApiName ) { ( isSubformRecord, error ) in
                             completion( isSubformRecord, error )
                         }
-                    }
-                    catch
-                    {
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    case .failure(let error) :
+                        ZCRMLogger.logError( message : "\( error )" )
                         completion( false, error )
                     }
                 }
             }
-            
         }
         else
         {
@@ -1430,13 +1866,13 @@ internal class EntityAPIHandler : CommonAPIHandler
             }
             else
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.moduleFieldNotFound) : Subform module field - the \( fieldAPIName ) has not found.")
+                ZCRMLogger.logError(message: "\(ErrorCode.moduleFieldNotFound) : Subform module field - the \( fieldAPIName ) has not found.")
                 completion( false, ZCRMError.inValidError(code: ErrorCode.moduleFieldNotFound, message: "Subform module field - the \( fieldAPIName ) has not found.", details: nil) )
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : Module fields is not available")
+            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : Module fields is not available")
             completion( false, ZCRMError.inValidError(code: ErrorCode.invalidData, message: "Module fields is not available", details: nil) )
         }
     }
@@ -1445,17 +1881,15 @@ internal class EntityAPIHandler : CommonAPIHandler
     {
         if self.moduleFields == nil
         {
-            ModuleAPIHandler( module : ZCRMModuleDelegate( apiName :  self.record.moduleAPIName ), cacheFlavour : .urlVsResponse ).getAllFields( modifiedSince : nil ) { ( result ) in
-                do
+            ModuleAPIHandler( module : ZCRMModuleDelegate( apiName :  self.record.moduleAPIName ), cacheFlavour : .urlVsResponse, requestHeaders : requestHeaders ).getAllFields( modifiedSince : nil ) { ( result ) in
+                switch result
                 {
-                    let resp = try result.resolve()
-                    self.moduleFields = getFieldVsApinameMap(fields: resp.data)
+                case .success(let fields, _) :
+                    self.moduleFields = getFieldVsApinameMap(fields: fields)
                     self.setLookup( recordDetails : recordDetails, fieldAPIName : fieldAPIName, cacheFlavour : cacheFlavour ) { ( lookup, error ) in
                         completion( lookup, error )
                     }
-                }
-                catch
-                {
+                case .failure(let error) :
                     completion( nil, error )
                 }
             }
@@ -1504,7 +1938,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                                 }
                                 else
                                 {
-                                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.moduleFieldNotFound) : Lookup module field not found, \( APIConstants.DETAILS ) : -")
+                                    ZCRMLogger.logError(message: "\(ErrorCode.moduleFieldNotFound) : Lookup module field not found, \( APIConstants.DETAILS ) : -")
                                     completion( nil, ZCRMError.inValidError(code: ErrorCode.moduleFieldNotFound, message: "Lookup module field not found", details: nil) )
                                 }
                             }
@@ -1527,26 +1961,64 @@ internal class EntityAPIHandler : CommonAPIHandler
                             }
                             else
                             {
-                                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.moduleFieldNotFound) : Lookup module field not found, \( APIConstants.DETAILS ) : -")
+                                ZCRMLogger.logError(message: "\(ErrorCode.moduleFieldNotFound) : Lookup module field not found, \( APIConstants.DETAILS ) : -")
                                 completion( nil, ZCRMError.inValidError(code: ErrorCode.moduleFieldNotFound, message: "Lookup module field not found", details: nil) )
                             }
                         }
                     }
                     else
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.moduleFieldNotFound) : Lookup module field not found, \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.moduleFieldNotFound) : Lookup module field not found, \( APIConstants.DETAILS ) : -")
                         completion( nil, ZCRMError.inValidError(code: ErrorCode.moduleFieldNotFound, message: "Lookup module field not found", details: nil) )
                     }
                 }
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( nil, error )
             }
         }
     }
-	
+    
+    func getZCRMSubformRecords( subformName : String , subforms : [[ String : Any]], fieldDetails : [ ZCRMField ] , completion : @escaping( [ZCRMSubformRecord]?, Error? ) -> () )
+    {
+        var zcrmSubformRecords : [ZCRMSubformRecord] = [ZCRMSubformRecord]()
+        var unOrderedZCRMSubformRecords : [Int : ZCRMSubformRecord] = [Int : ZCRMSubformRecord]()
+        var subformRecErr : Error?
+        subformModuleFields.updateValue( getFieldVsApinameMap(fields: fieldDetails), forKey: subformName)
+        let dispatchQueue : DispatchQueue = DispatchQueue(label: "com.zoho.crm.sdk.EntityAPIHandler.getZCRMSubformRecords")
+        let dispatchGroup : DispatchGroup = DispatchGroup()
+
+        for index in 0..<subforms.count {
+            dispatchGroup.enter()
+            self.getZCRMSubformRecord( apiName : subformName, subformDetails : subforms[ index ]) { ( subformRecord, error ) in
+                if let error = error {
+                    subformRecErr = error
+                    dispatchGroup.leave()
+                }
+                else {
+                    dispatchQueue.sync {
+                        unOrderedZCRMSubformRecords[ index ] = subformRecord
+                        dispatchGroup.leave()
+                    }
+                }
+            }
+        }
+        dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
+            for subform in unOrderedZCRMSubformRecords.sorted(by: { $0.key < $1.key }) {
+                zcrmSubformRecords.append( subform.value )
+            }
+            if let error = subformRecErr
+            {
+                completion( nil, error )
+                return
+            }
+            completion( zcrmSubformRecords, nil )
+        }
+    }
+
+    
     private func getAllZCRMSubformRecords( apiName : String , subforms : [[ String : Any]], completion : @escaping( [ZCRMSubformRecord]?, Error? ) -> () )
     {
         var zcrmSubformRecords : [ZCRMSubformRecord] = [ZCRMSubformRecord]()
@@ -1554,7 +2026,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         var subformRecErr : Error?
         let dispatchQueue : DispatchQueue = DispatchQueue(label: "com.zoho.crm.sdk.EntityAPIHandler.getAllZCRMSubformRecords")
         let dispatchGroup : DispatchGroup = DispatchGroup()
-        ModuleAPIHandler( module : ZCRMModuleDelegate( apiName : apiName ), cacheFlavour : .urlVsResponse ).getAllFields( modifiedSince : nil ) { ( result ) in
+        ModuleAPIHandler( module : ZCRMModuleDelegate( apiName : apiName ), cacheFlavour : .urlVsResponse, requestHeaders : requestHeaders ).getAllFields( modifiedSince : nil ) { ( result ) in
             do
             {
                 let resp = try result.resolve()
@@ -1700,7 +2172,7 @@ internal class EntityAPIHandler : CommonAPIHandler
     {
         if self.subformModuleFields[ apiName ] == nil
         {
-            ModuleAPIHandler( module : ZCRMModuleDelegate( apiName : apiName ), cacheFlavour : .urlVsResponse ).getAllFields( modifiedSince : nil ) { ( result ) in
+            ModuleAPIHandler( module : ZCRMModuleDelegate( apiName : apiName ), cacheFlavour : .urlVsResponse, requestHeaders : requestHeaders ).getAllFields( modifiedSince : nil ) { ( result ) in
                 do
                 {
                     let resp = try result.resolve()
@@ -1795,8 +2267,8 @@ internal class EntityAPIHandler : CommonAPIHandler
             communicationPreferencesList.append( CommunicationPreferences.phone )
         }
         let dataProcessingDetails : ZCRMDataProcessBasisDetails = ZCRMDataProcessBasisDetails( id : try details.getInt64( key : ResponseJSONKeys.id ), dataProcessingBasis : try details.getString( key : ResponseJSONKeys.dataProcessingBasis ), communicationPreferences : communicationPreferencesList )
-        if let consent = details.optString( key : ResponseJSONKeys.consentThrough ), let consentThrough = try dataProcessingDetails.parseConsentFromAPI(consentAPIString: consent) {
-            dataProcessingDetails.consentThrough = consentThrough
+        if let consent = details.optString( key : ResponseJSONKeys.consentThrough ) {
+            dataProcessingDetails.consentThrough = consent
         }
         dataProcessingDetails.consentDate = details.optString( key : ResponseJSONKeys.consentDate )
         dataProcessingDetails.modifiedTime = try details.getString( key : ResponseJSONKeys.modifiedTime )
@@ -1827,34 +2299,36 @@ internal class EntityAPIHandler : CommonAPIHandler
     
     private func getZCRMInventoryLineItem(lineItemDetails : [String:Any]) throws -> ZCRMInventoryLineItem
     {
-        let productDetails : [ String : Any ] = try lineItemDetails.getDictionary( key : ResponseJSONKeys.product )
-        let product : ZCRMRecord = ZCRMRecord(moduleAPIName: ResponseJSONKeys.products)
-        product.id = try productDetails.getInt64( key : ResponseJSONKeys.id )
-        product.label = try productDetails.getString( key : ResponseJSONKeys.name )
+        let productDetails : [ String : Any ] = try lineItemDetails.optDictionary( key : ResponseJSONKeys.product ) ?? lineItemDetails.getDictionary(key: ResponseJSONKeys.productName)
+
         let lineItem : ZCRMInventoryLineItem = ZCRMInventoryLineItem( id : try lineItemDetails.getInt64( key : ResponseJSONKeys.id ) )
-        lineItem.product = product
-        if let productCode = lineItemDetails.optString(key: ResponseJSONKeys.productCode)
-        {
-            lineItem.product.data.updateValue( productCode, forKey: ResponseJSONKeys.productCode)
-        }
-        lineItem.description = lineItemDetails.optString(key: ResponseJSONKeys.productDescription)
-        lineItem.quantity = try lineItemDetails.getDouble( key : ResponseJSONKeys.quantity )
-        lineItem.listPrice = try lineItemDetails.getDouble( key : ResponseJSONKeys.listPrice )
-        lineItem.total = try lineItemDetails.getDouble( key : ResponseJSONKeys.total )
+        lineItem.product = try EntityAPIHandler.getRecordDelegate(moduleAPIName: ResponseJSONKeys.products, recordJSON: productDetails)
         lineItem.discount = try lineItemDetails.getDouble( key : ResponseJSONKeys.Discount )
-        lineItem.totalAfterDiscount = try lineItemDetails.getDouble( key : ResponseJSONKeys.totalAfterDiscount )
         lineItem.tax = try lineItemDetails.getDouble( key : ResponseJSONKeys.tax )
-        if lineItemDetails.hasValue(forKey: ResponseJSONKeys.lineTax)
+        
+        lineItem.quantity = try lineItemDetails.optDouble( key : ResponseJSONKeys.quantity ) ?? lineItemDetails.getDouble( key : ResponseJSONKeys._quantity )
+        lineItem.listPrice = try lineItemDetails.optDouble( key : ResponseJSONKeys.listPrice ) ?? lineItemDetails.getDouble( key : ResponseJSONKeys._listPrice )
+        lineItem.total = try lineItemDetails.optDouble( key : ResponseJSONKeys.total ) ?? lineItemDetails.getDouble( key : ResponseJSONKeys._total )
+        lineItem.totalAfterDiscount = try lineItemDetails.optDouble( key : ResponseJSONKeys.totalAfterDiscount ) ?? lineItemDetails.getDouble( key : ResponseJSONKeys._totalAfterDiscount )
+        lineItem.netTotal = try lineItemDetails.optDouble( key : ResponseJSONKeys.netTotal ) ?? lineItemDetails.getDouble( key : ResponseJSONKeys._netTotal )
+        lineItem.unitPrice = lineItemDetails.optDouble(key: ResponseJSONKeys.unitPrice)
+        if lineItemDetails.hasValue(forKey: ResponseJSONKeys.lineTax) || lineItemDetails.hasValue(forKey: ResponseJSONKeys._lineTax)
         {
-            let allLineTaxes : [ [ String : Any ] ] = try lineItemDetails.getArrayOfDictionaries( key : ResponseJSONKeys.lineTax )
+            let allLineTaxes : [ [ String : Any ] ] = try lineItemDetails.optArrayOfDictionaries( key : ResponseJSONKeys.lineTax ) ?? lineItemDetails.getArrayOfDictionaries( key : ResponseJSONKeys._lineTax )
             for lineTaxDetails in allLineTaxes
             {
                 lineItem.addLineTax( tax : try self.getZCRMLineTax( taxDetails : lineTaxDetails ) )
             }
         }
-        lineItem.netTotal = try lineItemDetails.getDouble( key : ResponseJSONKeys.netTotal )
-        lineItem.priceBookId = lineItemDetails.optInt64( key: ResponseJSONKeys.priceBookId )
-        lineItem.quantityInStock = try lineItemDetails.getDouble( key: ResponseJSONKeys.quantityInStock )
+
+        if let productCode = lineItemDetails.optString(key: ResponseJSONKeys.productCode)
+        {
+            lineItem.product.data.updateValue( productCode, forKey: ResponseJSONKeys.productCode)
+        }
+        lineItem.description = lineItemDetails.optString(key: ResponseJSONKeys.productDescription) ?? lineItemDetails.optString(key: ResponseJSONKeys.description)
+
+        lineItem.priceBookId = try lineItemDetails.optInt64( key: ResponseJSONKeys.priceBookId ) ?? lineItemDetails.optDictionary(key: ResponseJSONKeys.priceBookName)?.getInt64(key: ResponseJSONKeys.id)
+        lineItem.quantityInStock = lineItemDetails.optDouble( key: ResponseJSONKeys.quantityInStock )
         return lineItem
     }
     
@@ -1889,7 +2363,7 @@ internal class EntityAPIHandler : CommonAPIHandler
             ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : Event type seems to be invalid, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.inValidError( code : ErrorCode.invalidData, message : "Event type seems to be invalid", details : nil )
         }
-        var eventParticipant : EventParticipant!
+        var eventParticipant : EventParticipant
         switch eventType
         {
             case .email :
@@ -2004,6 +2478,10 @@ internal extension EntityAPIHandler
         static let participants = "Participants"
         static let pricingDetails = "Pricing_Details"
         static let productDetails = "Product_Details"
+        static let invoicedItems = "Invoiced_Items"
+        static let quotedItems = "Quoted_Items"
+        static let orderedItems = "Ordered_Items"
+        static let purchaseItems = "Purchase_Items"
         static let value = "value"
         static let sendNotification = "$send_notification"
         
@@ -2031,18 +2509,28 @@ internal extension EntityAPIHandler
         static let invited = "invited"
         
         static let product = "product"
+        static let productName = "Product_Name"
         static let products = "Products"
         static let delete = "delete"
         static let productDescription = "product_description"
+        static let description = "Description"
         static let listPrice = "list_price"
+        static let _listPrice = "List_Price"
         static let quantity = "quantity"
+        static let _quantity = "Quantity"
         static let lineTax = "line_tax"
+        static let _lineTax = "Line_Tax"
         static let total = "total"
+        static let _total = "Total"
         static let totalAfterDiscount = "total_after_discount"
+        static let _totalAfterDiscount = "Total_After_Discount"
         static let netTotal = "net_total"
+        static let _netTotal = "Net_Total"
         static let priceBookId = "book"
+        static let priceBookName = "Price_Book_Name"
         static let quantityInStock = "quantity_in_stock"
         static let productCode = "Product_Code"
+        static let unitPrice = "unit_price"
         
         static let dollarLineTax = "$line_tax"
         static let handler = "Handler"
@@ -2063,6 +2551,7 @@ internal extension EntityAPIHandler
         static let source = "source"
         static let fieldHistory = "field_history"
         static let fieldLabel = "field_label"
+        static let dataType = "data_type"
         static let old = "old"
         static let new = "new"
         static let rule = "rule"
@@ -2105,6 +2594,40 @@ internal extension EntityAPIHandler
         static let fullName = "full_name"
         static let zuid = "zuid"
         static let entityName = "entity_name"
+        
+        static let processInfo = "process_info"
+        static let currentState = "field_value"
+        static let isContinuous = "is_continuous"
+        static let escalation = "escalation"
+        static let days = "days"
+        static let transitions = "transitions"
+        static let data = "data"
+        static let percentPartialSave = "percent_partial_save"
+        static let criteriaMatched = "criteria_matched"
+        static let fields = "fields"
+        static let displayLabel = "display_label"
+        static let isMandatory = "mandatory"
+        static let pickListValues = "pick_list_values"
+        static let displayValue = "display_value"
+        static let sequenceNumber = "sequence_number"
+        static let maps = "maps"
+        static let actualValue = "actual_value"
+        static let relatedDetails = "related_details"
+        static let apiName = "api_name"
+        static let criteria = "criteria"
+        static let field = "field"
+        static let comparator = "comparator"
+        static let systemMandatory = "system_mandatory"
+        static let transitionSequence = "transition_sequence"
+        static let criteriaMessage = "criteria_message"
+        static let nextTransitions = "next_transitions"
+        static let transitionId = "transition_id"
+        static let executionTime = "execution_time"
+        static let nextFieldValue = "next_field_value"
+        
+        static let fileId = "$file_id"
+        static let checkLists = "CheckLists"
+        static let items = "items"
     }
     
     struct URLPathConstants {
@@ -2121,6 +2644,7 @@ internal extension EntityAPIHandler
         static let addTags = "add_tags"
         static let removeTags = "remove_tags"
         static let share = "share"
+        static let blueprint = "blueprint"
     }
 }
 
@@ -2131,4 +2655,6 @@ extension RequestParamKeys
     static let tagNames = "tag_names"
     static let overWrite = "over_write"
     static let filter = "filter"
+    static let includeInnerDetails = "include_inner_details"
+    static let fieldHistoryDataType = "field_history.data_type"
 }

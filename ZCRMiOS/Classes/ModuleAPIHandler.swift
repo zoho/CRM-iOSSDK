@@ -151,11 +151,13 @@ internal class ModuleAPIHandler : CommonAPIHandler
 {
     internal let module : ZCRMModuleDelegate
     internal let cache : CacheFlavour
+    internal var requestHeaders : [ String : String ]?
     
-    init( module : ZCRMModuleDelegate, cacheFlavour : CacheFlavour )
+    init( module : ZCRMModuleDelegate, cacheFlavour : CacheFlavour, requestHeaders : [ String : String ]? = nil )
     {
         self.module = module
         self.cache = cacheFlavour
+        self.requestHeaders = requestHeaders
     }
 	
     override func setModuleName() {
@@ -165,7 +167,10 @@ internal class ModuleAPIHandler : CommonAPIHandler
 	// MARK: - Handler functions
     internal func getAllLayouts( modifiedSince : String?, completion: @escaping( Result.DataResponse< [ ZCRMLayout ], BulkAPIResponse > ) -> () )
     {
-        setIsCacheable(true)
+        if requestHeaders == nil || !( requestHeaders ?? [:] ).hasValue(forKey: X_CRM_ORG)
+        {
+            setIsCacheable(true)
+        }
 		setJSONRootKey( key : JSONRootKey.LAYOUTS )
         var layouts : [ZCRMLayout] = [ZCRMLayout]()
 		setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.layouts )")
@@ -175,7 +180,14 @@ internal class ModuleAPIHandler : CommonAPIHandler
 		{ 
 			addRequestHeader( header : RequestParamKeys.ifModifiedSince , value : modifiedSince )
 		}
-		let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+        if let requestHeaders = requestHeaders
+        {
+            for ( key, value ) in requestHeaders
+            {
+                addRequestHeader(header: key, value: value)
+            }
+        }
+        let request : APIRequest = APIRequest( handler : self, cacheFlavour : getIsCacheable() ? self.cache : .noCache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
 		
         request.getBulkAPIResponse { ( resultType ) in
@@ -204,12 +216,22 @@ internal class ModuleAPIHandler : CommonAPIHandler
 
     internal func getLayout( layoutId : Int64, completion: @escaping( Result.DataResponse< ZCRMLayout, APIResponse > ) -> () )
     {
-        setIsCacheable(true)
+        if requestHeaders == nil || !( requestHeaders ?? [:] ).hasValue(forKey: X_CRM_ORG)
+        {
+            setIsCacheable(true)
+        }
         setJSONRootKey( key : JSONRootKey.LAYOUTS )
 		setUrlPath(urlPath:  "\( URLPathConstants.settings )/\( URLPathConstants.layouts )/\(layoutId)")
 		setRequestMethod(requestMethod: .get )
 		addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
-		let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+        if let requestHeaders = requestHeaders
+        {
+            for ( key, value ) in requestHeaders
+            {
+                addRequestHeader(header: key, value: value)
+            }
+        }
+        let request : APIRequest = APIRequest( handler : self, cacheFlavour : getIsCacheable() ? self.cache : .noCache )
 		ZCRMLogger.logDebug(message: "Request : \(request.toString())")
 		
         request.getAPIResponse { ( resultType ) in
@@ -230,7 +252,10 @@ internal class ModuleAPIHandler : CommonAPIHandler
     
     internal func getAllFields( modifiedSince : String?, completion: @escaping( Result.DataResponse< [ ZCRMField ], BulkAPIResponse > ) -> () )
     {
-        setIsCacheable( true )
+        if requestHeaders == nil || !( requestHeaders ?? [:] ).hasValue(forKey: X_CRM_ORG)
+        {
+            setIsCacheable( true )
+        }
         setJSONRootKey( key : JSONRootKey.FIELDS )
         var fields : [ZCRMField] = [ZCRMField]()
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.fields )")
@@ -240,7 +265,14 @@ internal class ModuleAPIHandler : CommonAPIHandler
         {
             addRequestHeader( header : RequestParamKeys.ifModifiedSince , value : modifiedSince )
         }
-		let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+        if let requestHeaders = requestHeaders
+        {
+            for ( key, value ) in requestHeaders
+            {
+                addRequestHeader(header: key, value: value)
+            }
+        }
+        let request : APIRequest = APIRequest( handler : self, cacheFlavour : getIsCacheable() ? self.cache : .noCache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
 		
         request.getBulkAPIResponse { ( resultType ) in
@@ -252,7 +284,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
                     fields = try self.getAllFields( allFieldsDetails : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )
                     if fields.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -261,7 +293,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 completion( .success( fields, bulkResponse ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -269,12 +301,22 @@ internal class ModuleAPIHandler : CommonAPIHandler
 
     internal func getField( fieldId : Int64, completion: @escaping( Result.DataResponse< ZCRMField, APIResponse > ) -> () )
     {
-        setIsCacheable(true)
+        if requestHeaders == nil || !( requestHeaders ?? [:] ).hasValue(forKey: X_CRM_ORG)
+        {
+            setIsCacheable(true)
+        }
         setJSONRootKey( key : JSONRootKey.FIELDS )
         setUrlPath( urlPath : "\( URLPathConstants.settings )/\( URLPathConstants.fields )/\( fieldId )" )
         setRequestMethod( requestMethod : .get )
         addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
-        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+        if let requestHeaders = requestHeaders
+        {
+            for ( key, value ) in requestHeaders
+            {
+                addRequestHeader(header: key, value: value)
+            }
+        }
+        let request : APIRequest = APIRequest( handler : self, cacheFlavour : getIsCacheable() ? self.cache : .noCache)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
@@ -295,7 +337,10 @@ internal class ModuleAPIHandler : CommonAPIHandler
 
     internal func getAllCustomViews( modifiedSince : String?, completion: @escaping( Result.DataResponse< [ ZCRMCustomView ], BulkAPIResponse > ) -> () )
     {
-        setIsCacheable(true)
+        if requestHeaders == nil || !( requestHeaders ?? [:] ).hasValue(forKey: X_CRM_ORG)
+        {
+            setIsCacheable(true)
+        }
         setJSONRootKey( key : JSONRootKey.CUSTOM_VIEWS )
 		setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.customViews )")
 		setRequestMethod(requestMethod: .get )
@@ -304,7 +349,14 @@ internal class ModuleAPIHandler : CommonAPIHandler
         {
             addRequestHeader( header : RequestParamKeys.ifModifiedSince , value : modifiedSince )
         }
-		let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+        if let requestHeaders = requestHeaders
+        {
+            for ( key, value ) in requestHeaders
+            {
+                addRequestHeader(header: key, value: value)
+            }
+        }
+        let request : APIRequest = APIRequest( handler : self, cacheFlavour : getIsCacheable() ? self.cache : .noCache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
 		
         request.getBulkAPIResponse { ( resultType ) in
@@ -338,12 +390,22 @@ internal class ModuleAPIHandler : CommonAPIHandler
 
     internal func getRelatedList( id : Int64, completion: @escaping( Result.DataResponse< ZCRMModuleRelation, APIResponse > ) -> () )
     {
-        setIsCacheable(true)
+        if requestHeaders == nil || !( requestHeaders ?? [:] ).hasValue(forKey: X_CRM_ORG)
+        {
+            setIsCacheable(true)
+        }
         setJSONRootKey( key : JSONRootKey.RELATED_LISTS )
         setUrlPath( urlPath : "\( URLPathConstants.settings )/\( URLPathConstants.relatedLists )/\(id)" )
         setRequestMethod( requestMethod : .get )
         addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
-        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+        if let requestHeaders = requestHeaders
+        {
+            for ( key, value ) in requestHeaders
+            {
+                addRequestHeader(header: key, value: value)
+            }
+        }
+        let request : APIRequest = APIRequest( handler : self, cacheFlavour : getIsCacheable() ? self.cache : .noCache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
@@ -363,13 +425,23 @@ internal class ModuleAPIHandler : CommonAPIHandler
 
     internal func getAllRelatedLists( completion: @escaping( Result.DataResponse< [ ZCRMModuleRelation ], BulkAPIResponse > ) -> () )
     {
-        setIsCacheable(true)
+        if requestHeaders == nil || !( requestHeaders ?? [:] ).hasValue(forKey: X_CRM_ORG)
+        {
+            setIsCacheable(true)
+        }
         setJSONRootKey( key : JSONRootKey.RELATED_LISTS )
         var relatedLists : [ZCRMModuleRelation] = [ZCRMModuleRelation]()
         setUrlPath( urlPath : "\( URLPathConstants.settings )/\( URLPathConstants.relatedLists )" )
         setRequestMethod( requestMethod : .get )
         addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
-        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+        if let requestHeaders = requestHeaders
+        {
+            for ( key, value ) in requestHeaders
+            {
+                addRequestHeader(header: key, value: value)
+            }
+        }
+        let request : APIRequest = APIRequest( handler : self, cacheFlavour : getIsCacheable() ? self.cache : .noCache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getBulkAPIResponse { ( resultType ) in
@@ -398,12 +470,22 @@ internal class ModuleAPIHandler : CommonAPIHandler
 
     internal func getCustomView( cvId : Int64, completion: @escaping( Result.DataResponse< ZCRMCustomView, APIResponse > ) -> () )
     {
-        setIsCacheable(true)
+        if requestHeaders == nil || !( requestHeaders ?? [:] ).hasValue(forKey: X_CRM_ORG)
+        {
+            setIsCacheable(true)
+        }
         setJSONRootKey( key :  JSONRootKey.CUSTOM_VIEWS )
 		setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.customViews )/\(cvId)" )
 		setRequestMethod(requestMethod: .get )
 		addRequestParam( param : RequestParamKeys.module, value : self.module.apiName )
-		let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+        if let requestHeaders = requestHeaders
+        {
+            for ( key, value ) in requestHeaders
+            {
+                addRequestHeader(header: key, value: value)
+            }
+        }
+        let request : APIRequest = APIRequest( handler : self, cacheFlavour : getIsCacheable() ? self.cache : .noCache )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
@@ -473,6 +555,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
 	internal func getZCRMCustomView(cvDetails: [String:Any]) throws -> ZCRMCustomView
     {
         let customView : ZCRMCustomView = ZCRMCustomView( name : try cvDetails.getString( key : ResponseJSONKeys.name ), moduleAPIName : self.module.apiName )
+        customView.data.updateValue( customView.name, forKey: ResponseJSONKeys.name )
         customView.id = try cvDetails.getInt64( key : ResponseJSONKeys.id )
         if( cvDetails.hasValue(forKey: ResponseJSONKeys.systemName))
         {
@@ -497,6 +580,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         if cvDetails.hasValue( forKey : ResponseJSONKeys.fields ), let fields = try cvDetails.getArray( key : ResponseJSONKeys.fields ) as? [ String ]
         {
             customView.fields = fields
+            customView.data.updateValue( customView.fields, forKey: ResponseJSONKeys.fields )
         }
         else if cvDetails.hasValue( forKey : ResponseJSONKeys.fields ), let fields = try cvDetails.getArrayOfDictionaries( key : ResponseJSONKeys.fields ) as? [ [ String : String ] ]
         {
@@ -504,10 +588,18 @@ internal class ModuleAPIHandler : CommonAPIHandler
             {
                 customView.fields.append( try field.getString( key: ResponseJSONKeys.apiName ) )
             }
+            customView.data.updateValue( customView.fields, forKey: ResponseJSONKeys.fields )
         }
         if(cvDetails.hasValue(forKey: ResponseJSONKeys.sortBy))
         {
-            customView.sortByCol = cvDetails.optString(key: ResponseJSONKeys.sortBy)
+            if let sortByCol = cvDetails.optString(key: ResponseJSONKeys.sortBy)
+            {
+                customView.sortByCol = sortByCol
+            }
+            else
+            {
+                customView.sortByCol =  try cvDetails.getDictionary(key: ResponseJSONKeys.sortBy).optString(key: ResponseJSONKeys.apiName)
+            }
         }
         if let sortOrder = cvDetails.optString(key: ResponseJSONKeys.sortOrder).map({ SortOrder(rawValue: $0) })
         {
@@ -523,7 +615,13 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
         if cvDetails.hasValue(forKey: ResponseJSONKeys.sharedType)
         {
-            customView.sharedType = try cvDetails.getString(key: ResponseJSONKeys.sharedType)
+            customView.sharedType = try SharedUsersCategory.getType( cvDetails.getString(key: ResponseJSONKeys.sharedType) )
+            customView.data.updateValue( customView.sharedType, forKey: ResponseJSONKeys.accessType )
+        }
+        else if cvDetails.hasValue(forKey: ResponseJSONKeys.accessType)
+        {
+            customView.sharedType = try SharedUsersCategory.getType( cvDetails.getString(key: ResponseJSONKeys.accessType) )
+            customView.data.updateValue( customView.sharedType, forKey: ResponseJSONKeys.accessType )
         }
         if cvDetails.hasValue(forKey: ResponseJSONKeys.criteria)
         {
@@ -541,11 +639,39 @@ internal class ModuleAPIHandler : CommonAPIHandler
                     customView.criteria = criteria
                 }
             }
+            customView.data.updateValue( customView.criteria, forKey: ResponseJSONKeys.criteria )
         }
-        if cvDetails.hasValue(forKey: ResponseJSONKeys.sharedDetails)
+        if cvDetails.hasValue(forKey: ResponseJSONKeys.sharedDetails) || cvDetails.hasValue(forKey: ResponseJSONKeys.sharedTo)
         {
-            customView.sharedDetails = try cvDetails.getString(key: ResponseJSONKeys.sharedDetails)
+            var sharedDetailsArray : [[ String : Any ]] = []
+            if let sharedDetails = cvDetails.optArrayOfDictionaries(key: ResponseJSONKeys.sharedDetails)
+            {
+                sharedDetailsArray = sharedDetails
+            }
+            else
+            {
+                sharedDetailsArray = try cvDetails.getArrayOfDictionaries(key: ResponseJSONKeys.sharedTo)
+            }
+            customView.sharedDetails = []
+            for sharedDetailJSON in sharedDetailsArray
+            {
+                var sharedDetail = try ZCRMCustomView.SharedDetails(id: sharedDetailJSON.getInt64(key: ResponseJSONKeys.id), name: sharedDetailJSON.getString(key: ResponseJSONKeys.name), type: SelectedUsersType.getType( sharedDetailJSON.getString(key: ResponseJSONKeys.type)))
+                sharedDetail.subordinates = sharedDetailJSON.optBoolean(key: ResponseJSONKeys.subordinates)
+                customView.sharedDetails?.append( sharedDetail  )
+            }
+            customView.data.updateValue( customView.sharedDetails, forKey: ResponseJSONKeys.sharedTo )
         }
+        if cvDetails.hasValue(forKey: ResponseJSONKeys.createdBy)
+        {
+            customView.createdBy = try getUserDelegate(userJSON: cvDetails.getDictionary(key: ResponseJSONKeys.createdBy))
+        }
+        if cvDetails.hasValue(forKey: ResponseJSONKeys.modifiedBy)
+        {
+            customView.modifiedBy = try getUserDelegate(userJSON: cvDetails.getDictionary(key: ResponseJSONKeys.modifiedBy))
+        }
+        customView.modifiedTime = cvDetails.optString(key: ResponseJSONKeys.modifiedTime)
+        customView.lastAccessedTime = cvDetails.optString(key: ResponseJSONKeys.lastAccessedTime)
+        customView.upsertJSON = [:]
         return customView
     }
     
@@ -610,7 +736,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
     
     internal func getZCRMSection(sectionDetails : [String:Any]) throws -> ZCRMSection
     {
-        let section : ZCRMSection = ZCRMSection( apiName : self.module.apiName )
+        let section : ZCRMSection = ZCRMSection( apiName : try sectionDetails.getString(key: ResponseJSONKeys.apiName) )
         section.name = try sectionDetails.getString( key : ResponseJSONKeys.name )
         section.displayName = try sectionDetails.getString( key : ResponseJSONKeys.displayLabel )
         section.columnCount = try sectionDetails.getInt( key : ResponseJSONKeys.columnCount )
@@ -882,6 +1008,7 @@ internal extension ModuleAPIHandler
         static let createdTime = "created_time"
         static let modifiedBy = "modified_by"
         static let modifiedTime = "modified_time"
+        static let lastAccessedTime = "last_accessed_time"
         static let profiles = "profiles"
         static let sections = "sections"
         
@@ -931,7 +1058,10 @@ internal extension ModuleAPIHandler
         static let criteria = "criteria"
         
         static let sharedType = "shared_type"
+        static let accessType = "access_type"
         static let sharedDetails = "shared_details"
+        static let sharedTo = "shared_to"
+        static let subordinates = "subordinates"
         static let href = "href"
         
         static let reorderRows = "reorder_rows"
