@@ -23,7 +23,7 @@ open class ZCRMDataProcessBasisDetails : ZCRMEntity
     public var consentDate : String?
     public var consentRemarks : String?
     public var consentEndsOn : String?
-    public internal( set ) var consentThrough : ConsentThrough.Readable?
+    public var consentThrough : String?
     
     public init( dataProcessingBasis : String) {
         self.dataProcessingBasis = dataProcessingBasis
@@ -34,20 +34,6 @@ open class ZCRMDataProcessBasisDetails : ZCRMEntity
         self.id = id
         self.dataProcessingBasis = dataProcessingBasis
         self.communicationPreferences = communicationPreferences
-    }
-    
-    public func setConsentThrough(_ consentThrough : ConsentThrough.Writable)
-    {
-        self.consentThrough = consentThrough.toReadable()
-    }
-    
-    internal func parseConsentFromAPI(consentAPIString : String) throws -> ConsentThrough.Readable?
-    {
-        guard let consent = ConsentThrough.Readable(rawValue: consentAPIString) else {
-            ZCRMLogger.logError(message: "New consent type encountered in API - \( consentAPIString )")
-            throw ZCRMError.sdkError(code: ErrorCode.unhandled, message: "New consent type encountered in API - \( consentAPIString )", details: nil)
-        }
-        return consent
     }
 }
 

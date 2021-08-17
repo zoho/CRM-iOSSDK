@@ -83,6 +83,20 @@ open class ZCRMOrgDelegate : ZCRMEntity
         }
     }
     
+    public func getUsers( withParams : GETRequestParams, requestHeaders : [ String : String ],completion : @escaping ( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> Void)
+    {
+        UserAPIHandler().getUsers( ofType : .allUsers, withParams, requestHeaders: requestHeaders ) { result in
+            completion( result )
+        }
+    }
+    
+    public func getUsers( ofType : UserTypes, withParams : GETRequestParams, requestHeaders : [ String : String ], completion : @escaping ( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> Void)
+    {
+        UserAPIHandler().getUsers( ofType : ofType, withParams, requestHeaders: requestHeaders ) { result in
+            completion( result )
+        }
+    }
+    
     @available(*, deprecated, message: "Use getUsers( withParams : GETRequestParams, completion :) method instead")
     public func getUsers( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {

@@ -95,7 +95,7 @@ public class ZCRMSDKUtil
     
     public static func getModules( completion : @escaping( Result.DataResponse< [ ZCRMModule ], BulkAPIResponse > ) -> () )
     {
-        MetaDataAPIHandler().getAllModules( modifiedSince : nil ) { ( result ) in
+        MetaDataAPIHandler().getAllModules() { ( result ) in
             completion( result )
         }
     }
@@ -106,6 +106,7 @@ public class ZCRMSDKUtil
             completion( result )
         }
     }
+
     
     public static func getCurrentUser( completion : @escaping( Result.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
@@ -212,14 +213,35 @@ public class ZCRMSDKUtil
     @available(*, deprecated, message: "Use the method makeRequest with param requestBody instead" )
     public static func makeRequest(withURL url : URL, _ requestMethod : RequestMethod , headers : [ String : String ]?, completion : @escaping ( Result.DataURLResponse<Data, HTTPURLResponse> ) -> Void )
     {
-        APIRequest(absoluteURL: url, requestMethod: requestMethod).initialiseRequest( headers, nil ) { result in
+        APIRequest(absoluteURL: url, requestMethod: requestMethod, includeCommonReqHeaders: true).initialiseRequest( headers, nil ) { result in
             completion( result )
         }
     }
     
+    /**
+     To make a direct request to the server with URL and requestMethod along with required headers and requestBody
+     
+     - Parameters:
+         - url : URL of the request
+         - requestMethod : Request method
+         - headers : Headers to be included in the request
+         - requestBody : Request body to be included
+         - includeCommonReqHeaders : This boolean will decide whether to include the common headers in the request or not
+        - completion :
+            - success : Returns raw data along with http url response
+            - failure : ZCRMError
+     */
+    public static func makeRequest(withURL url : URL, _ requestMethod : RequestMethod , headers : [ String : String ]?, requestBody : [ String : Any ]?, includeCommonReqHeaders : Bool, completion : @escaping ( Result.DataURLResponse<Data, HTTPURLResponse> ) -> Void )
+    {
+        APIRequest(absoluteURL: url, requestMethod: requestMethod, includeCommonReqHeaders: includeCommonReqHeaders).initialiseRequest( headers, requestBody ) { result in
+            completion( result )
+        }
+    }
+    
+    @available( *, deprecated, message: "Use makeRequest method with includeCommonHeader param" )
     public static func makeRequest(withURL url : URL, _ requestMethod : RequestMethod , headers : [ String : String ]?, requestBody : [ String : Any ]?, completion : @escaping ( Result.DataURLResponse<Data, HTTPURLResponse> ) -> Void )
     {
-        APIRequest(absoluteURL: url, requestMethod: requestMethod).initialiseRequest( headers, requestBody ) { result in
+        APIRequest(absoluteURL: url, requestMethod: requestMethod, includeCommonReqHeaders: true).initialiseRequest( headers, requestBody ) { result in
             completion( result )
         }
     }
@@ -253,5 +275,107 @@ public class ZCRMSDKUtil
         OrgAPIHandler().getZCRMTerritory( byId : id ) { result in
             completion( result )
         }
+    }
+    
+    /**
+      To download a file from Zoho File System by its Id
+     
+     - Parameters:
+        - id : Id of the file to be downloaded
+        - completion :
+            - Success : Returns a FileAPIResponse object which includes the tempLocalUrl and the fileName
+            - Failure : ZCRMError
+     */
+    public static func downloadFile( byId id : String, completion : @escaping ( Result.Response< FileAPIResponse > ) -> () )
+    {
+        OrgAPIHandler().downloadFile( byId: id, completion: completion )
+    }
+    
+    /**
+      To download a file from Zoho File System by its ID with progress percentage
+     
+     - Parameters:
+        - id : Id of the file to be downloaded
+        - fileDownloadDelegate : FileDownloadDelegate object which helps to track the progress, completion and error of the download request
+     */
+    public static func downloadFile( byId id : String, fileDownloadDelegate : ZCRMFileDownloadDelegate )
+    {
+        OrgAPIHandler().downloadFile( byId: id, fileDownloadDelegate: fileDownloadDelegate )
+    }
+    
+    /**
+      To upload a File to the Zoho File System
+     
+     ```
+     The size of the image must be less than or equal to 2 MB
+     ```
+     
+     - Parameters:
+        - filePath : The absolute path of the photo to be uploaded
+        - inline : To upload the file as an inline image this param must be true
+        - completion :
+            - Success : Returns the Id of the file uploaded
+            - Failure : ZCRMError
+     */
+    public static func uploadFile( filePath : String, inline : Bool, completion : @escaping( Result.DataResponse< String, APIResponse > ) -> () )
+    {
+        OrgAPIHandler().uploadFile(filePath: filePath, fileName: nil, fileData: nil, inline: inline, completion: completion)
+    }
+    
+    /**
+      To upload a File to the Zoho File System
+     
+     ```
+     The size of the image must be less than or equal to 2 MB
+     ```
+     
+     - Parameters:
+        - fileName : Name of the image to be uploaded
+        - fileData : Data object of the image to be uploaded
+        - inline : To upload the file as an inline image this param must be true
+        - completion :
+            - Success : Returns the Id of the file uploaded
+            - Failure : ZCRMError
+     */
+    public static func uploadFile( fileName : String, fileData : Data, inline : Bool, completion : @escaping( Result.DataResponse< String, APIResponse > ) -> () )
+    {
+        OrgAPIHandler().uploadFile(filePath: nil, fileName: fileName, fileData: fileData, inline: inline, completion: completion)
+    }
+    
+    /**
+      To upload a File to the Zoho File System
+     
+     ```
+     The size of the image must be less than or equal to 2 MB
+     ```
+     
+     - Parameters:
+        - fileRefId : The reference Id of the upload request to identify the progress of the individual upload request
+        - filePath : The absolute path of the photo to be uploaded
+        - inline : To upload the file as an inline image this param must be true
+        - fileUploadDelegate : FileUploadDelegate object which helps to track the progress, completion and error of an upload request
+     */
+    public static func uploadFile( fileRefId : String, filePath : String, inline : Bool, fileUploadDelegate : ZCRMFileUploadDelegate )
+    {
+        OrgAPIHandler().uploadFile( fileRefId : fileRefId, filePath: filePath, fileName: nil, fileData: nil, inline: inline, fileUploadDelegate : fileUploadDelegate)
+    }
+    
+    /**
+      To upload a File to the Zoho File System
+     
+     ```
+     The size of the image must be less than or equal to 2 MB
+     ```
+     
+     - Parameters:
+        - fileRefId : The reference Id of the upload request to identify the progress of the individual upload request
+        - fileName : Name of the image to be uploaded
+        - fileData : Data object of the image to be uploaded
+        - inline : To upload the file as an inline image this param must be true
+        - fileUploadDelegate : FileUploadDelegate object which helps to track the progress, completion and error of an upload request
+     */
+    public static func uploadFile( fileRefId : String, fileName : String, fileData : Data, inline : Bool, fileUploadDelegate : ZCRMFileUploadDelegate )
+    {
+        OrgAPIHandler().uploadFile( fileRefId : fileRefId, filePath: nil, fileName: fileName, fileData: fileData, inline: inline, fileUploadDelegate: fileUploadDelegate)
     }
 }

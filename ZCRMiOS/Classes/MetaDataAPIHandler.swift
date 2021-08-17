@@ -8,7 +8,18 @@
 
 internal class MetaDataAPIHandler : CommonAPIHandler
 {
-    internal func getAllModules( modifiedSince : String?, completion: @escaping( Result.DataResponse< [ ZCRMModule ], BulkAPIResponse > ) -> () )
+    var requestHeaders : [ String : String ]?
+    
+    override init() {
+        super.init()
+    }
+    
+    init( requestHeaders : [ String : String ] )
+    {
+        self.requestHeaders = requestHeaders
+    }
+    
+    internal func getAllModules( modifiedSince : String? = nil, completion: @escaping( Result.DataResponse< [ ZCRMModule ], BulkAPIResponse > ) -> () )
     {
         var allModules : [ZCRMModule] = [ZCRMModule]()
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.modules )" )
@@ -16,6 +27,13 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         if ( modifiedSince.notNilandEmpty), let modifiedSince = modifiedSince
         {
             addRequestHeader(header: RequestParamKeys.ifModifiedSince , value: modifiedSince )
+        }
+        if let requestHeaders = requestHeaders
+        {
+            for ( key, value ) in requestHeaders
+            {
+                addRequestHeader(header: key, value: value)
+            }
         }
 		let request : APIRequest = APIRequest(handler : self ) 
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -48,10 +66,17 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         }
 	}
 
-    internal func getModule( apiName : String, completion: @escaping( Result.DataResponse< ZCRMModule, APIResponse > ) -> () )
+    internal func getModule( apiName : String,completion: @escaping( Result.DataResponse< ZCRMModule, APIResponse > ) -> () )
 	{
 		setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.modules )/\(apiName)" )
 		setRequestMethod(requestMethod: .get )
+        if let requestHeaders = requestHeaders
+        {
+            for ( key, value ) in requestHeaders
+            {
+                addRequestHeader(header: key, value: value)
+            }
+        }
 		let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
@@ -88,7 +113,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         module.isAPISupported = try moduleDetails.getBoolean( key : ResponseJSONKeys.apiSupported )
         module.isQuickCreateAvailable = try moduleDetails.getBoolean( key : ResponseJSONKeys.quickCreate )
         module.isScoringSupported = try moduleDetails.getBoolean( key : ResponseJSONKeys.scoringSupported )
-        module.sequenceNumber = try moduleDetails.getInt( key : ResponseJSONKeys.sequenceNumber )
+        module.sequenceNumber = moduleDetails.optInt( key : ResponseJSONKeys.sequenceNumber )
         module.businessCardFieldLimit = try moduleDetails.getInt( key : ResponseJSONKeys.businessCardFieldLimit )
         module.webLink = moduleDetails.optString(key: ResponseJSONKeys.webLink)
         if(moduleDetails.hasValue(forKey: ResponseJSONKeys.modifiedBy))
@@ -171,7 +196,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         {
             module.perPage = try moduleDetails.getInt( key : ResponseJSONKeys.perPage )
         }
-        module.filterStatus = try moduleDetails.getBoolean(key: ResponseJSONKeys.filterSupported)
+        module.isFilterSupported = try moduleDetails.getBoolean(key: ResponseJSONKeys.filterSupported)
         module.isFeedsRequired = try moduleDetails.getBoolean(key: ResponseJSONKeys.feedsRequired)
         if moduleDetails.hasValue(forKey: ResponseJSONKeys.emailTemplateSupported)
         {

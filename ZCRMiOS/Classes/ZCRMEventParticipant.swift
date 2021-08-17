@@ -10,7 +10,6 @@ import Foundation
 
 open class ZCRMEventParticipant : ZCRMEntity
 {
-    public var email : String?
     public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
     public var type : EventParticipantType
     public var isInvited : Bool = APIConstants.BOOL_MOCK
@@ -39,8 +38,7 @@ open class ZCRMEventParticipant : ZCRMEntity
 extension ZCRMEventParticipant : Hashable
 {
     public static func == (lhs: ZCRMEventParticipant, rhs: ZCRMEventParticipant) -> Bool {
-        let equals : Bool = lhs.email == rhs.email &&
-            lhs.id == rhs.id &&
+        let equals : Bool = lhs.id == rhs.id &&
             lhs.type == rhs.type &&
             lhs.isInvited == rhs.isInvited &&
             lhs.status == rhs.status &&

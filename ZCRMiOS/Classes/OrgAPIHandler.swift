@@ -37,7 +37,7 @@ internal class OrgAPIHandler : CommonAPIHandler
     
     internal func getCompanyDetails( _ id : Int64? = nil, completion : @escaping( Result.DataResponse< ZCRMCompanyInfo, APIResponse > ) -> () )
     {
-        setIsCacheable( true )
+        setIsForceCacheable( true )
         setJSONRootKey( key : JSONRootKey.ORG )
         setUrlPath(urlPath:  "\( URLPathConstants.org )" )
         setRequestMethod(requestMethod: .get)
@@ -195,6 +195,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                     let respData : [String:Any?] = respDataArr[0]
                     let variableJSON : [ String : Any ] = try respData.getDictionary( key : APIConstants.DETAILS )
                     let createdVariable : ZCRMVariable = try self.getZCRMVariable(variable: variable, variableJSON: variableJSON)
+                    createdVariable.isCreate = false
                     response.setData(data: createdVariable )
                     completion( .success( createdVariable, response ) )
                 }
@@ -1198,6 +1199,165 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
+    internal func uploadFile( filePath : String?, fileName : String?, fileData : Data?, inline : Bool, completion : @escaping ( Result.DataResponse< String, APIResponse > ) -> ())
+    {
+        do
+        {
+            try fileDetailCheck( filePath : filePath, fileData : fileData, maxFileSize: MaxFileSize.notesAttachment )
+        }
+        catch
+        {
+            ZCRMLogger.logError( message : "\( error )" )
+            completion( .failure( typeCastToZCRMError( error ) ) )
+            return
+        }
+        setJSONRootKey(key: JSONRootKey.DATA)
+        setUrlPath(urlPath: "\( URLPathConstants.files )")
+        setRequestMethod(requestMethod: .post)
+        if inline
+        {
+            addRequestParam(param: "\( RequestParamKeys.inline )", value: "\( inline )")
+        }
+        
+        let request = FileAPIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \( request.toString() )")
+        
+        if let filePath = filePath
+        {
+            request.uploadFile( filePath : filePath, entity : nil, completion: { result in
+                do
+                {
+                    switch result
+                    {
+                    case .success(let response) :
+                        let attachmentId : String = try self.getFileIdFromResponse( response )
+                        completion( .success( attachmentId, response ) )
+                    case .failure(let error) :
+                        ZCRMLogger.logError( message : "\( error )" )
+                        completion( .failure( typeCastToZCRMError( error ) ) )
+                    }
+                }
+                catch{
+                    ZCRMLogger.logError( message : "\( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            })
+        }
+        else  if let fileName = fileName, let fileData = fileData
+        {
+            request.uploadFile( fileName : fileName, entity : nil, fileData : fileData ) { result in
+                do
+                {
+                    switch result
+                    {
+                    case .success(let response) :
+                        let attachmentId : String = try self.getFileIdFromResponse( response )
+                        completion( .success( attachmentId, response ) )
+                    case .failure(let error) :
+                        ZCRMLogger.logError( message : "\( error )" )
+                        completion( .failure( typeCastToZCRMError( error ) ) )
+                    }
+                }
+                catch{
+                    ZCRMLogger.logError( message : "\( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+        }
+    }
+    
+    private func getFileIdFromResponse( _ response : APIResponse) throws -> String
+    {
+        let responseJSON = response.getResponseJSON()
+        let responseData = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+        if responseData.isEmpty
+        {
+            throw ZCRMError.processingError(code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details: nil)
+        }
+        let details = try responseData[0].getDictionary(key: APIConstants.DETAILS)
+        return try details.getString(key: ResponseJSONKeys.id)
+    }
+    
+    internal func uploadFile( fileRefId : String, filePath : String?, fileName : String?, fileData : Data?, inline : Bool, fileUploadDelegate : ZCRMFileUploadDelegate)
+    {
+        do
+        {
+            try fileDetailCheck( filePath : filePath, fileData : fileData, maxFileSize: MaxFileSize.notesAttachment )
+        }
+        catch
+        {
+            ZCRMLogger.logError( message : "\( error )" )
+            fileUploadDelegate.didFail(fileRefId: fileRefId, typeCastToZCRMError( error ))
+            return
+        }
+        setJSONRootKey(key: JSONRootKey.DATA)
+        setUrlPath(urlPath: "\( URLPathConstants.files )")
+        setRequestMethod(requestMethod: .post)
+        if inline
+        {
+            addRequestParam(param: "\( RequestParamKeys.inline )", value: "\( inline )")
+        }
+        
+        let request = FileAPIRequest(handler: self, fileUploadDelegate: fileUploadDelegate)
+        ZCRMLogger.logDebug(message: "Request : \( request.toString() )")
+        
+        var orgAPIHandler : OrgAPIHandler? = self
+        var fileUploadDelegate : ZCRMFileUploadDelegate? = fileUploadDelegate
+        request.uploadFile(fileRefId: fileRefId, filePath: filePath, fileName: fileName, fileData: fileData, entity: nil) { result, response in
+            if result
+            {
+                guard let response = response else {
+                    orgAPIHandler = nil
+                    return
+                }
+                do
+                {
+                    guard let attachmentId = try orgAPIHandler?.getFileIdFromResponse( response ) else { return }
+                    fileUploadDelegate?.getAttachmentId( attachmentId, fileRefId: fileRefId )
+                }
+                catch
+                {
+                    fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
+                }
+            }
+            orgAPIHandler = nil
+            fileUploadDelegate = nil
+        }
+    }
+    
+    internal func downloadFile(byId id : String, completion : @escaping ( Result.Response< FileAPIResponse > ) -> ())
+    {
+        setUrlPath(urlPath: "\( URLPathConstants.files )")
+        addRequestParam(param: "\( RequestParamKeys.id )", value: id)
+        setRequestMethod(requestMethod: .get)
+        
+        let request = FileAPIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \( request.toString() )")
+        
+        request.downloadFile() { result in
+            switch result
+            {
+            case .success(let fileAPIResponse) :
+                completion( .success( fileAPIResponse ) )
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "\( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func downloadFile(byId id : String, fileDownloadDelegate : ZCRMFileDownloadDelegate)
+    {
+        setUrlPath(urlPath: "\( URLPathConstants.files )")
+        addRequestParam(param: "\( RequestParamKeys.id )", value: id)
+        setRequestMethod(requestMethod: .get)
+        
+        let request = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate)
+        ZCRMLogger.logDebug(message: "Request : \( request.toString() )")
+        
+        request.downloadFile(fileRefId: id)
+    }
+    
     private func getZCRMTerritoriesFrom( _ responseJSON : [ [ String : Any ] ] ) throws -> [ ZCRMTerritory ]
     {
         var territories : [ ZCRMTerritory ] = []
@@ -1225,7 +1385,18 @@ internal class OrgAPIHandler : CommonAPIHandler
             let manager = try json.getDictionary(key: ResponseJSONKeys.manager)
             territory.manager = try getUserDelegate(userJSON: manager)
         }
-        territory.parentId = json.optInt64(key: ResponseJSONKeys.parentId)
+        if let parentId = json.optInt64(key: ResponseJSONKeys.parentId)
+        {
+            territory.parentId = parentId
+        }
+        else if let parentDetails = json.optDictionary(key: ResponseJSONKeys.reportingTo)
+        {
+            territory.parentId = try parentDetails.getInt64(key: ResponseJSONKeys.id)
+        }
+        if json.hasValue(forKey: ResponseJSONKeys.permissionType)
+        {
+            territory.permissionType = AccessPermission.getType( rawValue: try json.getString(key: ResponseJSONKeys.permissionType) )
+        }
         territory.description = json.optString(key: ResponseJSONKeys.description)
         
         if json.hasValue(forKey: ResponseJSONKeys.criteria)
@@ -1238,6 +1409,10 @@ internal class OrgAPIHandler : CommonAPIHandler
             {
                 territory.criteria = try CriteriaHandling.setCriteria(criteriaArray: json.getArray(key: ResponseJSONKeys.criteria))
             }
+        }
+        else if json.hasValue(forKey: ResponseJSONKeys.accountRuleCriteria)
+        {
+            territory.criteria = try CriteriaHandling.setCriteria(criteriaJSON: json.getDictionary(key: ResponseJSONKeys.accountRuleCriteria))
         }
         return territory
     }
@@ -1767,9 +1942,12 @@ extension OrgAPIHandler
 
         static let manager = "manager"
         static let parentId = "parent_id"
+        static let reportingTo = "reporting_to"
         static let criteria = "criteria"
         static let field = "field"
         static let comparator = "comparator"
+        static let accountRuleCriteria = "account_rule_criteria"
+        static let permissionType = "permission_type"
     }
     
     struct URLPathConstants {
@@ -1787,6 +1965,7 @@ extension OrgAPIHandler
         static let emails = "emails"
         static let actions = "actions"
         static let enable = "enable"
+        static let files = "files"
     }
 }
 
@@ -1794,4 +1973,5 @@ extension RequestParamKeys
 {
     static let group : String = "group"
     static let orgId = "orgid"
+    static let inline = "inline"
 }
