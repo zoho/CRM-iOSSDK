@@ -79,7 +79,7 @@ internal class UserAPIHandler : CommonAPIHandler
                     let usersList:[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if usersList.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -94,7 +94,7 @@ internal class UserAPIHandler : CommonAPIHandler
                 completion( .success( allUsers, bulkResponse ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -134,7 +134,7 @@ internal class UserAPIHandler : CommonAPIHandler
                     let usersList:[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if usersList.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -149,7 +149,7 @@ internal class UserAPIHandler : CommonAPIHandler
                 completion( .success( allUsers, bulkResponse ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -173,7 +173,7 @@ internal class UserAPIHandler : CommonAPIHandler
                     let profileList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if profileList.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -186,7 +186,7 @@ internal class UserAPIHandler : CommonAPIHandler
                 completion( .success( allProfiles, bulkResponse ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -210,7 +210,7 @@ internal class UserAPIHandler : CommonAPIHandler
                     let rolesList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if rolesList.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -223,7 +223,7 @@ internal class UserAPIHandler : CommonAPIHandler
                 completion( .success( allRoles, bulkResponse ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -294,7 +294,7 @@ internal class UserAPIHandler : CommonAPIHandler
                 completion( .success( user, response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -324,7 +324,7 @@ internal class UserAPIHandler : CommonAPIHandler
                 completion( .success( response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -344,7 +344,7 @@ internal class UserAPIHandler : CommonAPIHandler
                 completion( .success( response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -381,7 +381,7 @@ internal class UserAPIHandler : CommonAPIHandler
                     let userDetailsList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if userDetailsList.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -395,7 +395,7 @@ internal class UserAPIHandler : CommonAPIHandler
                 completion( .success( userList, bulkResponse ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -419,7 +419,7 @@ internal class UserAPIHandler : CommonAPIHandler
                 completion( .success( profile, response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -443,7 +443,7 @@ internal class UserAPIHandler : CommonAPIHandler
                 completion( .success( role, response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -743,13 +743,13 @@ internal class UserAPIHandler : CommonAPIHandler
                 {
                     guard let permissions = permissionDetails as? [ String ] else
                     {
-                        ZCRMLogger.logError(message: "Error Occurred : \(ErrorCode.typeCastError) : Section.Category.permissionsDetails - Expected type -> ARRAY< Int64 >, \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : Section.Category.permissionsDetails - Expected type -> ARRAY< Int64 >, \( APIConstants.DETAILS ) : -")
                         throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "Section.Category.permissionsDetails - Expected type -> ARRAY< Int64 >", details : nil )
                     }
                     let permissionIdsArray : [ Int64 ] = permissions.compactMap( { Int64( $0 ) } )
                     if permissionIdsArray.count != permissions.count
                     {
-                        ZCRMLogger.logError(message: "Error Occurred : \(ErrorCode.typeCastError) : Section.Category.permissionsDetails - Expected type -> Int64, \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : Section.Category.permissionsDetails - Expected type -> Int64, \( APIConstants.DETAILS ) : -")
                         throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "Section.Category.permissionsDetails - Expected type -> Int64", details : nil )
                     }
                     permissionIds = permissionIdsArray

@@ -317,166 +317,6 @@ open class ZCRMModuleDelegate : ZCRMEntity
             completion( result )
         }
     }
-    
-     /// Returns List of all deleted records of the module(BulkAPIResponse).
-     ///
-     /// - Returns: List of all deleted records of the module
-     /// - Throws: ZCRMSDKError if failed to get the records
-     @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, completion : ) instead" )
-     public func getDeletedRecords( completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
-     {
-         MassEntityAPIHandler( module : self ).getDeletedRecords(type: .all, params: ZCRMQuery.getRequestParams ) { ( result ) in
-             completion( result )
-         }
-     }
-     
-     @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getDeletedRecords( withParams : GETRequestParams, completion : @escaping ( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> Void )
-     {
-         MassEntityAPIHandler( module : self ).getDeletedRecords(type: .all, params: withParams ) { result in
-             completion( result )
-         }
-     }
-     
-     @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getDeletedRecords( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
-     {
-         var params : GETRequestParams = ZCRMQuery.getRequestParams
-         params.modifiedSince = modifiedSince
-         MassEntityAPIHandler( module : self ).getDeletedRecords(type: .all, params: params ) { result in
-             completion( result )
-         }
-     }
-     
-     @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getDeletedRecords( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
-     {
-         var params : GETRequestParams = ZCRMQuery.getRequestParams
-         params.page = page
-         params.perPage = perPage
-         MassEntityAPIHandler( module : self ).getDeletedRecords(type: .all, params: params ) { result in
-             completion( result )
-         }
-     }
-     
-     @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getDeletedRecords( modifiedSince : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
-     {
-         var params : GETRequestParams = ZCRMQuery.getRequestParams
-         params.page = page
-         params.perPage = perPage
-         params.modifiedSince = modifiedSince
-         MassEntityAPIHandler( module : self ).getDeletedRecords(type: .all, params: params ) { result in
-             completion( result )
-         }
-     }
-     
-     
-     /// Returns List of recycle bin records of the module(BulkAPIResponse).
-     ///
-     /// - Returns: List of recycle bin records of the module
-     /// - Throws: ZCRMSDKError if failed to get the records
-     @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, completion : ) instead" )
-     public func getRecycleBinRecords( completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
-     {
-         MassEntityAPIHandler( module : self ).getDeletedRecords(type: .recycle, params: ZCRMQuery.getRequestParams ) { ( result ) in
-             completion( result )
-         }
-     }
-     
-     @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getRecycleBinRecords( withParams : GETRequestParams, completion : @escaping ( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> Void )
-     {
-         MassEntityAPIHandler( module : self ).getDeletedRecords(type: .recycle, params: withParams ) { result in
-             completion( result )
-         }
-     }
-     
-     @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getRecycleBinRecords( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
-     {
-         var params : GETRequestParams = ZCRMQuery.getRequestParams
-         params.modifiedSince = modifiedSince
-         MassEntityAPIHandler( module : self ).getDeletedRecords(type: .recycle, params: params ) { result in
-             completion( result )
-         }
-     }
-     
-    @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getRecycleBinRecords( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
-     {
-         var params : GETRequestParams = ZCRMQuery.getRequestParams
-         params.page = page
-         params.perPage = perPage
-         MassEntityAPIHandler( module : self ).getDeletedRecords(type: .recycle, params: params ) { result in
-             completion( result )
-         }
-     }
-     
-     @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getRecycleBinRecords( modifiedSince : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
-     {
-         var params : GETRequestParams = ZCRMQuery.getRequestParams
-         params.page = page
-         params.perPage = perPage
-         params.modifiedSince = modifiedSince
-         MassEntityAPIHandler( module : self ).getDeletedRecords(type: .recycle, params: params ) { result in
-             completion( result )
-         }
-     }
-     
-     /// Returns List of permanently deleted records of the module(BulkAPIResponse).
-     ///
-     /// - Returns: List of permanently records of the module
-     /// - Throws: ZCRMSDKError if failed to get the records
-     @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, completion : ) instead" )
-     public func getPermanentlyDeletedRecords( completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
-     {
-         MassEntityAPIHandler( module : self ).getDeletedRecords(type: .permanent, params: ZCRMQuery.getRequestParams ) { ( result ) in
-             completion( result )
-         }
-     }
-     
-     @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getPermanentlyDeletedRecords( withParams : GETRequestParams, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
-     {
-         MassEntityAPIHandler( module : self ).getDeletedRecords(type: .permanent, params: withParams ) { ( result ) in
-             completion( result )
-         }
-     }
-     
-     @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getPermanentlyDeletedRecords( modifiedSince : String, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
-     {
-         var params : GETRequestParams = ZCRMQuery.getRequestParams
-         params.modifiedSince = modifiedSince
-         MassEntityAPIHandler( module : self ).getDeletedRecords(type: .permanent, params: params ) { ( result ) in
-             completion( result )
-         }
-     }
-     
-     @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getPermanentlyDeletedRecords( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
-     {
-         var params : GETRequestParams = ZCRMQuery.getRequestParams
-         params.page = page
-         params.perPage = perPage
-         MassEntityAPIHandler( module : self ).getDeletedRecords(type: .permanent, params: params ) { ( result ) in
-             completion( result )
-         }
-     }
-     
-     @available(*, deprecated, message: "Use the method getTrashRecords( ofType : TrashRecordTypes, withParams : GETRequestParams, completion : ) instead" )
-     public func getPermanentlyDeletedRecords( modifiedSince : String, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
-     {
-         var params : GETRequestParams = ZCRMQuery.getRequestParams
-         params.page = page
-         params.perPage = perPage
-         params.modifiedSince = modifiedSince
-         MassEntityAPIHandler( module : self ).getDeletedRecords(type: .permanent, params: params ) { ( result ) in
-             completion( result )
-         }
-     }
      
     /// Returns list of records which contains the given search text as substring(BulkAPIResponse).
     ///
@@ -657,14 +497,6 @@ open class ZCRMModuleDelegate : ZCRMEntity
         }
     }
     
-    @available(*, deprecated, message: "Use the method updateRecords( recordIds :, fieldAPIName:, value:, triggers:, completion : ) instead" )
-    public func updateRecords(triggers : [Trigger], recordIds: [Int64], fieldAPIName: String, value: Any?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
-    {
-        MassEntityAPIHandler(module: self).massUpdateRecords(triggers: triggers, ids: recordIds, fieldValuePair: [ fieldAPIName : value ]) { result in
-            completion( result )
-        }
-    }
-    
     /**
       To update the records
      
@@ -746,19 +578,6 @@ open class ZCRMModuleDelegate : ZCRMEntity
         }
     }
     
-    /// Returns the mass delete results of the set of records of the module(BulkAPIResponse).
-    ///
-    /// - Parameter recordIds: id's of the record to be deleted
-    /// - Returns: mass delete response of the record
-    /// - Throws: ZCRMSDKError if failed to delete records
-    @available(*, deprecated, message: "Use the method deleteRecords method which returns deleted record ids in the completion - deleteRecords( byIds recordIds:, completion: @escaping ( Result.DataResponse< [ Int64 ], BulkAPIResponse > ) -> () )" )
-    public func deleteRecords(recordIds: [Int64], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
-    {
-        MassEntityAPIHandler(module: self).deleteRecords( ids : recordIds) { ( result ) in
-            completion( result )
-        }
-    }
-    
     /**
       To delete multiple records at a time by using their ID's
      
@@ -786,7 +605,7 @@ open class ZCRMModuleDelegate : ZCRMEntity
     {
         if !tag.isCreate
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : TAG ID should be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : TAG ID should be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.inValidError( code : ErrorCode.invalidData, message : "TAG ID should be nil", details : nil ) ) )
             return
         }
@@ -801,7 +620,7 @@ open class ZCRMModuleDelegate : ZCRMEntity
         {
             if !tag.isCreate
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : TAG ID should be nil, \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : TAG ID should be nil, \( APIConstants.DETAILS ) : -")
                 completion( .failure( ZCRMError.inValidError( code : ErrorCode.invalidData, message : "TAG ID should be nil", details : nil ) ) )
                 return
             }
@@ -817,7 +636,7 @@ open class ZCRMModuleDelegate : ZCRMEntity
         {
             if tag.isCreate
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : TAG ID and NAME should be nil, \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : TAG ID and NAME should be nil, \( APIConstants.DETAILS ) : -")
                 completion( .failure( ZCRMError.inValidError( code : ErrorCode.invalidData, message : "TAG ID and NAME must not be nil", details : nil ) ) )
                 return
             }

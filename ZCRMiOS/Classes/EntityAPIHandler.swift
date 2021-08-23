@@ -205,7 +205,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                         }
                         catch
                         {
-                            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                            ZCRMLogger.logError( message : "\( error )" )
                             completion( .failure( typeCastToZCRMError( error ) ) )
                         }
                     })
@@ -213,7 +213,7 @@ internal class EntityAPIHandler : CommonAPIHandler
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -224,7 +224,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.DATA )
         if self.record.isCreate
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : RECORD ID must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RECORD ID must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RECORD ID must not be nil", details : nil ) ) )
             return
         }
@@ -273,14 +273,14 @@ internal class EntityAPIHandler : CommonAPIHandler
                         }
                         catch
                         {
-                            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                            ZCRMLogger.logError( message : "\( error )" )
                             completion( .failure( typeCastToZCRMError( error ) ) )
                         }
                     })
                 }
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -299,7 +299,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 completion( .success( response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -347,7 +347,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 completion( .success( convertedDetails, response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -383,7 +383,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                         completion( .success( response ) )
                     }
                     catch{
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                        ZCRMLogger.logError( message : "\( error )" )
                         completion( .failure( typeCastToZCRMError( error ) ) )
                     }
                 }
@@ -396,13 +396,13 @@ internal class EntityAPIHandler : CommonAPIHandler
                         completion( .success( response ) )
                     }
                     catch{
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                        ZCRMLogger.logError( message : "\( error )" )
                         completion( .failure( typeCastToZCRMError( error ) ) )
                     }
                 }
             }
         } catch {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+            ZCRMLogger.logError( message : "\( error )" )
             completion( .failure(typeCastToZCRMError( error )))
         }
     }
@@ -419,7 +419,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         }
         catch
         {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+            ZCRMLogger.logError( message : "\( error )" )
             fileUploadDelegate.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
             return
         }
@@ -447,7 +447,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 completion( .success( response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -485,7 +485,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 completion( .success( response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -533,7 +533,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 completion( .success( self.record, response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -576,7 +576,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                 completion( .success( self.record, response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -1062,7 +1062,7 @@ internal class EntityAPIHandler : CommonAPIHandler
             case .success(let response) :
                 completion( .success( response ) )
             case .failure(let error) :
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -1094,7 +1094,7 @@ internal class EntityAPIHandler : CommonAPIHandler
             case .success(let response) :
                 completion( .success( response ) )
             case .failure(let error) :
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -1115,7 +1115,7 @@ internal class EntityAPIHandler : CommonAPIHandler
             case .success(let response) :
                 completion( .success( response ) )
             case .failure(let error) :
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -1142,7 +1142,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                     let responseJSON : [ String : Any ] = bulkResponse.getResponseJSON()
                     if responseJSON.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -1160,11 +1160,11 @@ internal class EntityAPIHandler : CommonAPIHandler
                 }
                 catch
                 {
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             case .failure(let error) :
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -1190,7 +1190,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                     let responseJSON : [ String : Any ] = bulkResponse.getResponseJSON()
                     if responseJSON.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -1207,11 +1207,11 @@ internal class EntityAPIHandler : CommonAPIHandler
                 }
                 catch
                 {
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             case .failure(let error) :
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -2212,13 +2212,13 @@ internal class EntityAPIHandler : CommonAPIHandler
                         }
                         else
                         {
-                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.moduleFieldNotFound) : Lookup module field not found, \( APIConstants.DETAILS ) : -")
+                            ZCRMLogger.logError(message: "\(ErrorCode.moduleFieldNotFound) : Lookup module field not found, \( APIConstants.DETAILS ) : -")
                             completion( nil, ZCRMError.inValidError(code: ErrorCode.moduleFieldNotFound, message: "Lookup module field not found", details: nil) )
                         }
                     }
                     else
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.moduleFieldNotFound) : Lookup Field API Name not found")
+                        ZCRMLogger.logError(message: "\(ErrorCode.moduleFieldNotFound) : Lookup Field API Name not found")
                         completion( nil, ZCRMError.inValidError(code: ErrorCode.moduleFieldNotFound, message: "Lookup Field API Name not found", details: nil) )
                     }
                 }
@@ -2239,7 +2239,7 @@ internal class EntityAPIHandler : CommonAPIHandler
                     }
                     else
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.moduleFieldNotFound) : Lookup module field not found")
+                        ZCRMLogger.logError(message: "\(ErrorCode.moduleFieldNotFound) : Lookup module field not found")
                         completion( nil, ZCRMError.inValidError(code: ErrorCode.moduleFieldNotFound, message: "Lookup module field not found", details: nil) )
                     }
                 }
@@ -2360,7 +2360,7 @@ internal class EntityAPIHandler : CommonAPIHandler
         let type : String = try participantDetails.getString( key : ResponseJSONKeys.type )
         guard let eventType = EventParticipantType(rawValue: type) else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : Event type seems to be invalid, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : Event type seems to be invalid, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.inValidError( code : ErrorCode.invalidData, message : "Event type seems to be invalid", details : nil )
         }
         var eventParticipant : EventParticipant

@@ -65,7 +65,7 @@
             case .success(let accessToken) :
                 guard accessToken.isEmpty == false else
                 {
-                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.oauthTokenNil) : \(ErrorMessage.oauthTokenNilMsg)")
+                    ZCRMLogger.logError(message: "\(ErrorCode.oauthTokenNil) : \(ErrorMessage.oauthTokenNilMsg)")
                     completion( ZCRMError.unAuthenticatedError( code : ErrorCode.oauthTokenNil, message : ErrorMessage.oauthTokenNilMsg, details : nil ) )
                     return
                 }
@@ -108,12 +108,12 @@
             case .failure( let error ) :
                 if let zcrmError = error.ZCRMErrordetails
                 {
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( zcrmError.code ) : \( zcrmError )" )
+                    ZCRMLogger.logError( message : "\( zcrmError.code ) : \( zcrmError )" )
                     completion( error )
                 }
                 else
                 {
-                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( error ). \(ErrorCode.typeCastError) : Error - Expected type -> ZCRMError, \( APIConstants.DETAILS ) : -")
+                    ZCRMLogger.logError(message: "\( error ). \(ErrorCode.typeCastError) : Error - Expected type -> ZCRMError, \( APIConstants.DETAILS ) : -")
                     completion( error )
                 }
             }
@@ -134,7 +134,7 @@
                 self.request = URLRequest(url: myUrl )
                 if self.requestMethod == RequestMethod.undefined
                 {
-                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidOperation) : Invalid Request method!!!, \( APIConstants.DETAILS ) : -")
+                    ZCRMLogger.logError(message: "\(ErrorCode.invalidOperation) : Invalid Request method!!!, \( APIConstants.DETAILS ) : -")
                     completion( ZCRMError.inValidError( code : ErrorCode.invalidOperation, message: "Invalid Request method!!!", details: nil ) )
                     return
                 }
@@ -154,7 +154,7 @@
             }
             else
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "\(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
                 completion(ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil))
                 return
             }
@@ -216,7 +216,7 @@
             
             if let error = err
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion(.failure(error))
                 return
             }
@@ -243,14 +243,14 @@
                             }
                             catch
                             {
-                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                ZCRMLogger.logError( message : "\( error )" )
                                 completion(.failure( typeCastToZCRMError( error ) ) )
                                 return
                             }
                         }
                         else
                         {
-                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
+                            ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
                             completion(.failure(ZCRMError.sdkError(code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details : nil)))
                             return
                         }
@@ -296,11 +296,11 @@
                 do {
                     try self.clearCacheData()
                 } catch {
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ))
                     return
                 }
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion(.failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -312,7 +312,7 @@
             
             if let error = err
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion(.failure(error))
                 return
             }
@@ -338,13 +338,13 @@
                             }
                             catch
                             {
-                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                ZCRMLogger.logError( message : "\( error )" )
                                 completion(.failure( typeCastToZCRMError( error ) ) )
                             }
                         }
                         else
                         {
-                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
+                            ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
                             completion(.failure(ZCRMError.sdkError(code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details : nil)))
                         }
                     }
@@ -388,11 +388,11 @@
                 do {
                     try self.clearCacheData()
                 } catch {
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ))
                     return
                 }
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion(.failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -444,7 +444,7 @@
             if self.cacheFlavour == CacheFlavour.forceCache
             {
                 guard let url = self.request?.url?.absoluteString else {
-                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.unableToConstructURL ) : Unable to fetch url string from urlrequest")
+                    ZCRMLogger.logError(message: "\( ErrorCode.unableToConstructURL ) : Unable to fetch url string from urlrequest")
                     return
                 }
                 try ZCRMSDKClient.shared.getPersistentDB().deleteData(withURL: url)
@@ -452,7 +452,7 @@
             else if self.useCache() || (self.cacheFlavour == CacheFlavour.noCache && ZCRMSDKClient.shared.isDBCacheEnabled && self.isCacheable)
             {
                 guard let url = self.request?.url?.absoluteString else {
-                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.unableToConstructURL ) : Unable to fetch url string from urlrequest")
+                    ZCRMLogger.logError(message: "\( ErrorCode.unableToConstructURL ) : Unable to fetch url string from urlrequest")
                     return
                 }
                 try ZCRMSDKClient.shared.getNonPersistentDB().deleteData(withURL: url)
@@ -469,7 +469,7 @@
     private func getResponseFromDB( completion : @escaping( Dictionary< String, Any>?, ZCRMError? ) -> Void )
     {
         guard let url = self.request?.url?.absoluteString else {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.unableToConstructURL) :  Unable to fetch url string from urlrequest, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\( ErrorCode.unableToConstructURL) :  Unable to fetch url string from urlrequest, \( APIConstants.DETAILS ) : -")
             completion( nil, ZCRMError.sdkError( code : ErrorCode.unableToConstructURL, message: "Unable to fetch url string from urlrequest", details : nil ) )
             return
         }
@@ -541,7 +541,7 @@
                             }
                             catch
                             {
-                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                ZCRMLogger.logError( message : "\( error )" )
                                 completion( .failure( typeCastToZCRMError( error ) ))
                                 return
                             }
@@ -555,11 +555,11 @@
                 do {
                     try self.clearCacheData()
                 } catch {
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ))
                     return
                 }
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Request is nil, \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "\(ErrorCode.internalError) : Request is nil, \( APIConstants.DETAILS ) : -")
                 completion( .failure( ZCRMError.sdkError(code: ErrorCode.internalError, message: "Request is nil", details : nil) ) )
                 return
             }
