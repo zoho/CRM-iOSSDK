@@ -118,13 +118,13 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                 dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
                     if let recordAPIError = recordAPIError
                     {
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( recordAPIError )" )
+                        ZCRMLogger.logError( message : "\( recordAPIError )" )
                         completion( .failure( typeCastToZCRMError( recordAPIError ) ) )
                         return
                     }
                     else if let fieldsAPIError = fieldsAPIError
                     {
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( fieldsAPIError )" )
+                        ZCRMLogger.logError( message : "\( fieldsAPIError )" )
                         completion( .failure( typeCastToZCRMError( fieldsAPIError ) ) )
                         return
                     }
@@ -133,7 +133,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         MassEntityAPIHandler(module: ZCRMModuleDelegate(apiName: moduleName)).getZCRMRecords(fields: fields, bulkResponse: response, requestHeaders: recordParams.headers, completion: { ( records, error ) in
                             if let err = error
                             {
-                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( err )" )
+                                ZCRMLogger.logError( message : "\( err )" )
                                 completion( .failure( typeCastToZCRMError( err ) ) )
                                 return
                             }
@@ -147,20 +147,20 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     }
                     else
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : FIELDS must not be nil, \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : FIELDS must not be nil, \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "FIELDS must not be nil", details : nil ) ) )
                     }
                 }
             }
             else
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.notSupported) : SDK does not support this module, \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "\(ErrorCode.notSupported) : SDK does not support this module, \( APIConstants.DETAILS ) : -")
                 completion( .failure( ZCRMError.processingError( code : ErrorCode.notSupported, message : "SDK does not support this module", details : nil ) ) )
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
     }
@@ -208,7 +208,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         let notesList:[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                         if notesList.isEmpty == true
                         {
-                            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg ), \( APIConstants.DETAILS ) : -" )
+                            ZCRMLogger.logError( message : "\( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg ), \( APIConstants.DETAILS ) : -" )
                             completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                             return
                         }
@@ -228,14 +228,14 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     completion( .success( notes, bulkResponse ) )
                 }
                 catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.mandatoryNotFound ) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -" )
+            ZCRMLogger.logError( message : "\( ErrorCode.mandatoryNotFound ) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -" )
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
     }
@@ -270,14 +270,14 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                 }
                 catch
                 {
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
     }
@@ -325,7 +325,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         let attachmentsList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                         if attachmentsList.isEmpty == true
                         {
-                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                            ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                             completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                             return
                         }
@@ -338,14 +338,14 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     completion( .success( attachments, bulkResponse ) )
                 }
                 catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
 	}
@@ -371,14 +371,14 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     completion( .success( attachment, response ) )
                 }
                 catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
     }
@@ -399,14 +399,14 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     completion( .success( response ) )
                 }
                 catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
 	}
@@ -424,7 +424,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil )
         }
     }
@@ -445,14 +445,14 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     completion( .success( response ) )
                 }
                 catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
     }
@@ -493,14 +493,14 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     completion( .success( note, response ) )
                 }
                 catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
 	}
@@ -511,7 +511,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         {
             if note.isCreate
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : NOTE ID must not be nil, \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : NOTE ID must not be nil, \( APIConstants.DETAILS ) : -")
                 completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "NOTE ID must not be nil", details : nil ) ) )
                 return
             }
@@ -541,7 +541,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         completion( .success( updatedNote, response ) )
                     }
                     catch{
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                        ZCRMLogger.logError( message : "\( error )" )
                         completion( .failure( typeCastToZCRMError( error ) ) )
                     }
                 }
@@ -549,7 +549,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
 	}
@@ -574,14 +574,14 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     completion( .success( response ) )
                 }
                 catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
 	}
@@ -748,14 +748,14 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     completion( .success( response ) )
                 }
                 catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : JUNCTION RECORD must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : JUNCTION RECORD must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "JUNCTION RECORD must not be nil", details : nil ) ) )
         }
     }
@@ -780,7 +780,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -801,14 +801,14 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     completion( .success( response ) )
                 }
                 catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : JUNCTION RECORD must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : JUNCTION RECORD must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "JUNCTION RECORD must not be nil", details : nil ) ) )
         }
     }
@@ -829,7 +829,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -913,7 +913,7 @@ extension RelatedListAPIHandler
                         completion( .success( attachment, response ) )
                     }
                     catch{
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                        ZCRMLogger.logError( message : "\( error )" )
                         completion( .failure( typeCastToZCRMError( error ) ) )
                     }
                 })
@@ -935,13 +935,13 @@ extension RelatedListAPIHandler
                         completion( .success( attachment, response ) )
                     }
                     catch{
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                        ZCRMLogger.logError( message : "\( error )" )
                         completion( .failure( typeCastToZCRMError( error ) ) )
                     }
                 })
             }
         } catch {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( error )")
+            ZCRMLogger.logError(message: "\( error )")
             completion( .failure( typeCastToZCRMError( error ) ) )
         }
     }
@@ -968,7 +968,7 @@ extension RelatedListAPIHandler
                 }
             }
         } catch {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( error )")
+            ZCRMLogger.logError(message: "\( error )")
             attachmentUploadDelegate.didFail( fileRefId: fileRefId, typeCastToZCRMError( error ) )
         }
     }

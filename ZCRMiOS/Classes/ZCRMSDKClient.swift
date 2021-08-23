@@ -80,101 +80,7 @@ public class ZCRMSDKClient
         }
         catch
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : Table creation failed!")
-        }
-        try self.initIAMLogin( window : window )
-    }
-    
-    @available(*, deprecated, message: "Use the method initSDK( window:, appConfiguration: ) instead" )
-    public func initSDK( window : UIWindow, appType : AppType? =  AppType.zcrm, apiBaseURL : String? = nil, oauthScopes : [ Any ]? = nil, clientID : String? = nil, clientSecretID : String? = nil, redirectURLScheme : String? = nil, accountsURL : String? = nil, portalID : String? = nil, groupIdentifier : String? = nil ) throws
-    {
-        guard let appConfigPlist = Bundle.main.path( forResource : "AppConfiguration", ofType : "plist" ) else
-        {
-            throw ZCRMError.sdkError(code: ErrorCode.internalError, message: "AppConfiguration.plist is not found.", details: nil)
-        }
-        if let appConfiguration = NSDictionary( contentsOfFile : appConfigPlist ) as? [String : Any]
-        {
-            self.crmAppConfigs = appConfiguration
-            if apiBaseURL.notNilandEmpty
-            {
-                ZCRMSDKClient.shared.apiBaseURL = apiBaseURL!
-            }
-            else if let baseURL = appConfiguration.optString( key : CRMAppConfigurationKeys.apiBaseURL ), !baseURL.isEmpty
-            {
-                ZCRMSDKClient.shared.apiBaseURL = baseURL
-            }
-            if let scopes = oauthScopes
-            {
-                crmAppConfigs[ CRMAppConfigurationKeys.oAuthScopes ] = scopes
-            }
-            if let accountURL = accountsURL
-            {
-                crmAppConfigs[ CRMAppConfigurationKeys.accountsURL ] = accountURL
-            }
-            if let clientId = clientID
-            {
-                crmAppConfigs[ CRMAppConfigurationKeys.clientId ] = clientId
-            }
-            if let clientSecretId = clientSecretID
-            {
-                crmAppConfigs[ CRMAppConfigurationKeys.clientSecretId ] = clientSecretId
-            }
-            if let portalId = portalID
-            {
-                crmAppConfigs[ CRMAppConfigurationKeys.portalId ] = portalId
-            }
-            if let redirectURLScheme = redirectURLScheme
-            {
-                crmAppConfigs[ CRMAppConfigurationKeys.redirectURLScheme ] = redirectURLScheme
-            }
-            if let packageName = Bundle.main.infoDictionary?[ kCFBundleNameKey as String ] as? String, let appVersion = Bundle.main.infoDictionary?[ "CFBundleShortVersionString" ] as? String
-            {
-                self.userAgent = "\( packageName )/\( appVersion )(iPhone) ZCRMiOSSDK"
-            }
-            var type : AppType
-            if let apptype = appType
-            {
-                type = apptype
-            }
-            let apptype = try appConfiguration.getString(key: "Type").lowercased()
-            if let appType = AppType(rawValue: apptype)
-            {
-                type = appType
-            }
-            else
-            {
-                throw ZCRMError.sdkError( code : ErrorCode.internalError, message : "Not a valid appType - \( apptype )", details: nil )
-            }
-            var zcrmAPPConfiguration : ZCRMSDKConfigs
-            if type != .zcrm
-            {
-                zcrmAPPConfiguration = try ZCRMSDKConfigs.Builder(clientId: crmAppConfigs.getString(key: CRMAppConfigurationKeys.clientId), clientSecret: crmAppConfigs.getString(key: CRMAppConfigurationKeys.clientSecretId), redirectURL: crmAppConfigs.getString(key: CRMAppConfigurationKeys.redirectURLScheme), oauthScopes: crmAppConfigs.getArray(key: CRMAppConfigurationKeys.oAuthScopes) as? [ String ] ?? [], portalId: crmAppConfigs.getString(key: CRMAppConfigurationKeys.portalId)).setAPPType( type ).setAPIBaseURL( crmAppConfigs.getString(key: CRMAppConfigurationKeys.apiBaseURL) ).setAccountsURL( crmAppConfigs.getString(key: CRMAppConfigurationKeys.accountsURL) ).build()
-            }
-            else
-            {
-                zcrmAPPConfiguration = try ZCRMSDKConfigs.Builder(clientId: crmAppConfigs.getString(key: CRMAppConfigurationKeys.clientId), clientSecret: crmAppConfigs.getString(key: CRMAppConfigurationKeys.clientSecretId), redirectURL: crmAppConfigs.getString(key: CRMAppConfigurationKeys.redirectURLScheme), oauthScopes: crmAppConfigs.getArray(key: CRMAppConfigurationKeys.oAuthScopes) as? [ String ] ?? []).setAPPType( type ).setAPIBaseURL( crmAppConfigs.getString(key: CRMAppConfigurationKeys.apiBaseURL) ).setAccessType( AccessType(rawValue: crmAppConfigs.optString(key: CRMAppConfigurationKeys.accessType) ?? "") ?? .production ).setCountryDomain( CountryDomain(rawValue: crmAppConfigs.getString(key: CRMAppConfigurationKeys.countryDomain)) ?? .com ).setAccountsURL( crmAppConfigs.getString(key: CRMAppConfigurationKeys.accountsURL) ).build()
-            }
-            ZCRMSDKClient.shared.appType = type
-            ZCRMSDKClient.shared.apiVersion = zcrmAPPConfiguration.apiVersion
-            try self.handleAppType( appConfigurations : zcrmAPPConfiguration )
-            if let groupIdentifier = groupIdentifier
-            {
-                SQLite.sharedURL = FileManager().containerURL(forSecurityApplicationGroupIdentifier: groupIdentifier)
-            }
-        }
-        else
-        {
-            throw ZCRMError.sdkError(code: ErrorCode.internalError, message: "AppConfiguration.plist has no data.", details: nil)
-        }
-        
-        do
-        {
-            try ZCRMSDKClient.shared.createDB()
-            try ZCRMSDKClient.shared.createTables()
-        }
-        catch
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : Table creation failed!")
+            ZCRMLogger.logError(message: "Table creation failed!")
         }
         try self.initIAMLogin( window : window )
     }
@@ -187,12 +93,6 @@ public class ZCRMSDKClient
     }
     
     public func getCurrentOrganization() -> Int64?
-    {
-        return self.portalId
-    }
-    
-    @available(*, deprecated, message: "Use getCurrentOrganization method instead")
-    public func getCurrentPortal() -> Int64?
     {
         return self.portalId
     }
@@ -229,7 +129,7 @@ public class ZCRMSDKClient
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.mandatoryNotFound ) : Zoho Auth provider cannot be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\( ErrorCode.mandatoryNotFound ) : Zoho Auth provider cannot be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.sdkError(code: ErrorCode.mandatoryNotFound, message: "Zoho Auth provider cannot be nil", details: nil) ) )
         }
     }
@@ -291,14 +191,6 @@ public class ZCRMSDKClient
         }
     }
     
-    @available(*, deprecated, message: "Use getCurrentUser( completion: ) or getCurrentUserFromServer( completion: ) method instead")
-    public func getLoggedInUser( completion : @escaping( Result.DataResponse< ZCRMUser, APIResponse > ) -> () )
-    {
-        UserAPIHandler(cacheFlavour: CacheFlavour.forceCache).getCurrentUser() { ( result ) in
-            completion( result )
-        }
-    }
-    
     internal func createDB() throws
     {
         ZCRMSDKClient.persistentDB = try CacheDBHandler( dbName : DBConstant.PERSISTENT_DB_NAME )
@@ -331,7 +223,7 @@ public class ZCRMSDKClient
             try createDB()
             guard let persistentDB = ZCRMSDKClient.persistentDB else
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.dbNotCreated ) : Unable To Create \( DBConstant.PERSISTENT_DB_NAME ), \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "\( ErrorCode.dbNotCreated ) : Unable To Create \( DBConstant.PERSISTENT_DB_NAME ), \( APIConstants.DETAILS ) : -")
                 throw ZCRMError.sdkError(code: ErrorCode.dbNotCreated, message: "Unable To Create DB", details: nil)
             }
             return persistentDB
@@ -349,7 +241,7 @@ public class ZCRMSDKClient
             try createDB()
             guard let nonPersistentDB = ZCRMSDKClient.nonPersistentDB else
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.dbNotCreated ) : Unable To Create \( DBConstant.CACHE_DB_NAME ), \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "\( ErrorCode.dbNotCreated ) : Unable To Create \( DBConstant.CACHE_DB_NAME ), \( APIConstants.DETAILS ) : -")
                 throw ZCRMError.sdkError(code: ErrorCode.dbNotCreated, message: "Unable To Create DB", details: nil)
             }
             return nonPersistentDB
@@ -508,7 +400,7 @@ public class ZCRMSDKClient
                                 }
                                 catch
                                 {
-                                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                    ZCRMLogger.logError( message : "\( error )" )
                                     throw error
                                 }
                             }

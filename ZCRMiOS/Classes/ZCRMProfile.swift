@@ -88,7 +88,7 @@ open class ZCRMProfile : ZCRMProfileDelegate
     {
         guard let permission = getPermission(name: name) else
         {
-            ZCRMLogger.logError(message: "Error Occurred : Failed to get the permission detail by it's name")
+            ZCRMLogger.logError(message: "Failed to get the permission detail by it's name")
             throw ZCRMError.processingError( code : ErrorCode.invalidData, message : "Failed to get the permission detail by it's name", details : nil )
         }
         return permission.isEnabled

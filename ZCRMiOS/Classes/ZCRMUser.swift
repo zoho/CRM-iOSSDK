@@ -319,7 +319,7 @@ public class ZCRMUser : ZCRMUserDelegate
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.fieldNotFound) : The given field is not present in this user - \( ofFieldAPIName ), \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.fieldNotFound) : The given field is not present in this user - \( ofFieldAPIName ), \( APIConstants.DETAILS ) : -")
             throw ZCRMError.processingError( code : ErrorCode.fieldNotFound, message : "The given field is not present in this user - \( ofFieldAPIName )", details : nil )
         }
     }

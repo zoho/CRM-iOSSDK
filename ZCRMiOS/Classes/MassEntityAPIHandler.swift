@@ -25,7 +25,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.DATA )
         if(records.count > 100)
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.maxCountExceeded, message : ErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
             return
         }
@@ -63,7 +63,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         let recordJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
                         if recordJSON.isEmpty == true
                         {
-                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                            ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                             completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                             return
                         }
@@ -86,7 +86,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                             }
                             catch
                             {
-                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                ZCRMLogger.logError( message : "\( error )" )
                                 completion( .failure( typeCastToZCRMError( error ) ) )
                                 dispatchGroup.leave()
                                 return
@@ -104,7 +104,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 }
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -313,7 +313,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     {
         guard let recordQuery = searchCriteria.recordQuery else
         {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.internalError) : Criteria cannot be constructed, \( APIConstants.DETAILS ) : -" )
+            ZCRMLogger.logError( message : "\( ErrorCode.internalError) : Criteria cannot be constructed, \( APIConstants.DETAILS ) : -" )
             completion( .failure( ZCRMError.processingError( code : ErrorCode.internalError, message : "Criteria cannot be constructed", details : nil ) ) )
             return
         }
@@ -339,7 +339,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     private func searchRecords( searchKey : String, searchValue : String, page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
 	{
         if searchValue.count < 2 {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : Please enter two or more characters to make a search request, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : Please enter two or more characters to make a search request, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidData, message : "Please enter two or more characters to make a search request", details : nil ) ) )
             return
         }
@@ -396,13 +396,13 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
             if let recordAPIError = recordAPIError
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( recordAPIError )" )
+                ZCRMLogger.logError( message : "\( recordAPIError )" )
                 completion( .failure( typeCastToZCRMError( recordAPIError ) ) )
                 return
             }
             else if let fieldsAPIError = fieldsAPIError
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( fieldsAPIError )" )
+                ZCRMLogger.logError( message : "\( fieldsAPIError )" )
                 completion( .failure( typeCastToZCRMError( fieldsAPIError ) ) )
                 return
             }
@@ -411,7 +411,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 self.getZCRMRecords(fields: fields, bulkResponse: response, completion: { ( records, error ) in
                     if let err = error
                     {
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( err )" )
+                        ZCRMLogger.logError( message : "\( err )" )
                         completion( .failure( typeCastToZCRMError( err ) ) )
                         return
                     }
@@ -425,7 +425,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             }
             else
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : FIELDS must not be nil, \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : FIELDS must not be nil, \( APIConstants.DETAILS ) : -")
                 completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "FIELDS must not be nil", details : nil ) ) )
             }
         }
@@ -436,13 +436,13 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.DATA )
         if( records.count > 100 )
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.maxCountExceeded, message : ErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
             return
         }
         guard records.count != 0 else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : No records found to be updated, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : No records found to be updated, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.invalidData, message : "No records found to be updated", details : nil ) ) )
             return
         }
@@ -492,7 +492,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                                     entityResponse.setData(data: updatedRecord)
                                     dispatchGroup.leave()
                                 case .failure(let error) :
-                                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                    ZCRMLogger.logError( message : "\( error )" )
                                     completion( .failure( typeCastToZCRMError( error ) ) )
                                     dispatchGroup.leave()
                                     return
@@ -509,12 +509,12 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         completion( .success( updatedRecords, bulkResponse ) )
                     }
                 case .failure(let error) :
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -524,19 +524,19 @@ internal class MassEntityAPIHandler : CommonAPIHandler
 	{
         if(ids.count > 500)
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.maxCountExceeded, message : ErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
             return
         }
         if ( self.module.apiName == DefaultModuleAPINames.DEALS && fieldValuePair.count > 3 ) || ( self.module.apiName != DefaultModuleAPINames.DEALS && fieldValuePair.count > 1 )
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : Max field limit exceeded, \( APIConstants.DETAILS ) : limit = \( ( self.module.apiName == DefaultModuleAPINames.DEALS ) ? 3 : 1 )")
+            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : Max field limit exceeded, \( APIConstants.DETAILS ) : limit = \( ( self.module.apiName == DefaultModuleAPINames.DEALS ) ? 3 : 1 )")
             completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.invalidData, message : "Max field limit exceeded", details : [ "limit" : ( self.module.apiName == DefaultModuleAPINames.DEALS ) ? 3 : 1 ] ) ) )
             return
         }
         else if fieldValuePair.count == 0
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : No field found, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : No field found, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.inValidError( code : ErrorCode.invalidData, message : "No field found", details : nil ) ) )
             return
         }
@@ -584,7 +584,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                                     responses[ index ].setData(data: updatedRecord )
                                     dispatchGroup.leave()
                                 case .failure(let error) :
-                                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                    ZCRMLogger.logError( message : "\( error )" )
                                     completion( .failure( typeCastToZCRMError( error ) ) )
                                     dispatchGroup.leave()
                                     return
@@ -601,12 +601,12 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         completion( .success( updatedRecords, bulkResponse ) )
                     }
                 case .failure(let error) :
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -617,7 +617,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.DATA )
         if ( records.count > 100 )
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.maxCountExceeded, message : ErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
             return
         }
@@ -660,7 +660,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         let recordJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS)
                         if recordJSON.isEmpty == true
                         {
-                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                            ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                             completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                             return
                         }
@@ -683,7 +683,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                             }
                             catch
                             {
-                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                ZCRMLogger.logError( message : "\( error )" )
                                 completion( .failure( typeCastToZCRMError( error ) ) )
                                 dispatchGroup.leave()
                                 return
@@ -701,7 +701,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 }
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -712,7 +712,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.DATA )
         if(ids.count > 100)
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.maxCountExceeded, message : ErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
             return
         }
@@ -737,7 +737,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                             let recordJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
                             if recordJSON.isEmpty == true
                             {
-                                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                                ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                                 completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                                 return
                             }
@@ -746,12 +746,12 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     }
                     completion( .success( deletedIds, bulkResponse ) )
                 case .failure(let error) :
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -762,7 +762,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         setJSONRootKey( key : JSONRootKey.DATA )
         if(ids.count > 100)
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.maxCountExceeded, message : ErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
             return
         }
@@ -782,7 +782,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     let recordJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
                     if recordJSON.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -793,7 +793,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 completion( .success( bulkResponse ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -829,7 +829,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     trashRecords = try self.setTrashRecordsProperties( recordsDetails : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )
                     if trashRecords.isEmpty
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -838,7 +838,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 completion( .success( trashRecords, bulkResponse ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -872,7 +872,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         let recordDetails : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
                         if recordDetails.isEmpty == true
                         {
-                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                            ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                             completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                             return
                         }
@@ -901,7 +901,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 completion( .success( records, bulkResponse ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -958,7 +958,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 completion( .success( records, bulkResponse ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
