@@ -71,12 +71,12 @@ public class  APIResponse : CommonAPIResponse
         }
         else if(httpStatusCode == HTTPStatusCode.noContent)
         {
-            ZCRMLogger.logError(message: "Error Occurred : \(ErrorCode.invalidData) : \(ErrorMessage.invalidIdMsg), \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : \(ErrorMessage.invalidIdMsg), \( APIConstants.DETAILS ) : -")
             throw ZCRMError.inValidError( code : ErrorCode.invalidData, message : ErrorMessage.invalidIdMsg, details : nil )
         }
         else if httpStatusCode == HTTPStatusCode.forbidden
         {
-            ZCRMLogger.logError( message : "Error Occurred : \( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData ) : \( responseJSON[ APIConstants.MESSAGE ] as? String ?? ErrorMessage.responseNilMsg )" )
+            ZCRMLogger.logError( message : "\( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData ) : \( responseJSON[ APIConstants.MESSAGE ] as? String ?? ErrorMessage.responseNilMsg )" )
             throw ZCRMError.unAuthenticatedError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
         }
         else if httpStatusCode == HTTPStatusCode.badRequest
@@ -86,37 +86,37 @@ public class  APIResponse : CommonAPIResponse
                 let responseJSON = responseJSONArray[0]
                 if let code = responseJSON[ "code" ] as? String, code == ErrorCode.invalidData, let details = responseJSON[ "details" ] as? [ String : Any ], let headerName = details[ "header_name" ] as? String, headerName == X_CRM_ORG
                 {
-                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.portalNotFound ) : \( ErrorMessage.invalidPortalType ), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                    ZCRMLogger.logError(message: "\( ErrorCode.portalNotFound ) : \( ErrorMessage.invalidPortalType ), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
                     throw ZCRMError.processingError( code : ErrorCode.portalNotFound, message : ErrorMessage.invalidPortalType, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
                 }
                 else
                 {
-                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                    ZCRMLogger.logError(message: "\(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
                     throw ZCRMError.processingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
                 }
             }
             else if let responseJSON = self.responseJSON.optDictionary(key: responseJSONRootKey)
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                ZCRMLogger.logError(message: "\(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
                 throw ZCRMError.processingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
             }
             else
             {
                 if let code = responseJSON.optString(key: "code"), code == ErrorCode.invalidData, let details = responseJSON.optDictionary(key: "details"), let headerName = details.optString(key: "header_name"), headerName == X_CRM_ORG
                 {
-                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.portalNotFound ) : \( ErrorMessage.invalidPortalType ), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                    ZCRMLogger.logError(message: "\( ErrorCode.portalNotFound ) : \( ErrorMessage.invalidPortalType ), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
                     throw ZCRMError.processingError( code : ErrorCode.portalNotFound, message : ErrorMessage.invalidPortalType, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
                 }
                 else
                 {
-                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                    ZCRMLogger.logError(message: "\(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
                     throw ZCRMError.processingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+            ZCRMLogger.logError(message: "\(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
             throw ZCRMError.processingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
         }
     }
@@ -144,11 +144,11 @@ public class  APIResponse : CommonAPIResponse
             {
                 if( msgJSON.hasValue( forKey : APIConstants.DETAILS ) )
                 {
-                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(message ?? "There is no description"), \( APIConstants.DETAILS ) : \((msgJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                    ZCRMLogger.logError(message: "\(msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(message ?? "There is no description"), \( APIConstants.DETAILS ) : \((msgJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
                     
                     throw ZCRMError.processingError( code :( msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData ), message : message ?? "There is no message to display" , details :  msgJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? [ String : Any ]()  )
                 }
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(message ?? "There is no message to display"), \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "\(msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(message ?? "There is no message to display"), \( APIConstants.DETAILS ) : -")
                 throw ZCRMError.processingError( code : msgJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message: message ?? "There is no message to display", details : nil )
             }
         } 
@@ -170,7 +170,7 @@ public class  APIResponse : CommonAPIResponse
         {
             errorMessage = "No such user"
         }
-        ZCRMLogger.logError( message : "Error Occurred : \( errorCode ) : \( errorMessage ), \( APIConstants.DETAILS ) : \(( errorDetails[ APIConstants.DETAILS ] as? [ String : Any ] )?.description ?? "-")" )
+        ZCRMLogger.logError( message : "\( errorCode ) : \( errorMessage ), \( APIConstants.DETAILS ) : \(( errorDetails[ APIConstants.DETAILS ] as? [ String : Any ] )?.description ?? "-")" )
         return ( errorCode, errorMessage, errorDetails[ APIConstants.DETAILS ] as? [ String : Any ] )
     }
 } // end of class
@@ -268,7 +268,7 @@ public class FileAPIResponse : APIResponse
             }
             else
             {
-                ZCRMLogger.logError(message: "Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \(( responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] )?.description ?? "-")")
+                ZCRMLogger.logError(message: "\(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \(( responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] )?.description ?? "-")")
                 throw ZCRMError.processingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
             }
         }
@@ -281,7 +281,7 @@ public class FileAPIResponse : APIResponse
             }
             else
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData ) : \( responseJSON[ APIConstants.MESSAGE ] as? String ?? ErrorMessage.responseNilMsg ), \( APIConstants.DETAILS ) : \(( responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] )?.description ?? "-")" )
+                ZCRMLogger.logError( message : "\( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData ) : \( responseJSON[ APIConstants.MESSAGE ] as? String ?? ErrorMessage.responseNilMsg ), \( APIConstants.DETAILS ) : \(( responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] )?.description ?? "-")" )
                 throw ZCRMError.unAuthenticatedError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
             }
         }
@@ -362,7 +362,7 @@ public class BulkAPIResponse : CommonAPIResponse
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseRootKeyNil) : Response root key is nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.responseRootKeyNil) : Response root key is nil, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.processingError( code : ErrorCode.responseRootKeyNil, message : "Response root key is nil.", details : nil )
         }
     }
@@ -376,7 +376,7 @@ public class BulkAPIResponse : CommonAPIResponse
         }
         else if httpStatusCode == HTTPStatusCode.forbidden
         {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData ) : \( responseJSON[ APIConstants.MESSAGE ] as? String ?? ErrorMessage.responseNilMsg ), \( APIConstants.DETAILS ) : \(( responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] )?.description ?? "-")" )
+            ZCRMLogger.logError( message : "\( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData ) : \( responseJSON[ APIConstants.MESSAGE ] as? String ?? ErrorMessage.responseNilMsg ), \( APIConstants.DETAILS ) : \(( responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] )?.description ?? "-")" )
             throw ZCRMError.unAuthenticatedError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
         }
         else if httpStatusCode == HTTPStatusCode.badRequest
@@ -387,12 +387,12 @@ public class BulkAPIResponse : CommonAPIResponse
                 {
                     if let code = responseJSON[ "code" ] as? String, code == ErrorCode.invalidData, let details = responseJSON[ "details" ] as? [ String : Any ], let headerName = details[ "header_name" ] as? String, headerName == X_CRM_ORG
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.portalNotFound ) : \( ErrorMessage.invalidPortalType ), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                        ZCRMLogger.logError(message: "\( ErrorCode.portalNotFound ) : \( ErrorMessage.invalidPortalType ), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
                         throw ZCRMError.processingError( code : ErrorCode.portalNotFound, message : ErrorMessage.invalidPortalType, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
                     }
                     else
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                        ZCRMLogger.logError(message: "\(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
                         throw ZCRMError.processingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
                     }
                 }
@@ -412,19 +412,19 @@ public class BulkAPIResponse : CommonAPIResponse
             {
                 if let code = responseJSON[ "code" ] as? String, code == ErrorCode.invalidData, let details = self.responseJSON[ "details" ] as? [ String : Any ], let headerName = details[ "header_name" ] as? String, headerName == X_CRM_ORG
                 {
-                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.portalNotFound ) : \( ErrorMessage.invalidPortalType ), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                    ZCRMLogger.logError(message: "\( ErrorCode.portalNotFound ) : \( ErrorMessage.invalidPortalType ), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
                     throw ZCRMError.processingError( code : ErrorCode.portalNotFound, message : ErrorMessage.invalidPortalType, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
                 }
                 else
                 {
-                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
+                    ZCRMLogger.logError(message: "\(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \((responseJSON[ APIConstants.DETAILS ] as? [ String : Any ])?.description ?? "-"))")
                     throw ZCRMError.processingError( code : responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData, message : responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg, details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \(( responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] )?.description ?? "-")")
+            ZCRMLogger.logError(message: "\(responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData) : \(responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : \(( responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] )?.description ?? "-")")
             throw ZCRMError.processingError( code : ( responseJSON[ APIConstants.CODE ] as? String ?? ErrorCode.invalidData ), message : ( responseJSON[APIConstants.MESSAGE] as? String ?? ErrorMessage.responseNilMsg ), details : responseJSON[ APIConstants.DETAILS ] as? [ String : Any ] ?? nil )
         }
     }

@@ -63,7 +63,7 @@ internal class FileAPIRequest : APIRequest
         self.createMultipartRequest( bodyData : Data(), fileName: "-", boundary : boundary) { ( url, error ) in
             if let err = error
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( err )" )
+                ZCRMLogger.logError( message : "\( err )" )
                 completion( .failure( typeCastToZCRMError( err ) ) )
                 return
             }
@@ -86,7 +86,7 @@ internal class FileAPIRequest : APIRequest
                         completion( .failure( typeCastToZCRMError( error ) ) )
                     }
                 } catch {
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion(.failure( typeCastToZCRMError( error ) ) )
                 }
             }
@@ -104,7 +104,7 @@ internal class FileAPIRequest : APIRequest
             createMultipartRequest( bodyData : httpBodyData, fileName: filePath.lastPathComponent(), boundary : boundary ) { ( url, error ) in
                 if let err = error
                 {
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( err )" )
+                    ZCRMLogger.logError( message : "\( err )" )
                     completion( .failure( typeCastToZCRMError( err ) ) )
                     return
                 }
@@ -119,7 +119,7 @@ internal class FileAPIRequest : APIRequest
                         guard let request = self.request else
                         {
                             self.removeTempFile(atURL: url)
-                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
+                            ZCRMLogger.logError(message: "\(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
                             completion( .failure( ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil ) ) )
                             return
                         }
@@ -140,7 +140,7 @@ internal class FileAPIRequest : APIRequest
                             }
                             catch
                             {
-                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                ZCRMLogger.logError( message : "\( error )" )
                                 completion( .failure( typeCastToZCRMError( error ) ) )
                             }
                         }.resume()
@@ -150,7 +150,7 @@ internal class FileAPIRequest : APIRequest
         }
         catch
         {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+            ZCRMLogger.logError( message : "\( error )" )
             completion( .failure( typeCastToZCRMError( error ) ) )
         }
     }
@@ -160,7 +160,7 @@ internal class FileAPIRequest : APIRequest
         self.initialiseRequest { ( error ) in
             if let err = error
             {
-                ZCRMLogger.logError( message : "Error Occurred : \( err )" )
+                ZCRMLogger.logError( message : "\( err )" )
                 completion( .failure( typeCastToZCRMError( err ) ) )
                 return
             }
@@ -173,7 +173,7 @@ internal class FileAPIRequest : APIRequest
                 }
                 guard let request = self.request else
                 {
-                    ZCRMLogger.logError(message: "Error Occurred : \(ErrorCode.unableToConstructURL) : \(ErrorMessage.unableToConstructURLMsg), \( APIConstants.DETAILS ) : -")
+                    ZCRMLogger.logError(message: "\(ErrorCode.unableToConstructURL) : \(ErrorMessage.unableToConstructURLMsg), \( APIConstants.DETAILS ) : -")
                     completion( .failure( ZCRMError.processingError( code : ErrorCode.unableToConstructURL, message : ErrorMessage.unableToConstructURLMsg, details : nil ) )  )
                     return
                 }
@@ -192,7 +192,7 @@ internal class FileAPIRequest : APIRequest
                     }
                     catch
                     {
-                        ZCRMLogger.logError( message : "Error Occurred : \( error )" )
+                        ZCRMLogger.logError( message : "\( error )" )
                         completion( .failure( typeCastToZCRMError( error ) ) )
                     }
                 }.resume()
@@ -210,7 +210,7 @@ internal class FileAPIRequest : APIRequest
             createMultipartRequest(bodyData: httpBodyData, fileName: fileName, boundary: boundary) { ( url, error ) in
                 if let err = error
                 {
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( err )" )
+                    ZCRMLogger.logError( message : "\( err )" )
                     completion( .failure( typeCastToZCRMError( err ) ) )
                     return
                 }
@@ -225,7 +225,7 @@ internal class FileAPIRequest : APIRequest
                         guard let request = self.request else
                         {
                             self.removeTempFile(atURL: url)
-                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
+                            ZCRMLogger.logError(message: "\(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
                             completion( .failure( ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil ) ) )
                             return
                         }
@@ -246,7 +246,7 @@ internal class FileAPIRequest : APIRequest
                             }
                             catch
                             {
-                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                ZCRMLogger.logError( message : "\( error )" )
                                 completion( .failure( typeCastToZCRMError( error ) ) )
                             }
                         }.resume()
@@ -256,7 +256,7 @@ internal class FileAPIRequest : APIRequest
         }
         catch
         {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+            ZCRMLogger.logError( message : "\( error )" )
             completion( .failure( typeCastToZCRMError( error ) ) )
         }
     }
@@ -285,7 +285,7 @@ internal class FileAPIRequest : APIRequest
         }
         catch
         {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+            ZCRMLogger.logError( message : "\( error )" )
             throw typeCastToZCRMError( error )
         }
     }
@@ -319,7 +319,7 @@ internal class FileAPIRequest : APIRequest
         self.initialiseRequest { ( error ) in
             if let err = error
             {
-                ZCRMLogger.logError( message : "Error Occurred : \( err )" )
+                ZCRMLogger.logError( message : "\( err )" )
                 fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( err ) )
                 return
             }
@@ -332,7 +332,7 @@ internal class FileAPIRequest : APIRequest
                 }
                 guard let request = self.request else
                 {
-                    ZCRMLogger.logError(message: "Error Occurred : \(ErrorCode.unableToConstructURL) : \(ErrorMessage.unableToConstructURLMsg), \( APIConstants.DETAILS ) : -")
+                    ZCRMLogger.logError(message: "\(ErrorCode.unableToConstructURL) : \(ErrorMessage.unableToConstructURLMsg), \( APIConstants.DETAILS ) : -")
                     fileUploadDelegate?.didFail(fileRefId: fileRefId, ZCRMError.processingError( code : ErrorCode.unableToConstructURL, message : ErrorMessage.unableToConstructURLMsg, details : nil ))
                     return
                 }
@@ -358,13 +358,13 @@ internal class FileAPIRequest : APIRequest
                             }
                             else
                             {
-                                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -" )
+                                ZCRMLogger.logError( message : "\(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -" )
                                 throw ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseNilMsg, details : nil )
                             }
                         }
                         catch
                         {
-                            ZCRMLogger.logError( message : "Error Occurred : \( error )" )
+                            ZCRMLogger.logError( message : "\( error )" )
                             uploadTasksQueue.async {
                                 FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
                             }
@@ -391,7 +391,7 @@ internal class FileAPIRequest : APIRequest
                     }
                     else
                     {
-                        ZCRMLogger.logError( message : "Error Occurred : A task with file reference Id - \( fileRefId ) is already present. Please provide a unique reference id" )
+                        ZCRMLogger.logError( message : "A task with file reference Id - \( fileRefId ) is already present. Please provide a unique reference id" )
                         fileUploadDelegate?.didFail( fileRefId: fileRefId, ZCRMError.inValidError(code: ErrorCode.invalidData, message: "A task with file reference Id - \( fileRefId ) is already present. Please provide a unique reference id", details: nil) )
                     }
                 }
@@ -421,7 +421,7 @@ internal class FileAPIRequest : APIRequest
             }
             guard let httpBody = httpBodyData else
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : Unable to construct HTTPBody" )
+                ZCRMLogger.logError( message : "Unable to construct HTTPBody" )
                 fileUploadDelegate?.didFail( fileRefId : fileRefId, ZCRMError.processingError(code: ErrorCode.invalidData, message: "Unable to construct HTTPBody", details: nil) )
                 completion( false, nil)
                 return
@@ -430,7 +430,7 @@ internal class FileAPIRequest : APIRequest
             createMultipartRequest( bodyData : httpBody, fileName: fileName ?? filePath?.lastPathComponent() ?? "-", boundary : boundary ) { ( tempFileUrl, error ) in
                 if let err = error
                 {
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( err )" )
+                    ZCRMLogger.logError( message : "\( err )" )
                     fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( err ) )
                     completion( false, nil )
                     return
@@ -440,7 +440,7 @@ internal class FileAPIRequest : APIRequest
                     self.authenticateRequest { error in
                         if let error = error
                         {
-                            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                            ZCRMLogger.logError( message : "\( error )" )
                             fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
                             completion( false, nil )
                             return
@@ -448,7 +448,7 @@ internal class FileAPIRequest : APIRequest
                         guard let request = self.request else
                         {
                             self.removeTempFile(atURL: tempFileUrl)
-                            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.internalError ) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -" )
+                            ZCRMLogger.logError( message : "\( ErrorCode.internalError ) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -" )
                             fileUploadDelegate?.didFail( fileRefId : fileRefId, ZCRMError.sdkError( code : ErrorCode.internalError, message : "Unable to construct URLRequest", details : nil ) )
                             completion( false, nil)
                             return
@@ -478,13 +478,13 @@ internal class FileAPIRequest : APIRequest
                                     }
                                     else
                                     {
-                                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -" )
+                                        ZCRMLogger.logError( message : "\(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -" )
                                         throw ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseNilMsg, details : nil )
                                     }
                                 }
                                 catch
                                 {
-                                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                    ZCRMLogger.logError( message : "\( error )" )
                                     uploadTasksQueue.async {
                                         FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
                                     }
@@ -512,7 +512,7 @@ internal class FileAPIRequest : APIRequest
                             }
                             else
                             {
-                                ZCRMLogger.logError( message : "Error Occurred : A task with file reference Id - \( fileRefId ) is already present. Please provide a unique reference id" )
+                                ZCRMLogger.logError( message : "A task with file reference Id - \( fileRefId ) is already present. Please provide a unique reference id" )
                                 fileUploadDelegate?.didFail( fileRefId: fileRefId, ZCRMError.inValidError(code: ErrorCode.invalidData, message: "A task with file reference Id - \( fileRefId ) is already present. Please provide a unique reference id", details: nil) )
                             }
                         }
@@ -522,7 +522,7 @@ internal class FileAPIRequest : APIRequest
         }
         catch
         {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+            ZCRMLogger.logError( message : "\( error )" )
             fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
             completion( false, nil )
         }
@@ -534,7 +534,7 @@ internal class FileAPIRequest : APIRequest
         var httpBodyData = bodyData
         guard let boundaryEncoded = "\r\n--\(boundary)".data( using : String.Encoding.utf8 ) else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.processingError) : Unable to create multi part data, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.processingError) : Unable to create multi part data, \( APIConstants.DETAILS ) : -")
             completion( nil, ZCRMError.processingError( code : ErrorCode.processingError, message : "Unable to create multi part data", details : nil ) )
             return
         }
@@ -545,7 +545,7 @@ internal class FileAPIRequest : APIRequest
         }
         catch
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : Unable to write data to a file, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "Unable to write data to a file, \( APIConstants.DETAILS ) : -")
             completion( nil, ZCRMError.processingError( code : ErrorCode.unableToConstructURL, message : ErrorMessage.unableToConstructURLMsg, details : nil ) )
             return
         }
@@ -553,14 +553,14 @@ internal class FileAPIRequest : APIRequest
         self.initialiseRequest { ( error ) in
             if let err = error
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( err )" )
+                ZCRMLogger.logError( message : "\( err )" )
                 completion( nil, typeCastToZCRMError( err ) )
             }
             else
             {
                 guard self.request != nil else
                 {
-                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.unableToConstructURL) : \(ErrorMessage.unableToConstructURLMsg), \( APIConstants.DETAILS ) : -")
+                    ZCRMLogger.logError(message: "\(ErrorCode.unableToConstructURL) : \(ErrorMessage.unableToConstructURLMsg), \( APIConstants.DETAILS ) : -")
                     completion( nil, ZCRMError.processingError( code : ErrorCode.unableToConstructURL, message : ErrorMessage.unableToConstructURLMsg, details : nil ) )
                     return
                 }
@@ -604,7 +604,7 @@ internal class FileAPIRequest : APIRequest
             }
             else
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.processingError) : URL String could not be constructed, \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "\(ErrorCode.processingError) : URL String could not be constructed, \( APIConstants.DETAILS ) : -")
                 throw ZCRMError.processingError( code : ErrorCode.processingError, message : "URL String could not be constructed", details : nil )
             }
             filePartData.append( fileData )
@@ -617,7 +617,7 @@ internal class FileAPIRequest : APIRequest
     {
         guard let strEncoded = str.data( using : String.Encoding.utf8 ) else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.processingError) : Unable to encode the given string, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.processingError) : Unable to encode the given string, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.processingError( code : ErrorCode.processingError, message : "Unable to encode the given string", details : nil )
         }
         return strEncoded
@@ -641,7 +641,7 @@ internal class FileAPIRequest : APIRequest
         self.initialiseRequest { ( err ) in
             if let error = err
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
             else
@@ -654,7 +654,7 @@ internal class FileAPIRequest : APIRequest
                     }
                     guard let request = self.request else
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to construct URLRequest")
+                        ZCRMLogger.logError(message: "\(ErrorCode.internalError) : Unable to construct URLRequest")
                         completion( .failure( ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil ) ) )
                         return
                     }
@@ -672,7 +672,7 @@ internal class FileAPIRequest : APIRequest
                                 completion( .failure( typeCastToZCRMError( error ) ) )
                             }
                         } catch {
-                            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                            ZCRMLogger.logError( message : "\( error )" )
                             completion( .failure( typeCastToZCRMError( error ) ) )
                         }
                     }.resume()
@@ -687,7 +687,7 @@ internal class FileAPIRequest : APIRequest
         self.initialiseRequest { ( err ) in
             if let error = err
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 fileDownloadDelegate?.didFail( fileRefId: fileRefId, typeCastToZCRMError( error ) )
                 return
             }
@@ -702,7 +702,7 @@ internal class FileAPIRequest : APIRequest
                         }
                         guard let request = self.request else
                         {
-                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
+                            ZCRMLogger.logError(message: "\(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
                             throw ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil)
                         }
                         
@@ -717,7 +717,7 @@ internal class FileAPIRequest : APIRequest
                                 {
                                     guard let response = taskFinished.downloadTask?.response as? HTTPURLResponse else
                                     {
-                                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
+                                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
                                         throw ZCRMError.sdkError(code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details : nil)
                                     }
                                     
@@ -729,7 +729,7 @@ internal class FileAPIRequest : APIRequest
                                 }
                                 catch
                                 {
-                                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                                    ZCRMLogger.logError( message : "\( error )" )
                                     fileDownloadDelegate?.didFail( fileRefId: fileRefId, typeCastToZCRMError( error ) )
                                 }
                             }
@@ -752,7 +752,7 @@ internal class FileAPIRequest : APIRequest
                     }
                     catch
                     {
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                        ZCRMLogger.logError( message : "\( error )" )
                         fileDownloadDelegate?.didFail( fileRefId: fileRefId, typeCastToZCRMError( error ) )
                     }
                 }

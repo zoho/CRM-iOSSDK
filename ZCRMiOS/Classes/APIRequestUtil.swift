@@ -12,7 +12,7 @@ internal extension URLSession {
        return dataTask(with: request) { (data, response, error) in
 
            if let error = error {
-               ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+               ZCRMLogger.logError( message : "\( error )" )
                completion( .failure( typeCastToZCRMError( error ) ) )
                return
            }
@@ -22,7 +22,7 @@ internal extension URLSession {
            }
            
            guard let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse else {
-               ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
+               ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
                completion( .failure( ZCRMError.sdkError(code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details : nil) ) )
                return
            }
@@ -34,7 +34,7 @@ internal extension URLSession {
    func uploadTask(with request : URLRequest, fromFile url : URL, completion : @escaping (Result.DataURLResponse<Data, HTTPURLResponse>) -> Void) -> URLSessionUploadTask {
        return uploadTask(with: request, fromFile: url) { (data, response, error) in
            if let error = error {
-               ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+               ZCRMLogger.logError( message : "\( error )" )
                completion( .failure( typeCastToZCRMError( error ) ) )
                return
            }
@@ -44,7 +44,7 @@ internal extension URLSession {
            }
            
            guard let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse else {
-               ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
+               ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
                completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details : nil ) ) )
                return
            }
@@ -56,19 +56,19 @@ internal extension URLSession {
    func downloadTask(with request : URLRequest, completion : @escaping (Result.DataURLResponse<Any, HTTPURLResponse>) -> Void) -> URLSessionDownloadTask {
        return downloadTask(with: request) { (tempLocalURL, response, error) in
            if let error = error {
-               ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+               ZCRMLogger.logError( message : "\( error )" )
                completion( .failure( typeCastToZCRMError( error ) ) )
                return
            }
            
            guard let localURL = tempLocalURL else {
-               ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.unableToConstructURL ) : \( ErrorMessage.unableToConstructURLMsg ), \( APIConstants.DETAILS ) : -")
+               ZCRMLogger.logError(message: "\( ErrorCode.unableToConstructURL ) : \( ErrorMessage.unableToConstructURLMsg ), \( APIConstants.DETAILS ) : -")
                completion( .failure( ZCRMError.sdkError(code: ErrorCode.unableToConstructURL, message: ErrorMessage.unableToConstructURLMsg, details: nil) ) )
                return
            }
            
            guard let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse  else {
-               ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
+               ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
                completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details : nil ) ) )
                return
            }

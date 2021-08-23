@@ -20,21 +20,9 @@ public class ZCRMSDKUtil
         return ZCRMCompanyInfoDelegate()
     }
     
-    @available(*, deprecated, message: "Use getCompanyInfoDelegate method instead")
-    public static func getOrgDelegate() -> ZCRMOrgDelegate
-    {
-        return ZCRMOrgDelegate()
-    }
-    
     public static func newVariableGroup( name : String ) -> ZCRMVariableGroup
     {
         return ZCRMVariableGroup(name: name)
-    }
-    
-    @available(*, deprecated, message: "Use the method newVariable wih param - type as VariableType instead of String" )
-    public static func newVariable( name : String, apiName : String, type : String, variableGroup : ZCRMVariableGroup ) -> ZCRMVariable
-    {
-        return ZCRMVariable(name: name, apiName: apiName, type: type, variableGroup: variableGroup)
     }
     
     public static func newVariable( name : String, apiName : String, type : VariableType, variableGroup : ZCRMVariableGroup ) -> ZCRMVariable
@@ -60,30 +48,6 @@ public class ZCRMSDKUtil
     public static func getCompanyDetailsFromServer( forId id : Int64, completion : @escaping( Result.DataResponse< ZCRMCompanyInfo, APIResponse > ) -> () )
     {
         OrgAPIHandler(cacheFlavour: CacheFlavour.noCache).getCompanyDetails(id, completion: completion)
-    }
-    
-    @available(*, deprecated, message: "Use getCompanyDetails(completion:) method instead")
-    public static func getOrgDetails( completion : @escaping( Result.DataResponse< ZCRMOrg, APIResponse > ) -> () )
-    {
-        OrgAPIHandler(cacheFlavour: CacheFlavour.forceCache).getOrgDetails(completion : completion)
-    }
-    
-    @available(*, deprecated, message: "Use getCompanyDetailsFromServer(completion:) method instead")
-    public static func getOrgDetailsFromServer( completion : @escaping( Result.DataResponse< ZCRMOrg, APIResponse > ) -> () )
-    {
-        OrgAPIHandler(cacheFlavour: CacheFlavour.noCache).getOrgDetails(completion : completion)
-    }
-    
-    @available(*, deprecated, message: "Use getCompanyDetails(forId:, completion:) method instead")
-    public static func getOrgDetails( forId id : Int64, completion : @escaping( Result.DataResponse< ZCRMOrg, APIResponse > ) -> () )
-    {
-        OrgAPIHandler(cacheFlavour: CacheFlavour.forceCache).getOrgDetails( id, completion: completion )
-    }
-    
-    @available(*, deprecated, message: "Use getCompanyDetailsFromServer(forId:, completion:) method instead")
-    public static func getOrgDetailsFromServer( forId id : Int64, completion : @escaping( Result.DataResponse< ZCRMOrg, APIResponse > ) -> () )
-    {
-        OrgAPIHandler(cacheFlavour: CacheFlavour.noCache).getOrgDetails( id, completion: completion )
     }
     
     public static func getModule( moduleAPIName : String, completion : @escaping( Result.DataResponse< ZCRMModule, APIResponse > ) -> () )
@@ -204,20 +168,6 @@ public class ZCRMSDKUtil
         OrgAPIHandler().getCompanyDetails(id, completion: completion)
     }
     
-    @available(*, deprecated, message: "Use getCompanyDetails(id:, completion:) method instead")
-    public static func getOrgDetails( _ id : Int64, completion : @escaping ( Result.DataResponse< ZCRMOrg, APIResponse > ) -> Void )
-    {
-        OrgAPIHandler().getOrgDetails( id, completion: completion )
-    }
-    
-    @available(*, deprecated, message: "Use the method makeRequest with param requestBody instead" )
-    public static func makeRequest(withURL url : URL, _ requestMethod : RequestMethod , headers : [ String : String ]?, completion : @escaping ( Result.DataURLResponse<Data, HTTPURLResponse> ) -> Void )
-    {
-        APIRequest(absoluteURL: url, requestMethod: requestMethod, includeCommonReqHeaders: true).initialiseRequest( headers, nil ) { result in
-            completion( result )
-        }
-    }
-    
     /**
      To make a direct request to the server with URL and requestMethod along with required headers and requestBody
      
@@ -234,14 +184,6 @@ public class ZCRMSDKUtil
     public static func makeRequest(withURL url : URL, _ requestMethod : RequestMethod , headers : [ String : String ]?, requestBody : [ String : Any ]?, includeCommonReqHeaders : Bool, completion : @escaping ( Result.DataURLResponse<Data, HTTPURLResponse> ) -> Void )
     {
         APIRequest(absoluteURL: url, requestMethod: requestMethod, includeCommonReqHeaders: includeCommonReqHeaders).initialiseRequest( headers, requestBody ) { result in
-            completion( result )
-        }
-    }
-    
-    @available( *, deprecated, message: "Use makeRequest method with includeCommonHeader param" )
-    public static func makeRequest(withURL url : URL, _ requestMethod : RequestMethod , headers : [ String : String ]?, requestBody : [ String : Any ]?, completion : @escaping ( Result.DataURLResponse<Data, HTTPURLResponse> ) -> Void )
-    {
-        APIRequest(absoluteURL: url, requestMethod: requestMethod, includeCommonReqHeaders: true).initialiseRequest( headers, requestBody ) { result in
             completion( result )
         }
     }

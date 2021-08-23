@@ -55,7 +55,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.fieldNotFound) : The given field is not present in the record. Field Name -> \( ofFieldAPIName )")
+            ZCRMLogger.logError(message: "\(ErrorCode.fieldNotFound) : The given field is not present in the record. Field Name -> \( ofFieldAPIName )")
             throw ZCRMError.processingError( code : ErrorCode.fieldNotFound, message : "The given field is not present in the record. Field Name -> \( ofFieldAPIName )", details : nil )
         }
     }
@@ -112,7 +112,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     {
         if( self.moduleAPIName != DefaultModuleAPINames.LEADS )
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidModule) : This module does not support convert operation, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.invalidModule) : This module does not support convert operation, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidModule , message : "This module does not support convert operation", details : nil ) ) )
         }
         else
@@ -132,7 +132,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     {
         if( self.moduleAPIName != DefaultModuleAPINames.LEADS )
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidModule) : This module does not support convert operation, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.invalidModule) : This module does not support convert operation, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidModule , message : "This module does not support convert operation", details : nil ) ) )
         }
         else
@@ -155,7 +155,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     {
         if( self.moduleAPIName != DefaultModuleAPINames.LEADS )
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidModule) : This module does not support convert operation, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.invalidModule) : This module does not support convert operation, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidModule , message : "This module does not support convert operation", details : nil ) ) )
         }
         else
@@ -176,7 +176,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     { 
         if !note.isCreate
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : Note ID must be nil for create operation, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : Note ID must be nil for create operation, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidData, message : "Note ID must be nil for create operation.", details : nil ) ) )
         }
         else
@@ -217,7 +217,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     {
         if note.isCreate
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : Note ID must not be nil for update operation, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : Note ID must not be nil for update operation, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Note ID must not be nil for update operation.", details : nil ) ) )
         }
         else
@@ -282,66 +282,6 @@ open class ZCRMRecordDelegate : ZCRMEntity
         }
     }
     
-    /// Returns list of notes of the ZCRMRecord of a requested page number with notes of per_page count(BulkAPIResponse).
-    ///
-    /// - Parameters:
-    ///   - page: page number of the notes
-    ///   - perPage: number of notes to be given for a single page
-    /// - Returns: list of notes of the ZCRMRecord of a requested page number with records of per_page count
-    /// - Throws: ZCRMSDKError if failed to get notes of the ZCRMRecord
-    @available(*, deprecated, message: "Use the method getNotes( withParams : GETEntityRequestParams, completion : ) instead" )
-    public func getNotes( page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
-    {
-        var params = ZCRMQuery.getEntityRequestParams
-        params.page = page
-        params.perPage = perPage
-        RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).getNotes( withParams : params ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    /// Returns list of notes of the ZCRMRecord, before returning the list of notes gets sorted with the given field and sort order(BulkAPIResponse).
-    ///
-    /// - Parameters:
-    ///   - sortByField: field by which the notes get sorted
-    ///   - sortOrder: sort order (asc, desc)
-    /// - Returns: sorted list of notes of the ZCRMRecord
-    /// - Throws: ZCRMSDKError if failed to get notes of the ZCRMRecord
-    @available(*, deprecated, message: "Use the method getNotes( withParams : GETEntityRequestParams, completion : ) instead" )
-    public func getNotes( sortByField : String, sortOrder : SortOrder, completion : @escaping( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
-    {
-        var params = ZCRMQuery.getEntityRequestParams
-        params.sortBy = sortByField
-        params.sortOrder = sortOrder
-        RelatedListAPIHandler( parentRecord : self, relatedList :  ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).getNotes( withParams : params ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    /// Related list opf notes of the ZCRMRecord of a requested page number with notes of per_page count, before returning the list of notes gets sorted with the given field and sort order(BulkAPIResponse).
-    ///
-    /// - Parameters:
-    ///   - page: page number of the notes
-    ///   - perPage: number of notes to be given for a single page
-    ///   - sortByField: field by which the notes get sorted
-    ///   - sortOrder: sort order (asc, desc)
-    ///   - modifiedSince: modified timesorted list of notes of the ZCRMRecord of a requested page number with records of per_page count
-    /// - Returns: <#return value description#>
-    /// - Throws: ZCRMSDKError if failed to get notes of the ZCRMRecord
-    @available(*, deprecated, message: "Use the method getNotes( withParams : GETEntityRequestParams, completion : ) instead" )
-    public func getNotes(page : Int, perPage : Int, sortByField : String?, sortOrder : SortOrder?, modifiedSince : String?, completion : @escaping( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
-    {
-        var params = ZCRMQuery.getEntityRequestParams
-        params.page = page
-        params.perPage = perPage
-        params.sortBy = sortByField
-        params.sortOrder = sortOrder
-        params.modifiedSince = modifiedSince
-        RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).getNotes( withParams : params ) { ( result ) in
-            completion( result )
-        }
-    }
-    
     public func getNote( id : Int64, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
     {
         RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.NOTES, parentModuleAPIName : self.moduleAPIName ) ).getNote( noteId : id ) { ( result ) in
@@ -370,26 +310,6 @@ open class ZCRMRecordDelegate : ZCRMEntity
     public func getAttachments( withParams : GETEntityRequestParams, completion : @escaping ( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> Void )
     {
         RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : self.moduleAPIName ) ).getAttachments( withParams : withParams ) { ( result ) in
-            completion( result )
-        }
-    }
-    
-    /// To get list of all attachments of the ZCRMRecord of a requested page number with attachments of per_page count(BulkAPIResponse).
-    ///
-    /// - Parameters:
-    ///   - page: page number of the attachments
-    ///   - perPage: number of attachments to be given for a single page
-    ///   - modifiedSince: modified time
-    /// - Returns: list of all attachments of the ZCRMRecord of a requested page number with records of per_page count
-    /// - Throws: ZCRMSDKError if failed to get the list of attachments
-    @available(*, deprecated, message: "Use the method getAttachments( withParams : GETEntityRequestParams, completion : ) instead" )
-    public func getAttachments( page : Int, perPage : Int, modifiedSince : String?, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
-    {
-        var params = ZCRMQuery.getEntityRequestParams
-        params.page = page
-        params.perPage = perPage
-        params.modifiedSince = modifiedSince
-        RelatedListAPIHandler( parentRecord : self, relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : self.moduleAPIName ) ).getAttachments( withParams : params ) { ( result ) in
             completion( result )
         }
     }
@@ -518,7 +438,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     {
         guard let apiName = junctionRecords.first?.apiName else
         {
-            ZCRMLogger.logError(message: "Error Occurred : \(ErrorCode.invalidOperation) : Junction Records cannot be empty, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.invalidOperation) : Junction Records cannot be empty, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.inValidError( code : ErrorCode.invalidData , message : "Junction Records cannot be empty", details : nil ) ) )
             return
         }
@@ -526,7 +446,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
         {
             if junctionRecord.apiName != apiName
             {
-                ZCRMLogger.logError(message: "Error Occurred : \(ErrorCode.invalidOperation) : All relation must be of the same module, \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "\(ErrorCode.invalidOperation) : All relation must be of the same module, \( APIConstants.DETAILS ) : -")
                 completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidOperation , message : "All relation must be of the same module", details : nil ) ) )
             }
         }
@@ -551,7 +471,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     {
         guard let apiName = junctionRecords.first?.apiName else
         {
-            ZCRMLogger.logError(message: "Error Occurred : \(ErrorCode.invalidOperation) : Junction Records cannot be empty, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.invalidOperation) : Junction Records cannot be empty, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.inValidError( code : ErrorCode.invalidData , message : "Junction Records cannot be empty", details : nil ) ) )
             return
         }
@@ -559,7 +479,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
         {
             if junctionRecord.apiName != apiName
             {
-                ZCRMLogger.logError(message: "Error Occurred : \(ErrorCode.invalidOperation) : All relation must be of the same module, \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "\(ErrorCode.invalidOperation) : All relation must be of the same module, \( APIConstants.DETAILS ) : -")
                 completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidOperation , message : "All relation must be of the same module", details : nil ) ) )
             }
         }

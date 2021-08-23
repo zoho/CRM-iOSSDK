@@ -63,45 +63,12 @@ internal class OrgAPIHandler : CommonAPIHandler
                     response.setData( data : companyInfo )
                     completion( .success( companyInfo, response ) )
                 case .failure(let error) :
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                completion( .failure( typeCastToZCRMError( error ) ) )
-            }
-        }
-    }
-    
-    @available(*, deprecated, message: "Use getCompanyDetails(id:, completion:) method instead")
-    internal func getOrgDetails( _ id : Int64? = nil, completion : @escaping( Result.DataResponse< ZCRMOrg, APIResponse > ) -> () )
-    {
-        setIsCacheable( true )
-        setJSONRootKey( key : JSONRootKey.ORG )
-		setUrlPath(urlPath:  "\( URLPathConstants.org )" )
-		setRequestMethod(requestMethod: .get)
-        
-        if let id = id
-        {
-            addRequestHeader(header: X_CRM_ORG, value: "\( id )")
-        }
-        
-        let request : APIRequest = APIRequest(handler: self, cacheFlavour: self.cache )
-        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-        
-        request.getAPIResponse { ( resultType ) in
-            do{
-                let response = try resultType.resolve()
-                let responseJSON : [ String :  Any ] = response.responseJSON
-                let orgArray = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
-                let org = try self.getZCRMOrg( orgDetails : orgArray[ 0 ] )
-                org.upsertJSON = [ String : Any? ]()
-                response.setData( data : org )
-                completion( .success( org, response ) )
-            }
-            catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -142,7 +109,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                         let variableJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
                         if variableJSON.isEmpty == true
                         {
-                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                            ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                             completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                             return
                         }
@@ -158,7 +125,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                 completion( .success( createdVariables, bulkResponse ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -170,7 +137,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         {
             if !variable.isCreate
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : VARIABLE ID must be nil, \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : VARIABLE ID must be nil, \( APIConstants.DETAILS ) : -")
                 completion( .failure( ZCRMError.processingError( code: ErrorCode.invalidData, message: "VARIABLE ID must be nil", details : nil ) ) )
                 return
             }
@@ -200,14 +167,14 @@ internal class OrgAPIHandler : CommonAPIHandler
                     completion( .success( createdVariable, response ) )
                 }
                 catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : VARIABLE must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : VARIABLE must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: "VARIABLE must not be nil", details : nil ) ) )
         }
     }
@@ -247,7 +214,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                         let variableJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
                         if variableJSON.isEmpty == true
                         {
-                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                            ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                             completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                             return
                         }
@@ -263,7 +230,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                 completion( .success( createdVariables, bulkResponse ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -275,7 +242,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         {
             if variable.isCreate
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : VARIABLE ID must not be nil, \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : VARIABLE ID must not be nil, \( APIConstants.DETAILS ) : -")
                 completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: "VARIABLE ID must not be nil", details : nil ) ) )
                 return
             }
@@ -304,14 +271,14 @@ internal class OrgAPIHandler : CommonAPIHandler
                     completion( .success( updatedVariable, response ) )
                 }
                 catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : VARIABLE must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : VARIABLE must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: "VARIABLE must not be nil", details : nil ) ) )
         }
     }
@@ -334,7 +301,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                     let variableGroupsList :[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if( variableGroupsList.isEmpty == true )
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -347,7 +314,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                 completion( .success( variableGroups, bulkResponse ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -380,7 +347,7 @@ internal class OrgAPIHandler : CommonAPIHandler
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -404,7 +371,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                     let variablesList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if( variablesList.isEmpty == true )
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -418,7 +385,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                 completion( .success( variables, bulkResponse ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -460,7 +427,7 @@ internal class OrgAPIHandler : CommonAPIHandler
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -481,7 +448,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                 completion( .success( response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -501,7 +468,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                 completion( .success( response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -529,50 +496,15 @@ internal class OrgAPIHandler : CommonAPIHandler
                     companyInfo.upsertJSON = [ String : Any? ]()
                     completion( .success( companyInfo, response ) )
                 case .failure(let error) :
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.notModified) : No changes have been made on the company details to update, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.notModified) : No changes have been made on the company details to update, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.sdkError( code: ErrorCode.notModified, message: "No changes have been made on the company details to update", details : nil ) ) )
-        }
-    }
-    
-    @available(*, deprecated, message: "Use update method with params companyInfo and completion handler instead")
-    internal func update( _ org : ZCRMOrg, completion : @escaping( Result.DataResponse< ZCRMOrg, APIResponse > ) -> () )
-    {
-        if !org.upsertJSON.isEmpty
-        {
-            setJSONRootKey( key : JSONRootKey.ORG )
-            setRequestMethod( requestMethod : .patch )
-            setUrlPath( urlPath : "\( URLPathConstants.org )" )
-            var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
-            var dataArray : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
-            dataArray.append( org.upsertJSON )
-            reqBodyObj[ getJSONRootKey() ] = dataArray
-            setRequestBody( requestBody : reqBodyObj )
-            let request = APIRequest( handler : self )
-            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-            
-            request.getAPIResponse { ( resultType ) in
-                switch resultType
-                {
-                case .success(let response) :
-                    org.upsertJSON = [ String : Any? ]()
-                    completion( .success( org, response ) )
-                case .failure(let error) :
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
-                    completion( .failure( typeCastToZCRMError( error ) ) )
-                }
-            }
-        }
-        else
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.notModified) : No changes have been made on the org to update, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.sdkError( code: ErrorCode.notModified, message: "No changes have been made on the org to update", details : nil ) ) )
         }
     }
     
@@ -596,7 +528,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                     let currenciesList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if currenciesList.isEmpty == true
                     {
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg )" )
+                        ZCRMLogger.logError( message : "\( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg )" )
                         completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -607,7 +539,7 @@ internal class OrgAPIHandler : CommonAPIHandler
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -632,7 +564,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                     let responseArray = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     if responseArray.isEmpty
                     {
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg )" )
+                        ZCRMLogger.logError( message : "\( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg )" )
                         completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -640,13 +572,13 @@ internal class OrgAPIHandler : CommonAPIHandler
                     response.setData( data : currency )
                     completion( .success( currency, response ) )
                 case .failure(let error) :
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -678,13 +610,13 @@ internal class OrgAPIHandler : CommonAPIHandler
                         completion( .success( currencies[0] ) )
                     }
                 } else {
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.invalidData ) : BASE CURRENCY not found" )
+                    ZCRMLogger.logError( message : "\( ErrorCode.invalidData ) : BASE CURRENCY not found" )
                     completion( .failure( ZCRMError.inValidError( code : ErrorCode.invalidData, message : "BASE CURRENCY not found", details : nil) ) )
                 }
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -699,7 +631,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
         catch
         {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+            ZCRMLogger.logError( message : "\( error )" )
             completion( .failure( typeCastToZCRMError( error ) ) )
             return
         }
@@ -719,7 +651,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                 }
                 catch
                 {
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
@@ -734,7 +666,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                 }
                 catch
                 {
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
@@ -761,7 +693,7 @@ internal class OrgAPIHandler : CommonAPIHandler
             case .success(let response) :
                 completion( .success( response ) )
             case .failure(let error) :
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -789,7 +721,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                         let territoriesList = try responseJSON.getArrayOfDictionaries( key: JSONRootKey.TERRITORIES )
                         if territoriesList.isEmpty == true
                         {
-                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                            ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                             completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                             return
                         }
@@ -798,13 +730,13 @@ internal class OrgAPIHandler : CommonAPIHandler
                     bulkResponse.setData(data: territories)
                     completion( .success( territories, bulkResponse ) )
                 case .failure(let error) :
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -830,7 +762,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                     let territoriesList = try responseJSON.getArrayOfDictionaries( key: JSONRootKey.TERRITORIES )
                     if territoriesList.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -838,13 +770,13 @@ internal class OrgAPIHandler : CommonAPIHandler
                     response.setData(data: territory)
                     completion( .success( territory, response))
                 case .failure(let error) :
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -887,13 +819,13 @@ internal class OrgAPIHandler : CommonAPIHandler
                     response.setData( data: currency )
                     completion( .success( currency, response ))
                 case .failure( let error ) :
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -933,7 +865,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                     let responseArray = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     if responseArray.isEmpty
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -944,13 +876,13 @@ internal class OrgAPIHandler : CommonAPIHandler
                     response.setData(data: currency)
                     completion( .success( currency, response ) )
                 case .failure(let error) :
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -1010,13 +942,13 @@ internal class OrgAPIHandler : CommonAPIHandler
                     bulkResponse.setData(data: addedCurrencies)
                     completion( .success( addedCurrencies, bulkResponse ) )
                 case .failure(let error) :
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -1057,13 +989,13 @@ internal class OrgAPIHandler : CommonAPIHandler
                     response.setData(data: currency)
                     completion( .success( currency, response) )
                 case .failure(let error) :
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -1124,13 +1056,13 @@ internal class OrgAPIHandler : CommonAPIHandler
                     bulkResponse.setData(data: updatedCurrencies)
                     completion( .success( updatedCurrencies, bulkResponse) )
                 case .failure(let error) :
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -1141,7 +1073,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         
         guard let currencyId = currency.id else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : Mandatory field not found, \( APIConstants.DETAILS ) : [ \"api_name\" : \"id\" ]")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : Mandatory field not found, \( APIConstants.DETAILS ) : [ \"api_name\" : \"id\" ]")
             completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message:
                 "Mandatory field not found", details : [ "api_name" : "id" ] ) ) )
             return
@@ -1177,7 +1109,7 @@ internal class OrgAPIHandler : CommonAPIHandler
                     let respData = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     if respData.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -1187,13 +1119,13 @@ internal class OrgAPIHandler : CommonAPIHandler
                     response.setData(data: currency)
                     completion( .success( currency, response) )
                 case .failure(let error) :
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -1545,136 +1477,6 @@ internal class OrgAPIHandler : CommonAPIHandler
         return companyInfo
     }
     
-    // check optional property in organisation API
-    @available(*, deprecated, message: "Use getZCRMCompanyInfo(companyDetails:) method instead")
-    private func getZCRMOrg( orgDetails : [ String : Any ] ) throws -> ZCRMOrg
-    {
-        let org : ZCRMOrg = ZCRMOrg()
-        org.id = try orgDetails.getInt64( key : ResponseJSONKeys.id )
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.fax ) )
-        {
-            org.fax = try orgDetails.getString( key : ResponseJSONKeys.fax )
-        }
-        org.name = orgDetails.optString( key : ResponseJSONKeys.companyName )
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.alias ) )
-        {
-            org.alias = try orgDetails.getString( key : ResponseJSONKeys.alias)
-        }
-        org.primaryZUID = try orgDetails.getInt64( key : ResponseJSONKeys.primaryZUID )
-        org.zgid = try orgDetails.getInt64( key : ResponseJSONKeys.ZGID )
-        if let ziaPortalIdStr = orgDetails.optString( key : ResponseJSONKeys.ziaPortalId )
-        {
-            if let ziaPortalId = Int64( ziaPortalIdStr )
-            {
-                org.ziaPortalId = ziaPortalId
-            }
-        }
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.phone ) )
-        {
-            org.phone = try orgDetails.getString( key : ResponseJSONKeys.phone )
-        }
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.mobile ) )
-        {
-            org.mobile = try orgDetails.getString( key : ResponseJSONKeys.mobile )
-        }
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.website ) )
-        {
-            org.website = try orgDetails.getString( key : ResponseJSONKeys.website )
-        }
-        org.primaryEmail = try orgDetails.getString( key : ResponseJSONKeys.primaryEmail )
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.employeeCount ) )
-        {
-            org.employeeCount = try orgDetails.getString( key : ResponseJSONKeys.employeeCount )
-        }
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.description ) )
-        {
-            org.description = try orgDetails.getString( key : ResponseJSONKeys.description )
-        }
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.timeZone ) )
-        {
-            org.timeZone = try orgDetails.getString( key : ResponseJSONKeys.timeZone )
-        }
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.ISOCode ) )
-        {
-            org.isoCode = try orgDetails.getString( key : ResponseJSONKeys.ISOCode )
-        }
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.currencyLocale ) )
-        {
-            org.currencyLocale = try orgDetails.getString( key : ResponseJSONKeys.currencyLocale )
-        }
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.currencySymbol ) )
-        {
-            org.currencySymbol = try orgDetails.getString( key : ResponseJSONKeys.currencySymbol )
-        }
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.street ) )
-        {
-            org.street = try orgDetails.getString( key : ResponseJSONKeys.street )
-        }
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.city ) )
-        {
-            org.city = try orgDetails.getString( key : ResponseJSONKeys.city )
-        }
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.state ) )
-        {
-            org.state = try orgDetails.getString( key : ResponseJSONKeys.state )
-        }
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.country ) )
-        {
-            org.country = try orgDetails.getString( key : ResponseJSONKeys.country )
-        }
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.countryCode ) )
-        {
-            org.countryCode = try orgDetails.getString( key : ResponseJSONKeys.countryCode )
-        }
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.zip ) )
-        {
-            org.zipcode = try orgDetails.getString( key : ResponseJSONKeys.zip )
-        }
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.mcStatus ) )
-        {
-            org.mcStatus = try orgDetails.getBoolean( key : ResponseJSONKeys.mcStatus )
-        }
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.translationEnabled ) )
-        {
-            org.isTranslationEnabled = try orgDetails.getBoolean( key : ResponseJSONKeys.translationEnabled )
-        }
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.gappsEnabled ) )
-        {
-            org.isGappsEnabled = try orgDetails.getBoolean( key : ResponseJSONKeys.gappsEnabled )
-        }
-        if( orgDetails.hasValue( forKey : ResponseJSONKeys.privacySettings ) )
-        {
-            org.isPrivacySettingsEnable = try orgDetails.getBoolean( key : ResponseJSONKeys.privacySettings )
-        }
-        if orgDetails.hasValue( forKey : ResponseJSONKeys.photoId )
-        {
-            org.logoId = try orgDetails.getString( key : ResponseJSONKeys.photoId )
-        }
-        if orgDetails.hasValue( forKey : ResponseJSONKeys.currency )
-        {
-            org.currency = try orgDetails.getString( key : ResponseJSONKeys.currency )
-        }
-        if orgDetails.hasValue(forKey: ResponseJSONKeys.licenseDetails)
-        {
-            let licenseDetails = try orgDetails.getDictionary(key: ResponseJSONKeys.licenseDetails)
-            var license = ZCRMOrg.LicenseDetails( licensePlan : try licenseDetails.getString( key : ResponseJSONKeys.paidType ) )
-            license.isPaid = try licenseDetails.getBoolean( key : ResponseJSONKeys.paid )
-            if licenseDetails.hasValue(forKey: ResponseJSONKeys.paidExpiry)
-            {
-                license.expiryDate = try licenseDetails.getString(key: ResponseJSONKeys.paidExpiry)
-            }
-            if licenseDetails.hasValue(forKey: ResponseJSONKeys.trialExpiry)
-            {
-                license.expiryDate = try licenseDetails.getString(key: ResponseJSONKeys.trialExpiry)
-            }
-            license.noOfUsersPurchased = try licenseDetails.getInt( key : ResponseJSONKeys.usersLicensePurchased )
-            license.trialType = licenseDetails.optString( key : ResponseJSONKeys.trialType )
-            license.trialAction = licenseDetails.optString( key : ResponseJSONKeys.trialAction )
-            org.licenseDetails = license
-        }
-        return org
-    }
-    
     private func getZCRMCurrencyAsJSON( currency : ZCRMCurrency ) throws -> [ String : Any? ]
     {
         var currencyJSON : [ String : Any? ] = [:]
@@ -1725,7 +1527,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : \( type ) given is invalid - \( separator ), \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : \( type ) given is invalid - \( separator ), \( APIConstants.DETAILS ) : -")
             throw ZCRMError.processingError(code: ErrorCode.invalidData, message: "\( type ) given is invalid - \( separator )", details: nil)
         }
     }

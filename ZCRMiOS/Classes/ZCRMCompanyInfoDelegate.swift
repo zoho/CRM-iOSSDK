@@ -154,7 +154,7 @@ open class ZCRMCompanyInfoDelegate : ZCRMEntity
     public func searchUsers( withCriteria : ZCRMQuery.ZCRMCriteria, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         guard let recordQuery = withCriteria.recordQuery else {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.internalError) : Criteria cannot be constructed" )
+            ZCRMLogger.logError( message : "\( ErrorCode.internalError) : Criteria cannot be constructed" )
             completion( .failure( ZCRMError.processingError( code : ErrorCode.internalError, message : "Criteria cannot be constructed", details : nil ) ) )
             return
         }
@@ -166,7 +166,7 @@ open class ZCRMCompanyInfoDelegate : ZCRMEntity
     public func searchUsers(ofType : UserTypes, withCriteria : ZCRMQuery.ZCRMCriteria, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         guard let recordQuery = withCriteria.recordQuery else {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.internalError) : Criteria cannot be constructed" )
+            ZCRMLogger.logError( message : "\( ErrorCode.internalError) : Criteria cannot be constructed" )
             completion( .failure( ZCRMError.processingError( code : ErrorCode.internalError, message : "Criteria cannot be constructed", details : nil ) ) )
             return
         }
@@ -178,7 +178,7 @@ open class ZCRMCompanyInfoDelegate : ZCRMEntity
     public func searchUsers( withCriteria : ZCRMQuery.ZCRMCriteria, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         guard let recordQuery = withCriteria.recordQuery else {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.internalError) : Criteria cannot be constructed" )
+            ZCRMLogger.logError( message : "\( ErrorCode.internalError) : Criteria cannot be constructed" )
             completion( .failure( ZCRMError.processingError( code : ErrorCode.internalError, message : "Criteria cannot be constructed", details : nil ) ) )
             return
         }
@@ -190,7 +190,7 @@ open class ZCRMCompanyInfoDelegate : ZCRMEntity
     public func searchUsers(ofType : UserTypes, withCriteria : ZCRMQuery.ZCRMCriteria, page : Int, perPage : Int, completion : @escaping( Result.DataResponse< [ ZCRMUser ], BulkAPIResponse > ) -> () )
     {
         guard let recordQuery = withCriteria.recordQuery else {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.internalError) : Criteria cannot be constructed" )
+            ZCRMLogger.logError( message : "\( ErrorCode.internalError) : Criteria cannot be constructed" )
             completion( .failure( ZCRMError.processingError( code : ErrorCode.internalError, message : "Criteria cannot be constructed", details : nil ) ) )
             return
         }

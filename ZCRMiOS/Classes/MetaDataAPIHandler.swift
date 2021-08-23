@@ -47,7 +47,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
                     let modulesList:[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if modulesList.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -60,7 +60,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
                 completion( .success( allModules, bulkResponse ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -91,7 +91,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
                 completion( .success( module, response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -188,7 +188,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
             }
             else
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.typeCastError) : \( ResponseJSONKeys.properties ) - Expected type -> Array Of String, \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( ResponseJSONKeys.properties ) - Expected type -> Array Of String, \( APIConstants.DETAILS ) : -")
                 throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( ResponseJSONKeys.properties ) - Expected type -> Array Of String", details : nil )
             }
         }
@@ -210,7 +210,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
             }
             else
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.typeCastError) : \( ResponseJSONKeys.businessCardFields ) - Expected type -> Array Of String, \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( ResponseJSONKeys.businessCardFields ) - Expected type -> Array Of String, \( APIConstants.DETAILS ) : -")
                 throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( ResponseJSONKeys.businessCardFields ) - Expected type -> Array Of String", details : nil )
             }
         }

@@ -379,15 +379,6 @@ public enum OrganizationType : String
     case bigin = "bigin"
 }
 
-@available(*, deprecated, message: "Use OrganizationType enum instead")
-public enum PortalType : String
-{
-    case production = "production"
-    case sandBox = "sandbox"
-    case developer = "developer"
-    case bigin = "bigin"
-}
-
 internal enum ZCRMSDKDataType
 {
     case string
@@ -502,7 +493,7 @@ public extension Dictionary
     {
         if hasValue(forKey: forKey) == false
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.valueNil) : \( forKey ) must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.valueNil) : \( forKey ) must not be nil, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.inValidError( code : ErrorCode.valueNil, message : "\( forKey ) must not be nil", details : nil )
         }
     }
@@ -629,7 +620,7 @@ public extension Dictionary
         try self.valueCheck( forKey : key )
         guard let value = optInt( key : key ) else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.typeCastError) : \( key ) - Expected type -> INT, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( key ) - Expected type -> INT, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> INT", details : nil )
         }
         return value
@@ -647,7 +638,7 @@ public extension Dictionary
         try self.valueCheck( forKey : key )
         guard let value = optInt64( key : key ) else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.typeCastError) : \( key ) - Expected type -> INT64, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( key ) - Expected type -> INT64, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> INT64", details : nil )
         }
         return value
@@ -665,7 +656,7 @@ public extension Dictionary
         try self.valueCheck( forKey : key )
         guard let value = optString( key : key ) else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.typeCastError) : \( key ) - Expected type -> STRING, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( key ) - Expected type -> STRING, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> STRING", details : nil )
         }
         return value
@@ -683,7 +674,7 @@ public extension Dictionary
         try self.valueCheck( forKey : key )
         guard let value = optBoolean( key : key ) else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.typeCastError) : \( key ) - Expected type -> BOOLEAN, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( key ) - Expected type -> BOOLEAN, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> BOOLEAN", details : nil )
         }
         return value
@@ -701,7 +692,7 @@ public extension Dictionary
         try self.valueCheck( forKey : key )
         guard let value = optDouble( key : key ) else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.typeCastError) : \( key ) - Expected type -> DOUBLE, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( key ) - Expected type -> DOUBLE, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> DOUBLE", details : nil )
         }
         return value
@@ -719,7 +710,7 @@ public extension Dictionary
         try self.valueCheck( forKey : key )
         guard let value = optArray( key : key ) else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.typeCastError) : \( key ) - Expected type -> ARRAY< ANY >, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( key ) - Expected type -> ARRAY< ANY >, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> ARRAY< ANY >", details : nil )
         }
         return value
@@ -737,7 +728,7 @@ public extension Dictionary
         try self.valueCheck( forKey : key )
         guard let value = optDictionary( key : key ) else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.typeCastError) : \( key ) - Expected type -> DICTIONARY< STRING, ANY >, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( key ) - Expected type -> DICTIONARY< STRING, ANY >, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> DICTIONARY< STRING, ANY >", details : nil )
         }
         return value
@@ -755,7 +746,7 @@ public extension Dictionary
         try self.valueCheck( forKey : key )
         guard let value = optArrayOfDictionaries( key : key ) else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.typeCastError) : \( key ) - Expected type -> ARRAY< DICTIONARY< STRING, ANY > >, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( key ) - Expected type -> ARRAY< DICTIONARY< STRING, ANY > >, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> ARRAY< DICTIONARY < STRING, ANY > >", details : nil )
         }
         return value
@@ -772,7 +763,7 @@ public extension Dictionary
     {
         guard let value = optValue( key: key ) else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.processingError) : \( key ) - Key Not found - \( key ), \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.processingError) : \( key ) - Key Not found - \( key ), \( APIConstants.DETAILS ) : -")
             throw ZCRMError.processingError( code : ErrorCode.processingError, message : "\( key ) - Key not found - \( key )", details : nil )
         }
         return value
@@ -782,7 +773,7 @@ public extension Dictionary
     {
         guard let value = try getValue( key: key ) as? T else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.typeCastError) : \( key ) - Expected type -> \( T.self ), \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( key ) - Expected type -> \( T.self ), \( APIConstants.DETAILS ) : -")
             throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> \( T.self )", details : nil )
         }
         return value
@@ -1181,7 +1172,7 @@ public func moveFile(filePath: String, newFilePath: String)
     }
     catch(let err)
     {
-        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : Exception while moving file - \(err)")
+        ZCRMLogger.logError(message: "Exception while moving file - \(err)")
     }
 }
 
@@ -1193,12 +1184,12 @@ internal func fileDetailCheck( filePath : String?, fileData : Data?, maxFileSize
     {
         if ( FileManager.default.fileExists( atPath : filePath )  == false )
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : File not found at given path : \( filePath ), \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : File not found at given path : \( filePath ), \( APIConstants.DETAILS ) : -")
             throw ZCRMError.inValidError( code : ErrorCode.mandatoryNotFound, message : "File not found at given path : \( filePath )", details : nil )
         }
         if ( getFileSize( filePath : filePath ) > maxFileSizeValue )
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.fileSizeExceeded) : Cannot upload. File size should not exceed \( maxFileSizeValue / 1048576 ) MB, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.fileSizeExceeded) : Cannot upload. File size should not exceed \( maxFileSizeValue / 1048576 ) MB, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.fileSizeExceeded( code : ErrorCode.fileSizeExceeded, message : "Cannot upload. File size should not exceed \( maxFileSizeValue / 1048576) MB", details : nil )
         }
     }
@@ -1206,7 +1197,7 @@ internal func fileDetailCheck( filePath : String?, fileData : Data?, maxFileSize
     {
         if fileData.count > maxFileSizeValue
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.fileSizeExceeded) : Cannot upload. File size should not exceed \( maxFileSizeValue / 1048576) MB, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.fileSizeExceeded) : Cannot upload. File size should not exceed \( maxFileSizeValue / 1048576) MB, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.fileSizeExceeded( code : ErrorCode.fileSizeExceeded, message : "Cannot upload. File size should not exceed \( maxFileSizeValue / 1048576) MB", details : nil )
         }
     }
@@ -1240,12 +1231,12 @@ internal func getFileSize( filePath : String ) -> Int64
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : Failed to get a size attribute from path : \( filePath )")
+            ZCRMLogger.logError(message: "Failed to get a size attribute from path : \( filePath )")
         }
     }
     catch
     {
-        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : Failed to get file attributes for local path: \( filePath ) with error: \( error )")
+        ZCRMLogger.logError(message: "Failed to get file attributes for local path: \( filePath ) with error: \( error )")
     }
     return 0
 }
@@ -1779,12 +1770,12 @@ func relatedModuleCheck( module : String ) throws
 {
     if module == DefaultModuleAPINames.SOCIAL
     {
-        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidModule) : This feature is not supported for integrated modules, \( APIConstants.DETAILS ) : -")
+        ZCRMLogger.logError(message: "\(ErrorCode.invalidModule) : This feature is not supported for integrated modules, \( APIConstants.DETAILS ) : -")
         throw ZCRMError.inValidError(code : ErrorCode.invalidModule, message : "This feature is not supported for integrated modules", details : nil )
     }
     else if module == DefaultModuleAPINames.NOTES || module == DefaultModuleAPINames.ATTACHMENTS
     {
-        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidOperation) : Try using getNotes or getAttachments methods, \( APIConstants.DETAILS ) : -")
+        ZCRMLogger.logError(message: "\(ErrorCode.invalidOperation) : Try using getNotes or getAttachments methods, \( APIConstants.DETAILS ) : -")
         throw ZCRMError.inValidError( code : ErrorCode.invalidOperation, message : "Try using getNotes or getAttachments methods", details : nil )
     }
 }
@@ -1825,7 +1816,7 @@ func notesAttachmentLimitCheck( note : ZCRMNote, filePath : String?, fileData : 
     {
         if notesAttachments.count >= 5
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.limitExceeded) : Cannot add more than 5 attachments to a note, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.limitExceeded) : Cannot add more than 5 attachments to a note, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.processingError( code : ErrorCode.limitExceeded, message : "Cannot add more than 5 attachments to a note", details : nil )
         }
         for notesAttachment in notesAttachments
@@ -1841,7 +1832,7 @@ func notesAttachmentLimitCheck( note : ZCRMNote, filePath : String?, fileData : 
     
     guard availableSpaceInMB > 0 else
     {
-        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.fileSizeExceeded) : Cannot upload. Attachments size already reached the allowed value  - 20 MB, \( APIConstants.DETAILS ) : -")
+        ZCRMLogger.logError(message: "\(ErrorCode.fileSizeExceeded) : Cannot upload. Attachments size already reached the allowed value  - 20 MB, \( APIConstants.DETAILS ) : -")
         throw ZCRMError.fileSizeExceeded( code : ErrorCode.fileSizeExceeded, message : "Cannot upload. Attachments size already reached the allowed value  - 20 MB", details : nil )
     }
     
@@ -1849,13 +1840,13 @@ func notesAttachmentLimitCheck( note : ZCRMNote, filePath : String?, fileData : 
     {
         if ( FileManager.default.fileExists( atPath : filePath )  == false )
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : File not found at given path : \( filePath ), \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : File not found at given path : \( filePath ), \( APIConstants.DETAILS ) : -")
             throw ZCRMError.inValidError( code : ErrorCode.mandatoryNotFound, message : "File not found at given path : \( filePath )", details : nil )
         }
         let fileSize = Float( getFileSize( filePath : filePath ) ) / 1048576
         if ( fileSize > availableSpaceInMB )
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.fileSizeExceeded) : Cannot upload. Available Free Space - \( availableSpaceInMB ) MB. The Attachment Size is \( fileSize  ) MB, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.fileSizeExceeded) : Cannot upload. Available Free Space - \( availableSpaceInMB ) MB. The Attachment Size is \( fileSize  ) MB, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.fileSizeExceeded( code : ErrorCode.fileSizeExceeded, message : "Cannot upload. Available Free Space - \( availableSpaceInMB ) MB. The Attachment Size is \( fileSize ) MB", details : nil )
         }
     }
@@ -1864,7 +1855,7 @@ func notesAttachmentLimitCheck( note : ZCRMNote, filePath : String?, fileData : 
         let fileSize = Float( fileData.count ) / 1048576
         if ( fileSize > availableSpaceInMB )
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.fileSizeExceeded) : Cannot upload. Available Free Space - \( availableSpaceInMB ) MB. The Attachment Size is \( fileSize ) MB, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.fileSizeExceeded) : Cannot upload. Available Free Space - \( availableSpaceInMB ) MB. The Attachment Size is \( fileSize ) MB, \( APIConstants.DETAILS ) : -")
             throw ZCRMError.fileSizeExceeded( code : ErrorCode.fileSizeExceeded, message : "Cannot upload. Available Free Space - \( availableSpaceInMB ) MB. The Attachment Size is \( fileSize ) MB", details : nil )
         }
     }

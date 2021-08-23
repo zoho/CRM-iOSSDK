@@ -16,17 +16,17 @@ public class ZCRMSubformRecord : ZCRMEntity
     public internal( set ) var modifiedBy : ZCRMUserDelegate?
     public private( set ) var data : [ String : Any? ] = [ String : Any? ]()
     public private( set ) var properties : [ String : Any? ] = [ String : Any? ]()
-    
-    internal init( name : String , id : Int64 )
-    {
-        self.name = name
-        self.id = id
-    }
-    
+	
+	internal init( name : String , id : Int64 )
+	{
+		self.name = name
+		self.id = id
+	}
+	
     internal init( name : String )
     {
-        self.name = name
-    }
+		self.name = name
+	}
     
     public func setValue( ofFieldAPIName : String, value : Any? )
     {
@@ -38,18 +38,18 @@ public class ZCRMSubformRecord : ZCRMEntity
         self.properties.updateValue( value, forKey : ofProperty )
     }
     
-    public func getValue( ofFieldAPIName : String ) throws -> Any?
-    {
-        if self.data.hasKey( forKey : ofFieldAPIName )
-        {
-            return self.data.optValue( key : ofFieldAPIName )
-        }
-        else
-        {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.fieldNotFound) : The given field is not present in the record. Field Name -> \( ofFieldAPIName ), \( APIConstants.DETAILS ) : -")
+	public func getValue( ofFieldAPIName : String ) throws -> Any?
+	{
+		if self.data.hasKey( forKey : ofFieldAPIName )
+		{
+			return self.data.optValue( key : ofFieldAPIName )
+		}
+		else
+		{
+            ZCRMLogger.logError(message: "\(ErrorCode.fieldNotFound) : The given field is not present in the record. Field Name -> \( ofFieldAPIName ), \( APIConstants.DETAILS ) : -")
             throw ZCRMError.processingError( code : ErrorCode.fieldNotFound, message : "The given field is not present in the record. Field Name -> \( ofFieldAPIName )", details : nil )
-        }
-    }
+		}
+	}
     
     public func getValue( ofProperty : String ) -> Any?
     {
