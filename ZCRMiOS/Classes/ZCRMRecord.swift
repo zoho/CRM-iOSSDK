@@ -193,7 +193,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.fieldNotFound) : The given field is not present in the record. Field Name -> \( ofFieldAPIName )")
+            ZCRMLogger.logError(message: "\(ErrorCode.fieldNotFound) : The given field is not present in the record. Field Name -> \( ofFieldAPIName )")
             throw ZCRMError.processingError( code : ErrorCode.fieldNotFound, message : "The given field is not present in the record. Field Name -> \( ofFieldAPIName )", details : nil )
         }
     }
@@ -314,7 +314,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         guard let cloneRecord = self.copy() as? ZCRMRecord else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.internalError) : Unable to clone the record")
+            ZCRMLogger.logError(message: "\(ErrorCode.internalError) : Unable to clone the record")
             throw ZCRMError.inValidError( code : ErrorCode.internalError, message : "Unable to clone the record", details : nil )
         }
         cloneRecord.id = APIConstants.INT64_MOCK
@@ -329,7 +329,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         if !self.isCreate
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : Entity ID MUST be nil for create operation")
+            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : Entity ID MUST be nil for create operation")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidData, message : "Entity ID MUST be nil for create operation.", details : nil  ) ) )
         }
         else
@@ -344,7 +344,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         if !self.isCreate
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : Entity ID MUST be nil for create operation")
+            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : Entity ID MUST be nil for create operation")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidData, message : "Entity ID MUST be nil for create operation.", details : nil ) ) )
         }
         else
@@ -363,7 +363,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         if self.isCreate
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : Entity ID MUST NOT be nil for update operation")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : Entity ID MUST NOT be nil for update operation")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil for update operation.", details : nil ) ) )
         }
         else
@@ -378,7 +378,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         if self.isCreate
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : Entity ID MUST NOT be nil for update operation")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : Entity ID MUST NOT be nil for update operation")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil for update operation.", details : nil ) ) )
         }
         else
@@ -409,7 +409,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
         catch
         {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+            ZCRMLogger.logError( message : "\( error )" )
             completion( .failure( typeCastToZCRMError( error ) ) )
         }
     }
@@ -434,7 +434,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
         catch
         {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+            ZCRMLogger.logError( message : "\( error )" )
             completion( .failure( typeCastToZCRMError( error ) ) )
         }
     }
@@ -450,7 +450,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
         catch
         {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+            ZCRMLogger.logError( message : "\( error )" )
             completion( .failure( typeCastToZCRMError( error ) ) )
         }
     }
@@ -466,7 +466,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
         catch
         {
-            ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+            ZCRMLogger.logError( message : "\( error )" )
             completion( .failure( typeCastToZCRMError( error ) ) )
         }
     }
@@ -475,7 +475,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         if self.moduleAPIName != DefaultModuleAPINames.EVENTS
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.notSupported) : Check In is not supported for this module")
+            ZCRMLogger.logError(message: "\(ErrorCode.notSupported) : Check In is not supported for this module")
             throw ZCRMError.inValidError(code: ErrorCode.notSupported, message: "Check In is not supported for this module", details: nil)
         }
         else
@@ -518,7 +518,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         if self.moduleAPIName != DefaultModuleAPINames.EVENTS
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.notSupported) : Check In is not supported for this module")
+            ZCRMLogger.logError(message: "\(ErrorCode.notSupported) : Check In is not supported for this module")
             throw ZCRMError.inValidError(code: ErrorCode.notSupported, message: "Check In is not supported for this module", details: nil)
         }
         else
@@ -538,7 +538,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
             }
             else
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidOperation) : This record does not contain a ZCRMCheckIn")
+                ZCRMLogger.logError(message: "\(ErrorCode.invalidOperation) : This record does not contain a ZCRMCheckIn")
                 throw ZCRMError.inValidError(code: ErrorCode.invalidOperation, message: "This record does not contain a ZCRMCheckIn", details: nil)
             }
         }
@@ -615,14 +615,14 @@ open class ZCRMRecord : ZCRMRecordDelegate
     {
         if self.moduleAPIName != DefaultModuleAPINames.EVENTS
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.notSupported) : Check In is not supported for this module")
+            ZCRMLogger.logError(message: "\(ErrorCode.notSupported) : Check In is not supported for this module")
             throw ZCRMError.inValidError(code: ErrorCode.notSupported, message: "Check In is not supported for this module", details: nil)
         }
         else
         {
             if self.isCreate
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidOperation) : You haven't checked into the event")
+                ZCRMLogger.logError(message: "\(ErrorCode.invalidOperation) : You haven't checked into the event")
                 throw ZCRMError.inValidError(code: ErrorCode.invalidOperation, message: "You haven't checked into the event", details: nil)
             }
             else

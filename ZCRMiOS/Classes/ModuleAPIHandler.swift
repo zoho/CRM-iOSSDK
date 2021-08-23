@@ -199,7 +199,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
                     layouts = try self.getAllLayouts( layoutsList : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )
                     if layouts.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -208,7 +208,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 completion( .success( layouts, bulkResponse ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -244,7 +244,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 completion( .success( layout, response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -329,7 +329,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 completion( .success( field, response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -369,7 +369,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
                     let allCVsList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if allCVsList.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -382,7 +382,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 completion( .success( allCVs, bulkResponse ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -417,7 +417,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 completion( .success( relatedList, response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -453,7 +453,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
                     relatedLists = try self.getAllRelatedLists( relatedListsDetails : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )
                     if relatedLists.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                         completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -462,7 +462,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 completion( .success( relatedLists, bulkResponse ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -498,7 +498,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
                 completion( .success( customView, response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -524,7 +524,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
                     let filtersDetails : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if filtersDetails.isEmpty == true
                     {
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg ), \( APIConstants.DETAILS ) : -" )
+                        ZCRMLogger.logError( message : "\( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg ), \( APIConstants.DETAILS ) : -" )
                         completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
@@ -535,7 +535,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
@@ -655,7 +655,8 @@ internal class ModuleAPIHandler : CommonAPIHandler
             customView.sharedDetails = []
             for sharedDetailJSON in sharedDetailsArray
             {
-                var sharedDetail = try ZCRMCustomView.SharedDetails(id: sharedDetailJSON.getInt64(key: ResponseJSONKeys.id), name: sharedDetailJSON.getString(key: ResponseJSONKeys.name), type: SelectedUsersType.getType( sharedDetailJSON.getString(key: ResponseJSONKeys.type)))
+                var sharedDetail = try ZCRMCustomView.SharedDetails( type: SelectedUsersType.getType( sharedDetailJSON.getString(key: ResponseJSONKeys.type)), id: sharedDetailJSON.getInt64(key: ResponseJSONKeys.id) )
+                sharedDetail.name = try sharedDetailJSON.getString(key: ResponseJSONKeys.name)
                 sharedDetail.subordinates = sharedDetailJSON.optBoolean(key: ResponseJSONKeys.subordinates)
                 customView.sharedDetails?.append( sharedDetail  )
             }
@@ -886,7 +887,7 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.typeCastError) : Expected type -> INT, \( APIConstants.DETAILS ) : nil")
+            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : Expected type -> INT, \( APIConstants.DETAILS ) : nil")
             throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "Expected type -> INT", details : nil )
         }
         if relationListDetails.hasValue( forKey : ResponseJSONKeys.href )
@@ -901,13 +902,13 @@ internal class ModuleAPIHandler : CommonAPIHandler
     {
         if params.limit ?? 0 > 200
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.limitExceeded) : \( ErrorMessage.limitExceeded ), \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.limitExceeded) : \( ErrorMessage.limitExceeded ), \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.maxRecordCountExceeded(code: ErrorCode.limitExceeded, message: ErrorMessage.limitExceeded, details: nil) ) )
             return
         }
         if params.selectColumns.count > 50
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.limitExceeded) : \( ErrorMessage.maxFieldCountExceeded ), \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.limitExceeded) : \( ErrorMessage.maxFieldCountExceeded ), \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.maxRecordCountExceeded(code: ErrorCode.limitExceeded, message: "\( ErrorMessage.maxFieldCountExceeded )", details: nil) ) )
             return
         }
@@ -952,13 +953,13 @@ internal class ModuleAPIHandler : CommonAPIHandler
                     let responseData = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     completion( .success( responseData , response ) )
                 case .failure(let error) :
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
             catch
             {
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }

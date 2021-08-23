@@ -28,7 +28,6 @@ open class ZCRMCurrency : ZCRMEntity
         self.isoCode = isoCode
     }
     
-    
     public struct Format : Hashable
     {
         public internal( set ) var decimalSeparator : String
@@ -44,7 +43,7 @@ open class ZCRMCurrency : ZCRMEntity
         
         static func get(forValue value : String) throws -> String {
             guard let symbol = Separator(rawValue: value)?.getSymbol else {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.invalidData) : The Given Value Seems To Be Invalid")
+                ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : The Given Value Seems To Be Invalid")
                 throw ZCRMError.inValidError( code : ErrorCode.invalidData, message : "The Given Value Seems To Be Invalid", details : nil )
             }
             return symbol

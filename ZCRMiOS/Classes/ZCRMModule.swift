@@ -128,7 +128,7 @@ open class ZCRMModule : ZCRMModuleDelegate
             }
             else
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \( ErrorCode.invalidData ) : \( ErrorMessage.invalidIdMsg ), \( APIConstants.DETAILS ) : \("-")")
+                ZCRMLogger.logError(message: "\( ErrorCode.invalidData ) : \( ErrorMessage.invalidIdMsg ), \( APIConstants.DETAILS ) : \("-")")
                 completion( .failure( ZCRMError.processingError(code: ErrorCode.invalidData, message: ErrorMessage.invalidIdMsg, details: nil)) )
             }
         }

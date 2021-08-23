@@ -107,10 +107,16 @@ public extension ZCRMCustomView
 {
     struct SharedDetails : Equatable
     {
-        public var id : Int64
-        public var name : String
-        public var type : SelectedUsersType
+        public internal( set ) var id : Int64
+        public internal( set ) var name : String = APIConstants.STRING_MOCK
+        public internal( set ) var type : SelectedUsersType
         public var subordinates : Bool?
+        
+        public init( type : SelectedUsersType, id : Int64 )
+        {
+            self.type = type
+            self.id = id
+        }
     }
 }
 

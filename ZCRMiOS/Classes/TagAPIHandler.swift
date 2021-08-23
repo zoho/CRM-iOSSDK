@@ -53,7 +53,7 @@ internal class TagAPIHandler : CommonAPIHandler
                         let tagsList :[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                         if( tagsList.isEmpty == true )
                         {
-                            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                            ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                             completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                             return
                         }
@@ -67,14 +67,14 @@ internal class TagAPIHandler : CommonAPIHandler
                     completion( .success( tags, bulkResponse ) )
                 }
                 catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : MODULE NAME must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : MODULE NAME must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "MODULE NAME must not be nil", details : nil ) ) )
         }
     }
@@ -105,14 +105,14 @@ internal class TagAPIHandler : CommonAPIHandler
                     }
                 }
                 catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : MODULE NAME and TAG ID must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : MODULE NAME and TAG ID must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "MODULE NAME and TAG ID must not be nil", details : nil ) ) )
         }
     }
@@ -149,20 +149,20 @@ internal class TagAPIHandler : CommonAPIHandler
                         response.setData(data: tag)
                         completion( .success( tag, response ) )
                     case .failure(let error) :
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                        ZCRMLogger.logError( message : "\( error )" )
                         completion( .failure( typeCastToZCRMError( error ) ) )
                     }
                 }
                 catch
                 {
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : MODULE NAME must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : MODULE NAME must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: "MODULE NAME must not be nil", details : nil ) ) )
         }
     }
@@ -207,7 +207,7 @@ internal class TagAPIHandler : CommonAPIHandler
                                 let tagJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
                                 if tagJSON.isEmpty == true
                                 {
-                                    ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                                    ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                                     completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                                     return
                                 }
@@ -223,19 +223,19 @@ internal class TagAPIHandler : CommonAPIHandler
                         bulkResponse.setData(data: createdTags)
                         completion( .success( createdTags, bulkResponse ) )
                     case .failure(let error) :
-                        ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                        ZCRMLogger.logError( message : "\( error )" )
                         completion( .failure( typeCastToZCRMError( error ) ) )
                     }
                 }
                 catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : MODULE NAME must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : MODULE NAME must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: "MODULE NAME must not be nil", details : nil ) ) )
         }
     }
@@ -269,14 +269,14 @@ internal class TagAPIHandler : CommonAPIHandler
                     completion( .success( tag, response ) )
                 }
                 catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : TAG ID must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : TAG ID must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: "TAG ID must not be nil", details : nil ) ) )
         }
     }
@@ -287,7 +287,7 @@ internal class TagAPIHandler : CommonAPIHandler
         {
             if tag.isCreate
             {
-                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : TAG ID must not be nil, \( APIConstants.DETAILS ) : -")
+                ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : TAG ID must not be nil, \( APIConstants.DETAILS ) : -")
                 completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: "TAG ID must not be nil", details : nil ) ) )
                 return
             }
@@ -323,14 +323,14 @@ internal class TagAPIHandler : CommonAPIHandler
                     completion( .success( updatedTag, response ) )
                 }
                 catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : TAG ID and MODULE NAME must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : TAG ID and MODULE NAME must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: "MODULE NAME and TAG ID must not be nil", details : nil ) ) )
         }
     }
@@ -373,7 +373,7 @@ internal class TagAPIHandler : CommonAPIHandler
                             let tagJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
                             if tagJSON.isEmpty == true
                             {
-                                ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                                ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
                                 completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
                                 return
                             }
@@ -390,14 +390,14 @@ internal class TagAPIHandler : CommonAPIHandler
                     completion( .success( updatedTags, bulkResponse ) )
                 }
                 catch{
-                    ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                    ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "ZCRM SDK - Error Occurred : \(ErrorCode.mandatoryNotFound) : MODULE NAME must not be nil, \( APIConstants.DETAILS ) : -")
+            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : MODULE NAME must not be nil, \( APIConstants.DETAILS ) : -")
             completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: "MODULE NAME must not be nil", details : nil ) ) )
         }
     }
@@ -417,7 +417,7 @@ internal class TagAPIHandler : CommonAPIHandler
                 completion( .success( response ) )
             }
             catch{
-                ZCRMLogger.logError( message : "ZCRM SDK - Error Occurred : \( error )" )
+                ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
