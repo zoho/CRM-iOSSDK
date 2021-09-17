@@ -179,9 +179,12 @@ public enum DrillBy : String
 internal struct FieldDataTypeConstants
 {
     static let subform = "subform"
+    static let lookup = "lookup"
     static let userLookup = "userlookup"
     static let ownerLookup = "ownerlookup"
     static let picklist = "picklist"
+    static let multiSelectPicklist = "multiselectpicklist"
+    static let fileUpload = "fileupload"
 }
 
 public enum AccessPermission
@@ -514,6 +517,21 @@ public extension Dictionary
         {
             return nil
         }
+    }
+    
+    /**
+      To get the value of the key from the dictinoary as an optional value of specified type
+     
+     - Parameter key : Key whose value has to be fetched from the dictionary
+     - Returns: The value of the key from the dictionary
+     */
+    func optValue<T>(key: Key) -> T?
+    {
+        if let value = optValue( key: key ) as? T
+        {
+            return value
+        }
+        return nil
     }
     
     /**
@@ -1804,6 +1822,16 @@ func getFieldVsApinameMap( fields : [ZCRMField] ) -> [ String: ZCRMField ]
     for field in fields
     {
         moduleFields[ field.apiName ] = field
+    }
+    return moduleFields
+}
+
+func getFieldDelegateVsApinameMap( fieldDelegates : [ ZCRMFieldDelegate ] ) -> [ String: ZCRMFieldDelegate ]
+{
+    var moduleFields : [ String : ZCRMFieldDelegate ] = [ String : ZCRMFieldDelegate ]()
+    for fieldDelegate in fieldDelegates
+    {
+        moduleFields[ fieldDelegate.apiName ] = fieldDelegate
     }
     return moduleFields
 }

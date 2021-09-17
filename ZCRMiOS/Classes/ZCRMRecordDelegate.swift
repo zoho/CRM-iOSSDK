@@ -88,7 +88,7 @@ open class ZCRMRecordDelegate : ZCRMEntity
     
     public func newTag( name : String ) -> ZCRMTag
     {
-        let tag = ZCRMTag( name : name, moduleAPIName : self.moduleAPIName )
+        let tag = ZCRMTag(name: name, moduleAPIName: moduleAPIName)
         tag.isCreate = true
         return tag
     }

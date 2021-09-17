@@ -850,8 +850,18 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         setJSONRootKey(key: JSONRootKey.DATA)
         setUrlPath(urlPath: "\(self.module.apiName)/\( URLPathConstants.actions )/\( URLPathConstants.addTags )")
         setRequestMethod(requestMethod: .post)
-        addRequestParam(param: RequestParamKeys.ids, value: records.map{ String( $0.id ) }.joined(separator: ",") )
-        addRequestParam(param: RequestParamKeys.tagNames, value: tags.joined(separator: ",") )
+        if ZCRMSDKClient.shared.apiVersion <= "v2.1"
+        {
+            addRequestParam(param: RequestParamKeys.ids, value: records.map{ String( $0.id ) }.joined(separator: ",") )
+            addRequestParam(param: RequestParamKeys.tagNames, value: tags.joined(separator: ",") )
+        }
+        else
+        {
+            var requestBody : [ String : Any ] = [:]
+            requestBody[ RequestParamKeys.ids ] = records.map{ $0.id }
+            requestBody[ JSONRootKey.TAGS ] = tags.map{ [ ResponseJSONKeys.name : $0 ] }
+            setRequestBody(requestBody: requestBody)
+        }
         if let overWrite = overWrite
         {
             addRequestParam( param : RequestParamKeys.overWrite, value : String( overWrite ) )
@@ -885,10 +895,11 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         {
                             tagNames = try recordDetails.getArrayOfDictionaries(key: ResponseJSONKeys.tags).map{ try $0.getString(key: ResponseJSONKeys.name) }
                         }
-                        records[ index ].tags = [ String ]()
+                        records[ index ].tags = [ ZCRMTagDelegate ]()
                         for name in tagNames
                         {
-                            records[ index ].tags?.append( name )
+                            let tagDelegate = ZCRMTagDelegate(name: name)
+                            records[ index ].tags?.append( tagDelegate )
                         }
                         responses[ index ].setData(data: records[ index ])
                     }
@@ -912,8 +923,18 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         setJSONRootKey(key: JSONRootKey.DATA)
         setUrlPath(urlPath: "\(self.module.apiName)/\( URLPathConstants.actions )/\( URLPathConstants.removeTags )")
         setRequestMethod(requestMethod: .post)
-        addRequestParam(param: RequestParamKeys.ids, value: records.map{ String( $0.id ) }.joined(separator: ","))
-        addRequestParam(param: RequestParamKeys.tagNames, value: tags.joined(separator: ",") )
+        if ZCRMSDKClient.shared.apiVersion <= "v2.1"
+        {
+            addRequestParam(param: RequestParamKeys.ids, value: records.map{ String( $0.id ) }.joined(separator: ","))
+            addRequestParam(param: RequestParamKeys.tagNames, value: tags.joined(separator: ",") )
+        }
+        else
+        {
+            var requestBody : [ String : Any ] = [:]
+            requestBody[ RequestParamKeys.ids ] = records.map{ $0.id }
+            requestBody[ JSONRootKey.TAGS ] = tags.map{ [ ResponseJSONKeys.name : $0 ] }
+            setRequestBody(requestBody: requestBody)
+        }
         
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
@@ -946,7 +967,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                                 tags.append( try tag.getString(key: ResponseJSONKeys.name) )
                             }
                         }
-                        records[ index ].tags = tags
+                        records[ index ].tags = tags.map{ ZCRMTagDelegate(name: $0) }
                         responses[ index ].setData( data : records[ index ] )
                     }
                     else

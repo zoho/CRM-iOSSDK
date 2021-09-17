@@ -58,7 +58,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
             upsertJSON.updateValue( lineTaxes, forKey : EntityAPIHandler.ResponseJSONKeys.dollarLineTax )
         }
     }
-    public internal( set ) var tags : [ String ]?{
+    public internal( set ) var tags : [ ZCRMTagDelegate ]?{
         didSet
         {
             upsertJSON.updateValue(tags, forKey: EntityAPIHandler.ResponseJSONKeys.tag)
@@ -83,6 +83,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
             upsertJSON.updateValue(owner, forKey: EntityAPIHandler.ResponseJSONKeys.owner)
         }
     }
+    public var fileUploads : [ String : [ UploadFieldFile ] ] = [:]
     internal var isOwnerSet : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var createdBy : ZCRMUserDelegate?
     public internal( set ) var modifiedBy : ZCRMUserDelegate?
@@ -123,7 +124,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
         if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.tag)
         {
-            self.tags = self.data[ EntityAPIHandler.ResponseJSONKeys.tag ] as? [ String ]
+            self.tags = self.data[ EntityAPIHandler.ResponseJSONKeys.tag ] as? [ ZCRMTagDelegate ]
         }
         if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.dataProcessingBasisDetails)
         {
@@ -139,6 +140,10 @@ open class ZCRMRecord : ZCRMRecordDelegate
             {
                 self.owner = owner
             }
+        }
+        if let fileUploads = self.data[ EntityAPIHandler.ResponseJSONKeys.fileUploadFields ] as? [ String : [ ZCRMRecord.UploadFieldFile ] ]
+        {
+            self.fileUploads = fileUploads
         }
         self.subformRecord = [ String : [ ZCRMSubformRecord ] ]()
         for ( key, value ) in self.data
@@ -648,9 +653,9 @@ open class ZCRMRecord : ZCRMRecordDelegate
              - success : Returns a ZCRMBlueprint object and an APIResponse
              - failure : ZCRMError
      */
-    public func getBlueprintDetails( completion : @escaping ( Result.DataResponse< ZCRMBlueprint, APIResponse > ) -> () )
+    public func getBlueprintStateDetails( completion : @escaping ( Result.DataResponse< ZCRMBlueprintState, APIResponse > ) -> () )
     {
-        EntityAPIHandler(record: self).getBlueprintDetails(completion: completion)
+        EntityAPIHandler(record: self).getBlueprintStateDetails(completion: completion)
     }
     
     /**
@@ -662,9 +667,70 @@ open class ZCRMRecord : ZCRMRecordDelegate
             - success : Returns APIResponse of the transition request
             - failure : ZCRMError
      */
-    public func moveTo( transitionState : ZCRMBlueprint.Transition, completion : @escaping ( Result.Response< APIResponse > ) -> () )
+    public func applyTransition( transition : ZCRMBlueprintState.Transition, completion : @escaping ( Result.Response< APIResponse > ) -> () )
     {
-        EntityAPIHandler(record: self).moveTo( transitionState : transitionState, completion: completion)
+        EntityAPIHandler(record: self).applyStateTransition(transition: transition, completion: completion)
+    }
+    
+    public func addFilesToUploadField( fieldAPIName : String, files : [ ZCRMRecord.UploadFieldFile ] ) throws
+    {
+        if files.count > 5
+        {
+            ZCRMLogger.logError(message: "\(ErrorCode.limitExceeded) : Files count cannot be more than 5, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.maxRecordCountExceeded(code: ErrorCode.limitExceeded, message: "Files count cannot be more than 5.", details: nil)
+        }
+        if var existingFiles = self.fileUploads[ fieldAPIName ]
+        {
+            if ( existingFiles.count + files.count ) > 5
+            {
+                ZCRMLogger.logError(message: "\(ErrorCode.limitExceeded) : Files count cannot be more than 5. Allowed files count - \( ( 5 - existingFiles.count ) ), \( APIConstants.DETAILS ) : -")
+                throw ZCRMError.maxRecordCountExceeded(code: ErrorCode.limitExceeded, message: "Files count cannot be more than 5. Allowed files count - \( ( 5 - existingFiles.count ) ).", details: nil)
+            }
+            existingFiles += files
+            self.fileUploads.updateValue( existingFiles, forKey: fieldAPIName)
+        }
+        else
+        {
+            self.fileUploads[ fieldAPIName ] = files
+        }
+        if var updateFieldValue = self.upsertJSON[ fieldAPIName ] as? [ Any ]
+        {
+            updateFieldValue.append( files.map{ $0.fileServerId } )
+            self.upsertJSON.updateValue( updateFieldValue, forKey: fieldAPIName)
+        }
+        else
+        {
+            self.upsertJSON.updateValue( files.map{ $0.fileServerId }, forKey: fieldAPIName)
+        }
+    }
+    
+    public func removeFilesFromUploadField( fieldAPIName : String, attachmentIds : [ Int64 ] )
+    {
+        var removableFileDetails : [ [ String : Any? ] ] = []
+        if var existingFiles = self.fileUploads[ fieldAPIName ]
+        {
+            for ( index, existingFile ) in existingFiles.enumerated().reversed()
+            {
+                for fileId in attachmentIds
+                {
+                    if fileId == existingFile.id
+                    {
+                        existingFiles.remove(at: index)
+                        removableFileDetails.append( [ EntityAPIHandler.ResponseJSONKeys.deleteAttachmentId : "\( fileId )", RequestParamKeys._delete : nil ] )
+                    }
+                }
+            }
+            self.fileUploads[ fieldAPIName ] = existingFiles
+        }
+        if var updateFieldValue = self.upsertJSON[ fieldAPIName ] as? [ Any ]
+        {
+            updateFieldValue += removableFileDetails
+            self.upsertJSON.updateValue( updateFieldValue, forKey: fieldAPIName)
+        }
+        else
+        {
+            self.upsertJSON.updateValue( removableFileDetails, forKey: fieldAPIName)
+        }
     }
 }
 
@@ -774,6 +840,42 @@ extension ZCRMRecord
             self.user = user
             self.permission = permission
             self.isSharedWithRelatedRecords = isSharedWithRelatedRecords
+        }
+    }
+    
+    public struct UploadFieldFile
+    {
+        public internal( set ) var fileServerId : String
+        public internal( set ) var name : String?
+        public internal( set ) var id : Int64?
+        public internal( set ) var size : Int?
+        public internal( set ) var parentRecord : ZCRMRecordDelegate = RECORD_MOCK
+        
+        public init( fileServerId : String )
+        {
+            self.fileServerId = fileServerId
+        }
+        
+        public func download( completion : @escaping ( Result.Response< FileAPIResponse > ) -> () )
+        {
+            guard let id = id else
+            {
+                ZCRMLogger.logError(message: "\( ErrorCode.invalidData ) : Id cannot be nil, \( APIConstants.DETAILS ) : - ")
+                completion( .failure( ZCRMError.inValidError(code: ErrorCode.invalidData, message: "Id cannot be nil", details: nil) ) )
+                return
+            }
+            EntityAPIHandler(recordDelegate: parentRecord).downloadFileUploadFieldFile(withAttachmentID: id, completion: completion)
+        }
+        
+        public func download( fileDownloadDelegate : ZCRMFileDownloadDelegate )
+        {
+            guard let id = id else
+            {
+                ZCRMLogger.logError(message: "\( ErrorCode.invalidData ) : Id cannot be nil, \( APIConstants.DETAILS ) : - ")
+                fileDownloadDelegate.didFail(fileRefId: fileServerId, ZCRMError.inValidError(code: ErrorCode.invalidData, message: "Id cannot be nil", details: nil))
+                return
+            }
+            EntityAPIHandler(recordDelegate: parentRecord).downloadFileUploadFieldFile(withAttachmentID: id, fileDownloadDelegate: fileDownloadDelegate)
         }
     }
 }

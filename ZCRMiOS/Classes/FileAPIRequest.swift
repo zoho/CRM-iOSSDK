@@ -339,6 +339,9 @@ internal class FileAPIRequest : APIRequest
                 let fileUploadTaskReference = FileUploadTaskReference(fileRefId: fileRefId, uploadClosure: { taskDetails, taskFinished, error in
                     if let error = error
                     {
+                        uploadTasksQueue.async {
+                            FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
+                        }
                         self.fileUploadDelegate?.didFail(fileRefId: fileRefId, typeCastToZCRMError( error ))
                         completion( false , nil)
                     }
@@ -346,13 +349,13 @@ internal class FileAPIRequest : APIRequest
                     {
                         do
                         {
+                            uploadTasksQueue.async {
+                                FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
+                            }
                             if let httpResponse = taskFinished.dataTask?.response as? HTTPURLResponse, let data = taskFinished.data
                             {
                                 let jsonRootKey = self.jsonRootKey
                                 let response = try APIResponse( response : httpResponse, responseData : data, responseJSONRootKey : jsonRootKey, requestAPIName: self.requestedModule )
-                                uploadTasksQueue.async {
-                                    FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
-                                }
                                 fileUploadDelegate?.didFinish( fileRefId : fileRefId, response )
                                 completion( true, response )
                             }
@@ -365,9 +368,6 @@ internal class FileAPIRequest : APIRequest
                         catch
                         {
                             ZCRMLogger.logError( message : "\( error )" )
-                            uploadTasksQueue.async {
-                                FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
-                            }
                             fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
                             completion( false , nil)
                         }
@@ -457,6 +457,9 @@ internal class FileAPIRequest : APIRequest
                         let fileUploadTaskReference = FileUploadTaskReference(fileRefId: fileRefId, uploadClosure: { taskDetails, taskFinished, error in
                             if let error = error
                             {
+                                uploadTasksQueue.async {
+                                    FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
+                                }
                                 self.fileUploadDelegate?.didFail(fileRefId: fileRefId, typeCastToZCRMError( error ))
                                 self.removeTempFile(atURL: tempFileUrl)
                                 completion( false , nil)
@@ -465,13 +468,13 @@ internal class FileAPIRequest : APIRequest
                             {
                                 do
                                 {
+                                    uploadTasksQueue.async {
+                                        FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
+                                    }
                                     if let httpResponse = taskFinished.dataTask?.response as? HTTPURLResponse, let data = taskFinished.data
                                     {
                                         let jsonRootKey = self.jsonRootKey
                                         let response = try APIResponse( response : httpResponse, responseData : data, responseJSONRootKey : jsonRootKey, requestAPIName: self.requestedModule )
-                                        uploadTasksQueue.async {
-                                            FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
-                                        }
                                         fileUploadDelegate?.didFinish( fileRefId : fileRefId, response )
                                         self.removeTempFile(atURL: tempFileUrl)
                                         completion( true, response )
@@ -485,9 +488,6 @@ internal class FileAPIRequest : APIRequest
                                 catch
                                 {
                                     ZCRMLogger.logError( message : "\( error )" )
-                                    uploadTasksQueue.async {
-                                        FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
-                                    }
                                     fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
                                     self.removeTempFile(atURL: tempFileUrl)
                                     completion( false , nil)
@@ -709,20 +709,22 @@ internal class FileAPIRequest : APIRequest
                         let fileDownloadTaskReference = FileDownloadTaskReference(fileRefId: fileRefId) { ( taskDetails, taskFinished, error ) in
                             if let error = error
                             {
+                                downloadTasksQueue.async {
+                                    FileTasks.liveDownloadTasks?.removeValue(forKey: fileRefId)
+                                }
                                 fileDownloadDelegate?.didFail( fileRefId: fileRefId, typeCastToZCRMError( error ) )
                             }
                             else if let taskFinished = taskFinished
                             {
                                 do
                                 {
+                                    downloadTasksQueue.async {
+                                        FileTasks.liveDownloadTasks?.removeValue(forKey: fileRefId)
+                                    }
                                     guard let response = taskFinished.downloadTask?.response as? HTTPURLResponse else
                                     {
                                         ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
                                         throw ZCRMError.sdkError(code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details : nil)
-                                    }
-                                    
-                                    downloadTasksQueue.async {
-                                        FileTasks.liveDownloadTasks?.removeValue(forKey: fileRefId)
                                     }
                                     let fileAPIResponse : FileAPIResponse = try FileAPIResponse(response: response, tempLocalUrl: taskFinished.location, requestAPIName: self.requestedModule)
                                     fileDownloadDelegate?.didFinish( fileRefId: fileRefId, fileAPIResponse )

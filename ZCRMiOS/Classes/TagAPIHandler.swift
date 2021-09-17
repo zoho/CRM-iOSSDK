@@ -293,14 +293,9 @@ internal class TagAPIHandler : CommonAPIHandler
             }
             setJSONRootKey(key: JSONRootKey.TAGS)
             let tagId : String = String( tag.id )
-            var reqBodyObj : [String:[[String:Any]]] = [String:[[String:Any]]]()
-            var dataArray : [[String:Any]] = [[String:Any]]()
-            let updateTagJSON = self.getZCRMTagAsJSON(tag: tag)
-            var nameJSON : [String:Any] = [String:Any]()
-            if let updateTagName = updateTagJSON[ ResponseJSONKeys.name ]
-            {
-                nameJSON[ResponseJSONKeys.name] = updateTagName
-            }
+            var reqBodyObj : [String:[[String:Any?]]] = [String:[[String:Any?]]]()
+            var dataArray : [[String:Any?]] = [[String:Any?]]()
+            let nameJSON : [String:Any?] = getZCRMTagAsJSON(tag: tag)
             dataArray.append(nameJSON)
             reqBodyObj[getJSONRootKey()] = dataArray
             
@@ -449,6 +444,10 @@ internal class TagAPIHandler : CommonAPIHandler
         {
             tag.moduleAPIName = moduleAPIName
         }
+        if let colorCode = tagDetails.optString(key: ResponseJSONKeys.colorCode)
+        {
+            tag.colorCode = colorCode
+        }
         tag.isCreate = false
         return tag
     }
@@ -461,6 +460,10 @@ internal class TagAPIHandler : CommonAPIHandler
             tagJSON.updateValue( tag.id, forKey : ResponseJSONKeys.id )
         }
         tagJSON.updateValue( tag.name, forKey : ResponseJSONKeys.name )
+//        if ZCRMSDKClient.shared.apiVersion > "v2.1"
+//        {
+//            tagJSON.updateValue( tag.colorCode, forKey: ResponseJSONKeys.colorCode)
+//        }
         return tagJSON
     }
 }
@@ -476,6 +479,7 @@ fileprivate extension TagAPIHandler
         static let modifiedBy = "modified_by"
         static let modifiedTime = "modified_time"
         static let count = "count"
+        static let colorCode = "color_code"
     }
     
     struct URLPathConstants {

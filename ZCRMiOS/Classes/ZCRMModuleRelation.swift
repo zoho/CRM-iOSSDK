@@ -6,11 +6,21 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
-public class ZCRMModuleRelationDelegate : ZCRMEntity
+public class ZCRMModuleRelationDelegate : ZCRMEntity, Hashable
 {
     public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
     public internal( set ) var apiName : String = APIConstants.STRING_MOCK
     public internal( set ) var label : String = APIConstants.STRING_MOCK
+    
+    public static func == (lhs: ZCRMModuleRelationDelegate, rhs: ZCRMModuleRelationDelegate) -> Bool {
+        return lhs.id == rhs.id &&
+            lhs.apiName == rhs.apiName &&
+            lhs.label == rhs.label
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
+    }
 }
 
 public class ZCRMModuleRelation : ZCRMModuleRelationDelegate
@@ -73,7 +83,7 @@ public class ZCRMModuleRelation : ZCRMModuleRelationDelegate
 	}
 }
 
-extension ZCRMModuleRelation : Hashable
+extension ZCRMModuleRelation
 {
     public static func == (lhs: ZCRMModuleRelation, rhs: ZCRMModuleRelation) -> Bool {
         let equals : Bool = lhs.apiName == rhs.apiName &&
@@ -88,9 +98,5 @@ extension ZCRMModuleRelation : Hashable
             lhs.href == rhs.href &&
             lhs.sequenceNo == rhs.sequenceNo
         return equals
-    }
-    
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine( id )
     }
 }

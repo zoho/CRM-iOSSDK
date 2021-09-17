@@ -5,12 +5,11 @@
 //  Created by Umashri R on 30/07/18.
 //
 
-open class ZCRMTag : ZCRMEntity
+open class ZCRMTag : ZCRMTagDelegate
 {
     var isCreate : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var moduleAPIName : String  = APIConstants.STRING_MOCK
     public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
-    public var name : String  = APIConstants.STRING_MOCK
-    var moduleAPIName : String  = APIConstants.STRING_MOCK
     public internal( set ) var createdBy : ZCRMUserDelegate = USER_MOCK
     public internal( set ) var createdTime : String = APIConstants.STRING_MOCK
     public internal( set ) var modifiedBy : ZCRMUserDelegate = USER_MOCK
@@ -18,12 +17,14 @@ open class ZCRMTag : ZCRMEntity
 
     internal init( name : String, moduleAPIName : String )
     {
-        self.name = name
         self.moduleAPIName = moduleAPIName
+        super.init(name: name)
     }
     
     internal init()
-    { }
+    {
+        super.init(name: APIConstants.STRING_MOCK)
+    }
     
     public func update( completion : @escaping ( Result.DataResponse< ZCRMTag, APIResponse > ) -> () )
     {
@@ -65,7 +66,7 @@ open class ZCRMTag : ZCRMEntity
 extension ZCRMTag : Hashable
 {
     public func copy(with zone: NSZone? = nil) -> ZCRMTag {
-        let tag = ZCRMTag(name: self.name, moduleAPIName: self.moduleAPIName)
+        let tag = ZCRMTag(name: name, moduleAPIName: moduleAPIName)
         tag.isCreate = self.isCreate
         tag.id = self.id
         tag.createdBy = self.createdBy

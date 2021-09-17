@@ -13,8 +13,9 @@ open class ZCRMFieldDelegate : ZCRMEntity
     public internal( set ) var dataType : String
     public internal( set ) var isMandatory : Bool
     public internal( set ) var apiName : String
+    public internal( set ) var lookupModule : String?
     public internal( set ) var pickListValues : [ ZCRMPickListValue ]?
-    public internal( set ) var related_details : ZCRMModuleRelationDelegate?
+    public internal( set ) var relatedDetails : ZCRMModuleRelationDelegate?
     public internal( set ) var criteria : ZCRMQuery.ZCRMCriteria?
     public internal( set ) var data : [ String : Any ] = [:]
     
@@ -51,7 +52,6 @@ open class ZCRMField : ZCRMFieldDelegate
     
     public internal( set ) var roundingOption : CurrencyRoundingOption?
     public internal( set ) var precision : Int?
-    public internal( set ) var lookup : [String : Any]?
     public internal( set ) var multiSelectLookup : [String : Any]?
     public internal( set ) var subFormTabId : Int64?
     public internal( set ) var subForm : [String : Any]?
@@ -109,21 +109,8 @@ open class ZCRMField : ZCRMFieldDelegate
 extension ZCRMField : Hashable
 {
     public static func == (lhs: ZCRMField, rhs: ZCRMField) -> Bool {
-        var lookupFlag : Bool
         var multiSelectLookupFlag : Bool
         var subformFlag : Bool
-        if lhs.lookup == nil && rhs.lookup == nil
-        {
-            lookupFlag = true
-        }
-        else if let lhsLookup = lhs.lookup, let rhsLookup = rhs.lookup
-        {
-            lookupFlag = NSDictionary(dictionary: lhsLookup).isEqual(to: rhsLookup)
-        }
-        else
-        {
-            return false
-        }
         if lhs.multiSelectLookup == nil && rhs.multiSelectLookup == nil
         {
             multiSelectLookupFlag = true
@@ -172,7 +159,8 @@ extension ZCRMField : Hashable
             lhs.isBusinessCardSupported == rhs.isBusinessCardSupported &&
             lhs.roundingOption == rhs.roundingOption &&
             lhs.precision == rhs.precision &&
-            lookupFlag &&
+            lhs.lookupModule == nil && rhs.lookupModule == nil &&
+            lhs.relatedDetails == rhs.relatedDetails &&
             multiSelectLookupFlag &&
             lhs.subFormTabId == rhs.subFormTabId &&
             subformFlag &&

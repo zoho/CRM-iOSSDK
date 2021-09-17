@@ -794,7 +794,13 @@ internal class ModuleAPIHandler : CommonAPIHandler
         field.tooltip = fieldDetails.optString(key: ResponseJSONKeys.toolTip)
         field.webhook = try fieldDetails.getBoolean( key : ResponseJSONKeys.webhook )
         field.createdSource = try fieldDetails.getString( key : ResponseJSONKeys.createdSource )
-        field.lookup = fieldDetails.optDictionary(key: ResponseJSONKeys.lookup)
+        if let lookup = fieldDetails.optDictionary(key: ResponseJSONKeys.lookup)
+        {
+            if let moduleName = lookup.optString(key: ResponseJSONKeys.module)
+            {
+                field.lookupModule = moduleName
+            }
+        }
         field.multiSelectLookup = fieldDetails.optDictionary(key: ResponseJSONKeys.multiSelectLookup)
         field.subFormTabId = fieldDetails.optInt64(key: ResponseJSONKeys.subformTabId)
         field.subForm = fieldDetails.optDictionary(key: ResponseJSONKeys.subform)
