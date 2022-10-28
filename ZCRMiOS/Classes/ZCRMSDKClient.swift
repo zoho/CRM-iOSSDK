@@ -119,7 +119,7 @@ public class ZCRMSDKClient
         try clearAllCache()
     }
     
-    internal func getAccessToken( completion : @escaping ( Result.Data< String > ) -> ())
+    public func getAccessToken( completion : @escaping ( Result.Data< String > ) -> ())
     {
         if let zohoAuthProvider = self.zohoAuthProvider
         {
