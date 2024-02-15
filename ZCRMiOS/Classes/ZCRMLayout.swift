@@ -31,6 +31,61 @@ open class ZCRMLayout : ZCRMLayoutDelegate
 	{
         self.sections.append(section)
 	}
+    
+    /**
+     To get all the pipeline details of the layout from DB if the data is already cached ( i.e ) the data has already been fetched from the server atleast once and DB has not been cleared after that
+    
+    - Precondition: The **layout ID** must be of **Deals** module
+    
+    - Parameters:
+       - completion :
+           - Success : Returns an array of ZCRMPipeline objects and a BulkAPIResponse
+           - Failure : ZCRMError
+    */
+    public func getPipelines( completion : @escaping( ZCRMResult.DataResponse< [ ZCRMPipeline ], BulkAPIResponse > ) -> () )
+    {
+        PipelineAPIHandler( cache : .urlVsResponse ).getPipelines( layoutId : self.id ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    /**
+     To get all the pipeline details of the layout from Server
+    
+    - Precondition: The **layout ID** must be of **Deals** module
+    
+    - Parameters:
+       - requestHeaders : Headers that needs to be included in the request
+       - completion :
+           - Success : Returns an array of ZCRMPipeline objects and a BulkAPIResponse
+           - Failure : ZCRMError
+    */
+    public func getPipelinesFromServer( completion : @escaping( ZCRMResult.DataResponse< [ ZCRMPipeline ], BulkAPIResponse > ) -> () )
+    {
+        PipelineAPIHandler( cache : .noCache ).getPipelines( layoutId : self.id ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    /**
+     To get all the pipeline details of the layout from Server
+    
+    - Precondition: The **layout ID** must be of **Deals** module
+     
+    - Note: If request headers contains **X-CRM-ORG** key, then the response will not be cached
+    
+    - Parameters:
+       - requestHeaders : Headers that needs to be included in the request
+       - completion :
+            - Success : Returns an array of ZCRMPipeline objects and a BulkAPIResponse
+            - Failure : ZCRMError
+    */
+    public func getPipelinesFromServer( requestHeaders : [ String : String ], completion : @escaping( ZCRMResult.DataResponse< [ ZCRMPipeline ], BulkAPIResponse > ) -> () )
+    {
+        PipelineAPIHandler( cache : .noCache ).getPipelines( layoutId : self.id, requestHeaders: requestHeaders ) { ( result ) in
+            completion( result )
+        }
+    }
 }
 
 extension ZCRMLayout
