@@ -1,19 +1,19 @@
 {
   "name": "ZCRMiOS",
-  "version": "1.41.0",
+  "version": "2.0.0",
   "summary": "A short description of ZCRMiOS.",
   "description": "TODO: Add long description of the pod here.",
-  "homepage": "https://git.csez.zohocorpin.com/zoho-crm/ios-sdk-internal",
+  "homepage": "https://github.com/zoho/CRM-iOSSDK",
   "license": {
     "type": "MIT",
     "file": "LICENSE"
   },
   "authors": {
-    "boopathyparamasivan": "boopathy.p@zohocorp.com"
+    "boopathypsiva": "boopathy.p@zohocorp.com"
   },
   "source": {
-    "git": "https://git.csez.zohocorpin.com/zoho-crm/ios-sdk-internal.git",
-    "tag": "1.41.0"
+    "git": "https://github.com/zoho/CRM-iOSSDK.git",
+    "tag": "2.0.0"
   },
   "vendored_frameworks": [
     "Example/Pods/ZohoAuth/ZohoAuthKit.framework",
@@ -28,5 +28,19 @@
     "SQLCipher": [
       "~> 4.5.2"
     ]
-  }
+  },
+  "subspecs": [
+    {
+      "name": "SQLCipher",
+      "dependencies": {
+        "SQLCipher": [
+          "~> 4.5.2"
+        ]
+      },
+      "xcconfig": {
+        "OTHER_SWIFT_FLAGS": "$(inherited) -DSQLCipher",
+        "GCC_PREPROCESSOR_DEFINITIONS": "$(inherited) SQLITE_HAS_CODEC=1"
+      }
+    }
+  ]
 }
