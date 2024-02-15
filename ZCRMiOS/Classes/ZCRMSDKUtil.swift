@@ -374,4 +374,17 @@ public class ZCRMSDKUtil
     {
         OrgAPIHandler().uploadFile( fileRefId : fileRefId, filePath: nil, fileName: fileName, fileData: fileData, inline: inline, fileUploadDelegate: fileUploadDelegate)
     }
+    
+    /**
+      To get all the possible email addresses that can be used to send a mail
+     
+     - Parameters:
+        - completion :
+            - success : Returns an array of ZCRMEmail.FromAddress objects and a BulkAPIResponse
+            - failure : ZCRMError
+     */
+    public static func getEmailFromAddresses( completion : @escaping ( ZCRMResult.DataResponse< [ ZCRMEmail.FromAddress ], BulkAPIResponse > ) -> () )
+    {
+        EmailAPIHandler().getEmailFromAddresses(completion: completion)
+    }
 }

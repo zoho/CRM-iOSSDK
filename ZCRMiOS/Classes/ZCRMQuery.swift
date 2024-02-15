@@ -56,7 +56,7 @@ public class ZCRMQuery
         public init() {}
     }
     
-    struct GetTemplateParams
+    public struct GetTemplateParams
     {
         public var module : String?
         public var category : ZCRMTemplateCategory?
