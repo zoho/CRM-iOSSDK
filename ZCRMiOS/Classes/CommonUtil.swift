@@ -1926,6 +1926,7 @@ struct JSONRootKey {
     static let EMAIL_TEMPLATES : String = "email_templates"
     static let TEMPLATES : String = "templates"
     static let FROM_ADDRESSES : String = "from_addresses"
+    static let PIPELINE : String = "pipeline"
 }
 
 //MARK:- RESULT TYPES
