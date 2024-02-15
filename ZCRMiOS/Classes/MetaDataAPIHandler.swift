@@ -108,30 +108,6 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func searchByPhone( phoneNumber: String, completion : @escaping ( ZCRMResult.Response< APIResponse > ) -> () )
-    {
-        addRequestParam(param: URLPathConstants.phoneNumber, value: phoneNumber)
-        
-        guard let url = ZCRMURLBuilder(path: "/\(CRM)/\( URLPathConstants.phoneBridge )/\( APIConstants.API_VERSION_V2 )/\( URLPathConstants.search )", queryItems: self.getQueryItems()).url else
-        {
-            ZCRMLogger.logError( message : "Unable to construct URL - search phone Api" )
-            completion( .failure( ZCRMError.sdkError(code: ZCRMErrorCode.internalError, message: "Unable to construct URL - search phone Api", details: nil) ) )
-            return
-        }
-        let request : APIRequest = APIRequest(absoluteURL: url, requestMethod: .get, includeCommonReqHeaders: true)
-        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-        
-        request.getAPIResponse() { result in
-            switch result
-            {
-            case .success(let response) :
-                completion( .success( response ) )
-            case .failure(let error) :
-                completion( .failure( error ) )
-            }
-        }
-    }
-	
 	private func getZCRMModule(moduleDetails : [String:Any]) throws -> ZCRMModule
 	{
         let module : ZCRMModule = ZCRMModule( apiName : try moduleDetails.getString( key : ResponseJSONKeys.apiName ), singularLabel : try moduleDetails.getString( key : ResponseJSONKeys.singularLabel ), pluralLabel : try moduleDetails.getString( key : ResponseJSONKeys.pluralLabel ) )

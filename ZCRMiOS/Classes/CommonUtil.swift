@@ -38,15 +38,6 @@ public enum ZCRMError : Error
     }
 }
 
-public enum PredictionType : String
-{
-    case modulesPredictionChart = "predicted_records"
-    case predictionAccuracyChart = "real_time_accuracy"
-    case userPerformanceChart = "user_performance"
-    case activeRecords = "prediction_analytics"
-    case predictionAccuracy
-}
-
 public struct ZCRMErrorCode
 {
     public static var invalidData = "INVALID_DATA"
@@ -444,15 +435,6 @@ public enum ZCRMCountryDomain : String
     case cn = "com.cn"
     case au = "com.au"
     case jp = "jp"
-}
-
-public enum ZCRMDuration : String
-{
-    case all = "all"
-    case lastWeek = "last_week"
-    case lastMonth = "last_month"
-    case lastQuarter = "last_quarter"
-    case lastYear = "last_year"
 }
 
 public extension Dictionary
@@ -1866,13 +1848,6 @@ struct JSONRootKey {
     static let SHARE : String = "share"
     static let SHAREABLE_USER : String = "shareable_user"
     static let BLUEPRINT = "blueprint"
-    static let PREDICTION = "predictions"
-    static let PREDICTION_MODELS = "models"
-    static let PREDICTION_ANALYTICS = "prediction_analytics"
-    static let SURVEYS = "surveys"
-    static let HOME_TAB = "Home_Tab"
-    static let HOME_COMPONENTS = "home_components"
-    static let HOME = "home"
     static let SANDBOX = "sandbox"
 }
 
