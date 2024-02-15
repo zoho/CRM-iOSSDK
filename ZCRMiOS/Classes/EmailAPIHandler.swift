@@ -438,6 +438,39 @@ class EmailAPIHandler : CommonAPIHandler {
         }
     }
     
+    internal func getEmailFromAddresses( completion : @escaping ( ZCRMResult.DataResponse< [ ZCRMEmail.FromAddress ], BulkAPIResponse > ) -> () )
+    {
+        setJSONRootKey(key: JSONRootKey.FROM_ADDRESSES)
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.emails )/\( URLPathConstants.actions )/\( URLPathConstants.fromAddresses )")
+        setRequestMethod(requestMethod: .get)
+        
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getBulkAPIResponse() { result in
+            switch result
+            {
+            case .success(let bulkResponse) :
+                do
+                {
+                    let responseJSON = bulkResponse.getResponseJSON()
+                    let emailDetails = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                    let emailaddresses = try self.getEmailFromAddresses( fromresponseJSON: emailDetails )
+                    bulkResponse.setData(data: emailaddresses)
+                    completion( .success( emailaddresses, bulkResponse) )
+                }
+                catch
+                {
+                    ZCRMLogger.logError( message : "\( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "\( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
     private func getTemplateAttachments( attachment : [ String : Any ], isPreviewAPI : Bool ) throws -> ZCRMEmailTemplate.Attachment
     {
         let size = try attachment.getInt64(key: ResponseJSONKeys.size )
