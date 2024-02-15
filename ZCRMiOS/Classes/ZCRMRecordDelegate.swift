@@ -293,6 +293,13 @@ open class ZCRMRecordDelegate : ZCRMEntity
         }
     }
     
+    public func getMails( params : ZCRMQuery.GetEmailParams? = nil, completion : @escaping ( ZCRMResult.DataResponse< [ ZCRMEmail ], BulkAPIResponse >) -> ())
+    {
+        EmailAPIHandler().viewMails(record: self, params: params ?? ZCRMQuery.GetEmailParams()) { result in
+            completion( result )
+        }
+    }
+    
     /// To get list of all attachments of the ZCRMRecord(BulkAPIResponse).
     ///
     /// - Returns: list of all attachments of the ZCRMRecord

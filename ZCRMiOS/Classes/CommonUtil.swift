@@ -427,6 +427,77 @@ public enum ZCRMVariableType : String
     case checkbox = "checkbox"
 }
 
+public enum ZCRMTemplateType : String
+{
+    case systemTemplates = "system_templates"
+    case customTemplates = "custom_templates"
+    case normal = "normal"
+    case draft = "draft"
+    case unhandled
+    
+    static func getType( rawValue : String? ) -> ZCRMTemplateType?
+    {
+        guard let rawValue = rawValue else
+        {
+            return nil
+        }
+        if let type = ZCRMTemplateType( rawValue : rawValue)
+        {
+            return type
+        }
+        else
+        {
+            ZCRMLogger.logDebug(message: "UNHANDLED -> Template Sub type : \( rawValue )")
+            return .unhandled
+        }
+    }
+}
+
+public enum ZCRMTemplateEditorMode : String
+{
+    case plainText = "plain_text"
+    case richText = "rich_text"
+    case gallery = "gallery"
+    case unhandled
+    
+    static func getType( rawValue : String ) -> ZCRMTemplateEditorMode
+    {
+        if let type = ZCRMTemplateEditorMode( rawValue : rawValue)
+        {
+            return type
+        }
+        else
+        {
+            ZCRMLogger.logDebug(message: "UNHANDLED -> Template Sub type : \( rawValue )")
+            return .unhandled
+        }
+    }
+}
+
+public enum ZCRMTemplateCategory : String
+{
+    case favorite
+    case createdByMe = "created_by_me"
+    case sharedWithMe = "shared_with_me"
+    case associated
+    case draft
+    
+    static func getString(for category: ZCRMTemplateCategory, isBigin: Bool) -> String {
+       switch category {
+            case .favorite:
+                return isBigin ? "Favorite" : "favorite"
+            case .createdByMe:
+                return isBigin ? "CreatedByMe" : "created_by_me"
+            case .sharedWithMe:
+                return isBigin ? "SharedWithMe" : "shared_with_me"
+            case .associated:
+                return isBigin ? "" : "associated"
+            case .draft:
+                return isBigin ? "" : "draft"
+        }
+    }
+}
+
 public enum ZCRMCountryDomain : String
 {
     case eu = "eu"
@@ -1849,6 +1920,11 @@ struct JSONRootKey {
     static let SHAREABLE_USER : String = "shareable_user"
     static let BLUEPRINT = "blueprint"
     static let SANDBOX = "sandbox"
+    static let EMAIL_RELATED_LIST :String = "email_related_list"
+    static let EMAILS :String = "Emails"
+    static let INVENTORY_TEMPLATES : String = "inventory_templates"
+    static let EMAIL_TEMPLATES : String = "email_templates"
+    static let TEMPLATES : String = "templates"
 }
 
 //MARK:- RESULT TYPES
