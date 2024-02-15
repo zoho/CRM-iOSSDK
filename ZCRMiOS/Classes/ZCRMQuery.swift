@@ -44,6 +44,30 @@ public class ZCRMQuery
         public init() {}
     }
     
+    public struct GetEmailParams
+    {
+        public var ownerId : Int64?
+        public var type : ZCRMEmail.MailType?
+        public var lastMailIndex : String?
+        public var startIndex : Int?
+        public var page : Int?
+        public var dealsMail : Bool?
+        
+        public init() {}
+    }
+    
+    struct GetTemplateParams
+    {
+        public var module : String?
+        public var category : ZCRMTemplateCategory?
+        public var sortOrder : ZCRMSortOrder?
+        public var sortBy : String?
+        public var filter : ZCRMQuery.ZCRMCriteria?
+        public var pipelineId : Int64?
+        
+        public init() {}
+    }
+    
     /**
      To construct a COQLQuery
      */
