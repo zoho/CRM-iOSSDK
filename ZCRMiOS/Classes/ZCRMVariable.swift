@@ -30,21 +30,21 @@ open class ZCRMVariable : ZCRMEntity
         self.id = id
     }
     
-    public func create( completion : @escaping( Result.DataResponse< ZCRMVariable, APIResponse > ) -> () )
+    public func create( completion : @escaping( ZCRMResult.DataResponse< ZCRMVariable, APIResponse > ) -> () )
     {
         OrgAPIHandler(variable: self).createVariable { ( result ) in
             completion( result )
         }
     }
     
-    public func update( completion : @escaping( Result.DataResponse< ZCRMVariable, APIResponse > ) -> () )
+    public func update( completion : @escaping( ZCRMResult.DataResponse< ZCRMVariable, APIResponse > ) -> () )
     {
         OrgAPIHandler(variable: self).updateVariable { ( result ) in
             completion( result )
         }
     }
     
-    public func delete( completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func delete( completion : @escaping( ZCRMResult.Response< APIResponse > ) -> () )
     {
         OrgAPIHandler().deleteVariable(id: self.id) { ( result ) in
             completion( result )
@@ -52,9 +52,9 @@ open class ZCRMVariable : ZCRMEntity
     }
 }
 
-extension ZCRMVariable : NSCopying, Hashable
+extension ZCRMVariable : Hashable
 {
-    public func copy( with zone : NSZone? = nil ) -> Any
+    func copy() -> ZCRMVariable
     {
         let copy = ZCRMVariable( id : self.id )
         copy.name = self.name

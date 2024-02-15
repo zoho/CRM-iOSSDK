@@ -6,11 +6,30 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 
-public class ZCRMModuleRelationDelegate : ZCRMEntity
+public class ZCRMModuleRelationDelegate : ZCRMEntity, Hashable
 {
     public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
     public internal( set ) var apiName : String = APIConstants.STRING_MOCK
     public internal( set ) var label : String = APIConstants.STRING_MOCK
+    
+    public static func == (lhs: ZCRMModuleRelationDelegate, rhs: ZCRMModuleRelationDelegate) -> Bool {
+        return lhs.id == rhs.id &&
+            lhs.apiName == rhs.apiName &&
+            lhs.label == rhs.label
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine( id )
+    }
+    
+    public func copy() -> ZCRMModuleRelationDelegate {
+        let moduleRelationDelegate = ZCRMModuleRelationDelegate()
+        moduleRelationDelegate.id = id
+        moduleRelationDelegate.apiName = apiName
+        moduleRelationDelegate.label = label
+        return moduleRelationDelegate
+    }
+    
 }
 
 public class ZCRMModuleRelation : ZCRMModuleRelationDelegate
@@ -20,10 +39,11 @@ public class ZCRMModuleRelation : ZCRMModuleRelationDelegate
 	public internal( set ) var isDefault : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var name : String = APIConstants.STRING_MOCK
     public internal( set ) var type : String = APIConstants.STRING_MOCK
-    public internal( set ) var module : String?
+    public internal( set ) var linkingModule : ZCRMModuleDelegate?
     public internal( set ) var action : String?
     public internal( set ) var sequenceNo : Int = APIConstants.INT_MOCK
-    public internal( set ) var href : String?
+    public internal( set ) var connectedModule : ZCRMModuleDelegate?
+    internal var pipelineData : [ [ String : Any ] ] = []
 
     
     /// Initialize the instance of a ZCRMModuleRelation with the given module and related list
@@ -57,12 +77,12 @@ public class ZCRMModuleRelation : ZCRMModuleRelationDelegate
     ///   - recordParams: Params to be included in fetching the records
     /// - Returns: sorted list of module of the ZCRMRecord
     /// - Throws: ZCRMSDKError if falied to get related records
-    public func getRelatedRecords( ofParentRecord : ZCRMRecordDelegate, recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
+    public func getRelatedRecords( ofParentRecord : ZCRMRecordDelegate, recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ())
 	{
         do
         {
             try relatedModuleCheck( module : self.apiName )
-            RelatedListAPIHandler( parentRecord : ofParentRecord, relatedList : self ).getRecords( recordParams : recordParams ) { ( result ) in
+            RelatedListAPIHandler( parentRecord : ofParentRecord, relatedList : self ).getRecords( recordParams : recordParams, pipelineId: nil ) { ( result ) in
                 completion( result )
             }
         }
@@ -71,9 +91,25 @@ public class ZCRMModuleRelation : ZCRMModuleRelationDelegate
             completion( .failure( typeCastToZCRMError( error ) ) )
         }
 	}
+    
+    public override func copy() -> ZCRMModuleRelation {
+        let moduleRelation = ZCRMModuleRelation(relatedListAPIName: apiName, parentModuleAPIName: parentModuleAPIName)
+        moduleRelation.id = id
+        moduleRelation.apiName = apiName
+        moduleRelation.isVisible = isVisible
+        moduleRelation.isDefault = isDefault
+        moduleRelation.name = name
+        moduleRelation.type = type
+        moduleRelation.linkingModule = linkingModule?.copy()
+        moduleRelation.action = action
+        moduleRelation.sequenceNo = sequenceNo
+        moduleRelation.connectedModule = connectedModule?.copy()
+        moduleRelation.pipelineData = pipelineData
+        return moduleRelation
+    }
 }
 
-extension ZCRMModuleRelation : Hashable
+extension ZCRMModuleRelation
 {
     public static func == (lhs: ZCRMModuleRelation, rhs: ZCRMModuleRelation) -> Bool {
         let equals : Bool = lhs.apiName == rhs.apiName &&
@@ -83,14 +119,10 @@ extension ZCRMModuleRelation : Hashable
             lhs.isVisible == rhs.isVisible &&
             lhs.name == rhs.name &&
             lhs.type == rhs.type &&
-            lhs.module == rhs.module &&
+            lhs.linkingModule == rhs.linkingModule &&
             lhs.action == rhs.action &&
-            lhs.href == rhs.href &&
-            lhs.sequenceNo == rhs.sequenceNo
+            lhs.sequenceNo == rhs.sequenceNo &&
+            lhs.connectedModule == rhs.connectedModule
         return equals
-    }
-    
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine( id )
     }
 }

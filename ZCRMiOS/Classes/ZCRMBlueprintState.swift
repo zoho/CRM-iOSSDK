@@ -1,13 +1,13 @@
 //
-//  ZCRMBlueprint.swift
+//  ZCRMBlueprintState.swift
 //  ZCRMiOS
 //
-//  Created by gowtham-pt2177 on 23/07/21.
+//  Created by gowtham-pt2177 on 09/09/21.
 //
 
 import Foundation
 
-public struct ZCRMBlueprint
+public struct ZCRMBlueprintState
 {
     public let currentState : String
     public let isContinuous : Bool

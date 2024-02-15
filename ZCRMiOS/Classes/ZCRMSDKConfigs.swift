@@ -23,8 +23,8 @@ public class ZCRMSDKConfigs
     }
     public internal( set ) var oauthScopes : [ String ] = []
     public internal( set ) var apiBaseURL : String = "www.zohoapis.com"
-    public internal( set ) var accessType : AccessType = .production
-    public internal( set ) var countryDomain : CountryDomain = .com
+    public internal( set ) var accessType : ZCRMAccessType = .production
+    public internal( set ) var countryDomain : ZCRMCountryDomain = .com
     {
         didSet
         {
@@ -33,7 +33,8 @@ public class ZCRMSDKConfigs
     }
     public internal( set ) var portalId : String?
     public internal( set ) var groupIdentifier : String?
-    public internal( set ) var appType : AppType = .zcrm
+    public internal( set ) var appType : ZCRMAppType = .zcrm
+    public internal( set ) var authorizationCredentials : [ String : [ String ] ]?
     private var emptyProperties : [ String ] = []
     
     init() {}
@@ -93,11 +94,11 @@ public class ZCRMSDKConfigs
         if !emptyProperties.isEmpty
         {
             ZCRMLogger.logDebug( message:"Error occured in ZCRMSDKConfig init() - Mandatory properties not found. Details : \( emptyProperties ) ")
-            throw ZCRMError.inValidError(code: ErrorCode.mandatoryNotFound, message: "Mandatory properties not found - \( emptyProperties )", details: nil)
+            throw ZCRMError.inValidError(code: ZCRMErrorCode.mandatoryNotFound, message: "Mandatory properties not found - \( emptyProperties )", details: nil)
         }
     }
     
-    private func updateBaseURL( countryDomain : CountryDomain )
+    private func updateBaseURL( countryDomain : ZCRMCountryDomain )
     {
         var domain : String = String()
         switch accessType
@@ -119,7 +120,7 @@ public class ZCRMSDKConfigs
         ZCRMLogger.logDebug( message: "API Base URL : \( apiBaseURL )")
     }
     
-    private func updateAccountsURL( countryDomain : CountryDomain )
+    private func updateAccountsURL( countryDomain : ZCRMCountryDomain )
     {
         if appType == .zcrmcp || appType == .zvcrm
         {
@@ -176,7 +177,7 @@ public class ZCRMSDKConfigs
             configs.portalId = portalId
         }
         
-        public func setAPPType( _ apptype : AppType ) -> Builder
+        public func setAPPType( _ apptype : ZCRMAppType ) -> Builder
         {
             configs.appType = apptype
             return self
@@ -197,18 +198,32 @@ public class ZCRMSDKConfigs
         public func setAPIBaseURL( _ baseURL : String ) -> Builder
         {
             configs.apiBaseURL = baseURL
+            
+            var countryDomain : ZCRMCountryDomain
+            switch baseURL
+            {
+            case let url where url.contains(".cn") :
+                countryDomain = .cn
+            case let url where url.contains(".au") :
+                countryDomain = .au
+            case let url where url.contains(".com") :
+                countryDomain = .com
+            case let url where url.contains(".eu") :
+                countryDomain = .eu
+            case let url where url.contains(".in") :
+                countryDomain = .in
+            case let url where url.contains(".jp") :
+                countryDomain = .jp
+            default:
+                countryDomain = configs.countryDomain
+            }
+            configs.countryDomain = countryDomain
             return self
         }
         
-        public func setAccessType( _ accessType : AccessType ) -> Builder
+        public func setAccessType( _ accessType : ZCRMAccessType ) -> Builder
         {
             configs.accessType = accessType
-            return self
-        }
-        
-        public func setCountryDomain( _ countryDomain : CountryDomain ) -> Builder
-        {
-            configs.countryDomain = countryDomain
             return self
         }
         
@@ -218,12 +233,18 @@ public class ZCRMSDKConfigs
             return self
         }
         
+        public func setAuthorizationCredentials( _ authorizationCredentials : [ String : [ String ] ] ) -> Builder
+        {
+            configs.authorizationCredentials = authorizationCredentials
+            return self
+        }
+        
         public func build() throws -> ZCRMSDKConfigs
         {
             if configs.appType == .bigin || configs.appType == .solutions
             {
                 ZCRMLogger.logError(message: "Error occured in ZCRMSDKConfig init() - AppType : \( configs.appType.rawValue ) is not supported")
-                throw ZCRMError.inValidError(code: ErrorCode.notSupported, message: "AppType : \( configs.appType.rawValue ) is not supported", details: nil)
+                throw ZCRMError.inValidError(code: ZCRMErrorCode.notSupported, message: "AppType : \( configs.appType.rawValue ) is not supported", details: nil)
             }
             if configs.accountsURL.isEmpty
             {

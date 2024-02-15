@@ -8,21 +8,45 @@
 
 public class ZCRMSDKClient
 {
-	public static let shared = ZCRMSDKClient()
+    public static let shared = ZCRMSDKClient()
     public var requestHeaders : Dictionary< String, String >?
-    var isDBCacheEnabled : Bool = false
-   
+    @UserDefaultsBacked(key: DBConstant.IS_DB_CACHE_ENABLED, defaultValue: false)
+    public internal( set ) var isDBCacheEnabled : Bool
+    
     public var fileUploadURLSessionConfiguration : URLSessionConfiguration = .default
     public var fileDownloadURLSessionConfiguration : URLSessionConfiguration = .default
     
-    internal var userAgent : String = "ZCRMiOS_unknown_app"
-    internal var apiBaseURL : String = String()
-    internal var apiVersion : String = "v2"
-    internal var portalId : Int64?
-    internal var appType : AppType = AppType.zcrm
+    public internal( set ) var userAgent : String = "ZCRMiOS_unknown_app"
+    public internal( set ) var apiBaseURL : String = String()
+    {
+        didSet
+        {
+            switch ZCRMSDKClient.shared.apiBaseURL
+            {
+            case let url where url.contains(".cn") :
+                COUNTRYDOMAIN = ZCRMCountryDomain.cn.rawValue
+            case let url where url.contains(".au") :
+                COUNTRYDOMAIN = ZCRMCountryDomain.au.rawValue
+            case let url where url.contains(".com") :
+                COUNTRYDOMAIN = ZCRMCountryDomain.com.rawValue
+            case let url where url.contains(".eu") :
+                COUNTRYDOMAIN = ZCRMCountryDomain.eu.rawValue
+            case let url where url.contains(".in") :
+                COUNTRYDOMAIN = ZCRMCountryDomain.in.rawValue
+            case let url where url.contains(".jp") :
+                COUNTRYDOMAIN = ZCRMCountryDomain.jp.rawValue
+            default:
+                COUNTRYDOMAIN = ZCRMCountryDomain.com.rawValue
+            }
+        }
+    }
+    public var apiVersion : String = "v2"
+    public internal( set ) var organizationId : Int64?
+    public internal( set ) var appType : ZCRMAppType = .zcrm
+    public internal( set ) var authorizationCredentials : [ String : [ String ] ]?
     public var requestTimeout : Double = 120.0
     /**
-      The maximum amount of time that a resource request should be allowed to take.
+     The maximum amount of time that a resource request should be allowed to take.
      
      Resource request - Upload and Download operations
      ```
@@ -37,7 +61,7 @@ public class ZCRMSDKClient
             ZCRMSDKClient.shared.fileUploadURLSessionConfiguration.timeoutIntervalForResource = timeoutIntervalForResource
         }
     }
-    private var zohoAuthProvider : ZohoAuthProvider?
+    internal var zohoAuthProvider : ZohoAuthProvider?
     /**
      The time until the db data can be used for specific URL Request. After the time ends the data will be fetched from the server.
      
@@ -46,15 +70,27 @@ public class ZCRMSDKClient
      ```
      */
     public var cacheValidityTimeInHours : Float = 6
-    
-    internal static var persistentDB : CacheDBHandler?
-    internal static var nonPersistentDB : CacheDBHandler?
+    @UserDefaultsBacked(key: DBConstant.MULTIORG_DB_SUPPORT_PREFERENCE, defaultValue: APIConstants.BOOL_MOCK)
+    public internal( set ) var isMultiOrgInstanceSupported : Bool
+    internal var orgAPIDB : CacheDBHandler?
+    internal var userAPIDB : CacheDBHandler?
+    internal var metaAPIDB : CacheDBHandler?
+    internal var analyticsAPIDB : CacheDBHandler?
+    internal var appDataDB : CacheDBHandler?
     private var isVerticalCRM: Bool = false
     internal var zcrmLoginHandler: ZCRMLoginHandler?
     internal var zvcrmLoginHandler: ZVCRMLoginHandler?
     private var crmAppConfigs : Dictionary < String, Any >!
+    internal var isInternal : Bool = false
+    internal var orgLicensePlan = FREE_PLAN
+    internal var account : String = "External"
+    @UserDefaultsBacked(key: DBConstant.IS_DB_ENCRYPTED, defaultValue: false)
+    internal var isDBEncrypted : Bool
+    @UserDefaultsBacked(key: DBConstant.DB_Key_Name, defaultValue: DBConstant.DB_Key_Value)
+    internal var dbKeyValue : String
     
     internal var sessionCompletionHandlers : [ String : () -> () ] = [ String : () -> () ]()
+    private let serialQueue = DispatchQueue( label : "com.zoho.crm.sdk.sqlite.execCommand", qos : .utility )
     
     private init() {}
     
@@ -68,58 +104,99 @@ public class ZCRMSDKClient
         ZCRMSDKClient.shared.apiVersion = appConfiguration.apiVersion
         try self.handleAppType( appConfigurations : appConfiguration )
         ZCRMSDKClient.shared.appType = appConfiguration.appType
+        ZCRMSDKClient.shared.authorizationCredentials = appConfiguration.authorizationCredentials
         if let groupIdentifier = appConfiguration.groupIdentifier
         {
             SQLite.sharedURL = FileManager().containerURL(forSecurityApplicationGroupIdentifier: groupIdentifier)
         }
         
-        do
-        {
-            try ZCRMSDKClient.shared.createDB()
-            try ZCRMSDKClient.shared.createTables()
-        }
-        catch
-        {
-            ZCRMLogger.logError(message: "Table creation failed!")
-        }
         try self.initIAMLogin( window : window )
     }
     
     public static func notifyLogout() throws
     {
-        try shared.clearAllCache()
+        try shared.clearAllCache(isLogoutAction: true)
         shared.clearAllURLSessionCache()
-        shared.portalId = nil
+        shared.organizationId = nil
+        shared.deinitialiseALLDBs()
+        let query = KeychainPasswordItem.keychainQuery(withService: ZCRMSDKClient.shared.dbKeyValue, account: ZCRMSDKClient.shared.account, accessGroup: nil)
+        let status = SecItemDelete(query as CFDictionary)
+        
+        // Throw an error if an unexpected status was returned.
+        guard status == noErr || status == errSecItemNotFound else { throw KeychainPasswordItem.KeychainError.unhandledError(status: status) }
+        UserDefaults.standard.removeObject(forKey: DBConstant.DB_Key_Name)
+        UserDefaults.standard.removeObject(forKey: DBConstant.IS_DB_ENCRYPTED)
     }
     
     public func getCurrentOrganization() -> Int64?
     {
-        return self.portalId
+        return self.organizationId
     }
     
     public func clearCache() throws
     {
-        try SQLite( dbName : DBConstant.CACHE_DB_NAME ).deleteDB()
+        try SQLite( dbType : DBType.metaData ).deleteDB()
+        try SQLite( dbType : DBType.analyticsData ).deleteDB()
+        ZCRMSDKClient.shared.metaAPIDB = nil
+        ZCRMSDKClient.shared.analyticsAPIDB = nil
     }
     
-    internal func clearAllCache() throws
+    internal func clearAllCache(isLogoutAction : Bool = false) throws
     {
-        try SQLite( dbName : DBConstant.CACHE_DB_NAME ).deleteDB()
-        try SQLite( dbName : DBConstant.PERSISTENT_DB_NAME ).deleteDB()
+        try SQLite( dbType : DBType.orgData ).deleteDB()
+        try SQLite( dbType : DBType.userData ).deleteDB()
+        if isLogoutAction
+        {
+            try SQLite( dbType : DBType.appData ).deleteDB()
+            ZCRMSDKClient.shared.appDataDB = nil
+        }
+        ZCRMSDKClient.shared.orgAPIDB = nil
+        ZCRMSDKClient.shared.userAPIDB = nil
+        try clearCache()
     }
     
-    public func enableDBCaching()
+    public func enableDBCaching() throws
     {
         isDBCacheEnabled = true
+        try initialiseALLDBs()
     }
-
+    
     public func disableDBCaching() throws
     {
         isDBCacheEnabled = false
+        isMultiOrgInstanceSupported = false
         try clearAllCache()
+        clearAllURLSessionCache()
+        deinitialiseALLDBs()
     }
     
-    internal func getAccessToken( completion : @escaping ( Result.Data< String > ) -> ())
+    internal func getOrgId() -> String
+    {
+        guard let organizationId = organizationId, isMultiOrgInstanceSupported else {
+            return ""
+        }
+        return "_\( organizationId )"
+    }
+    
+    private func deinitialiseALLDBs()
+    {
+        orgAPIDB = nil
+        userAPIDB = nil
+        analyticsAPIDB = nil
+        metaAPIDB = nil
+        appDataDB = nil
+    }
+    
+    private func initialiseALLDBs() throws
+    {
+        orgAPIDB  = CacheDBHandler(dbType: .orgData)
+        userAPIDB = CacheDBHandler(dbType: .userData)
+        metaAPIDB = CacheDBHandler(dbType: .metaData)
+        analyticsAPIDB = CacheDBHandler(dbType: .analyticsData)
+        appDataDB = CacheDBHandler(dbType: .appData)
+    }
+    
+    internal func getAccessToken( completion : @escaping ( ZCRMResult.Data< String > ) -> ())
     {
         if let zohoAuthProvider = self.zohoAuthProvider
         {
@@ -129,8 +206,8 @@ public class ZCRMSDKClient
         }
         else
         {
-            ZCRMLogger.logError(message: "\( ErrorCode.mandatoryNotFound ) : Zoho Auth provider cannot be nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.sdkError(code: ErrorCode.mandatoryNotFound, message: "Zoho Auth provider cannot be nil", details: nil) ) )
+            ZCRMLogger.logError(message: "\( ZCRMErrorCode.mandatoryNotFound ) : Zoho Auth provider cannot be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.sdkError(code: ZCRMErrorCode.mandatoryNotFound, message: "Zoho Auth provider cannot be nil", details: nil) ) )
         }
     }
     
@@ -142,20 +219,13 @@ public class ZCRMSDKClient
     }
     
     /// default minLogLevel is set as ERROR
-    public func turnLoggerOn( minLogLevel : LogLevels? )
+    public func turnLoggerOn( minLogLevel : ZCRMLogLevels? )
     {
-        if let minLogLevel = minLogLevel
-        {
-            ZCRMLogger.initLogger(isLogEnabled: true, minLogLevel: minLogLevel)
-        }
-        else
-        {
-            ZCRMLogger.initLogger(isLogEnabled: true, minLogLevel: LogLevels.error)
-        }
+        ZCRMLogger.initLogger(isLogEnabled: true, minLogLevel: minLogLevel ?? .error)
     }
     
     /// To change the Zoho CRM SDK LogLevel
-    public func changeMinLogLevel( _ minLogLevel : LogLevels )
+    public func changeMinLogLevel( _ minLogLevel : ZCRMLogLevels )
     {
         ZCRMLogger.minLogLevel = minLogLevel
     }
@@ -165,9 +235,37 @@ public class ZCRMSDKClient
         ZCRMLogger.initLogger(isLogEnabled: false)
     }
     
-    public func getCurrentUser( completion : @escaping( Result.Data< ZCRMUser > ) -> () )
+    public func enableDBEncryption() throws
     {
-        UserAPIHandler(cacheFlavour: CacheFlavour.forceCache).getCurrentUser() { ( result ) in
+        if !ZCRMSDKClient.shared.isDBEncrypted
+        {
+            let password : String = try getDBPassPhrase()
+            try serialQueue.sync {
+                try ZCRMSDKClient.shared.getPersistentDB(dbType: .orgData).encryptDB( password )
+                try ZCRMSDKClient.shared.getPersistentDB(dbType: .userData).encryptDB( password )
+                try ZCRMSDKClient.shared.getNonPersistentDB(dbType: .analyticsData).encryptDB( password )
+                ZCRMSDKClient.shared.isDBEncrypted = true
+            }
+        }
+    }
+    
+    public func disableDBEncryption() throws
+    {
+        if ZCRMSDKClient.shared.isDBEncrypted
+        {
+            let password : String = try getDBPassPhrase()
+            try serialQueue.sync {
+                try ZCRMSDKClient.shared.getPersistentDB(dbType: .orgData).decryptDB( password )
+                try ZCRMSDKClient.shared.getPersistentDB(dbType: .userData).decryptDB( password )
+                try ZCRMSDKClient.shared.getNonPersistentDB(dbType: .analyticsData).decryptDB( password )
+                ZCRMSDKClient.shared.isDBEncrypted = false
+            }
+        }
+    }
+    
+    public func getCurrentUser( completion : @escaping( ZCRMResult.Data< ZCRMUser > ) -> () )
+    {
+        UserAPIHandler(cacheFlavour: .forceCache).getCurrentUser() { ( result ) in
             switch result
             {
             case .success(let currentUser, _) :
@@ -178,9 +276,9 @@ public class ZCRMSDKClient
         }
     }
     
-    public func getCurrentUserFromServer( completion : @escaping( Result.Data< ZCRMUser > ) -> () )
+    public func getCurrentUserFromServer( completion : @escaping( ZCRMResult.Data< ZCRMUser > ) -> () )
     {
-        UserAPIHandler(cacheFlavour: CacheFlavour.noCache).getCurrentUser() { ( result ) in
+        UserAPIHandler(cacheFlavour: .noCache).getCurrentUser() { ( result ) in
             switch result
             {
             case .success(let currentUser, _) :
@@ -193,61 +291,96 @@ public class ZCRMSDKClient
     
     internal func createDB() throws
     {
-        ZCRMSDKClient.persistentDB = try CacheDBHandler( dbName : DBConstant.PERSISTENT_DB_NAME )
-        ZCRMSDKClient.nonPersistentDB = try CacheDBHandler( dbName : DBConstant.CACHE_DB_NAME )
+        if orgAPIDB.isNil
+        {
+            orgAPIDB = CacheDBHandler( dbType: DBType.orgData )
+        }
+        if userAPIDB.isNil
+        {
+            userAPIDB = CacheDBHandler( dbType: DBType.userData )
+        }
+        if metaAPIDB.isNil
+        {
+            metaAPIDB = CacheDBHandler( dbType: DBType.metaData )
+        }
+        if analyticsAPIDB.isNil
+        {
+            analyticsAPIDB = CacheDBHandler( dbType: DBType.analyticsData )
+        }
+        if appDataDB.isNil
+        {
+            appDataDB = CacheDBHandler( dbType: DBType.appData )
+        }
     }
     
     internal func createTables() throws
     {
-        if let persistentDB = ZCRMSDKClient.persistentDB, let nonPersistentDB = ZCRMSDKClient.nonPersistentDB
+        if let orgAPIDB = orgAPIDB, let userAPIDB = userAPIDB, let metaAPIDB = metaAPIDB, let analyticsAPIDB = analyticsAPIDB, let appDataDB = appDataDB
         {
-            try persistentDB.createResponsesTable()
-            try nonPersistentDB.createResponsesTable()
+            try createSeparateTables(cacheDBHandlers: [ orgAPIDB, userAPIDB, metaAPIDB, analyticsAPIDB, appDataDB ])
         }
         else
         {
             try createDB()
-            try ZCRMSDKClient.persistentDB?.createResponsesTable()
-            try ZCRMSDKClient.nonPersistentDB?.createResponsesTable()
+            try createSeparateTables(cacheDBHandlers: [ orgAPIDB, userAPIDB, metaAPIDB, analyticsAPIDB, appDataDB ])
         }
     }
     
-    internal func getPersistentDB() throws -> CacheDBHandler
+    private func createSeparateTables( cacheDBHandlers : [ CacheDBHandler? ] ) throws
     {
-        if let persistentDB = ZCRMSDKClient.persistentDB
+        for cacheDBHandler in cacheDBHandlers
         {
-            return persistentDB
-        }
-        else
-        {
-            try createDB()
-            guard let persistentDB = ZCRMSDKClient.persistentDB else
+            try cacheDBHandler?.createResponsesTable()
+            if cacheDBHandler?.dbRequest.dbType != .metaData && cacheDBHandler?.dbRequest.dbType != .analyticsData
             {
-                ZCRMLogger.logError(message: "\( ErrorCode.dbNotCreated ) : Unable To Create \( DBConstant.PERSISTENT_DB_NAME ), \( APIConstants.DETAILS ) : -")
-                throw ZCRMError.sdkError(code: ErrorCode.dbNotCreated, message: "Unable To Create DB", details: nil)
+                try cacheDBHandler?.createOrganizationTable()
+                try cacheDBHandler?.createPushNotificationsTable()
             }
-            return persistentDB
         }
     }
     
-    internal func getNonPersistentDB() throws -> CacheDBHandler
+    internal func getPersistentDB( dbType : DBType ) throws -> CacheDBHandler
     {
-        if let nonPersistentDB = ZCRMSDKClient.nonPersistentDB
-        {
-            return nonPersistentDB
+        var cacheDBHandler : CacheDBHandler?
+        switch dbType {
+        case .orgData:
+            cacheDBHandler = orgAPIDB
+        case .userData:
+            cacheDBHandler = userAPIDB
+        case .appData:
+            cacheDBHandler = appDataDB
+        default :
+            ZCRMLogger.logError(message: "\( ZCRMErrorCode.invalidOperation ) : Not a valid dbType to access persistent DB : \( dbType ), \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.sdkError(code: ZCRMErrorCode.invalidOperation, message: "Not a valid dbType to access persistent DB : \( dbType )", details: nil)
         }
-        else
+        guard let persistentDB = cacheDBHandler  else
         {
             try createDB()
-            guard let nonPersistentDB = ZCRMSDKClient.nonPersistentDB else
-            {
-                ZCRMLogger.logError(message: "\( ErrorCode.dbNotCreated ) : Unable To Create \( DBConstant.CACHE_DB_NAME ), \( APIConstants.DETAILS ) : -")
-                throw ZCRMError.sdkError(code: ErrorCode.dbNotCreated, message: "Unable To Create DB", details: nil)
-            }
-            return nonPersistentDB
+            return try getPersistentDB(dbType: dbType)
         }
+        return persistentDB
     }
-        
+    
+    internal func getNonPersistentDB( dbType : DBType ) throws -> CacheDBHandler
+    {
+        var cacheHandler : CacheDBHandler?
+        switch dbType {
+        case .metaData:
+            cacheHandler = metaAPIDB
+        case .analyticsData:
+            cacheHandler = analyticsAPIDB
+        default :
+            ZCRMLogger.logError(message: "\( ZCRMErrorCode.invalidOperation ) : Not a valid dbType to access persistent DB : \( dbType ), \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.sdkError(code: ZCRMErrorCode.invalidOperation, message: "Not a valid dbType to access persistent DB : \( dbType )", details: nil)
+        }
+        guard let nonPersistentDB = cacheHandler else
+        {
+            try createDB()
+            return try getNonPersistentDB(dbType: dbType)
+        }
+        return nonPersistentDB
+    }
+    
     private func clearFirstLaunch()
     {
         let alreadyLaunched = UserDefaults.standard.bool( forKey : "first" )
@@ -264,7 +397,7 @@ public class ZCRMSDKClient
             UserDefaults.standard.set( true, forKey : "first" )
         }
     }
-
+    
     public func handle( url : URL, sourceApplication : String?, annotation : Any )
     {
         if self.isVerticalCRM
@@ -276,7 +409,7 @@ public class ZCRMSDKClient
             self.zcrmLoginHandler?.iamLoginHandleURL(url: url, sourceApplication: sourceApplication, annotation: annotation)
         }
     }
-
+    
     fileprivate func initIAMLogin( window : UIWindow ) throws
     {
         if self.isVerticalCRM
@@ -293,7 +426,7 @@ public class ZCRMSDKClient
     {
         do
         {
-            if appConfigurations.appType == AppType.zcrm
+            if appConfigurations.appType == .zcrm
             {
                 self.zcrmLoginHandler = try ZCRMLoginHandler(appConfiguration: appConfigurations)
                 self.zohoAuthProvider = self.zcrmLoginHandler
@@ -309,7 +442,7 @@ public class ZCRMSDKClient
         }
         catch
         {
-            throw ZCRMError.sdkError(code: ErrorCode.internalError, message: error.description, details: nil)
+            throw ZCRMError.sdkError(code: ZCRMErrorCode.internalError, message: error.description, details: nil)
         }
     }
     
@@ -361,7 +494,7 @@ public class ZCRMSDKClient
     /**
      To resume the URLSession delegate method calls when the app transition from background to foreground
      
-     NSURLSession delegate methods won't get invoked in some devices when app resumes from background. We have to resume atleast one task in that URLSession to resume the delgate method calls.
+     NSURLSession delegate methods won't get invoked in some devices when app resumes from background. We have to resume atleast one task in that URLSession to resume the delegate method calls.
      */
     public func notifyApplicationEnterForeground()
     {
@@ -383,7 +516,7 @@ public class ZCRMSDKClient
         let msgJSON : [ String : Any ] = responseJSON
         if let status = msgJSON[ APIConstants.STATUS ] as? String, let code = msgJSON[ APIConstants.CODE ] as? String
         {
-            if( status == APIConstants.CODE_ERROR && code == ErrorCode.noPermission)
+            if( status == APIConstants.CODE_ERROR && code == ZCRMErrorCode.noPermission)
             {
                 if let details = msgJSON[ APIConstants.DETAILS ] as? [ String : Any ], let permissions = details[ APIConstants.PERMISSIONS ] as? [ String ]
                 {
@@ -395,8 +528,11 @@ public class ZCRMSDKClient
                             {
                                 do
                                 {
-                                    try ZCRMSDKClient.shared.getPersistentDB().deleteZCRMRecords(withModuleName: moduleName)
-                                    try ZCRMSDKClient.shared.getNonPersistentDB().deleteZCRMRecords(withModuleName: moduleName)
+                                    try ZCRMSDKClient.shared.getPersistentDB( dbType: .orgData ).deleteZCRMRecords(withModuleName: moduleName)
+                                    try ZCRMSDKClient.shared.getPersistentDB( dbType: .userData ).deleteZCRMRecords(withModuleName: moduleName)
+                                    try ZCRMSDKClient.shared.getNonPersistentDB( dbType: .metaData ).deleteZCRMRecords(withModuleName: moduleName)
+                                    try ZCRMSDKClient.shared.getNonPersistentDB( dbType: .analyticsData ).deleteZCRMRecords(withModuleName: moduleName)
+                                    try ZCRMSDKClient.shared.getPersistentDB( dbType: .appData ).deleteZCRMRecords(withModuleName: moduleName)
                                 }
                                 catch
                                 {
@@ -409,6 +545,15 @@ public class ZCRMSDKClient
                 }
             }
         }
+    }
+}
+
+public extension ZCRMSDKClient
+{
+    struct CacheValidityTime
+    {
+        public var tagsAPI : Float = 3
+        public var metaData : Float = 6
     }
 }
 

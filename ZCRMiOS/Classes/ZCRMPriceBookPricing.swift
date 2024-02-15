@@ -27,6 +27,14 @@ open class ZCRMPriceBookPricing : ZCRMEntity
         self.discount = discount
         self.id = APIConstants.INT64_MOCK
     }
+    
+    func copy() -> ZCRMPriceBookPricing {
+        let copyObj = ZCRMPriceBookPricing(id: id)
+        copyObj.toRange = toRange
+        copyObj.fromRange = fromRange
+        copyObj.discount = discount
+        return copyObj
+    }
 }
 
 extension ZCRMPriceBookPricing : Hashable

@@ -1,27 +1,32 @@
 {
   "name": "ZCRMiOS",
-  "version": "1.6.0",
+  "version": "1.41.0",
   "summary": "A short description of ZCRMiOS.",
   "description": "TODO: Add long description of the pod here.",
-  "homepage": "https://github.com/zoho/CRM-iOSSDK",
+  "homepage": "https://git.csez.zohocorpin.com/zoho-crm/ios-sdk-internal",
   "license": {
     "type": "MIT",
     "file": "LICENSE"
   },
   "authors": {
-    "boopathypsiva": "boopathy.p@zohocorp.com"
+    "boopathyparamasivan": "boopathy.p@zohocorp.com"
   },
   "source": {
-    "git": "https://github.com/zoho/CRM-iOSSDK.git",
-    "tag": "1.6.0"
+    "git": "https://git.csez.zohocorpin.com/zoho-crm/ios-sdk-internal.git",
+    "tag": "1.41.0"
   },
   "vendored_frameworks": [
     "Example/Pods/ZohoAuth/ZohoAuthKit.framework",
     "Example/Pods/ZohoPortalAuth/ZohoPortalAuthKit.framework"
   ],
   "platforms": {
-    "ios": "8.0"
+    "ios": "9.0"
   },
   "source_files": "ZCRMiOS/Classes/**/*",
-  "public_header_files": "Pod/Classes/**/*.h"
+  "public_header_files": "\"${PODS_ROOT}/Pods/Target Support Files/SQLCipher/SQLCipher-umbrella.h\"",
+  "dependencies": {
+    "SQLCipher": [
+      "~> 4.5.2"
+    ]
+  }
 }

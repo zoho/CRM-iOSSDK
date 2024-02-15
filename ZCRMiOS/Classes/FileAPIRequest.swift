@@ -17,7 +17,7 @@ internal class FileAPIRequest : APIRequest
     internal typealias isCompletion = (_ isConnected: Bool, _ apiResponse : APIResponse?) -> Void
     var completion: isCompletion?
     
-    private static let urlSession : URLSession = URLSession(configuration: URLSessionConfiguration.default)
+    private static let urlSession : URLSession = URLSession(configuration: URLSessionConfiguration.default, delegate: ( ZCRMSDKClient.shared.authorizationCredentials ?? [:] ).isEmpty ? nil : SSLValidator(), delegateQueue: nil)
     internal static var fileUploadURLSessionWithDelegates : URLSession = URLSession(configuration: ZCRMSDKClient.shared.fileUploadURLSessionConfiguration, delegate: FileAPIRequest.fileAPIRequestDelegate, delegateQueue: OperationQueue())
     internal static var fileDownloadURLSessionWithDelegates : URLSession = URLSession(configuration: ZCRMSDKClient.shared.fileDownloadURLSessionConfiguration, delegate: FileAPIRequest.fileAPIRequestDelegate, delegateQueue: OperationQueue())
     internal var requestedModule : String?
@@ -40,24 +40,24 @@ internal class FileAPIRequest : APIRequest
         super.init( handler : handler, cacheFlavour : .noCache )
     }
     
-    init( withURL url : URL, requestMethod : RequestMethod, requestHeaders : [ String : String ]? = nil, includeCommonReqHeaders : Bool )
+    init( withURL url : URL, requestMethod : ZCRMRequestMethod, requestHeaders : [ String : String ]? = nil, includeCommonReqHeaders : Bool )
     {
         super.init(absoluteURL: url, requestMethod: requestMethod, requestHeaders: requestHeaders, includeCommonReqHeaders: includeCommonReqHeaders)
     }
     
-    init( withURL url : URL, requestMethod : RequestMethod, requestHeaders : [ String : String ]? = nil, includeCommonReqHeaders : Bool, fileDownloadDelegate : ZCRMFileDownloadDelegate )
+    init( withURL url : URL, requestMethod : ZCRMRequestMethod, requestHeaders : [ String : String ]? = nil, includeCommonReqHeaders : Bool, fileDownloadDelegate : ZCRMFileDownloadDelegate )
     {
         self.fileDownloadDelegate = fileDownloadDelegate
         super.init(absoluteURL: url, requestMethod: requestMethod, requestHeaders: requestHeaders, includeCommonReqHeaders: includeCommonReqHeaders)
     }
     
-    init( withURL url : URL, requestMethod : RequestMethod, requestHeaders : [ String : String ]? = nil, includeCommonReqHeaders : Bool, fileUploadDelegate : ZCRMFileUploadDelegate )
+    init( withURL url : URL, requestMethod : ZCRMRequestMethod, requestHeaders : [ String : String ]? = nil, includeCommonReqHeaders : Bool, fileUploadDelegate : ZCRMFileUploadDelegate )
     {
         self.fileUploadDelegate = fileUploadDelegate
         super.init(absoluteURL: url, requestMethod: requestMethod, requestHeaders: requestHeaders, includeCommonReqHeaders: includeCommonReqHeaders)
     }
     
-    internal func uploadLink( completion : @escaping( Result.Response< APIResponse > ) -> () )
+    internal func uploadLink( completion : @escaping( ZCRMResult.Response< APIResponse > ) -> () )
     {
         let boundary = APIConstants.BOUNDARY
         self.createMultipartRequest( bodyData : Data(), fileName: "-", boundary : boundary) { ( url, error ) in
@@ -94,7 +94,7 @@ internal class FileAPIRequest : APIRequest
     }
     
     /// - Parameter content: ZCRMNote as JSON to be added
-    internal func uploadFile( filePath : String, entity : [ String : Any? ]?, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    internal func uploadFile( filePath : String, entity : [ String : Any? ]?, completion : @escaping( ZCRMResult.Response< APIResponse > ) -> () )
     {
         let fileURL = URL( fileURLWithPath : filePath )
         let boundary = APIConstants.BOUNDARY
@@ -119,8 +119,8 @@ internal class FileAPIRequest : APIRequest
                         guard let request = self.request else
                         {
                             self.removeTempFile(atURL: url)
-                            ZCRMLogger.logError(message: "\(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
-                            completion( .failure( ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil ) ) )
+                            ZCRMLogger.logError(message: "\(ZCRMErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
+                            completion( .failure( ZCRMError.sdkError(code: ZCRMErrorCode.internalError, message: "Unable to construct URLRequest", details : nil ) ) )
                             return
                         }
                         
@@ -155,7 +155,7 @@ internal class FileAPIRequest : APIRequest
         }
     }
     
-    internal func uploadFile( fileData : Data, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    internal func uploadFile( fileData : Data, completion : @escaping( ZCRMResult.Response< APIResponse > ) -> () )
     {
         self.initialiseRequest { ( error ) in
             if let err = error
@@ -173,8 +173,8 @@ internal class FileAPIRequest : APIRequest
                 }
                 guard let request = self.request else
                 {
-                    ZCRMLogger.logError(message: "\(ErrorCode.unableToConstructURL) : \(ErrorMessage.unableToConstructURLMsg), \( APIConstants.DETAILS ) : -")
-                    completion( .failure( ZCRMError.processingError( code : ErrorCode.unableToConstructURL, message : ErrorMessage.unableToConstructURLMsg, details : nil ) )  )
+                    ZCRMLogger.logError(message: "\(ZCRMErrorCode.unableToConstructURL) : \(ZCRMErrorMessage.unableToConstructURLMsg), \( APIConstants.DETAILS ) : -")
+                    completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.unableToConstructURL, message : ZCRMErrorMessage.unableToConstructURLMsg, details : nil ) )  )
                     return
                 }
                 let jsonRootKey = self.jsonRootKey
@@ -201,7 +201,7 @@ internal class FileAPIRequest : APIRequest
     }
     
     /// - Parameter content: ZCRMNote as JSON to be added
-    internal func uploadFile( fileName : String, entity : [ String : Any? ]?, fileData : Data, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    internal func uploadFile( fileName : String, entity : [ String : Any? ]?, fileData : Data, completion : @escaping( ZCRMResult.Response< APIResponse > ) -> () )
     {
         do
         {
@@ -225,8 +225,8 @@ internal class FileAPIRequest : APIRequest
                         guard let request = self.request else
                         {
                             self.removeTempFile(atURL: url)
-                            ZCRMLogger.logError(message: "\(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
-                            completion( .failure( ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil ) ) )
+                            ZCRMLogger.logError(message: "\(ZCRMErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
+                            completion( .failure( ZCRMError.sdkError(code: ZCRMErrorCode.internalError, message: "Unable to construct URLRequest", details : nil ) ) )
                             return
                         }
                         
@@ -280,7 +280,7 @@ internal class FileAPIRequest : APIRequest
             }
             else
             {
-                throw ZCRMError.inValidError(code: ErrorCode.invalidData, message: "File name and data are required to perform the upload task", details: nil)
+                throw ZCRMError.inValidError(code: ZCRMErrorCode.invalidData, message: "File name and data are required to perform the upload task", details: nil)
             }
         }
         catch
@@ -332,44 +332,44 @@ internal class FileAPIRequest : APIRequest
                 }
                 guard let request = self.request else
                 {
-                    ZCRMLogger.logError(message: "\(ErrorCode.unableToConstructURL) : \(ErrorMessage.unableToConstructURLMsg), \( APIConstants.DETAILS ) : -")
-                    fileUploadDelegate?.didFail(fileRefId: fileRefId, ZCRMError.processingError( code : ErrorCode.unableToConstructURL, message : ErrorMessage.unableToConstructURLMsg, details : nil ))
+                    ZCRMLogger.logError(message: "\(ZCRMErrorCode.unableToConstructURL) : \(ZCRMErrorMessage.unableToConstructURLMsg), \( APIConstants.DETAILS ) : -")
+                    fileUploadDelegate?.didFail(fileRefId: fileRefId, ZCRMError.processingError( code : ZCRMErrorCode.unableToConstructURL, message : ZCRMErrorMessage.unableToConstructURLMsg, details : nil ))
                     return
                 }
                 let fileUploadTaskReference = FileUploadTaskReference(fileRefId: fileRefId, uploadClosure: { taskDetails, taskFinished, error in
                     if let error = error
                     {
-                        self.fileUploadDelegate?.didFail(fileRefId: fileRefId, typeCastToZCRMError( error ))
+                        uploadTasksQueue.async {
+                            FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
+                        }
                         completion( false , nil)
+                        self.fileUploadDelegate?.didFail(fileRefId: fileRefId, typeCastToZCRMError( error ))
                     }
                     else if let taskFinished = taskFinished
                     {
                         do
                         {
+                            uploadTasksQueue.async {
+                                FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
+                            }
                             if let httpResponse = taskFinished.dataTask?.response as? HTTPURLResponse, let data = taskFinished.data
                             {
                                 let jsonRootKey = self.jsonRootKey
                                 let response = try APIResponse( response : httpResponse, responseData : data, responseJSONRootKey : jsonRootKey, requestAPIName: self.requestedModule )
-                                uploadTasksQueue.async {
-                                    FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
-                                }
-                                fileUploadDelegate?.didFinish( fileRefId : fileRefId, response )
                                 completion( true, response )
+                                fileUploadDelegate?.didFinish( fileRefId : fileRefId, response )
                             }
                             else
                             {
-                                ZCRMLogger.logError( message : "\(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -" )
-                                throw ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseNilMsg, details : nil )
+                                ZCRMLogger.logError( message : "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -" )
+                                throw ZCRMError.sdkError( code : ZCRMErrorCode.responseNil, message : ZCRMErrorMessage.responseNilMsg, details : nil )
                             }
                         }
                         catch
                         {
                             ZCRMLogger.logError( message : "\( error )" )
-                            uploadTasksQueue.async {
-                                FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
-                            }
-                            fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
                             completion( false , nil)
+                            fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
                         }
                     }
                     else if let taskDetails = taskDetails
@@ -378,8 +378,8 @@ internal class FileAPIRequest : APIRequest
                     }
                 })
                 let uploadTask = FileAPIRequest.fileUploadURLSessionWithDelegates.dataTask(with: request)
-                FileAPIRequest.fileAPIRequestDelegate.uploadTaskWithFileRefIdDict.updateValue( fileUploadTaskReference, forKey: uploadTask)
                 uploadTasksQueue.async {
+                    FileAPIRequest.fileAPIRequestDelegate.uploadTaskWithFileRefIdDict.updateValue( fileUploadTaskReference, forKey: uploadTask)
                     if FileTasks.liveUploadTasks == nil
                     {
                         FileTasks.liveUploadTasks = [ String : URLSessionUploadTask ]()
@@ -392,7 +392,7 @@ internal class FileAPIRequest : APIRequest
                     else
                     {
                         ZCRMLogger.logError( message : "A task with file reference Id - \( fileRefId ) is already present. Please provide a unique reference id" )
-                        fileUploadDelegate?.didFail( fileRefId: fileRefId, ZCRMError.inValidError(code: ErrorCode.invalidData, message: "A task with file reference Id - \( fileRefId ) is already present. Please provide a unique reference id", details: nil) )
+                        fileUploadDelegate?.didFail( fileRefId: fileRefId, ZCRMError.inValidError(code: ZCRMErrorCode.invalidData, message: "A task with file reference Id - \( fileRefId ) is already present. Please provide a unique reference id", details: nil) )
                     }
                 }
             }
@@ -422,8 +422,8 @@ internal class FileAPIRequest : APIRequest
             guard let httpBody = httpBodyData else
             {
                 ZCRMLogger.logError( message : "Unable to construct HTTPBody" )
-                fileUploadDelegate?.didFail( fileRefId : fileRefId, ZCRMError.processingError(code: ErrorCode.invalidData, message: "Unable to construct HTTPBody", details: nil) )
                 completion( false, nil)
+                fileUploadDelegate?.didFail( fileRefId : fileRefId, ZCRMError.processingError(code: ZCRMErrorCode.invalidData, message: "Unable to construct HTTPBody", details: nil) )
                 return
             }
             let fileUploadDelegate = self.fileUploadDelegate
@@ -431,8 +431,8 @@ internal class FileAPIRequest : APIRequest
                 if let err = error
                 {
                     ZCRMLogger.logError( message : "\( err )" )
-                    fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( err ) )
                     completion( false, nil )
+                    fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( err ) )
                     return
                 }
                 if let tempFileUrl = tempFileUrl
@@ -441,56 +441,56 @@ internal class FileAPIRequest : APIRequest
                         if let error = error
                         {
                             ZCRMLogger.logError( message : "\( error )" )
-                            fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
                             completion( false, nil )
+                            fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
                             return
                         }
                         guard let request = self.request else
                         {
-                            self.removeTempFile(atURL: tempFileUrl)
-                            ZCRMLogger.logError( message : "\( ErrorCode.internalError ) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -" )
-                            fileUploadDelegate?.didFail( fileRefId : fileRefId, ZCRMError.sdkError( code : ErrorCode.internalError, message : "Unable to construct URLRequest", details : nil ) )
+                            ZCRMLogger.logError( message : "\( ZCRMErrorCode.internalError ) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -" )
                             completion( false, nil)
+                            self.removeTempFile(atURL: tempFileUrl)
+                            fileUploadDelegate?.didFail( fileRefId : fileRefId, ZCRMError.sdkError( code : ZCRMErrorCode.internalError, message : "Unable to construct URLRequest", details : nil ) )
                             return
                         }
                         
                         let fileUploadTaskReference = FileUploadTaskReference(fileRefId: fileRefId, uploadClosure: { taskDetails, taskFinished, error in
                             if let error = error
                             {
-                                self.fileUploadDelegate?.didFail(fileRefId: fileRefId, typeCastToZCRMError( error ))
-                                self.removeTempFile(atURL: tempFileUrl)
+                                uploadTasksQueue.async {
+                                    FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
+                                }
                                 completion( false , nil)
+                                self.removeTempFile(atURL: tempFileUrl)
+                                self.fileUploadDelegate?.didFail(fileRefId: fileRefId, typeCastToZCRMError( error ))
                             }
                             else if let taskFinished = taskFinished
                             {
                                 do
                                 {
+                                    uploadTasksQueue.async {
+                                        FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
+                                    }
                                     if let httpResponse = taskFinished.dataTask?.response as? HTTPURLResponse, let data = taskFinished.data
                                     {
                                         let jsonRootKey = self.jsonRootKey
                                         let response = try APIResponse( response : httpResponse, responseData : data, responseJSONRootKey : jsonRootKey, requestAPIName: self.requestedModule )
-                                        uploadTasksQueue.async {
-                                            FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
-                                        }
-                                        fileUploadDelegate?.didFinish( fileRefId : fileRefId, response )
-                                        self.removeTempFile(atURL: tempFileUrl)
                                         completion( true, response )
+                                        self.removeTempFile(atURL: tempFileUrl)
+                                        fileUploadDelegate?.didFinish( fileRefId : fileRefId, response )
                                     }
                                     else
                                     {
-                                        ZCRMLogger.logError( message : "\(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -" )
-                                        throw ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseNilMsg, details : nil )
+                                        ZCRMLogger.logError( message : "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -" )
+                                        throw ZCRMError.sdkError( code : ZCRMErrorCode.responseNil, message : ZCRMErrorMessage.responseNilMsg, details : nil )
                                     }
                                 }
                                 catch
                                 {
                                     ZCRMLogger.logError( message : "\( error )" )
-                                    uploadTasksQueue.async {
-                                        FileTasks.liveUploadTasks?.removeValue(forKey: fileRefId)
-                                    }
-                                    fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
-                                    self.removeTempFile(atURL: tempFileUrl)
                                     completion( false , nil)
+                                    self.removeTempFile(atURL: tempFileUrl)
+                                    fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
                                 }
                             }
                             else if let taskDetails = taskDetails
@@ -499,8 +499,8 @@ internal class FileAPIRequest : APIRequest
                             }
                         })
                         let uploadTask = FileAPIRequest.fileUploadURLSessionWithDelegates.uploadTask(with: request, fromFile : tempFileUrl)
-                        FileAPIRequest.fileAPIRequestDelegate.uploadTaskWithFileRefIdDict.updateValue( fileUploadTaskReference, forKey: uploadTask)
                         uploadTasksQueue.async {
+                            FileAPIRequest.fileAPIRequestDelegate.uploadTaskWithFileRefIdDict.updateValue( fileUploadTaskReference, forKey: uploadTask)
                             if FileTasks.liveUploadTasks == nil
                             {
                                 FileTasks.liveUploadTasks = [ String : URLSessionUploadTask ]()
@@ -513,7 +513,7 @@ internal class FileAPIRequest : APIRequest
                             else
                             {
                                 ZCRMLogger.logError( message : "A task with file reference Id - \( fileRefId ) is already present. Please provide a unique reference id" )
-                                fileUploadDelegate?.didFail( fileRefId: fileRefId, ZCRMError.inValidError(code: ErrorCode.invalidData, message: "A task with file reference Id - \( fileRefId ) is already present. Please provide a unique reference id", details: nil) )
+                                fileUploadDelegate?.didFail( fileRefId: fileRefId, ZCRMError.inValidError(code: ZCRMErrorCode.invalidData, message: "A task with file reference Id - \( fileRefId ) is already present. Please provide a unique reference id", details: nil) )
                             }
                         }
                     }
@@ -523,8 +523,8 @@ internal class FileAPIRequest : APIRequest
         catch
         {
             ZCRMLogger.logError( message : "\( error )" )
-            fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
             completion( false, nil )
+            fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
         }
     }
     
@@ -534,8 +534,8 @@ internal class FileAPIRequest : APIRequest
         var httpBodyData = bodyData
         guard let boundaryEncoded = "\r\n--\(boundary)".data( using : String.Encoding.utf8 ) else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.processingError) : Unable to create multi part data, \( APIConstants.DETAILS ) : -")
-            completion( nil, ZCRMError.processingError( code : ErrorCode.processingError, message : "Unable to create multi part data", details : nil ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.processingError) : Unable to create multi part data, \( APIConstants.DETAILS ) : -")
+            completion( nil, ZCRMError.processingError( code : ZCRMErrorCode.processingError, message : "Unable to create multi part data", details : nil ) )
             return
         }
         httpBodyData.append( boundaryEncoded )
@@ -546,7 +546,7 @@ internal class FileAPIRequest : APIRequest
         catch
         {
             ZCRMLogger.logError(message: "Unable to write data to a file, \( APIConstants.DETAILS ) : -")
-            completion( nil, ZCRMError.processingError( code : ErrorCode.unableToConstructURL, message : ErrorMessage.unableToConstructURLMsg, details : nil ) )
+            completion( nil, ZCRMError.processingError( code : ZCRMErrorCode.unableToConstructURL, message : ZCRMErrorMessage.unableToConstructURLMsg, details : nil ) )
             return
         }
 
@@ -560,12 +560,12 @@ internal class FileAPIRequest : APIRequest
             {
                 guard self.request != nil else
                 {
-                    ZCRMLogger.logError(message: "\(ErrorCode.unableToConstructURL) : \(ErrorMessage.unableToConstructURLMsg), \( APIConstants.DETAILS ) : -")
-                    completion( nil, ZCRMError.processingError( code : ErrorCode.unableToConstructURL, message : ErrorMessage.unableToConstructURLMsg, details : nil ) )
+                    ZCRMLogger.logError(message: "\(ZCRMErrorCode.unableToConstructURL) : \(ZCRMErrorMessage.unableToConstructURLMsg), \( APIConstants.DETAILS ) : -")
+                    completion( nil, ZCRMError.processingError( code : ZCRMErrorCode.unableToConstructURL, message : ZCRMErrorMessage.unableToConstructURLMsg, details : nil ) )
                     return
                 }
-                self.request!.setValue( "multipart/form-data; boundary=\( boundary )", forHTTPHeaderField : "Content-Type" )
-                self.request!.setValue( "\(httpBodyData.count)", forHTTPHeaderField : "Content-Length" )
+                self.request?.setValue( "multipart/form-data; boundary=\( boundary )", forHTTPHeaderField : "Content-Type" )
+                self.request?.setValue( "\(httpBodyData.count)", forHTTPHeaderField : "Content-Length" )
                 completion( tempURL, nil )
             }
         }
@@ -604,8 +604,8 @@ internal class FileAPIRequest : APIRequest
             }
             else
             {
-                ZCRMLogger.logError(message: "\(ErrorCode.processingError) : URL String could not be constructed, \( APIConstants.DETAILS ) : -")
-                throw ZCRMError.processingError( code : ErrorCode.processingError, message : "URL String could not be constructed", details : nil )
+                ZCRMLogger.logError(message: "\(ZCRMErrorCode.processingError) : URL String could not be constructed, \( APIConstants.DETAILS ) : -")
+                throw ZCRMError.processingError( code : ZCRMErrorCode.processingError, message : "URL String could not be constructed", details : nil )
             }
             filePartData.append( fileData )
         }
@@ -617,8 +617,8 @@ internal class FileAPIRequest : APIRequest
     {
         guard let strEncoded = str.data( using : String.Encoding.utf8 ) else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.processingError) : Unable to encode the given string, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.processingError( code : ErrorCode.processingError, message : "Unable to encode the given string", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.processingError) : Unable to encode the given string, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ZCRMErrorCode.processingError, message : "Unable to encode the given string", details : nil )
         }
         return strEncoded
     }
@@ -636,7 +636,7 @@ internal class FileAPIRequest : APIRequest
         return "application/octet-stream"
     }
 
-    internal func downloadFile( completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
+    internal func downloadFile( completion : @escaping( ZCRMResult.Response< FileAPIResponse > ) -> () )
     {
         self.initialiseRequest { ( err ) in
             if let error = err
@@ -654,8 +654,8 @@ internal class FileAPIRequest : APIRequest
                     }
                     guard let request = self.request else
                     {
-                        ZCRMLogger.logError(message: "\(ErrorCode.internalError) : Unable to construct URLRequest")
-                        completion( .failure( ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil ) ) )
+                        ZCRMLogger.logError(message: "\(ZCRMErrorCode.internalError) : Unable to construct URLRequest")
+                        completion( .failure( ZCRMError.sdkError(code: ZCRMErrorCode.internalError, message: "Unable to construct URLRequest", details : nil ) ) )
                         return
                     }
                     FileAPIRequest.urlSession.downloadTask(with: request) { resultType in
@@ -702,27 +702,29 @@ internal class FileAPIRequest : APIRequest
                         }
                         guard let request = self.request else
                         {
-                            ZCRMLogger.logError(message: "\(ErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
-                            throw ZCRMError.sdkError(code: ErrorCode.internalError, message: "Unable to construct URLRequest", details : nil)
+                            ZCRMLogger.logError(message: "\(ZCRMErrorCode.internalError) : Unable to construct URLRequest, \( APIConstants.DETAILS ) : -")
+                            throw ZCRMError.sdkError(code: ZCRMErrorCode.internalError, message: "Unable to construct URLRequest", details : nil)
                         }
                         
                         let fileDownloadTaskReference = FileDownloadTaskReference(fileRefId: fileRefId) { ( taskDetails, taskFinished, error ) in
                             if let error = error
                             {
+                                downloadTasksQueue.async {
+                                    FileTasks.liveDownloadTasks?.removeValue(forKey: fileRefId)
+                                }
                                 fileDownloadDelegate?.didFail( fileRefId: fileRefId, typeCastToZCRMError( error ) )
                             }
                             else if let taskFinished = taskFinished
                             {
                                 do
                                 {
-                                    guard let response = taskFinished.downloadTask?.response as? HTTPURLResponse else
-                                    {
-                                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
-                                        throw ZCRMError.sdkError(code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details : nil)
-                                    }
-                                    
                                     downloadTasksQueue.async {
                                         FileTasks.liveDownloadTasks?.removeValue(forKey: fileRefId)
+                                    }
+                                    guard let response = taskFinished.downloadTask?.response as? HTTPURLResponse else
+                                    {
+                                        ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
+                                        throw ZCRMError.sdkError(code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseNilMsg, details : nil)
                                     }
                                     let fileAPIResponse : FileAPIResponse = try FileAPIResponse(response: response, tempLocalUrl: taskFinished.location, requestAPIName: self.requestedModule)
                                     fileDownloadDelegate?.didFinish( fileRefId: fileRefId, fileAPIResponse )
@@ -740,8 +742,8 @@ internal class FileAPIRequest : APIRequest
                         }
                         
                         let downloadTask = FileAPIRequest.fileDownloadURLSessionWithDelegates.downloadTask(with: request)
-                        FileAPIRequest.fileAPIRequestDelegate.downloadTaskWithFileRefIdDict.updateValue( fileDownloadTaskReference, forKey: downloadTask)
                         downloadTasksQueue.async {
+                            FileAPIRequest.fileAPIRequestDelegate.downloadTaskWithFileRefIdDict.updateValue( fileDownloadTaskReference, forKey: downloadTask)
                             if FileTasks.liveDownloadTasks == nil
                             {
                                 FileTasks.liveDownloadTasks = [ String : URLSessionDownloadTask ]()
@@ -793,7 +795,7 @@ public extension ZCRMFileUploadDelegate
     }
 }
 
-internal class FileAPIRequestDelegate : NSObject, URLSessionDataDelegate, URLSessionTaskDelegate, URLSessionDownloadDelegate
+internal class FileAPIRequestDelegate : SSLValidator, URLSessionDataDelegate, URLSessionDownloadDelegate
 {
     
     var uploadTaskWithFileRefIdDict : [ URLSessionTask : FileUploadTaskReference ] = [ URLSessionTask : FileUploadTaskReference ]()
@@ -959,7 +961,7 @@ internal var downloadTasksQueue = DispatchQueue(label: "com.zoho.crm.sdk.filedow
         - completion : Returns an APIResponse with success message if the task has been cancelled or, an error message if the cancellation failed.
  */
 
-public func cancelUploadTask(withRefId id : String, completion : @escaping ( Result.Response< APIResponse > ) -> () )
+public func cancelUploadTask(withRefId id : String, completion : @escaping ( ZCRMResult.Response< APIResponse > ) -> () )
 {
     let response = APIResponse()
     response.setStatus(status: "error")
@@ -968,12 +970,12 @@ public func cancelUploadTask(withRefId id : String, completion : @escaping ( Res
     {
         guard let fileUploadTasks = FileTasks.liveUploadTasks, !fileUploadTasks.isEmpty else
         {
-            completion( .failure( ZCRMError.processingError(code: ErrorCode.processingError, message: "There are no upload tasks in progress.", details: nil) ))
+            completion( .failure( ZCRMError.processingError(code: ZCRMErrorCode.processingError, message: "There are no upload tasks in progress.", details: nil) ))
             return
         }
         guard let task = fileUploadTasks[ id ] else
         {
-            completion( .failure( ZCRMError.processingError(code: ErrorCode.processingError, message: "There is no upload task in progress with refId - \( id ).", details: nil) ))
+            completion( .failure( ZCRMError.processingError(code: ZCRMErrorCode.processingError, message: "There is no upload task in progress with refId - \( id ).", details: nil) ))
             return
         }
         if task.state != URLSessionTask.State.completed {
@@ -1005,7 +1007,7 @@ public func cancelUploadTask(withRefId id : String, completion : @escaping ( Res
          * Component ID - DashboardComponent
  */
 
-public func cancelDownloadTask(withId id : String, completion : @escaping ( Result.Response< APIResponse > ) -> () )
+public func cancelDownloadTask(withId id : String, completion : @escaping ( ZCRMResult.Response< APIResponse > ) -> () )
 {
     let response = APIResponse()
     response.setStatus(status: "error")
@@ -1013,13 +1015,13 @@ public func cancelDownloadTask(withId id : String, completion : @escaping ( Resu
     downloadTasksQueue.async {
         guard let fileDownloadTasks = FileTasks.liveDownloadTasks, !fileDownloadTasks.isEmpty else
         {
-            completion( .failure( ZCRMError.processingError(code: ErrorCode.processingError, message: "There are no download tasks in progress.", details: nil) ))
+            completion( .failure( ZCRMError.processingError(code: ZCRMErrorCode.processingError, message: "There are no download tasks in progress.", details: nil) ))
             return
         }
         
         guard let task = fileDownloadTasks[ id ] else
         {
-            completion( .failure( ZCRMError.processingError(code: ErrorCode.processingError, message: "There is no download task in progress with refId - \( id ).", details: nil) ))
+            completion( .failure( ZCRMError.processingError(code: ZCRMErrorCode.processingError, message: "There is no download task in progress with refId - \( id ).", details: nil) ))
             return
         }
         if task.state != URLSessionDownloadTask.State.completed
