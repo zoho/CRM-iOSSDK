@@ -239,6 +239,12 @@ public class ZCRMSDKConfigs
             return self
         }
         
+        public func setAPIVersion( _ apiVersion : String ) -> Builder
+        {
+            configs.apiVersion = apiVersion
+            return self
+        }
+        
         public func build() throws -> ZCRMSDKConfigs
         {
             if configs.appType == .bigin || configs.appType == .solutions
