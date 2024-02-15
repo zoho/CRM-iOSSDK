@@ -43,8 +43,8 @@ open class ZCRMCurrency : ZCRMEntity
         
         static func get(forValue value : String) throws -> String {
             guard let symbol = Separator(rawValue: value)?.getSymbol else {
-                ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : The Given Value Seems To Be Invalid")
-                throw ZCRMError.inValidError( code : ErrorCode.invalidData, message : "The Given Value Seems To Be Invalid", details : nil )
+                ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidData) : The Given Value Seems To Be Invalid")
+                throw ZCRMError.inValidError( code : ZCRMErrorCode.invalidData, message : "The Given Value Seems To Be Invalid", details : nil )
             }
             return symbol
         }
@@ -61,14 +61,14 @@ open class ZCRMCurrency : ZCRMEntity
         }
     }
     
-    public func add( completion : @escaping ( Result.DataResponse< ZCRMCurrency, APIResponse > ) -> ())
+    public func add( completion : @escaping ( ZCRMResult.DataResponse< ZCRMCurrency, APIResponse > ) -> ())
     {
         OrgAPIHandler().addCurrency( self ) { result in
             completion( result )
         }
     }
     
-    public func update( completion : @escaping ( Result.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
+    public func update( completion : @escaping ( ZCRMResult.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
     {
         if isBase == true
         {

@@ -13,6 +13,13 @@ open class ZCRMTaxDelegate : ZCRMEntity
     init( displayName : String ) {
         self.displayName = displayName
     }
+    
+    func copy() -> ZCRMTaxDelegate
+    {
+        let copyObj = ZCRMTaxDelegate(displayName: displayName)
+        copyObj.id = id
+        return copyObj
+    }
 }
 
 extension ZCRMTaxDelegate : Equatable

@@ -15,6 +15,10 @@ open class ZCRMLayoutDelegate : ZCRMEntity
         self.id = id
         self.name = name
     }
+    
+    func copy() -> ZCRMLayoutDelegate {
+        return ZCRMLayoutDelegate(id: id, name: name)
+    }
 }
 
 extension ZCRMLayoutDelegate : Hashable

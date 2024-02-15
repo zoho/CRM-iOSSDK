@@ -9,7 +9,7 @@ import os.log
 
 open class ZCRMLogger
 {
-    internal static var minLogLevel : LogLevels = LogLevels.error
+    internal static var minLogLevel : ZCRMLogLevels = .error
     internal static var isLogEnabled : Bool = true
     
     internal static func initLogger( isLogEnabled : Bool )
@@ -17,7 +17,7 @@ open class ZCRMLogger
         self.isLogEnabled = isLogEnabled
     }
     
-    internal static func initLogger( isLogEnabled : Bool, minLogLevel : LogLevels )
+    internal static func initLogger( isLogEnabled : Bool, minLogLevel : ZCRMLogLevels )
     {
         self.isLogEnabled = isLogEnabled
         self.minLogLevel = minLogLevel
@@ -48,11 +48,12 @@ open class ZCRMLogger
         self.configLog(file: file, function: function, line: line, column: column, message: message, logLevel: .fault)
     }
     
-    private static func configLog( file : String, function : String, line : Int, column : Int, message : String, logLevel : LogLevels )
+    private static func configLog( file : String, function : String, line : Int, column : Int, message : String, logLevel : ZCRMLogLevels )
     {
         if self.isLogEnabled == true && self.minLogLevel.rawValue <= logLevel.rawValue
         {
-            let configMsg : String = file.lastPathComponent() + " ::: " + function + " ::: " + String(line) + " ::: " + String(column)
+            let configMsg : String = file.lastPathComponent() + " ::: " + function + " ::: Line : " + String(line) + " ::: Column : " + String(column)
+            var loggerMsg : String = "ZCRM SDK - "
             if #available(iOS 10.0, *)
             {
                 var osType : OSLogType = OSLogType.error
@@ -60,16 +61,21 @@ open class ZCRMLogger
                 {
                     case .byDefault:
                         osType = OSLogType.default
+                        loggerMsg += "Default"
                     case .info:
                         osType = OSLogType.info
+                        loggerMsg += "Info"
                     case .debug:
                         osType = OSLogType.debug
+                        loggerMsg += "Debug"
                     case .error:
                         osType = OSLogType.error
+                        loggerMsg += "Error"
                     case .fault:
                         osType = OSLogType.fault
+                        loggerMsg += "Fault"
                 }
-                os_log("%s%s ::: %s", log: OSLog.default, type: osType, APIConstants.EXCEPTION_LOG_MSG, configMsg, message)
+                os_log("%s%s ::: %s", log: OSLog.default, type: osType, loggerMsg + " : ", configMsg, message)
             }
             else
             {

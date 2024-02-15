@@ -8,7 +8,7 @@
 import Foundation
 
 internal extension URLSession {
-   func dataTask(with request : URLRequest, completion : @escaping (Result.DataURLResponse<Data, HTTPURLResponse>) -> Void) -> URLSessionDataTask {
+   func dataTask(with request : URLRequest, completion : @escaping (ZCRMResult.DataURLResponse<Data, HTTPURLResponse>) -> Void) -> URLSessionDataTask {
        return dataTask(with: request) { (data, response, error) in
 
            if let error = error {
@@ -22,8 +22,8 @@ internal extension URLSession {
            }
            
            guard let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse else {
-               ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
-               completion( .failure( ZCRMError.sdkError(code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details : nil) ) )
+               ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
+               completion( .failure( ZCRMError.sdkError(code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseNilMsg, details : nil) ) )
                return
            }
            
@@ -31,7 +31,7 @@ internal extension URLSession {
        }
    }
    
-   func uploadTask(with request : URLRequest, fromFile url : URL, completion : @escaping (Result.DataURLResponse<Data, HTTPURLResponse>) -> Void) -> URLSessionUploadTask {
+   func uploadTask(with request : URLRequest, fromFile url : URL, completion : @escaping (ZCRMResult.DataURLResponse<Data, HTTPURLResponse>) -> Void) -> URLSessionUploadTask {
        return uploadTask(with: request, fromFile: url) { (data, response, error) in
            if let error = error {
                ZCRMLogger.logError( message : "\( error )" )
@@ -44,8 +44,8 @@ internal extension URLSession {
            }
            
            guard let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse else {
-               ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
-               completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details : nil ) ) )
+               ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
+               completion( .failure( ZCRMError.sdkError( code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseNilMsg, details : nil ) ) )
                return
            }
            
@@ -53,7 +53,7 @@ internal extension URLSession {
        }
    }
    
-   func downloadTask(with request : URLRequest, completion : @escaping (Result.DataURLResponse<Any, HTTPURLResponse>) -> Void) -> URLSessionDownloadTask {
+   func downloadTask(with request : URLRequest, completion : @escaping (ZCRMResult.DataURLResponse<Any, HTTPURLResponse>) -> Void) -> URLSessionDownloadTask {
        return downloadTask(with: request) { (tempLocalURL, response, error) in
            if let error = error {
                ZCRMLogger.logError( message : "\( error )" )
@@ -62,14 +62,14 @@ internal extension URLSession {
            }
            
            guard let localURL = tempLocalURL else {
-               ZCRMLogger.logError(message: "\( ErrorCode.unableToConstructURL ) : \( ErrorMessage.unableToConstructURLMsg ), \( APIConstants.DETAILS ) : -")
-               completion( .failure( ZCRMError.sdkError(code: ErrorCode.unableToConstructURL, message: ErrorMessage.unableToConstructURLMsg, details: nil) ) )
+               ZCRMLogger.logError(message: "\( ZCRMErrorCode.unableToConstructURL ) : \( ZCRMErrorMessage.unableToConstructURLMsg ), \( APIConstants.DETAILS ) : -")
+               completion( .failure( ZCRMError.sdkError(code: ZCRMErrorCode.unableToConstructURL, message: ZCRMErrorMessage.unableToConstructURLMsg, details: nil) ) )
                return
            }
            
            guard let urlResponse = response, let httpResponse = urlResponse as? HTTPURLResponse  else {
-               ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
-               completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details : nil ) ) )
+               ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseNilMsg), \( APIConstants.DETAILS ) : -")
+               completion( .failure( ZCRMError.sdkError( code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseNilMsg, details : nil ) ) )
                return
            }
            completion( .success(localURL, httpResponse) )
@@ -114,7 +114,7 @@ internal enum HTTPStatusCode : Int
 
 internal let faultyStatusCodes : [HTTPStatusCode] = [HTTPStatusCode.authorizationError, HTTPStatusCode.badRequest, HTTPStatusCode.forbidden, HTTPStatusCode.internalServerError, HTTPStatusCode.methodNotAllowed, HTTPStatusCode.movedTemporarily, HTTPStatusCode.movedPermanently, HTTPStatusCode.requestEntityTooLarge, HTTPStatusCode.tooManyRequest, HTTPStatusCode.unsupportedMediaType, HTTPStatusCode.noContent, HTTPStatusCode.notFound, HTTPStatusCode.badGateway, HTTPStatusCode.unhandled, HTTPStatusCode.notModified]
 
-public enum RequestMethod : String
+public enum ZCRMRequestMethod : String
 {
    case get = "GET"
    case post = "POST"
@@ -146,5 +146,5 @@ struct ZCRMURLBuilder
 
 public protocol ZohoAuthProvider
 {
-    func getAccessToken( completion : @escaping( Result.Data< String > ) -> ()  )
+    func getAccessToken( completion : @escaping( ZCRMResult.Data< String > ) -> ()  )
 }

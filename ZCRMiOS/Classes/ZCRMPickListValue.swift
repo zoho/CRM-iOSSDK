@@ -20,6 +20,15 @@ open class ZCRMPickListValue : ZCRMEntity
         self.displayName = displayName
         self.actualName = actualName
     }
+    
+    public func copy() -> ZCRMPickListValue {
+        let picklistValue = ZCRMPickListValue(displayName: displayName, actualName: actualName)
+        picklistValue.sequenceNumber = sequenceNumber
+        picklistValue.maps = maps
+        
+        return picklistValue
+    }
+    
 }
 
 extension ZCRMPickListValue : Equatable

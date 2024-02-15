@@ -6,6 +6,7 @@
 //  Copyright © 2016 zohocrm. All rights reserved.
 //
 import Foundation
+import CommonCrypto
 
 let PhotoSupportedModules = ["Leads", "Contacts"]
 
@@ -19,9 +20,34 @@ public enum ZCRMError : Error
     case processingError( code : String, message : String, details : Dictionary< String, Any >? )
     case sdkError( code : String, message : String, details : Dictionary< String, Any >? )
     case networkError( code : String, message : String, details : Dictionary< String, Any >? )
+
+    static func getResponseNilSDKError(details: Dictionary<String, Any>? = nil) -> ZCRMError {
+        ZCRMError.sdkError(
+            code: ZCRMErrorCode.responseNil,
+            message: ZCRMErrorMessage.responseJSONNilMsg,
+            details: details
+        )
+    }
+
+    static func getValueNilInavlidError(_ message: String, details: Dictionary<String, Any>? = nil) -> ZCRMError {
+        ZCRMError.inValidError(
+            code: ZCRMErrorCode.valueNil,
+            message: "\(ZCRMErrorCode.invalidData): \(message)",
+            details: details
+        )
+    }
 }
 
-public struct ErrorCode
+public enum PredictionType : String
+{
+    case modulesPredictionChart = "predicted_records"
+    case predictionAccuracyChart = "real_time_accuracy"
+    case userPerformanceChart = "user_performance"
+    case activeRecords = "prediction_analytics"
+    case predictionAccuracy
+}
+
+public struct ZCRMErrorCode
 {
     public static var invalidData = "INVALID_DATA"
     public static var internalError = "INTERNAL_ERROR"
@@ -61,7 +87,7 @@ public struct ErrorCode
     public static let oauthScopeMismatch = "OAUTH_SCOPE_MISMATCH"
 }
 
-public struct ErrorMessage
+public struct ZCRMErrorMessage
 {
     public static let invalidIdMsg  = "The given id seems to be invalid."
     public static let apiMaxRecordsMsg = "Cannot process more than 100 records at a time."
@@ -80,6 +106,8 @@ public struct ErrorMessage
     public static let limitExceeded = "Limit value cannot be more than 200."
     public static let maxFieldCountExceeded = "Fields count cannot be more than 50."
     public static let invalidTax = "Tax id cannot be nil."
+    public static let invalidDealsModule = "This operation is available only for Deals Module."
+    public static let invalidTemplateCategory = "this template category is not applicable for BIGIN"
 }
 
 public extension Error
@@ -119,27 +147,27 @@ public extension Error
     }
 }
 
-public enum SortOrder : String
+public enum ZCRMSortOrder : String
 {
     case ascending = "asc"
     case descending = "desc"
 }
 
-public enum AccessType : String
+public enum ZCRMAccessType : String
 {
     case production = "Production"
     case development = "Development"
     case sandBox = "Sandbox"
 }
 
-public enum CommunicationPreferences : String
+public enum ZCRMCommunicationPreferences : String
 {
     case email = "Email"
     case phone = "Phone"
     case survey = "Survey"
 }
 
-public enum CurrencyRoundingOption : String
+public enum ZCRMCurrencyRoundingOption : String
 {
     case roundOff = "round_off"
     case roundDown = "round_down"
@@ -147,14 +175,14 @@ public enum CurrencyRoundingOption : String
     case normal = "normal"
 }
 
-public enum Trigger : String
+public enum ZCRMTrigger : String
 {
     case workFlow = "workflow"
     case approval = "approval"
     case bluePrint = "blueprint"
 }
 
-internal enum CacheFlavour : String
+internal enum ZCRMCacheFlavour : String
 {
     case noCache = "NO_CACHE"
     case urlVsResponse = "URL_VS_RESPONSE"
@@ -162,29 +190,27 @@ internal enum CacheFlavour : String
     case forceCache = "FORCE_CACHE"
 }
 
-public enum EventParticipantType : String
-{
-    case email = "email"
-    case user = "user"
-    case contact = "contact"
-    case lead = "lead"
-}
-
-public enum DrillBy : String
+public enum ZCRMDrillBy : String
 {
     case user = "user"
     case role = "role"
+    case criteria = "criteria"
 }
 
 internal struct FieldDataTypeConstants
 {
     static let subform = "subform"
+    static let lookup = "lookup"
     static let userLookup = "userlookup"
     static let ownerLookup = "ownerlookup"
+    static let multiModuleLookup = "multi_module_lookup"
     static let picklist = "picklist"
+    static let multiSelectPicklist = "multiselectpicklist"
+    static let fileUpload = "fileupload"
+    static let multiSelectLookup = "multiselectlookup"
 }
 
-public enum AccessPermission
+public enum ZCRMAccessPermission
 {
     public enum Readable : String
     {
@@ -200,7 +226,7 @@ public enum AccessPermission
         case readOnly = "read_only"
         case readWrite = "read_write"
         
-        func toReadable() -> AccessPermission.Readable
+        func toReadable() -> ZCRMAccessPermission.Readable
         {
             switch self
             {
@@ -214,7 +240,7 @@ public enum AccessPermission
         }
     }
     
-    static func getType( rawValue : String ) -> AccessPermission.Readable
+    static func getType( rawValue : String ) -> ZCRMAccessPermission.Readable
     {
         if rawValue == "full_access" || rawValue == "read_write_delete"
         {
@@ -236,7 +262,7 @@ public enum AccessPermission
     }
 }
 
-public enum SharedUsersCategory
+public enum ZCRMSharedUsersCategory
 {
     public enum Readable : String
     {
@@ -252,7 +278,7 @@ public enum SharedUsersCategory
         case selected = "shared"
         case onlyMe = "only_to_me"
         
-        func toReadable() -> SharedUsersCategory.Readable
+        func toReadable() -> ZCRMSharedUsersCategory.Readable
         {
             switch self
             {
@@ -266,7 +292,7 @@ public enum SharedUsersCategory
         }
     }
     
-    static func getType( _ rawValue : String ) -> SharedUsersCategory.Readable
+    static func getType( _ rawValue : String ) -> ZCRMSharedUsersCategory.Readable
     {
         if rawValue == "public" || rawValue == "all"
         {
@@ -288,7 +314,7 @@ public enum SharedUsersCategory
     }
 }
 
-public enum SelectedUsersType : String
+public enum ZCRMSelectedUsersType : String
 {
     case roles
     case users
@@ -296,9 +322,9 @@ public enum SelectedUsersType : String
     case groups
     case unHandled
     
-    static func getType( _ rawValue : String ) -> SelectedUsersType
+    static func getType( _ rawValue : String ) -> ZCRMSelectedUsersType
     {
-        if let type = SelectedUsersType(rawValue: rawValue)
+        if let type = ZCRMSelectedUsersType(rawValue: rawValue)
         {
             return type
         }
@@ -310,50 +336,7 @@ public enum SelectedUsersType : String
     }
 }
 
-public enum EventParticipant : Equatable
-{
-    case email( String)
-    case user( ZCRMUserDelegate )
-    case record( ZCRMRecordDelegate )
-    
-    public func getEmail() -> String?
-    {
-        switch self
-        {
-        case .email( let value ) :
-            return value
-            
-        default:
-            return nil
-        }
-    }
-    
-    public func getUser() -> ZCRMUserDelegate?
-    {
-        switch self
-        {
-        case .user( let value ) :
-            return value
-            
-        default :
-            return nil
-        }
-    }
-    
-    public func getRecord() -> ZCRMRecordDelegate?
-    {
-        switch self
-        {
-        case .record( let value ) :
-            return value
-            
-        default :
-            return nil
-        }
-    }
-}
-
-public enum LogLevels : Int
+public enum ZCRMLogLevels : Int
 {
     case byDefault = 0
     case info = 1
@@ -362,7 +345,7 @@ public enum LogLevels : Int
     case fault = 4
 }
 
-public enum AppType : String
+public enum ZCRMAppType : String
 {
     case zcrm = "zcrm"
     case solutions = "solutions"
@@ -371,7 +354,7 @@ public enum AppType : String
     case zcrmcp = "zcrmcp"
 }
 
-public enum OrganizationType : String
+public enum ZCRMOrganizationType : String
 {
     case production = "production"
     case sandBox = "sandbox"
@@ -398,14 +381,17 @@ internal enum ZCRMSDKDataType
     case zcrmEventParticipant
     case zcrmLineTax
     case zcrmTaxDelegate
+    case zcrmTagDelegate
     case arrayOfStrings
     case zcrmDataProcessingBasisDetails
     case zcrmLayoutDelegate
+    case zcrmSubformRecord
     case arrayOfZCRMSubformRecord
     case undefined
 }
 
-public enum UserTypes : String
+@available(*, deprecated, message: "use ZCRMUser.Category enum instead")
+public enum ZCRMUserTypes : String
 {
     case allUsers = "AllUsers"
     case activeUsers = "ActiveUsers"
@@ -418,14 +404,14 @@ public enum UserTypes : String
     case activeConfirmedAdmins = "ActiveConfirmedAdmins"
 }
 
-public enum TrashRecordTypes : String
+public enum ZCRMTrashRecordTypes : String
 {
     case all
     case recycle
     case permanent
 }
 
-internal enum MaxFileSize : Int64 {
+internal enum ZCRMMaxFileSize : Int64 {
     case notesAttachment = 20971520 // 20 MB
     case attachment = 104857600 // 100 MB
     case profilePhoto = 5242880 // 5 MB
@@ -433,7 +419,7 @@ internal enum MaxFileSize : Int64 {
     case emailAttachment = 10485760 // 10 MB
 }
 
-public enum VariableType : String
+public enum ZCRMVariableType : String
 {
     case singleLine = "text"
     case currency = "currency"
@@ -450,13 +436,23 @@ public enum VariableType : String
     case checkbox = "checkbox"
 }
 
-public enum CountryDomain : String
+public enum ZCRMCountryDomain : String
 {
     case eu = "eu"
     case `in` = "in"
     case com = "com"
     case cn = "com.cn"
     case au = "com.au"
+    case jp = "jp"
+}
+
+public enum ZCRMDuration : String
+{
+    case all = "all"
+    case lastWeek = "last_week"
+    case lastMonth = "last_month"
+    case lastQuarter = "last_quarter"
+    case lastYear = "last_year"
 }
 
 public extension Dictionary
@@ -489,12 +485,12 @@ public extension Dictionary
      - Parameter forKey : Key which needs to be checked
      - Throws: When the given key doesn't have a value in the dictionary
      */
-    private func valueCheck( forKey : Key ) throws
+    func valueCheck( forKey : Key ) throws
     {
         if hasValue(forKey: forKey) == false
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.valueNil) : \( forKey ) must not be nil, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.inValidError( code : ErrorCode.valueNil, message : "\( forKey ) must not be nil", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.valueNil) : \( forKey ) must not be nil, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.inValidError( code : ZCRMErrorCode.valueNil, message : "\( forKey ) must not be nil", details : nil )
         }
     }
     
@@ -514,6 +510,21 @@ public extension Dictionary
         {
             return nil
         }
+    }
+    
+    /**
+      To get the value of the key from the dictinoary as an optional value of specified type
+     
+     - Parameter key : Key whose value has to be fetched from the dictionary
+     - Returns: The value of the key from the dictionary
+     */
+    func optValue<T>(key: Key) -> T?
+    {
+        if let value = optValue( key: key ) as? T
+        {
+            return value
+        }
+        return nil
     }
     
     /**
@@ -620,8 +631,8 @@ public extension Dictionary
         try self.valueCheck( forKey : key )
         guard let value = optInt( key : key ) else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( key ) - Expected type -> INT, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> INT", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.typeCastError) : \( key ) - Expected type -> INT, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ZCRMErrorCode.typeCastError, message : "\( key ) - Expected type -> INT", details : nil )
         }
         return value
     }
@@ -638,12 +649,12 @@ public extension Dictionary
         try self.valueCheck( forKey : key )
         guard let value = optInt64( key : key ) else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( key ) - Expected type -> INT64, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> INT64", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.typeCastError) : \( key ) - Expected type -> INT64, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ZCRMErrorCode.typeCastError, message : "\( key ) - Expected type -> INT64", details : nil )
         }
         return value
     }
-    
+        
     /**
      To get the value of the key from the dictinoary as a **String**
     
@@ -656,8 +667,8 @@ public extension Dictionary
         try self.valueCheck( forKey : key )
         guard let value = optString( key : key ) else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( key ) - Expected type -> STRING, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> STRING", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.typeCastError) : \( key ) - Expected type -> STRING, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ZCRMErrorCode.typeCastError, message : "\( key ) - Expected type -> STRING", details : nil )
         }
         return value
     }
@@ -674,8 +685,8 @@ public extension Dictionary
         try self.valueCheck( forKey : key )
         guard let value = optBoolean( key : key ) else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( key ) - Expected type -> BOOLEAN, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> BOOLEAN", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.typeCastError) : \( key ) - Expected type -> BOOLEAN, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ZCRMErrorCode.typeCastError, message : "\( key ) - Expected type -> BOOLEAN", details : nil )
         }
         return value
     }
@@ -692,8 +703,8 @@ public extension Dictionary
         try self.valueCheck( forKey : key )
         guard let value = optDouble( key : key ) else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( key ) - Expected type -> DOUBLE, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> DOUBLE", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.typeCastError) : \( key ) - Expected type -> DOUBLE, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ZCRMErrorCode.typeCastError, message : "\( key ) - Expected type -> DOUBLE", details : nil )
         }
         return value
     }
@@ -710,8 +721,8 @@ public extension Dictionary
         try self.valueCheck( forKey : key )
         guard let value = optArray( key : key ) else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( key ) - Expected type -> ARRAY< ANY >, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> ARRAY< ANY >", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.typeCastError) : \( key ) - Expected type -> ARRAY< ANY >, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ZCRMErrorCode.typeCastError, message : "\( key ) - Expected type -> ARRAY< ANY >", details : nil )
         }
         return value
     }
@@ -728,8 +739,8 @@ public extension Dictionary
         try self.valueCheck( forKey : key )
         guard let value = optDictionary( key : key ) else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( key ) - Expected type -> DICTIONARY< STRING, ANY >, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> DICTIONARY< STRING, ANY >", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.typeCastError) : \( key ) - Expected type -> DICTIONARY< STRING, ANY >, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ZCRMErrorCode.typeCastError, message : "\( key ) - Expected type -> DICTIONARY< STRING, ANY >", details : nil )
         }
         return value
     }
@@ -746,8 +757,8 @@ public extension Dictionary
         try self.valueCheck( forKey : key )
         guard let value = optArrayOfDictionaries( key : key ) else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( key ) - Expected type -> ARRAY< DICTIONARY< STRING, ANY > >, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> ARRAY< DICTIONARY < STRING, ANY > >", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.typeCastError) : \( key ) - Expected type -> ARRAY< DICTIONARY< STRING, ANY > >, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ZCRMErrorCode.typeCastError, message : "\( key ) - Expected type -> ARRAY< DICTIONARY < STRING, ANY > >", details : nil )
         }
         return value
     }
@@ -763,8 +774,8 @@ public extension Dictionary
     {
         guard let value = optValue( key: key ) else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.processingError) : \( key ) - Key Not found - \( key ), \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.processingError( code : ErrorCode.processingError, message : "\( key ) - Key not found - \( key )", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.processingError) : \( key ) - Key Not found - \( key ), \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ZCRMErrorCode.processingError, message : "\( key ) - Key not found - \( key )", details : nil )
         }
         return value
     }
@@ -773,8 +784,8 @@ public extension Dictionary
     {
         guard let value = try getValue( key: key ) as? T else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( key ) - Expected type -> \( T.self ), \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( key ) - Expected type -> \( T.self )", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.typeCastError) : \( key ) - Expected type -> \( T.self ), \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ZCRMErrorCode.typeCastError, message : "\( key ) - Expected type -> \( T.self )", details : nil )
         }
         return value
     }
@@ -864,6 +875,17 @@ public extension Dictionary
         }
         return nil
     }
+    
+    internal func setCriteria() -> String? {
+        let data = try? JSONSerialization.data(withJSONObject: [self], options: [])
+        if let jsonData = data {
+            if let string = String(data: jsonData, encoding: .utf8) {
+                let modifiedString = string.replacingOccurrences(of: "\\\\", with: " ")
+                return modifiedString
+            }
+        }
+        return nil
+    }
 }
 
 internal extension Array
@@ -896,6 +918,118 @@ internal extension Array
         return dup
     }
 	
+}
+
+func optZCRMValue( _ value : Any ) -> Any?
+{
+    switch getTypeOf(value)
+    {
+    case .dictionary:
+        if let dict = value as? [ String : Any ]
+        {
+            return dict.copy()
+        }
+    case .arrayOfDictionaries:
+        if let value = value as? [ [ String : Any ] ]
+        {
+            return value.copy()
+        }
+    case .zcrmRecordDelegate:
+        if let value = value as? ZCRMRecordDelegate
+        {
+            return value.copy()
+        }
+    case .zcrmUserDelegate:
+        if let value = value as? ZCRMUserDelegate
+        {
+            return value.copy()
+        }
+    case .zcrmInventoryLineItem:
+        if let value = value as? ZCRMInventoryLineItem
+        {
+            return value.copy()
+        }
+    case .zcrmPriceBookPricing:
+        if let value = value as? ZCRMPriceBookPricing
+        {
+            return value.copy()
+        }
+    case .zcrmEventParticipant:
+        if let value = value as? ZCRMEventParticipant
+        {
+            return value.copy()
+        }
+    case .zcrmLineTax:
+        if let value = value as? ZCRMLineTax
+        {
+            return value.copy()
+        }
+    case .zcrmTaxDelegate:
+        if let value = value as? ZCRMTaxDelegate
+        {
+            return value.copy()
+        }
+    case .zcrmTagDelegate:
+        if let value = value as? ZCRMTagDelegate
+        {
+            return value.copy()
+        }
+    case .zcrmDataProcessingBasisDetails:
+        if let value = value as? ZCRMDataProcessBasisDetails
+        {
+            return value.copy()
+        }
+    case .zcrmLayoutDelegate:
+        if let value = value as? ZCRMLayoutDelegate
+        {
+            return value.copy()
+        }
+    case .zcrmSubformRecord:
+        if let value = value as? ZCRMSubformRecord
+        {
+            return value.copy()
+        }
+    case .arrayOfZCRMSubformRecord:
+        if let value = value as? [ ZCRMSubformRecord ]
+        {
+            return value.copy()
+        }
+    default:
+        return value
+    }
+    return value
+}
+
+extension Dictionary
+{
+    func copy() -> Dictionary
+    {
+        var tempDict : Dictionary = type(of: self).init()
+        for ( key, value ) in self
+        {
+            if let copiedValue = optZCRMValue( value ) as? Value
+            {
+                tempDict.updateValue( copiedValue, forKey: key)
+            }
+        }
+        return tempDict
+    }
+}
+
+extension Array
+{
+    func copy() -> Array
+    {
+        var tempArray : Array = type(of: self).init()
+        for value in self
+        {
+            if let copiedValue = optZCRMValue( value ) as? Element
+            {
+                tempArray.append( copiedValue )
+            }
+        }
+        return tempArray
+    }
 }
 
 public extension String
@@ -1034,6 +1168,13 @@ public extension String
         }
         return nsarray
     }
+    
+    func sha256() -> String{
+        if let stringData = self.data(using: String.Encoding.utf8) {
+            return stringData.sha256()
+        }
+        return ""
+    }
 }
 
 extension Int64
@@ -1127,11 +1268,49 @@ public extension Date
     }
 }
 
+extension Data
+{
+    public func sha256() -> String{
+        return hexStringFromData(input: digest(input: self as NSData))
+    }
+    
+    private func digest(input : NSData) -> NSData {
+        let digestLength = Int(CC_SHA256_DIGEST_LENGTH)
+        var hash = [UInt8](repeating: 0, count: digestLength)
+        CC_SHA256(input.bytes, UInt32(input.length), &hash)
+        return NSData(bytes: hash, length: digestLength)
+    }
+    
+    private  func hexStringFromData(input: NSData) -> String {
+        var bytes = [UInt8](repeating: 0, count: input.length)
+        input.getBytes(&bytes, length: input.length)
+        
+        var hexString = ""
+        for byte in bytes {
+            hexString += String(format:"%02x", UInt8(byte))
+        }
+        
+        return hexString
+    }
+}
+
 internal extension Optional where Wrapped == String
 {
     var notNilandEmpty : Bool
     {
         if let value = self, !value.isEmpty
+        {
+            return true
+        }
+        return false
+    }
+}
+
+internal extension Optional
+{
+    var isNil : Bool
+    {
+        if self == nil
         {
             return true
         }
@@ -1177,28 +1356,28 @@ public func moveFile(filePath: String, newFilePath: String)
 }
 
 
-internal func fileDetailCheck( filePath : String?, fileData : Data?, maxFileSize : MaxFileSize) throws
+internal func fileDetailsCheck( filePath : String?, fileData : Data?, maxFileSize : ZCRMMaxFileSize) throws
 {
     let maxFileSizeValue = maxFileSize.rawValue
     if let filePath = filePath
     {
         if ( FileManager.default.fileExists( atPath : filePath )  == false )
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : File not found at given path : \( filePath ), \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.inValidError( code : ErrorCode.mandatoryNotFound, message : "File not found at given path : \( filePath )", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : File not found at given path : \( filePath ), \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.inValidError( code : ZCRMErrorCode.mandatoryNotFound, message : "File not found at given path : \( filePath )", details : nil )
         }
         if ( getFileSize( filePath : filePath ) > maxFileSizeValue )
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.fileSizeExceeded) : Cannot upload. File size should not exceed \( maxFileSizeValue / 1048576 ) MB, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.fileSizeExceeded( code : ErrorCode.fileSizeExceeded, message : "Cannot upload. File size should not exceed \( maxFileSizeValue / 1048576) MB", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.fileSizeExceeded) : Cannot upload. File size should not exceed \( maxFileSizeValue / 1048576 ) MB, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.fileSizeExceeded( code : ZCRMErrorCode.fileSizeExceeded, message : "Cannot upload. File size should not exceed \( maxFileSizeValue / 1048576) MB", details : nil )
         }
     }
     else if let fileData = fileData
     {
         if fileData.count > maxFileSizeValue
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.fileSizeExceeded) : Cannot upload. File size should not exceed \( maxFileSizeValue / 1048576) MB, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.fileSizeExceeded( code : ErrorCode.fileSizeExceeded, message : "Cannot upload. File size should not exceed \( maxFileSizeValue / 1048576) MB", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.fileSizeExceeded) : Cannot upload. File size should not exceed \( maxFileSizeValue / 1048576) MB, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.fileSizeExceeded( code : ZCRMErrorCode.fileSizeExceeded, message : "Cannot upload. File size should not exceed \( maxFileSizeValue / 1048576) MB", details : nil )
         }
     }
 }
@@ -1211,11 +1390,11 @@ internal func imageTypeValidation( _ filePath : String? ) throws
         let pathExtension = filePath.pathExtension()
         if !validImageExtensions.contains( pathExtension )
         {
-            throw ZCRMError.processingError( code : ErrorCode.invalidFileType, message : ErrorMessage.invalidFileTypeMsg, details : nil )
+            throw ZCRMError.processingError( code : ZCRMErrorCode.invalidFileType, message : ZCRMErrorMessage.invalidFileTypeMsg, details : nil )
         }
         
         guard UIImage(contentsOfFile: filePath) != nil else {
-            throw ZCRMError.processingError( code : ErrorCode.invalidFileType, message : ErrorMessage.invalidFileTypeMsg, details : nil )
+            throw ZCRMError.processingError( code : ZCRMErrorCode.invalidFileType, message : ZCRMErrorMessage.invalidFileTypeMsg, details : nil )
         }
     }
 }
@@ -1311,6 +1490,10 @@ internal func getTypeOf( _ value : Any ) -> ZCRMSDKDataType
     {
         return ZCRMSDKDataType.zcrmTaxDelegate
     }
+    else if let _ = value as? ZCRMTagDelegate
+    {
+        return ZCRMSDKDataType.zcrmTagDelegate
+    }
     else if let _ = value as? [ String ]
     {
         return ZCRMSDKDataType.arrayOfStrings
@@ -1322,6 +1505,10 @@ internal func getTypeOf( _ value : Any ) -> ZCRMSDKDataType
     else if let _ = value as? ZCRMLayoutDelegate
     {
         return ZCRMSDKDataType.zcrmLayoutDelegate
+    }
+    else if let _ = value as? ZCRMSubformRecord
+    {
+        return ZCRMSDKDataType.zcrmSubformRecord
     }
     else if let _ = value as? [ ZCRMSubformRecord ]
     {
@@ -1483,6 +1670,18 @@ internal func isEqual( lhs : Any?, rhs : Any? ) -> Bool
                     return false
                 }
                 return lhsValue == rhsValue
+            case .zcrmTagDelegate:
+                guard let lhsValue = lhs as? ZCRMTagDelegate, let rhsValue = rhs as? ZCRMTagDelegate else
+                {
+                    return false
+                }
+                return lhsValue == rhsValue
+            case .zcrmSubformRecord:
+                guard let lhsValue = lhs as? ZCRMSubformRecord, let rhsValue = rhs as? ZCRMSubformRecord else
+                {
+                    return false
+                }
+                return lhsValue == rhsValue
             case .undefined :
                 return false
             }
@@ -1513,11 +1712,17 @@ internal struct APIConstants
     
     static let MODULES : String = "modules"
     static let PRIVATE_FIELDS = "private_fields"
+    static let HEADER_NAME = "header_name"
     static let PER_PAGE : String = "per_page"
     static let PAGE : String = "page"
     static let COUNT : String = "count"
     static let MORE_RECORDS : String = "more_records"
-    
+    static let PER_SET : String = "per_set"
+    static let SET : String = "set"
+    static let MORE_DATA : String = "more_data"
+    static let AND : String = "AND"
+    static let and : String = "and"
+
     static let REMAINING_COUNT_FOR_THIS_DAY : String = "X-RATELIMIT-LIMIT"
     static let REMAINING_COUNT_FOR_THIS_WINDOW : String = "X-RATELIMIT-REMAINING"
     static let REMAINING_TIME_FOR_THIS_WINDOW_RESET : String = "X-RATELIMIT-RESET"
@@ -1536,14 +1741,14 @@ internal struct APIConstants
     static let MAX_ALLOWED_FILE_SIZE : Int = 20971520
     var ENABLED_DB_CACHE : Bool = true
     
-    static let EXCEPTION_LOG_MSG : String = "ZCRM SDK - Error Occurred: "
-    
-    static let lineItemModules = [ DefaultModuleAPINames.SALES_ORDERS, DefaultModuleAPINames.PURCHASE_ORDERS, DefaultModuleAPINames.INVOICES, DefaultModuleAPINames.QUOTES ]
+    static let lineItemModules = [ ZCRMDefaultModuleAPINames.SALES_ORDERS, ZCRMDefaultModuleAPINames.PURCHASE_ORDERS, ZCRMDefaultModuleAPINames.INVOICES, ZCRMDefaultModuleAPINames.QUOTES ]
     static let API_VERSION_V2 = "v2"
     static let API = "api"
+    static let API_VERSION_V2_2 = "v2.2"
+    static let API_VERSION_V4 = "v4"
 }
 
-public struct DefaultModuleAPINames
+public struct ZCRMDefaultModuleAPINames
 {
     public static let LEADS : String = "Leads"
     public static let ACCOUNTS : String = "Accounts"
@@ -1573,6 +1778,7 @@ internal struct RequestParamKeys
     static let sortOrder : String = "sort_order"
     static let id : String = "id"
     static let ids : String = "ids"
+    static let roleId: String = "role_id"
     static let type : String = "type"
     static let ifModifiedSince : String = "If-Modified-Since"
     static let module : String = "module"
@@ -1582,6 +1788,11 @@ internal struct RequestParamKeys
     static let category : String = "category"
     static let criteria = "criteria"
     static let view = "view"
+    static let regsrc = "regsrc"
+    static let plan = "plan"
+    static let device = "device"
+    static let entityId = "entity_id"
+    static let featureType = "feature_type"
 }
 
 /**
@@ -1617,12 +1828,13 @@ var CRM : String = "crm"
 var COUNTRYDOMAIN : String = "com"
 var EMAIL : String = "email"
 
-var AUTHORIZATION : String = "Authorization"
-var USER_AGENT : String = "User-Agent"
-var X_CRM_ORG : String = "X-CRM-ORG"
-var X_ZOHO_SERVICE : String = "X-ZOHO-SERVICE"
-var X_CRM_PORTAL : String = "X-CRMPORTAL"
-var ZOHO_OAUTHTOKEN = "Zoho-oauthtoken"
+let AUTHORIZATION : String = "Authorization"
+let USER_AGENT : String = "User-Agent"
+let X_CRM_ORG : String = "X-CRM-ORG"
+let X_ZOHO_SERVICE : String = "X-ZOHO-SERVICE"
+let X_CRM_PORTAL : String = "X-CRMPORTAL"
+let ZOHO_OAUTHTOKEN = "Zoho-oauthtoken"
+let FREE_PLAN = "free"
 
 struct JSONRootKey {
     static let DATA : String = "data"
@@ -1638,6 +1850,7 @@ struct JSONRootKey {
     static let ROLES : String = "roles"
     static let STAGES : String = "stages"
     static let TAXES : String = "taxes"
+    static let ORG_TAXES : String = "org_taxes"
     static let TIMELINES : String = "timelines"
     static let ORG_EMAILS : String = "org_emails"
     static let VARIABLES : String = "variables"
@@ -1652,6 +1865,14 @@ struct JSONRootKey {
     static let SHARE : String = "share"
     static let SHAREABLE_USER : String = "shareable_user"
     static let BLUEPRINT = "blueprint"
+    static let PREDICTION = "predictions"
+    static let PREDICTION_MODELS = "models"
+    static let PREDICTION_ANALYTICS = "prediction_analytics"
+    static let SURVEYS = "surveys"
+    static let HOME_TAB = "Home_Tab"
+    static let HOME_COMPONENTS = "home_components"
+    static let HOME = "home"
+    static let SANDBOX = "sandbox"
 }
 
 //MARK:- RESULT TYPES
@@ -1659,7 +1880,7 @@ struct JSONRootKey {
 //MARK:  Result types can be handled in 2 ways:
 //MARK:  1) Handle Result Types either by calling Resolve()
 //MARK:  2) on them or use the traditional switch case pattern to handle success and failure seperately
-public struct Result {
+public struct ZCRMResult {
     
     public enum DataURLResponse<Data: Any, Response: HTTPURLResponse>{
         case success(Data, Response)
@@ -1738,21 +1959,21 @@ public func typeCastToZCRMError( _ error : Error ) -> ZCRMError {
     {
         if [NSURLErrorDataNotAllowed, NSURLErrorNotConnectedToInternet].contains(error.code)
         {
-            return ZCRMError.networkError( code : ErrorCode.noInternetConnection, message : error.localizedDescription, details : nil )
+            return ZCRMError.networkError( code : ZCRMErrorCode.noInternetConnection, message : error.localizedDescription, details : nil )
         }
         else if error.code == NSURLErrorTimedOut
         {
-            return ZCRMError.networkError( code : ErrorCode.requestTimeOut, message : error.localizedDescription, details : nil )
+            return ZCRMError.networkError( code : ZCRMErrorCode.requestTimeOut, message : error.localizedDescription, details : nil )
         }
         else if error.code == NSURLErrorNetworkConnectionLost
         {
-            return ZCRMError.networkError( code : ErrorCode.networkConnectionLost, message : error.localizedDescription, details : nil )
+            return ZCRMError.networkError( code : ZCRMErrorCode.networkConnectionLost, message : error.localizedDescription, details : nil )
         }
         else if error.code == NSURLErrorCannotFindHost
         {
-            return ZCRMError.networkError(code: ErrorCode.cannotFindHost, message: error.localizedDescription, details: nil)
+            return ZCRMError.networkError(code: ZCRMErrorCode.cannotFindHost, message: error.localizedDescription, details: nil)
         }
-        return ZCRMError.sdkError( code : ErrorCode.internalError, message : error.description, details : nil )
+        return ZCRMError.sdkError( code : ZCRMErrorCode.internalError, message : error.description, details : nil )
     }
 }
 
@@ -1768,42 +1989,52 @@ func getUserDelegate( userJSON : [ String : Any ] ) throws -> ZCRMUserDelegate
 
 func relatedModuleCheck( module : String ) throws
 {
-    if module == DefaultModuleAPINames.SOCIAL
+    if module == ZCRMDefaultModuleAPINames.SOCIAL
     {
-        ZCRMLogger.logError(message: "\(ErrorCode.invalidModule) : This feature is not supported for integrated modules, \( APIConstants.DETAILS ) : -")
-        throw ZCRMError.inValidError(code : ErrorCode.invalidModule, message : "This feature is not supported for integrated modules", details : nil )
+        ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidModule) : This feature is not supported for integrated modules, \( APIConstants.DETAILS ) : -")
+        throw ZCRMError.inValidError(code : ZCRMErrorCode.invalidModule, message : "This feature is not supported for integrated modules", details : nil )
     }
-    else if module == DefaultModuleAPINames.NOTES || module == DefaultModuleAPINames.ATTACHMENTS
+    else if module == ZCRMDefaultModuleAPINames.NOTES || module == ZCRMDefaultModuleAPINames.ATTACHMENTS
     {
-        ZCRMLogger.logError(message: "\(ErrorCode.invalidOperation) : Try using getNotes or getAttachments methods, \( APIConstants.DETAILS ) : -")
-        throw ZCRMError.inValidError( code : ErrorCode.invalidOperation, message : "Try using getNotes or getAttachments methods", details : nil )
+        ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidOperation) : Try using getNotes or getAttachments methods, \( APIConstants.DETAILS ) : -")
+        throw ZCRMError.inValidError( code : ZCRMErrorCode.invalidOperation, message : "Try using getNotes or getAttachments methods", details : nil )
     }
 }
 
-func getTriggerArray( triggers : [Trigger] ) -> [String]
+func getTriggerArray( triggers : [ZCRMTrigger] ) -> [String]
 {
     var triggerString : [String] = [String]()
-    if triggers.contains(Trigger.workFlow)
+    if triggers.contains(ZCRMTrigger.workFlow)
     {
-        triggerString.append(Trigger.workFlow.rawValue)
+        triggerString.append(ZCRMTrigger.workFlow.rawValue)
     }
-    if triggers.contains(Trigger.approval)
+    if triggers.contains(ZCRMTrigger.approval)
     {
-        triggerString.append(Trigger.approval.rawValue)
+        triggerString.append(ZCRMTrigger.approval.rawValue)
     }
-    if triggers.contains(Trigger.bluePrint)
+    if triggers.contains(ZCRMTrigger.bluePrint)
     {
-        triggerString.append(Trigger.bluePrint.rawValue)
+        triggerString.append(ZCRMTrigger.bluePrint.rawValue)
     }
     return triggerString
 }
 
-func getFieldVsApinameMap( fields : [ZCRMField] ) -> [ String: ZCRMField ]
+func getFieldVsApinameJSON( fields : [ZCRMField] ) -> [ String: ZCRMField ]
 {
     var moduleFields : [ String : ZCRMField ] = [ String : ZCRMField ]()
     for field in fields
     {
         moduleFields[ field.apiName ] = field
+    }
+    return moduleFields
+}
+
+func getFieldDelegateVsApinameJSON( fieldDelegates : [ ZCRMFieldDelegate ] ) -> [ String: ZCRMFieldDelegate ]
+{
+    var moduleFields : [ String : ZCRMFieldDelegate ] = [ String : ZCRMFieldDelegate ]()
+    for fieldDelegate in fieldDelegates
+    {
+        moduleFields[ fieldDelegate.apiName ] = fieldDelegate
     }
     return moduleFields
 }
@@ -1816,8 +2047,8 @@ func notesAttachmentLimitCheck( note : ZCRMNote, filePath : String?, fileData : 
     {
         if notesAttachments.count >= 5
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.limitExceeded) : Cannot add more than 5 attachments to a note, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.processingError( code : ErrorCode.limitExceeded, message : "Cannot add more than 5 attachments to a note", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.limitExceeded) : Cannot add more than 5 attachments to a note, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ZCRMErrorCode.limitExceeded, message : "Cannot add more than 5 attachments to a note", details : nil )
         }
         for notesAttachment in notesAttachments
         {
@@ -1828,26 +2059,26 @@ func notesAttachmentLimitCheck( note : ZCRMNote, filePath : String?, fileData : 
         }
     }
     
-    let availableSpaceInMB : Float = Float( MaxFileSize.notesAttachment.rawValue - attachmentSize ) / 1048576
+    let availableSpaceInMB : Float = Float( ZCRMMaxFileSize.notesAttachment.rawValue - attachmentSize ) / 1048576
     
     guard availableSpaceInMB > 0 else
     {
-        ZCRMLogger.logError(message: "\(ErrorCode.fileSizeExceeded) : Cannot upload. Attachments size already reached the allowed value  - 20 MB, \( APIConstants.DETAILS ) : -")
-        throw ZCRMError.fileSizeExceeded( code : ErrorCode.fileSizeExceeded, message : "Cannot upload. Attachments size already reached the allowed value  - 20 MB", details : nil )
+        ZCRMLogger.logError(message: "\(ZCRMErrorCode.fileSizeExceeded) : Cannot upload. Attachments size already reached the allowed value  - 20 MB, \( APIConstants.DETAILS ) : -")
+        throw ZCRMError.fileSizeExceeded( code : ZCRMErrorCode.fileSizeExceeded, message : "Cannot upload. Attachments size already reached the allowed value  - 20 MB", details : nil )
     }
     
     if let filePath = filePath
     {
         if ( FileManager.default.fileExists( atPath : filePath )  == false )
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : File not found at given path : \( filePath ), \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.inValidError( code : ErrorCode.mandatoryNotFound, message : "File not found at given path : \( filePath )", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : File not found at given path : \( filePath ), \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.inValidError( code : ZCRMErrorCode.mandatoryNotFound, message : "File not found at given path : \( filePath )", details : nil )
         }
         let fileSize = Float( getFileSize( filePath : filePath ) ) / 1048576
         if ( fileSize > availableSpaceInMB )
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.fileSizeExceeded) : Cannot upload. Available Free Space - \( availableSpaceInMB ) MB. The Attachment Size is \( fileSize  ) MB, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.fileSizeExceeded( code : ErrorCode.fileSizeExceeded, message : "Cannot upload. Available Free Space - \( availableSpaceInMB ) MB. The Attachment Size is \( fileSize ) MB", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.fileSizeExceeded) : Cannot upload. Available Free Space - \( availableSpaceInMB ) MB. The Attachment Size is \( fileSize  ) MB, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.fileSizeExceeded( code : ZCRMErrorCode.fileSizeExceeded, message : "Cannot upload. Available Free Space - \( availableSpaceInMB ) MB. The Attachment Size is \( fileSize ) MB", details : nil )
         }
     }
     else if let fileData = fileData
@@ -1855,27 +2086,38 @@ func notesAttachmentLimitCheck( note : ZCRMNote, filePath : String?, fileData : 
         let fileSize = Float( fileData.count ) / 1048576
         if ( fileSize > availableSpaceInMB )
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.fileSizeExceeded) : Cannot upload. Available Free Space - \( availableSpaceInMB ) MB. The Attachment Size is \( fileSize ) MB, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.fileSizeExceeded( code : ErrorCode.fileSizeExceeded, message : "Cannot upload. Available Free Space - \( availableSpaceInMB ) MB. The Attachment Size is \( fileSize ) MB", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.fileSizeExceeded) : Cannot upload. Available Free Space - \( availableSpaceInMB ) MB. The Attachment Size is \( fileSize ) MB, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.fileSizeExceeded( code : ZCRMErrorCode.fileSizeExceeded, message : "Cannot upload. Available Free Space - \( availableSpaceInMB ) MB. The Attachment Size is \( fileSize ) MB", details : nil )
         }
     }
 }
 
 //DB Constants
 
+internal enum DBType : String
+{
+    case orgData = "zoho-crm-sdk-orgdata.db"
+    case userData = "zoho-crm-sdk-userdata.db"
+    case metaData = "zoho-crm-sdk-metadata.db"
+    case analyticsData = "zoho-crm-sdk-analyticsdata.db"
+    case appData = "zoho-crm-sdk-appdata.db"
+}
+
 internal struct DBConstant
 {
-    static let CACHE_DB_NAME = "zoho-crm-sdk-cache.db"
-    
     /// Tables in the database zoho-crm-sdk.db
-    static let TABLE_RESPONSES = "URL_VS_RESPONSE"
-    
+    static var TABLE_RESPONSES : String
+    {
+        get
+        {
+            return "URL_VS_RESPONSE" + ZCRMSDKClient.shared.getOrgId()
+        }
+    }
+    static let ORG_DETAILS = "ORG_DETAILS"
     // Columns in the table RESPONSES
     static let COLUMN_URL = "URL"
     static let COLUMN_DATA = "DATA"
     static let COLUMN_VALIDITY = "VALIDITY"
-    
-    static let PERSISTENT_DB_NAME = "zoho-crm-sdk-persistent.db"
     
     // Tables in the database zoho-crm-sdk-persistent.db
     static let TABLE_PUSH_NOTIFICATIONS = "PUSH_NOTIFICATIONS_DETAILS"
@@ -1907,9 +2149,13 @@ internal struct DBConstant
     static let KEYS_VALUES = "VALUES"
     static let KEYS_SELECT = "SELECT"
     static let KEYS_SET = "SET"
-    
     static let VALIDITY_TIME = "datetime('now','+\( ZCRMSDKClient.shared.cacheValidityTimeInHours ) hours')"
+    
     static let CURRENT_TIME = "datetime('now')"
+    static let IS_DB_CACHE_ENABLED = "IS_DB_CACHE_ENABLED"
+    static let DB_Key_Name = "DB_Key_Name"
+    static let DB_Key_Value = "ZCRMiOS_DB_Key"
+    static let IS_DB_ENCRYPTED = "IS_DB_ENCRYPTED"
 }
 
 internal struct ResponsesTableStatement
@@ -1922,11 +2168,6 @@ internal struct ResponsesTableStatement
     func createTable() -> String
     {
         return "\(DBConstant.DML_CREATE) TABLE IF NOT EXISTS \(DBConstant.TABLE_RESPONSES)(\(DBConstant.COLUMN_URL) VARCHAR PRIMARY KEY NOT NULL, \(DBConstant.COLUMN_DATA) TEXT NOT NULL, \(DBConstant.COLUMN_VALIDITY) TEXT NOT NULL);"
-    }
-    
-    func update(_ withURL : String, andDATA : String ) -> String
-    {
-        return "\(DBConstant.DML_UPDATE) \(DBConstant.TABLE_RESPONSES) SET \(DBConstant.COLUMN_DATA) = \"\(andDATA)\", \(DBConstant.COLUMN_VALIDITY) = \(DBConstant.VALIDITY_TIME) \(DBConstant.CLAUSE_WHERE) \(DBConstant.COLUMN_URL) = \"\(withURL)\";"
     }
     
     func delete(_ withURL : String ) -> String
@@ -1957,6 +2198,29 @@ internal struct ResponsesTableStatement
     func searchData(_ withURL : String ) -> String
     {
         return "\(DBConstant.DQL_SELECT) * \(DBConstant.KEYS_FROM) \(DBConstant.TABLE_RESPONSES) \(DBConstant.CLAUSE_WHERE) \(DBConstant.COLUMN_URL) LIKE \'\(withURL)\' OR \(DBConstant.COLUMN_URL) LIKE \'\( withURL )?%\' AND \(DBConstant.COLUMN_VALIDITY) > \(DBConstant.CURRENT_TIME);"
+    }
+}
+
+internal struct OrganizationsTableStatement
+{
+    func insert( _ withURL : String, data : String, validity : String ) -> String
+    {
+        return "\(DBConstant.DML_INSERT) \(DBConstant.KEYS_INTO) \(DBConstant.ORG_DETAILS) (\(DBConstant.COLUMN_URL), \(DBConstant.COLUMN_DATA), \(DBConstant.COLUMN_VALIDITY)) \(DBConstant.KEYS_VALUES) (\"\(withURL)\", \"\(data)\", \(validity));"
+    }
+    
+    func createTable() -> String
+    {
+        return "\(DBConstant.DML_CREATE) TABLE IF NOT EXISTS \(DBConstant.ORG_DETAILS)(\(DBConstant.COLUMN_URL) VARCHAR PRIMARY KEY NOT NULL, \(DBConstant.COLUMN_DATA) TEXT NOT NULL, \(DBConstant.COLUMN_VALIDITY) TEXT NOT NULL);"
+    }
+    
+    func delete(_ withURL : String ) -> String
+    {
+        return "\(DBConstant.DML_DELETE) \(DBConstant.KEYS_FROM) \(DBConstant.ORG_DETAILS) \(DBConstant.CLAUSE_WHERE) \(DBConstant.COLUMN_URL) = \"\(withURL)\";"
+    }
+    
+    func fetchData(_ withURL : String ) -> String
+    {
+        return "\(DBConstant.DQL_SELECT) * \(DBConstant.KEYS_FROM) \(DBConstant.ORG_DETAILS) \(DBConstant.CLAUSE_WHERE) \(DBConstant.COLUMN_URL) = \"\(withURL)\" AND \(DBConstant.COLUMN_VALIDITY) > \(DBConstant.CURRENT_TIME);"
     }
 }
 
@@ -2026,5 +2290,146 @@ extension PropertyTransformer {
     
     mutating func applyTransformation() {
         Self.keyPathAndTransformationDict.keys.forEach{ transformAndWriteBackValue($0) }
+    }
+}
+
+func zcrmGetRandomPassword(pwdLength: Int) -> String {
+    let pwdLetters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%&()0123456789"
+    var passWord = ""
+    for _ in 0 ..< pwdLength {
+        passWord.append(pwdLetters.randomElement()!)
+    }
+    let salt = "ZCRMiOSSDK"
+    passWord += salt
+    passWord = passWord.sha256()
+    return passWord
+}
+
+@propertyWrapper public struct UserDefaultsBacked< Value >
+{
+    var key : String
+    let defaultValue : Value
+    public var wrappedValue : Value
+    {
+        get
+        {
+            return UserDefaults.standard.object(forKey: key) as? Value ?? defaultValue
+        }
+        set
+        {
+            UserDefaults.standard.set( newValue, forKey: key )
+        }
+    }
+}
+
+internal func getDBPassPhrase() throws -> String {
+    let serialQueue = DispatchQueue( label : "com.zoho.crm.sdk.sqlite.execCommand", qos : .utility )
+    var dbPassword : String = String()
+    try serialQueue.sync {
+        if ZCRMSDKClient.shared.isDBEncrypted && ZCRMSDKClient.shared.dbKeyValue == DBConstant.DB_Key_Value
+        {
+            let passwordItem = KeychainPasswordItem(service: DBConstant.DB_Key_Value,
+                                                    account: ZCRMSDKClient.shared.account,
+                                                    accessGroup: nil)
+            dbPassword = try passwordItem.readPassword()
+        }
+        else {
+            ZCRMSDKClient.shared.dbKeyValue = DBConstant.DB_Key_Value
+            let password = zcrmGetRandomPassword(pwdLength: 16)
+            let passwordItem = KeychainPasswordItem(service: DBConstant.DB_Key_Value,
+                                                    account: ZCRMSDKClient.shared.account,
+                                                    accessGroup: nil)
+            
+            // Save the password for the new item.
+            try passwordItem.savePassword(password)
+            dbPassword = password
+        }
+    }
+    return dbPassword
+}
+
+internal class SSLValidator : NSObject, URLSessionTaskDelegate
+{
+    static let rsa2048Asn1Header:[UInt8] = [
+        0x30, 0x82, 0x01, 0x22, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86,
+        0xf7, 0x0d, 0x01, 0x01, 0x01, 0x05, 0x00, 0x03, 0x82, 0x01, 0x0f, 0x00
+    ]
+    
+    /**
+      Creates a hash from the received data using the `sha256` algorithm.
+
+     - Returns: The `base64` encoded representation of the hash.
+     */
+    private func sha256(data : Data) -> String {
+        var keyWithHeader = Data(SSLValidator.rsa2048Asn1Header)
+        keyWithHeader.append(data)
+        var hash = [UInt8](repeating: 0,  count: Int(CC_SHA256_DIGEST_LENGTH))
+        keyWithHeader.withUnsafeBytes {
+            _ = CC_SHA256($0, CC_LONG(keyWithHeader.count), &hash)
+        }
+        return Data(hash).base64EncodedString()
+    }
+    
+    public func urlSession(_ session: URLSession, task : URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void)
+    {
+        guard let allowedDomains = ZCRMSDKClient.shared.authorizationCredentials?.keys, !allowedDomains.isEmpty else
+        {
+            return completionHandler( .performDefaultHandling, nil )
+        }
+        guard let domainURL = task.currentRequest?.url?.host, allowedDomains.contains( domainURL ) else
+        {
+            return completionHandler( .performDefaultHandling, nil )
+        }
+        guard let serverTrust = challenge.protectionSpace.serverTrust else {
+            return completionHandler(.performDefaultHandling, nil)
+        }
+        let policies = NSMutableArray()
+        for domain in allowedDomains
+        {
+            policies.add(SecPolicyCreateSSL(true, domain as CFString))
+        }
+        SecTrustSetPolicies(serverTrust, policies)
+        var serverPublicKey : SecKey?
+        if let serverCertificate = SecTrustGetCertificateAtIndex(serverTrust, 0) {
+            if #available(iOS 12.0, *) {
+                serverPublicKey = SecCertificateCopyKey(serverCertificate)
+            } else if #available(iOS 10.3, *) {
+                serverPublicKey =  SecCertificateCopyPublicKey(serverCertificate)
+            } else {
+                var possibleTrust: SecTrust?
+                SecTrustCreateWithCertificates(serverCertificate, SecPolicyCreateBasicX509(), &possibleTrust)
+                guard let trust = possibleTrust else { return }
+                var result: SecTrustResultType = .unspecified
+                SecTrustEvaluate(trust, &result)
+                serverPublicKey = SecTrustCopyPublicKey(trust)
+            }
+            if #available(iOS 10.0, *) {
+                let serverPublicKeyData = SecKeyCopyExternalRepresentation(serverPublicKey!, nil )!
+                let data:Data = serverPublicKeyData as Data
+                // Server Hash key
+                let serverHashKey = sha256(data: data)
+                // Local Hash Key
+                let publickKeyLocals = ( ZCRMSDKClient.shared.authorizationCredentials ?? [:] ).values
+                for publicKeyLocal in publickKeyLocals
+                {
+                    if publicKeyLocal.contains( serverHashKey )
+                    {
+                        // Success! This is our server
+                        ZCRMLogger.logDebug(message: "Public key pinning is successfully completed")
+                        completionHandler(.useCredential, URLCredential(trust:serverTrust))
+                        return
+                    }
+                }
+                return completionHandler( .cancelAuthenticationChallenge, nil )
+            }
+            else
+            {
+                return completionHandler( .performDefaultHandling, nil )
+            }
+        }
+        else
+        {
+            return completionHandler( .performDefaultHandling, nil )
+        }
     }
 }

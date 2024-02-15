@@ -13,22 +13,24 @@ open class ZCRMLayout : ZCRMLayoutDelegate
     public internal( set ) var modifiedBy : ZCRMUserDelegate?
     public internal( set ) var modifiedTime : String?
     public internal( set ) var isVisible : Bool = APIConstants.BOOL_MOCK
-    public internal( set ) var status : Int = APIConstants.INT_MOCK
+    @available(*, deprecated, renamed: "isActive")
+    public internal( set ) var status : Int?
+    public internal( set ) var isActive: Bool?
     public internal( set ) var sections : [ ZCRMSection ] = [ ZCRMSection ]()
     public internal( set ) var accessibleProfiles : [ ZCRMProfileDelegate ] = [ ZCRMProfileDelegate ]()
-    
+	
     init( name : String )
     {
         super.init( id : APIConstants.INT64_MOCK, name : name )
     }
-    
+	
     /// Add ZCRMSection to the ZCRMLayout.
     ///
     /// - Parameter section: ZCRMSection to be added
-    internal func addSection(section : ZCRMSection)
-    {
+	internal func addSection(section : ZCRMSection)
+	{
         self.sections.append(section)
-    }
+	}
 }
 
 extension ZCRMLayout
@@ -40,6 +42,7 @@ extension ZCRMLayout
             lhs.modifiedTime == rhs.modifiedTime &&
             lhs.isVisible == rhs.isVisible &&
             lhs.status == rhs.status &&
+            lhs.isActive == rhs.isActive &&
             lhs.sections == rhs.sections &&
             lhs.accessibleProfiles == rhs.accessibleProfiles
         return equals

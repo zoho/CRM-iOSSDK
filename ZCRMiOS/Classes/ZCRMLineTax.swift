@@ -22,6 +22,14 @@ open class ZCRMLineTax : ZCRMEntity
         self.name = name
         self.percentage = percentage
     }
+    
+    func copy() -> ZCRMLineTax
+    {
+        let copyObj = ZCRMLineTax(name: name, percentage: percentage)
+        copyObj.value = value
+        copyObj.isValueSet = isValueSet
+        return copyObj
+    }
 }
 
 extension ZCRMLineTax : Hashable
