@@ -1825,6 +1825,7 @@ func findMatch(for regex: String, in text: String) -> [String] {
 
 var ACCOUNTSURL : String = String()
 var CRM : String = "crm"
+var BIGIN : String = "bigin"
 var COUNTRYDOMAIN : String = "com"
 var EMAIL : String = "email"
 
