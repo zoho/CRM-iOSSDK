@@ -334,7 +334,6 @@ public class ZCRMSDKClient
             if cacheDBHandler?.dbRequest.dbType != .metaData && cacheDBHandler?.dbRequest.dbType != .analyticsData
             {
                 try cacheDBHandler?.createOrganizationTable()
-                try cacheDBHandler?.createPushNotificationsTable()
             }
         }
     }

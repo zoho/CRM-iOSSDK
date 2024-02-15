@@ -31,15 +31,23 @@ TODO: Add long description of the pod here.
 
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
-  s.ios.deployment_target = '8.0'
+  s.ios.deployment_target = '11.0'
 
   s.source_files = 'ZCRMiOS/Classes/**/*'
-
+  
   # s.resource_bundles = {
   #   'ZCRMiOS' => ['ZCRMiOS/Assets/*.png']
   # }
-
+  
   s.public_header_files = 'Pod/Classes/**/*.h'
+  
+  s.dependency 'SQLCipher', '~> 4.5.2'
+  s.public_header_files = '"${PODS_ROOT}/Pods/Target Support Files/SQLCipher/SQLCipher-umbrella.h"'
+  
+  s.subspec 'SQLCipher' do |ss|
+      ss.dependency 'SQLCipher', '~> 4.5.2'
+      ss.xcconfig = { 'OTHER_SWIFT_FLAGS' => '$(inherited) -DSQLCipher', 'GCC_PREPROCESSOR_DEFINITIONS' => '$(inherited) SQLITE_HAS_CODEC=1'}
+  end
   # s.frameworks = 'UIKit', 'MapKit'
   # s.dependency 'AFNetworking', '~> 2.3'
 

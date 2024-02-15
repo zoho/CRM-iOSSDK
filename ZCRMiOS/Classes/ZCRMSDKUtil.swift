@@ -50,12 +50,6 @@ public class ZCRMSDKUtil
         OrgAPIHandler(cacheFlavour: .noCache).getCompanyDetails(id, completion: completion)
     }
     
-    
-    public static func getZiaPredicitions(completion : @escaping(ZCRMResult.DataResponse< [ZCRMZiaPrediction], BulkAPIResponse >) -> ())
-    {
-        ZCRMZiaPredictionAPIHandler().getZiaPredictions(completion: completion)
-    }
-    
     /**
       To get the details of the module by moduleAPIName from DB. If data is not in DB then will be fetched from Server
      
