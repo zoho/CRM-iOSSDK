@@ -1302,6 +1302,63 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
     }
     
+    internal func getRecordsCount( withParams params : ZCRMQuery.GetRecordCountParams, completion : @escaping ( ZCRMResult.DataResponse< Int, APIResponse > ) -> () )
+    {
+        setUrlPath(urlPath: "\( module.apiName )/\( URLPathConstants.actions )/\( URLPathConstants.count )")
+        setRequestMethod(requestMethod: .get)
+        
+        if let filter = params.filters, let filterQuery = filter.filterQuery
+        {
+            addRequestParam(param: RequestParamKeys.filters, value: filterQuery)
+        }
+        if let cvId = params.cvId
+        {
+            addRequestParam(param: RequestParamKeys.cvId, value: "\( cvId )")
+        }
+        if let approved = params.isApproved
+        {
+            addRequestParam(param: RequestParamKeys.approved, value: "\( approved )")
+        }
+        if let converted = params.isConverted
+        {
+            addRequestParam(param: RequestParamKeys.converted, value: "\( converted )")
+        }
+        if let kanbanViewColumn = params.kanbanViewColumn
+        {
+            addRequestParam(param: RequestParamKeys.kanbanView, value: "\( kanbanViewColumn )")
+        }
+        
+        let request = APIRequest(handler: self)
+        ZCRMLogger.logDebug( message : "Request : \(request.toString())" )
+        
+        request.getAPIResponse() { result in
+            do
+            {
+                switch result
+                {
+                case .success(let response) :
+                    let responseJSON = response.getResponseJSON()
+                    if responseJSON.isEmpty == true
+                    {
+                        ZCRMLogger.logError( message : "\( ZCRMErrorCode.responseNil ) : \( ZCRMErrorMessage.responseJSONNilMsg ), \( APIConstants.DETAILS ) : -" )
+                        completion( .failure( ZCRMError.sdkError( code : ZCRMErrorCode.responseNil, message : ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        return
+                    }
+                    let count = try responseJSON.getInt(key: ResponseJSONKeys.count)
+                    completion( .success( count, response) )
+                case .failure(let error) :
+                    ZCRMLogger.logError( message : "\( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+            catch
+            {
+                ZCRMLogger.logError( message : "\( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
     private func getZCRMFilters( filtersDetails : [ [ String : Any ] ], cvId : Int64 ) throws -> [ ZCRMFilter ]
     {
         var filters : [ ZCRMFilter ] = [ ZCRMFilter ]()
@@ -1444,6 +1501,8 @@ internal extension ModuleAPIHandler
         static let activities = "activities"
         static let filters = "filters"
         static let coql = "coql"
+        static let actions = "actions"
+        static let count = "count"
     }
 
     enum SubLayoutViewType : String

@@ -811,6 +811,20 @@ open class ZCRMModuleDelegate : ZCRMEntity
     {
         ModuleAPIHandler( module: self, cacheFlavour: .noCache ).getRecords( withQueryParams : params, completion: completion)
     }
+    
+    /**
+      To get the number of records in a module and number of records satisfying the given param values
+     
+     - Parameters:
+        - withParams : Params to be included in the request
+        - completion :
+            - success : Count of the records and an APIResponse
+            - failure : ZCRMError
+     */
+    public func getRecordsCount( withParams: ZCRMQuery.GetRecordCountParams = ZCRMQuery.GetRecordCountParams(), completion: @escaping ( ZCRMResult.DataResponse< Int, APIResponse > ) -> () )
+    {
+        ModuleAPIHandler(module: self, cacheFlavour: .noCache).getRecordsCount(withParams: withParams, completion: completion)
+    }
 }
 
 extension ZCRMModuleDelegate : Hashable

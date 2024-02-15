@@ -33,7 +33,16 @@ public protocol GETUserParams: GETRequestParams {
 
 public class ZCRMQuery
 {
-    
+    public struct GetRecordCountParams
+    {
+        public var kanbanViewColumn : String?
+        public var isConverted : Bool?
+        public var isApproved : Bool?
+        public var filters : ZCRMCriteria?
+        public var cvId : Int64?
+        
+        public init() {}
+    }
     
     /**
      To construct a COQLQuery
