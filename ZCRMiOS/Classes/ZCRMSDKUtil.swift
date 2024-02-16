@@ -388,19 +388,6 @@ public class ZCRMSDKUtil
         EmailAPIHandler().getEmailFromAddresses(completion: completion)
     }
     
-    /**
-      To get the details of all the blueprints available in the org
-     
-     - Parameters:
-        - completion:
-            - success: Returns an array of ZCRMBlueprint objects and a BulkAPIResponse
-            - failure: Returns ZCRMError
-     */
-    public static func getBlueprints( completion : @escaping ( ZCRMResult.DataResponse< [ ZCRMBlueprint ], BulkAPIResponse > ) -> () )
-    {
-        OrgAPIHandler().getBlueprints(completion: completion)
-    }
-    
     public static func getInventoryTemplates( completion : @escaping( ZCRMResult.DataResponse< [ ZCRMInventoryTemplate ], BulkAPIResponse > ) -> () )
     {
         EmailAPIHandler().getInventoryTemplates( params: ZCRMQuery.GetTemplateParams()) { result in
