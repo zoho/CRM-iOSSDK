@@ -117,6 +117,31 @@ open class ZCRMCustomView : ZCRMEntity
         }
     }
     
+    /**
+         To update sort by field of a custom view
+     
+        - parameters:
+            - fieldAPIName : The sort by field to be updated with
+            - sortOrder : Sort order of the custom view records
+            - completion :
+                - success : APIResponse of the operation performed
+                - failure : ZCRMError
+     */
+    func changeSorting( fieldAPIName : String?, sortOrder : ZCRMSortOrder? = nil, completion : @escaping ( ZCRMResult.Response< APIResponse > ) -> () )
+    {
+        ModuleAPIHandler(module: ZCRMModuleDelegate(apiName: moduleAPIName), cacheFlavour: .noCache).changeCustomView( sortBy: fieldAPIName, sortOrder: sortOrder, forid: id) { result in
+            switch result
+            {
+            case .success(let response) :
+                self.sortOrder = ( fieldAPIName != nil ) ? sortOrder : nil
+                self.sortByCol = fieldAPIName
+                completion( .success( response) )
+            case .failure(let error) :
+                completion( .failure( error ) )
+            }
+        }
+    }
+    
     public func copy() -> ZCRMCustomView {
         
         let customView = ZCRMCustomView(name: name, moduleAPIName: moduleAPIName)
