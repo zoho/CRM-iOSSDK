@@ -1359,6 +1359,51 @@ internal class ModuleAPIHandler : CommonAPIHandler
         }
     }
     
+    internal func changeCustomView( sortBy : String?, sortOrder : ZCRMSortOrder?, forid id : Int64, completion : @escaping ( ZCRMResult.Response< APIResponse > ) -> () )
+    {
+        setJSONRootKey(key: JSONRootKey.CUSTOM_VIEWS)
+        if ZCRMSDKClient.shared.apiVersion <= "v2"
+        {
+            setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.customViews )/\( id )")
+        }
+        else
+        {
+            setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.customViews )/\( id )/\( URLPathConstants.actions )/\( URLPathConstants.changeSort )")
+        }
+        addRequestParam(param: RequestParamKeys.module, value: module.apiName)
+        var reqBodyObj : [ String : Any? ] = [:]
+        if let sortBy = sortBy
+        {
+            reqBodyObj.updateValue( [ ResponseJSONKeys.apiName : sortBy ], forKey: ResponseJSONKeys.sortBy)
+            guard let sortOrder = sortOrder?.rawValue else
+            {
+                ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidData) : SortOrder cannot be null, \( APIConstants.DETAILS ) : -")
+                completion( .failure( ZCRMError.inValidError(code: ZCRMErrorCode.invalidData, message: "SortOrder cannot be null", details : nil) ) )
+                return
+            }
+            reqBodyObj.updateValue( sortOrder, forKey: ResponseJSONKeys.sortOrder )
+        }
+        else
+        {
+            reqBodyObj.updateValue( nil, forKey: ResponseJSONKeys.sortBy)
+        }
+        setRequestBody(requestBody: [ getJSONRootKey() : [ reqBodyObj ] ])
+        setRequestMethod(requestMethod: .put)
+        
+        let request : APIRequest = APIRequest( handler : self )
+        ZCRMLogger.logDebug( message : "Request : \(request.toString())" )
+        request.getAPIResponse() { result in
+            switch result
+            {
+            case .success(let response) :
+                completion( .success( response ) )
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "\( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
     private func getZCRMFilters( filtersDetails : [ [ String : Any ] ], cvId : Int64 ) throws -> [ ZCRMFilter ]
     {
         var filters : [ ZCRMFilter ] = [ ZCRMFilter ]()
@@ -1503,6 +1548,7 @@ internal extension ModuleAPIHandler
         static let coql = "coql"
         static let actions = "actions"
         static let count = "count"
+        static let changeSort = "change_sort"
     }
 
     enum SubLayoutViewType : String
