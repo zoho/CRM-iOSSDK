@@ -9,6 +9,12 @@ open class ZCRMUserDelegate : ZCRMEntity
 {
     public internal( set ) var id : Int64
     public var name : String
+    {
+        didSet
+        {
+            upsertJSON.updateValue( name, forKey: UserAPIHandler.ResponseJSONKeys.fullName )
+        }
+    }
     internal var data : [ String : Any? ] = [ String : Any? ](){
         didSet
         {
@@ -26,7 +32,15 @@ open class ZCRMUserDelegate : ZCRMEntity
         self.name = name
     }
     
-    public func delete( completion : @escaping( Result.Response< APIResponse > ) -> () )
+    func copy() -> ZCRMUserDelegate
+    {
+        let copyObj = ZCRMUserDelegate(id: id, name: name)
+        copyObj.data = data.copy()
+        copyObj.upsertJSON = upsertJSON.copy()
+        return copyObj
+    }
+    
+    public func delete( completion : @escaping( ZCRMResult.Response< APIResponse > ) -> () )
     {
         UserAPIHandler().deleteUser( userId : self.id ) { ( result ) in
             completion( result )

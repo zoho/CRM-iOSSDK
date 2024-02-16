@@ -43,13 +43,28 @@ open class ZCRMCustomView : ZCRMEntity
             }
         }
     }
+    public var fieldsList : [ZCRMFieldDelegate] = [ZCRMFieldDelegate]()
+    {
+        didSet
+        {
+            var fields : [ [ String : Any ] ] = []
+            for fieldName in fieldsList
+            {
+                fields.append( [ ModuleAPIHandler.ResponseJSONKeys.apiName : fieldName.apiName ] )
+            }
+            if oldValue != fieldsList
+            {
+                upsertJSON.updateValue( fields, forKey: ModuleAPIHandler.ResponseJSONKeys.fieldsList )
+            }
+        }
+    }
     public internal( set ) var favouriteSequence : Int?
     public internal( set ) var sortByCol : String?
-    public internal( set ) var sortOrder : SortOrder?
+    public internal( set ) var sortOrder : ZCRMSortOrder?
     public internal( set ) var category : String = APIConstants.STRING_MOCK
     public internal( set ) var isOffline : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isSystemDefined : Bool = APIConstants.BOOL_MOCK
-    public internal( set ) var sharedType : SharedUsersCategory.Readable?
+    public internal( set ) var sharedType : ZCRMSharedUsersCategory.Readable?
     /**
         Criteria of the custom view
      
@@ -81,25 +96,78 @@ open class ZCRMCustomView : ZCRMEntity
         self.moduleAPIName = moduleAPIName
     }
     
-    public func getFilters( completion: @escaping( Result.DataResponse< [ ZCRMFilter ], BulkAPIResponse > ) -> () )
+    public func getFilters( completion: @escaping( ZCRMResult.DataResponse< [ ZCRMFilter ], BulkAPIResponse > ) -> () )
     {
         ModuleAPIHandler( module : ZCRMModuleDelegate( apiName : self.moduleAPIName ), cacheFlavour : .urlVsResponse ).getFilters( cvId : self.id ) { ( result ) in
             completion( result )
         }
     }
     
-    public func getFiltersFromServer( completion: @escaping( Result.DataResponse< [ ZCRMFilter ], BulkAPIResponse > ) -> () )
+    public func getFiltersFromServer( completion: @escaping( ZCRMResult.DataResponse< [ ZCRMFilter ], BulkAPIResponse > ) -> () )
     {
         ModuleAPIHandler( module : ZCRMModuleDelegate( apiName : self.moduleAPIName ), cacheFlavour : .noCache ).getFilters( cvId : self.id ) { ( result ) in
             completion( result )
         }
     }
     
-    public func getRecords( recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    public func getRecords( recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         MassEntityAPIHandler( module : ZCRMModuleDelegate( apiName : self.moduleAPIName ) ).getRecords(cvId: self.id, filterId: nil, recordParams: recordParams) { ( result ) in
             completion( result )
         }
+    }
+    
+    /**
+         To update sort by field of a custom view
+     
+        - parameters:
+            - fieldAPIName : The sort by field to be updated with
+            - sortOrder : Sort order of the custom view records
+            - completion :
+                - success : APIResponse of the operation performed
+                - failure : ZCRMError
+     */
+    func changeSorting( fieldAPIName : String?, sortOrder : ZCRMSortOrder? = nil, completion : @escaping ( ZCRMResult.Response< APIResponse > ) -> () )
+    {
+        ModuleAPIHandler(module: ZCRMModuleDelegate(apiName: moduleAPIName), cacheFlavour: .noCache).changeCustomView( sortBy: fieldAPIName, sortOrder: sortOrder, forid: id) { result in
+            switch result
+            {
+            case .success(let response) :
+                self.sortOrder = ( fieldAPIName != nil ) ? sortOrder : nil
+                self.sortByCol = fieldAPIName
+                completion( .success( response) )
+            case .failure(let error) :
+                completion( .failure( error ) )
+            }
+        }
+    }
+    
+    public func copy() -> ZCRMCustomView {
+        
+        let customView = ZCRMCustomView(name: name, moduleAPIName: moduleAPIName)
+        customView.id = id
+        customView.sysName = sysName
+        customView.isDefault = isDefault
+        customView.displayName = displayName
+        customView.fields = fields
+        customView.fieldsList = fieldsList.copy()
+        customView.favouriteSequence = favouriteSequence
+        customView.sortByCol = sortByCol
+        customView.sortOrder = sortOrder
+        customView.category = category
+        customView.isOffline = isOffline
+        customView.isSystemDefined = isSystemDefined
+        customView.sharedType = sharedType
+        customView.criteria = criteria?.copy()
+        customView.sharedDetails = sharedDetails?.copy()
+        customView.createdBy = createdBy?.copy()
+        customView.modifiedBy = modifiedBy?.copy()
+        customView.modifiedTime = modifiedTime
+        customView.lastAccessedTime = lastAccessedTime
+        customView.data = data
+        customView.upsertJSON = upsertJSON
+        
+        return customView
     }
 }
 
@@ -109,10 +177,10 @@ public extension ZCRMCustomView
     {
         public internal( set ) var id : Int64
         public internal( set ) var name : String = APIConstants.STRING_MOCK
-        public internal( set ) var type : SelectedUsersType
+        public internal( set ) var type : ZCRMSelectedUsersType
         public var subordinates : Bool?
         
-        public init( type : SelectedUsersType, id : Int64 )
+        public init( type : ZCRMSelectedUsersType, id : Int64 )
         {
             self.type = type
             self.id = id

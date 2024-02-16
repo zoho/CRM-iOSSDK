@@ -25,7 +25,7 @@ open class ZCRMNote : ZCRMEntity
     public internal( set ) var modifiedBy : ZCRMUserDelegate = USER_MOCK
     public internal( set ) var modifiedTime : String = APIConstants.STRING_MOCK
     public var attachments : [ZCRMAttachment]?
-    public internal(set) var parentRecord : ZCRMRecordDelegate = RECORD_MOCK
+    public internal(set) var parentRecord : ZCRMRecordDelegate = RECORD_DELEGATE_MOCK
     public internal(set) var isVoiceNote : Bool = APIConstants.BOOL_MOCK
     public internal(set) var size : Int64?
     public var isEditable : Bool = APIConstants.BOOL_MOCK
@@ -76,14 +76,14 @@ open class ZCRMNote : ZCRMEntity
         }
     }
     
-    public func getAttachments( withParams : GETEntityRequestParams, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
+    public func getAttachments( withParams : GETEntityRequestParams, completion : @escaping( ZCRMResult.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
     {
         if self.isCreate
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : Note ID MUST NOT be nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil.", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : Note ID MUST NOT be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil.", details : nil ) ) )
         }
-        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ) ).getAttachments( withParams : withParams ) { ( result ) in
+        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : ZCRMDefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : ZCRMDefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : ZCRMDefaultModuleAPINames.NOTES ) ).getAttachments( withParams : withParams ) { ( result ) in
             completion( result )
         }
     }
@@ -93,28 +93,28 @@ open class ZCRMNote : ZCRMEntity
     /// - Parameter filePath: file path of the attachment
     /// - Returns: APIResponse of the attachment upload
     /// - Throws: ZCRMSDKError if failed to upload the attachment
-    public func uploadAttachment( filePath : String, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
+    public func uploadAttachment( filePath : String, completion : @escaping( ZCRMResult.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
     {
-        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ) ).uploadAttachment( filePath : filePath, fileName : nil, fileData : nil, note : self ) { ( result ) in
+        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : ZCRMDefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : ZCRMDefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : ZCRMDefaultModuleAPINames.NOTES ) ).uploadAttachment( filePath : filePath, fileName : nil, fileData : nil, note : self ) { ( result ) in
             completion( result )
         }
     }
     
     public func uploadAttachment( fileRefId : String, filePath : String, attachmentUploadDelegate : ZCRMAttachmentUploadDelegate )
     {
-        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.ATTACHMENTS )).uploadAttachment( fileRefId : fileRefId, filePath : filePath, fileName : nil, fileData : nil, note : self , attachmentUploadDelegate : attachmentUploadDelegate )
+        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : ZCRMDefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : ZCRMDefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : ZCRMDefaultModuleAPINames.ATTACHMENTS )).uploadAttachment( fileRefId : fileRefId, filePath : filePath, fileName : nil, fileData : nil, note : self , attachmentUploadDelegate : attachmentUploadDelegate )
     }
     
-    public func uploadAttachment( fileName : String, fileData : Data, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
+    public func uploadAttachment( fileName : String, fileData : Data, completion : @escaping( ZCRMResult.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
     {
-        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ) ).uploadAttachment( filePath : nil, fileName : fileName, fileData : fileData, note : self ) { ( result ) in
+        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : ZCRMDefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : ZCRMDefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : ZCRMDefaultModuleAPINames.NOTES ) ).uploadAttachment( filePath : nil, fileName : fileName, fileData : fileData, note : self ) { ( result ) in
             completion( result )
         }
     }
     
     public func uploadAttachment( fileRefId : String, fileName : String, fileData : Data, attachmentUploadDelegate : ZCRMAttachmentUploadDelegate )
     {
-        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES )).uploadAttachment( fileRefId : fileRefId, filePath : nil, fileName : fileName, fileData : fileData, note : self, attachmentUploadDelegate : attachmentUploadDelegate  )
+        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : ZCRMDefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : ZCRMDefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : ZCRMDefaultModuleAPINames.NOTES )).uploadAttachment( fileRefId : fileRefId, filePath : nil, fileName : fileName, fileData : fileData, note : self, attachmentUploadDelegate : attachmentUploadDelegate  )
     }
     
     /// To download a Attachment from the note, it returns file as data, then it can be converted to a file.
@@ -122,16 +122,16 @@ open class ZCRMNote : ZCRMEntity
     /// - Parameter id: Id of the attachment to be downloaded
     /// - Returns: FileAPIResponse containing the data of the file downloaded.
     /// - Throws: ZCRMSDKError if failed to download the attachment
-    public func downloadAttachment(id : Int64, completion : @escaping( Result.Response< FileAPIResponse > ) -> ())
+    public func downloadAttachment(id : Int64, completion : @escaping( ZCRMResult.Response< FileAPIResponse > ) -> ())
     {
-        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ) ).downloadAttachment( attachmentId : id ) { ( result ) in
+        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : ZCRMDefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : ZCRMDefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : ZCRMDefaultModuleAPINames.NOTES ) ).downloadAttachment( attachmentId : id ) { ( result ) in
             completion( result )
         }
     }
     
     public func downloadAttachment(id : Int64, fileDownloadDelegate : ZCRMFileDownloadDelegate ) throws
     {
-        try RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ) ).downloadAttachment( attachmentId : id, fileDownloadDelegate : fileDownloadDelegate )
+        try RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : ZCRMDefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : ZCRMDefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : ZCRMDefaultModuleAPINames.NOTES ) ).downloadAttachment( attachmentId : id, fileDownloadDelegate : fileDownloadDelegate )
     }
     
     /// To delete a Attachment from the note.
@@ -139,9 +139,9 @@ open class ZCRMNote : ZCRMEntity
     /// - Parameter id: Id of the attachment to be deleted
     /// - Returns: APIResponse of the file deleted.
     /// - Throws: ZCRMSDKError if failed to delete the attachment
-    public func deleteAttachment( id : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func deleteAttachment( id : Int64, completion : @escaping( ZCRMResult.Response< APIResponse > ) -> () )
     {
-        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : DefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : DefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : DefaultModuleAPINames.NOTES ) ).deleteAttachment( attachmentId : id ) { ( result ) in
+        RelatedListAPIHandler( parentRecord : ZCRMRecordDelegate( id : self.id, moduleAPIName : ZCRMDefaultModuleAPINames.NOTES ), relatedList : ZCRMModuleRelation( relatedListAPIName : ZCRMDefaultModuleAPINames.ATTACHMENTS, parentModuleAPIName : ZCRMDefaultModuleAPINames.NOTES ) ).deleteAttachment( attachmentId : id ) { ( result ) in
             if case .success( _ ) = result
             {
                 self.removeAttachment(attachmentId: id)
@@ -151,9 +151,9 @@ open class ZCRMNote : ZCRMEntity
     }
 }
 
-extension ZCRMNote : NSCopying, Hashable
+extension ZCRMNote : Hashable
 {
-    public func copy( with zone : NSZone? = nil ) -> Any
+    public func copy() -> ZCRMNote
     {
         let copy : ZCRMNote = ZCRMNote()
         copy.id = self.id

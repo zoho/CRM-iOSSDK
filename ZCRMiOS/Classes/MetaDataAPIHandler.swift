@@ -9,17 +9,19 @@
 internal class MetaDataAPIHandler : CommonAPIHandler
 {
     var requestHeaders : [ String : String ]?
+    private let cacheFlavour : ZCRMCacheFlavour
     
-    override init() {
-        super.init()
+    init( cacheFlavour : ZCRMCacheFlavour ) {
+        self.cacheFlavour = cacheFlavour
     }
     
-    init( requestHeaders : [ String : String ] )
+    init( requestHeaders : [ String : String ], cache : ZCRMCacheFlavour )
     {
         self.requestHeaders = requestHeaders
+        self.cacheFlavour = cache
     }
     
-    internal func getAllModules( modifiedSince : String? = nil, completion: @escaping( Result.DataResponse< [ ZCRMModule ], BulkAPIResponse > ) -> () )
+    internal func getAllModules( modifiedSince : String? = nil, completion: @escaping( ZCRMResult.DataResponse< [ ZCRMModule ], BulkAPIResponse > ) -> () )
     {
         var allModules : [ZCRMModule] = [ZCRMModule]()
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.modules )" )
@@ -28,14 +30,19 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         {
             addRequestHeader(header: RequestParamKeys.ifModifiedSince , value: modifiedSince )
         }
+        else
+        {
+            setIsCacheable( true )
+        }
         if let requestHeaders = requestHeaders
         {
+            setIsCacheable( false )
             for ( key, value ) in requestHeaders
             {
                 addRequestHeader(header: key, value: value)
             }
         }
-		let request : APIRequest = APIRequest(handler : self ) 
+        let request : APIRequest = APIRequest( handler : self, cacheFlavour: cacheFlavour, dbType: .metaData )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getBulkAPIResponse { ( resultType ) in
@@ -47,8 +54,8 @@ internal class MetaDataAPIHandler : CommonAPIHandler
                     let modulesList:[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if modulesList.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
-                        completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.processingError( code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                     for module in modulesList
@@ -66,7 +73,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         }
 	}
 
-    internal func getModule( apiName : String,completion: @escaping( Result.DataResponse< ZCRMModule, APIResponse > ) -> () )
+    internal func getModule( apiName : String,completion: @escaping( ZCRMResult.DataResponse< ZCRMModule, APIResponse > ) -> () )
 	{
 		setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.modules )/\(apiName)" )
 		setRequestMethod(requestMethod: .get )
@@ -77,7 +84,11 @@ internal class MetaDataAPIHandler : CommonAPIHandler
                 addRequestHeader(header: key, value: value)
             }
         }
-		let request : APIRequest = APIRequest(handler: self)
+        else
+        {
+            setIsCacheable( true )
+        }
+        let request : APIRequest = APIRequest(handler: self, cacheFlavour: cacheFlavour, dbType: .metaData)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
@@ -96,7 +107,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
             }
         }
     }
-	
+    
 	private func getZCRMModule(moduleDetails : [String:Any]) throws -> ZCRMModule
 	{
         let module : ZCRMModule = ZCRMModule( apiName : try moduleDetails.getString( key : ResponseJSONKeys.apiName ), singularLabel : try moduleDetails.getString( key : ResponseJSONKeys.singularLabel ), pluralLabel : try moduleDetails.getString( key : ResponseJSONKeys.pluralLabel ) )
@@ -108,6 +119,7 @@ internal class MetaDataAPIHandler : CommonAPIHandler
         module.isConvertible = try moduleDetails.getBoolean( key : ResponseJSONKeys.convertable )
         module.isEditable = try moduleDetails.getBoolean( key : ResponseJSONKeys.editable )
         module.isDeletable = try moduleDetails.getBoolean( key : ResponseJSONKeys.deletable )
+        module.isVisible = moduleDetails.optBoolean(key: ResponseJSONKeys.visible)
         module.visibility = try moduleDetails.getInt( key : ResponseJSONKeys.visibility )
         module.isGlobalSearchSupported = try moduleDetails.getBoolean( key : ResponseJSONKeys.globalSearchSupported )
         module.isAPISupported = try moduleDetails.getBoolean( key : ResponseJSONKeys.apiSupported )
@@ -164,9 +176,25 @@ internal class MetaDataAPIHandler : CommonAPIHandler
                 module.parentModule = parentModule
             }
         }
+        if let fields = moduleDetails.optArrayOfDictionaries(key: ResponseJSONKeys.fields)
+        {
+            module.fields = [:]
+            for fieldJSON in fields
+            {
+                let field = try ModuleAPIHandler(module: module, cacheFlavour: .noCache).getZCRMField(fieldDetails: fieldJSON )
+                module.fields?[ field.id ] = field
+            }
+        }
         if(moduleDetails.hasValue(forKey: ResponseJSONKeys.customView))
         {
-            module.customView = try ModuleAPIHandler(module: module, cacheFlavour : .noCache).getZCRMCustomView(cvDetails: moduleDetails.getDictionary(key: ResponseJSONKeys.customView))
+            if let unwrappedField = module.fields
+            {
+                module.customView = try ModuleAPIHandler(module: module, cacheFlavour : .noCache).getZCRMCustomView(cvDetails: moduleDetails.getDictionary(key: ResponseJSONKeys.customView), fieldsList: Array(unwrappedField.values) )
+            }
+            else
+            {
+                module.customView = try ModuleAPIHandler(module: module, cacheFlavour : .noCache).getZCRMCustomView(cvDetails: moduleDetails.getDictionary(key: ResponseJSONKeys.customView), fieldsList: [] )
+            }
         }
         if (moduleDetails.hasValue( forKey : ResponseJSONKeys.kanbanView ))
         {
@@ -188,8 +216,8 @@ internal class MetaDataAPIHandler : CommonAPIHandler
             }
             else
             {
-                ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( ResponseJSONKeys.properties ) - Expected type -> Array Of String, \( APIConstants.DETAILS ) : -")
-                throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( ResponseJSONKeys.properties ) - Expected type -> Array Of String", details : nil )
+                ZCRMLogger.logError(message: "\(ZCRMErrorCode.typeCastError) : \( ResponseJSONKeys.properties ) - Expected type -> Array Of String, \( APIConstants.DETAILS ) : -")
+                throw ZCRMError.processingError( code : ZCRMErrorCode.typeCastError, message : "\( ResponseJSONKeys.properties ) - Expected type -> Array Of String", details : nil )
             }
         }
         if moduleDetails.hasValue( forKey : ResponseJSONKeys.perPage )
@@ -210,17 +238,8 @@ internal class MetaDataAPIHandler : CommonAPIHandler
             }
             else
             {
-                ZCRMLogger.logError(message: "\(ErrorCode.typeCastError) : \( ResponseJSONKeys.businessCardFields ) - Expected type -> Array Of String, \( APIConstants.DETAILS ) : -")
-                throw ZCRMError.processingError( code : ErrorCode.typeCastError, message : "\( ResponseJSONKeys.businessCardFields ) - Expected type -> Array Of String", details : nil )
-            }
-        }
-        if let fields = moduleDetails.optArrayOfDictionaries(key: ResponseJSONKeys.fields)
-        {
-            module.fields = [:]
-            for fieldJSON in fields
-            {
-                let field = try ModuleAPIHandler(module: module, cacheFlavour: .noCache).getZCRMField(fieldDetails: fieldJSON )
-                module.fields?[ field.id ] = field
+                ZCRMLogger.logError(message: "\(ZCRMErrorCode.typeCastError) : \( ResponseJSONKeys.businessCardFields ) - Expected type -> Array Of String, \( APIConstants.DETAILS ) : -")
+                throw ZCRMError.processingError( code : ZCRMErrorCode.typeCastError, message : "\( ResponseJSONKeys.businessCardFields ) - Expected type -> Array Of String", details : nil )
             }
         }
         return module
@@ -229,7 +248,10 @@ internal class MetaDataAPIHandler : CommonAPIHandler
 	private func setRelatedListProperties(relatedList : ZCRMModuleRelation, relatedListDetails : [String : Any]) throws
 	{
         relatedList.label = try relatedListDetails.getString(key: ResponseJSONKeys.displayLabel)
-		relatedList.module = relatedListDetails.optString(key: ResponseJSONKeys.module)
+        if let module = relatedListDetails.optString(key: ResponseJSONKeys.module)
+        {
+            relatedList.linkingModule = ZCRMModuleDelegate(apiName: module)
+        }
 		relatedList.id = try relatedListDetails.getInt64(key: ResponseJSONKeys.id)
 		relatedList.isVisible = try relatedListDetails.getBoolean(key: ResponseJSONKeys.visible)
         relatedList.isDefault = (ResponseJSONKeys.defaultString == relatedListDetails.optString(key: ResponseJSONKeys.type))
@@ -294,5 +316,8 @@ fileprivate extension MetaDataAPIHandler
     struct URLPathConstants {
         static let settings = "settings"
         static let modules = "modules"
+        static let phoneBridge = "phonebridge"
+        static let search = "search"
+        static let phoneNumber = "phonenumber"
     }
 }

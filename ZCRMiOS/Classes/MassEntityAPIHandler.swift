@@ -8,25 +8,138 @@
 
 internal class MassEntityAPIHandler : CommonAPIHandler
 {
-	internal var module : ZCRMModuleDelegate
-	
-	init(module : ZCRMModuleDelegate)
-	{
-		self.module = module
-	}
+    internal var module : ZCRMModuleDelegate
+    
+    init(module : ZCRMModuleDelegate)
+    {
+        self.module = module
+    }
     
     override func setModuleName() {
         self.requestedModule = module.apiName
     }
-	
-	// MARK: - Handler Functions
-    internal func createRecords( triggers : [Trigger]?, records : [ ZCRMRecord ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    
+    // MARK: - Handler Functions
+    private func makeRecordRequest( records : [ ZCRMRecord ], dispatchQueue : DispatchQueue , completion : @escaping ( ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> ()  )
+    {
+        var zcrmFields : [ ZCRMField ]?
+        var bulkAPIResponse : BulkAPIResponse?
+        var recordAPIError : Error?
+        var fieldsAPIError : Error?
+        let dispatchGroup : DispatchGroup = DispatchGroup()
+        
+        dispatchGroup.enter()
+        let moduleDelegate : ZCRMModuleDelegate = ZCRMModuleDelegate(apiName: self.module.apiName)
+        ModuleAPIHandler(module: moduleDelegate, cacheFlavour: .noCache).getAllFields(modifiedSince: nil) { result in
+            switch result
+            {
+            case .success(let fields, _) :
+                zcrmFields = fields
+            case .failure(let error) :
+                fieldsAPIError = error
+            }
+            dispatchGroup.leave()
+        }
+        
+        let request : APIRequest = APIRequest(handler: self )
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        dispatchGroup.enter()
+        request.getBulkAPIResponse { ( resultType ) in
+            switch resultType
+            {
+            case .success(let response) :
+                bulkAPIResponse = response
+            case .failure(let error) :
+                recordAPIError = error
+            }
+            dispatchGroup.leave()
+        }
+        dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
+            if let recordAPIError = recordAPIError
+            {
+                ZCRMLogger.logError( message : "\( recordAPIError )" )
+                completion( .failure( typeCastToZCRMError( recordAPIError ) ) )
+                return
+            }
+            else if let fieldsAPIError = fieldsAPIError
+            {
+                ZCRMLogger.logError( message : "\( fieldsAPIError )" )
+                completion( .failure( typeCastToZCRMError( fieldsAPIError ) ) )
+                return
+            }
+            if let bulkAPIResponse = bulkAPIResponse, let fields = zcrmFields
+            {
+                do
+                {
+                    var obtainedRecords : [ ZCRMRecord ] = [ ZCRMRecord ]()
+                    let dispatchGroup : DispatchGroup = DispatchGroup()
+                    let responses : [EntityResponse] = bulkAPIResponse.getEntityResponses()
+                    for ( index, entityResponse ) in responses.enumerated()
+                    {
+                        if(APIConstants.CODE_SUCCESS == entityResponse.getStatus())
+                        {
+                            let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
+                            let recordJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
+                            if recordJSON.isEmpty == true
+                            {
+                                ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                                completion( .failure( ZCRMError.processingError( code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                                return
+                            }
+                            let moduleFields = getFieldVsApinameJSON(fields: fields)
+                            for ( key, value ) in records[ index ].upsertJSON
+                            {
+                                if moduleFields[ key ]?.dataType != FieldDataTypeConstants.multiSelectLookup
+                                {
+                                    records[ index ].data.updateValue( value, forKey : key )
+                                }
+                            }
+                            dispatchGroup.enter()
+                            EntityAPIHandler( record : records[ index ], moduleFields: moduleFields ).setRecordProperties( recordDetails : recordJSON, completion : { ( recordResult ) in
+                                switch recordResult
+                                {
+                                case .success(let obtainedRecord) :
+                                    obtainedRecord.upsertJSON = [ String : Any? ]()
+                                    dispatchQueue.sync {
+                                        obtainedRecords.append( obtainedRecord )
+                                    }
+                                    entityResponse.setData(data: obtainedRecord)
+                                    dispatchGroup.leave()
+                                case .failure(let error) :
+                                    ZCRMLogger.logError( message : "\( error )" )
+                                    completion( .failure( typeCastToZCRMError( error ) ) )
+                                    dispatchGroup.leave()
+                                    return
+                                }
+                            })
+                        }
+                        else
+                        {
+                            entityResponse.setData(data: nil)
+                        }
+                    }
+                    dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
+                        bulkAPIResponse.setData( data : obtainedRecords )
+                        completion( .success( obtainedRecords, bulkAPIResponse ) )
+                    }
+                }
+                catch
+                {
+                    ZCRMLogger.logError( message : "\( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            }
+        }
+    }
+    
+    internal func createRecords( triggers : [ZCRMTrigger]?, records : [ ZCRMRecord ], completion : @escaping( ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         if(records.count > 100)
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.maxCountExceeded, message : ErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.maxCountExceeded) : \(ZCRMErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ZCRMErrorCode.maxCountExceeded, message : ZCRMErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
             return
         }
         var reqBodyObj : [String:Any?] = [String:Any?]()
@@ -40,77 +153,308 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         {
             reqBodyObj[ APIConstants.TRIGGER ] = getTriggerArray(triggers: triggers)
         }
-		
-		setUrlPath(urlPath :  "\(self.module.apiName)" )
-		setRequestMethod(requestMethod : .post )
-		setRequestBody(requestBody : reqBodyObj )
-		let request : APIRequest = APIRequest(handler: self )
-        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
-        request.getBulkAPIResponse { ( resultType ) in
-            do{
-                let bulkResponse = try resultType.resolve()
-                let responses : [EntityResponse] = bulkResponse.getEntityResponses()
-                var createdRecords : [ ZCRMRecord ] = [ ZCRMRecord ]()
-                let dispatchGroup : DispatchGroup = DispatchGroup()
-                let dispatchQueue : DispatchQueue = DispatchQueue(label: "com.zoho.crm.sdk.massEntityAPIHandler.createRecords")
-                for index in 0..<responses.count
+        setUrlPath(urlPath :  "\(self.module.apiName)" )
+        setRequestMethod(requestMethod : .post )
+        setRequestBody(requestBody : reqBodyObj )
+        
+        let dispatchQueue : DispatchQueue = DispatchQueue(label: "com.zoho.crm.sdk.massEntityAPIHandler.createRecords")
+        makeRecordRequest( records: records, dispatchQueue: dispatchQueue, completion: completion)
+    }
+    
+    internal func getDeals( cvId : Int64?, kanbanViewColumns : [ String ], requestParams : GETEntityRequestParams, requestHeaders : [ String : String ]?, completion : @escaping ( ZCRMResult.Data<  [ String : ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ] > ) -> () )
+    {
+        var zcrmFields : [ZCRMField]?
+        var fieldsAPIError : Error?
+        var zcrmTags : [ZCRMTag]?
+        var tagsAPIError : Error?
+        let dispatchGroup : DispatchGroup = DispatchGroup()
+        
+        dispatchGroup.enter()
+        ModuleAPIHandler( module : self.module, cacheFlavour : .urlVsResponse, requestHeaders: requestHeaders ).getAllFields( modifiedSince : nil ) { ( result ) in
+            switch result
+            {
+            case .success(let fields, _) :
+                zcrmFields = fields
+            case .failure(let error) :
+                fieldsAPIError = error
+            }
+            dispatchGroup.leave()
+        }
+        
+        if ZCRMSDKClient.shared.orgLicensePlan != FREE_PLAN
+        {
+            dispatchGroup.enter()
+            TagAPIHandler(module: self.module).getTags() { result in
+                switch result
                 {
-                    let entityResponse = responses[ index ]
-                    if(APIConstants.CODE_SUCCESS == responses[ index ].getStatus())
-                    {
-                        let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                        let recordJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
-                        if recordJSON.isEmpty == true
+                case .success(let tags, _) :
+                    zcrmTags = tags
+                case .failure(let error) :
+                    tagsAPIError = error
+                }
+                dispatchGroup.leave()
+            }
+        }
+        
+        dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
+            if let fieldsAPIError = fieldsAPIError
+            {
+                ZCRMLogger.logError( message : "\( fieldsAPIError )" )
+                completion( .failure( typeCastToZCRMError( fieldsAPIError ) ) )
+                return
+            }
+            else if let tagsAPIError = tagsAPIError {
+                ZCRMLogger.logError(message: "\( tagsAPIError )")
+            }
+            
+            if let fields = zcrmFields
+            {
+                self.getAllStageRecordsResponse(cvId: cvId, kanbanViewColumns: kanbanViewColumns, requestParams: requestParams, fields: fields, requestHeaders: requestHeaders) { bulkAPIResponses in
+                    self.getLatestFields(bulkResponses: bulkAPIResponses, kanbanViewColumns: kanbanViewColumns, fields: fields, requestHeaders: requestHeaders) { updatedFields, error in
+                        if let error = error
                         {
-                            ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
-                            completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                            completion( .failure( error ) )
                             return
                         }
-                        records[ index ].id = try recordJSON.getInt64( key : ResponseJSONKeys.id )
-                        for ( key, value ) in records[ index ].upsertJSON
-                        {
-                            records[ index ].data.updateValue( value, forKey : key )
+                        self.getAllStageRecords(bulkResponses: bulkAPIResponses, kanbanViewColumns: kanbanViewColumns, fields: updatedFields, tags: zcrmTags, requestHeaders: requestHeaders) { result in
+                            completion( .success( result ) )
                         }
-                        dispatchGroup.enter()
-                        EntityAPIHandler( record : records[ index ] ).setRecordProperties( recordDetails : recordJSON, completion : { ( recordResult ) in
-                            do
-                            {
-                                let createdRecord = try recordResult.resolve()
-                                createdRecord.upsertJSON = [ String : Any? ]()
-                                dispatchQueue.sync {
-                                    createdRecords.append( createdRecord )
-                                }
-                                entityResponse.setData(data: createdRecord)
-                                dispatchGroup.leave()
-                            }
-                            catch
-                            {
-                                ZCRMLogger.logError( message : "\( error )" )
-                                completion( .failure( typeCastToZCRMError( error ) ) )
-                                dispatchGroup.leave()
-                                return
-                            }
-                        })
                     }
-                    else
-                    {
-                        entityResponse.setData(data: nil)
-                    }
-                }
-                dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
-                    bulkResponse.setData( data : createdRecords )
-                    completion( .success( createdRecords, bulkResponse ) )
                 }
             }
-            catch{
-                ZCRMLogger.logError( message : "\( error )" )
-                completion( .failure( typeCastToZCRMError( error ) ) )
+            else
+            {
+                ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : FIELDS must not be nil, \( APIConstants.DETAILS ) : -")
+                completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "FIELDS must not be nil", details : nil ) ) )
             }
         }
     }
     
-    internal func getRecords( cvId : Int64?, filterId : Int64?, recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    internal func getLatestFields( bulkResponses : [ ZCRMResult.Response< BulkAPIResponse > ], kanbanViewColumns: [ String ], fields : [ ZCRMField ], tags : [ ZCRMTag ]? = nil, requestHeaders : [ String : String ]? = nil, completion : @escaping ( [ ZCRMField ], ZCRMError? ) -> ()  )
+    {
+        do
+        {
+            var isRecordFound = false
+            for ( _, bulkResponse ) in bulkResponses.enumerated() {
+                if case .success( let response ) = bulkResponse
+                {
+                    let recordsDetailsJSON = response.getResponseJSON()
+                    if recordsDetailsJSON.isEmpty
+                    {
+                        continue
+                    }
+                    let recordsDetailsList = try recordsDetailsJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                    guard let firstRecordJSON = recordsDetailsList.first else
+                    {
+                        continue
+                    }
+                    let firstRecord : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
+                    firstRecord.id = try firstRecordJSON.getInt64( key : ResponseJSONKeys.id )
+                    let entityAPIHandler = EntityAPIHandler(record: firstRecord, moduleFields: getFieldVsApinameJSON(fields: fields))
+                    entityAPIHandler.getLatestFields(forRecord: firstRecordJSON, fields: fields) { updatedFields, error in
+                        completion( updatedFields, error )
+                        return
+                    }
+                    isRecordFound = true
+                    break
+                }
+            }
+            if !isRecordFound
+            {
+                completion( fields, nil )
+            }
+        }
+        catch
+        {
+            ZCRMLogger.logError( message : "\( error )" )
+            completion( fields, typeCastToZCRMError( error ) )
+        }
+    }
+    
+    internal func getAllStageRecords( bulkResponses : [ ZCRMResult.Response< BulkAPIResponse > ], kanbanViewColumns: [ String ], fields : [ ZCRMField ], tags : [ ZCRMTag ]? = nil, requestHeaders : [ String : String ]? = nil, completion : @escaping ( [ String : ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ] ) -> () )
+    {
+        let dispatchQueue : DispatchQueue = DispatchQueue(label: "com.zoho.crm.sdk.massEnityAPIHandler.getAllStageRecords")
+        let dispatchGroup : DispatchGroup = DispatchGroup()
+        
+        var recordResponses : [ String : ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ] = [:]
+        
+        for ( index, bulkResponse ) in bulkResponses.enumerated() {
+            switch bulkResponse
+            {
+            case .success(let response) :
+                dispatchGroup.enter()
+                getStageRecords(responseJSON: response.getResponseJSON(), fields: fields, tags: tags, requestHeaders: requestHeaders) { result in
+                    switch result
+                    {
+                    case .success(let records) :
+                        dispatchQueue.sync {
+                            recordResponses[ kanbanViewColumns[ index ] ] = .success( records, response)
+                            dispatchGroup.leave()
+                        }
+                    case .failure(let error) :
+                        dispatchQueue.sync {
+                            recordResponses[ kanbanViewColumns[ index ] ] = .failure( error )
+                            dispatchGroup.leave()
+                        }
+                    }
+                }
+            case .failure(let error) :
+                dispatchQueue.sync {
+                    recordResponses[ kanbanViewColumns[ index ] ] = .failure( error )
+                }
+            }
+        }
+        dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
+            completion( recordResponses )
+        }
+    }
+    
+    internal func getStageRecords( responseJSON : [ String : Any ], fields : [ ZCRMField ],tags : [ ZCRMTag ]? = nil, requestHeaders : [ String : String ]? = nil, completion : @escaping ( ZCRMResult.Data< [ ZCRMRecord ] > ) -> () )
+    {
+        do
+        {
+            var records : [ ZCRMRecord ] = [ ZCRMRecord ]()
+            guard responseJSON.isEmpty == false else
+            {
+                completion( .success( records ) )
+                return
+            }
+            let recordsDetailsList:[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+            let dispatchQueue : DispatchQueue = DispatchQueue(label: "com.zoho.crm.sdk.massEnityAPIHandler.getStageRecords")
+            let dispatchGroup : DispatchGroup = DispatchGroup()
+            for recordDetails in recordsDetailsList
+            {
+                let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
+                record.id = try recordDetails.getInt64( key : ResponseJSONKeys.id )
+                dispatchGroup.enter()
+                EntityAPIHandler(record: record, moduleFields: getFieldVsApinameJSON(fields: fields), requestHeaders: requestHeaders).setRecordProperties(recordDetails: recordDetails,tags: tags, completion: { ( recordResult ) in
+                    switch recordResult
+                    {
+                    case .success(let record) :
+                        record.upsertJSON = [ String : Any ]()
+                        dispatchQueue.sync {
+                            records.append(record)
+                        }
+                    case .failure(let error) :
+                        ZCRMLogger.logError( message : "\( error )" )
+                        completion( .failure( typeCastToZCRMError( error ) ) )
+                    }
+                    dispatchGroup.leave()
+                })
+            }
+            dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
+                completion( .success( records ) )
+            }
+        }
+        catch
+        {
+            ZCRMLogger.logError( message : "\( error )" )
+            completion( .failure( typeCastToZCRMError( error ) ) )
+        }
+    }
+    
+    internal func getAllStageRecordsResponse( cvId : Int64?, kanbanViewColumns : [ String ], requestParams : GETEntityRequestParams, fields : [ ZCRMField ], tags : [ ZCRMTag ]? = nil, requestHeaders : [ String : String ]? = nil, completion : @escaping( [ ZCRMResult.Response< BulkAPIResponse > ] ) -> () )
+    {
+        var allStageRecordsResponse : [ ZCRMResult.Response< BulkAPIResponse > ] = []
+        var unOrderedAllStageRecords : [ Int : ZCRMResult.Response< BulkAPIResponse > ] = [:]
+        let dispatchQueue : DispatchQueue = DispatchQueue(label: "com.zoho.crm.sdk.MassEntityAPIHandler.getAllStageRecordsResponse")
+        let dispatchGroup : DispatchGroup = DispatchGroup()
+        
+        for index in 0..<kanbanViewColumns.count {
+            dispatchGroup.enter()
+            MassEntityAPIHandler(module: module).getStageRecordsResponse(cvId: cvId, kanbanViewColumn: kanbanViewColumns[ index ], requestParams: requestParams, requestHeaders: requestHeaders) { result in
+                switch result
+                {
+                case .success(let response) :
+                    dispatchQueue.sync {
+                        unOrderedAllStageRecords[ index ] = .success( response )
+                        dispatchGroup.leave()
+                    }
+                case .failure(let error) :
+                    dispatchQueue.sync {
+                        unOrderedAllStageRecords[ index ] = .failure( error )
+                        dispatchGroup.leave()
+                    }
+                }
+            }
+        }
+        
+        dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
+            for stageRecords in unOrderedAllStageRecords.sorted(by: { $0.key < $1.key }) {
+                allStageRecordsResponse.append( stageRecords.value )
+            }
+            completion( allStageRecordsResponse )
+        }
+    }
+    
+    internal func getStageRecordsResponse( cvId : Int64?, kanbanViewColumn : String, requestParams : GETEntityRequestParams, requestHeaders : [ String : String ]? = nil, completion : @escaping( ZCRMResult.Response< BulkAPIResponse > ) -> () )
+    {
+        setJSONRootKey( key : JSONRootKey.DATA )
+        setUrlPath(urlPath: "\(self.module.apiName)" )
+        setRequestMethod( requestMethod : .get )
+        if ZCRMSDKClient.shared.isInternal
+        {
+            setAPIVersion("v2.2")
+        }
+        
+        if let cvId = cvId
+        {
+            addRequestParam(param:  RequestParamKeys.cvId , value: String( cvId ) )
+        }
+        if let fields = requestParams.fields, fields.isEmpty == false
+        {
+            addRequestParam(param: RequestParamKeys.fields , value: fields.joined(separator: ",") )
+        }
+        if let sortBy = requestParams.sortBy
+        {
+            addRequestParam(param: RequestParamKeys.sortBy , value:  sortBy )
+        }
+        if let sortOrder = requestParams.sortOrder
+        {
+            addRequestParam(param: RequestParamKeys.sortOrder , value: sortOrder.rawValue )
+        }
+        if requestParams.modifiedSince.notNilandEmpty, let modifiedSince = requestParams.modifiedSince
+        {
+            addRequestHeader(header: RequestParamKeys.ifModifiedSince , value: modifiedSince )
+        }
+        if let page = requestParams.page
+        {
+            addRequestParam(param: RequestParamKeys.page , value: String( page ) )
+        }
+        if let perPage = requestParams.perPage
+        {
+            addRequestParam(param: RequestParamKeys.perPage , value: String( perPage ) )
+        }
+        if let filter = requestParams.filter, let filterQuery = filter.filterQuery
+        {
+            addRequestParam( param : RequestParamKeys.filters, value : filterQuery )
+        }
+        
+        addRequestParam( param : RequestParamKeys.kanbanView, value : kanbanViewColumn )
+        
+        if let requestHeaders = requestHeaders, !requestHeaders.isEmpty
+        {
+            for ( key, value ) in requestHeaders
+            {
+                addRequestHeader(header: key, value: value)
+            }
+        }
+        let request : APIRequest = APIRequest(handler: self )
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getBulkAPIResponse { ( resultType ) in
+            switch resultType
+            {
+            case .success(let response) :
+                completion( .success( response ) )
+            case .failure(let error) :
+                completion( .failure( error ) )
+            }
+        }
+    }
+    
+    internal func getRecords( cvId : Int64?, filterId : Int64?, recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         setUrlPath(urlPath: "\(self.module.apiName)" )
@@ -122,7 +466,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         if let cvId = cvId
         {
             addRequestParam(param:  RequestParamKeys.cvId , value: String( cvId ) )
-        } 
+        }
         if let filterId = filterId
         {
             addRequestParam(param:  RequestParamKeys.filterId , value: String( filterId ) )
@@ -175,6 +519,14 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         {
             addRequestParam( param : RequestParamKeys.filters, value : filterQuery )
         }
+        if let isFormattedCurrencyNeeded = recordParams.isFormattedCurrencyNeeded
+        {
+            addRequestParam( param: RequestParamKeys.formattedCurrency , value: "\(isFormattedCurrencyNeeded)" )
+        }
+        if let isConvertedHomeCurrencyNeeded = recordParams.isConvertedHomeCurrencyNeeded
+        {
+            addRequestParam( param: RequestParamKeys.homeConvertedCurrency , value: "\(isConvertedHomeCurrencyNeeded)" )
+        }
         let requestHeaders = recordParams.headers ?? [:]
         if !requestHeaders.isEmpty
         {
@@ -189,6 +541,8 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         var bulkResponse : BulkAPIResponse?
         var recordAPIError : Error?
         var fieldsAPIError : Error?
+        var zcrmTags : [ ZCRMTag ]?
+        var tagsAPIError : Error?
         let dispatchGroup : DispatchGroup = DispatchGroup()
         
         dispatchGroup.enter()
@@ -201,6 +555,20 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 fieldsAPIError = error
             }
             dispatchGroup.leave()
+        }
+        if ZCRMSDKClient.shared.orgLicensePlan != FREE_PLAN
+        {
+            dispatchGroup.enter()
+            TagAPIHandler(module: self.module).getTags() { result in
+                switch result
+                {
+                case .success(let tags, _):
+                    zcrmTags = tags
+                case .failure(let error):
+                    tagsAPIError = error
+                }
+                dispatchGroup.leave()
+            }
         }
         
         dispatchGroup.enter()
@@ -228,9 +596,15 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 completion( .failure( typeCastToZCRMError( fieldsAPIError ) ) )
                 return
             }
+            else if let tagsAPIError = tagsAPIError
+            {
+                ZCRMLogger.logError(message: "\(tagsAPIError)")
+            }
+            
             if let fields = zcrmFields, let response = bulkResponse
             {
-                self.getZCRMRecords(fields: fields, bulkResponse: response, requestHeaders: recordParams.headers, completion: { ( records, error ) in
+                
+                self.getZCRMRecords(fields: fields, bulkResponse: response, tags: zcrmTags, requestHeaders: recordParams.headers, completion: { ( records, error ) in
                     if let err = error
                     {
                         ZCRMLogger.logError( message : "\( err )" )
@@ -247,100 +621,119 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             }
             else
             {
-                ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : FIELDS must not be nil, \( APIConstants.DETAILS ) : -")
-                completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "FIELDS must not be nil", details : nil ) ) )
+                ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : FIELDS must not be nil, \( APIConstants.DETAILS ) : -")
+                completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "FIELDS must not be nil", details : nil ) ) )
             }
         }
     }
     
-    internal func getZCRMRecords( fields : [ ZCRMField ], bulkResponse : BulkAPIResponse, requestHeaders : [ String : String ]? = nil, completion : @escaping( [ ZCRMRecord ]?, ZCRMError? ) -> () )
+    internal func getZCRMRecords( fields : [ ZCRMField ], bulkResponse : BulkAPIResponse, tags : [ ZCRMTag ]?, requestHeaders : [ String : String ]? = nil, completion : @escaping( [ ZCRMRecord ]?, ZCRMError? ) -> () )
     {
         var records : [ ZCRMRecord ] = [ ZCRMRecord ]()
         let responseJSON = bulkResponse.getResponseJSON()
-        let dispatchGroup : DispatchGroup = DispatchGroup()
         let dispatchQueue : DispatchQueue = DispatchQueue(label: "com.zoho.crm.sdk.massEnityAPIHandler.getZCRMRecords")
-        if responseJSON.isEmpty == false
+        guard responseJSON.isEmpty == false else
         {
-            do
+            completion( records, nil )
+            return
+        }
+        do
+        {
+            let recordsDetailsList:[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
+            guard let firstRecordJSON = recordsDetailsList.first else
             {
-                let recordsDetailsList:[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
-                if recordsDetailsList.isEmpty == true
-                {
-                    ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
-                    completion( nil, ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) )
-                    return
-                }
-                for recordDetails in recordsDetailsList
-                {
-                    let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
-                    record.id = try recordDetails.getInt64( key : ResponseJSONKeys.id )
-                    dispatchGroup.enter()
-                    EntityAPIHandler(record: record, moduleFields: getFieldVsApinameMap(fields: fields), requestHeaders: requestHeaders).setRecordProperties(recordDetails: recordDetails, completion: { ( recordResult ) in
-                        switch recordResult
-                        {
-                        case .success(let record) :
-                            record.upsertJSON = [ String : Any ]()
-                            dispatchQueue.sync {
-                                records.append(record)
-                            }
-                        case .failure(let error) :
-                            ZCRMLogger.logError( message : "\( error )" )
-                            completion( nil, typeCastToZCRMError( error ) )
-                        }
-                        dispatchGroup.leave()
-                    })
-                }
+                ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                completion( nil, ZCRMError.processingError( code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseJSONNilMsg, details : nil ) )
+                return
             }
-            catch
-            {
-                ZCRMLogger.logError( message : "\( error )" )
-                completion( nil, typeCastToZCRMError( error ) )
+            let firstRecord : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
+            firstRecord.id = try firstRecordJSON.getInt64( key : ResponseJSONKeys.id )
+            let entityAPIHandler = EntityAPIHandler(record: firstRecord, moduleFields: getFieldVsApinameJSON(fields: fields))
+            entityAPIHandler.getLatestFields(forRecord: firstRecordJSON, fields: fields) { updatedFields, error in
+                do
+                {
+                    if let error = error
+                    {
+                        throw error
+                    }
+                    let dispatchGroup : DispatchGroup = DispatchGroup()
+                    for recordDetails in recordsDetailsList
+                    {
+                        let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
+                        record.id = try recordDetails.getInt64( key : ResponseJSONKeys.id )
+                        dispatchGroup.enter()
+                        EntityAPIHandler(record: record, moduleFields: getFieldVsApinameJSON(fields: fields), requestHeaders: requestHeaders).setRecordProperties(recordDetails: recordDetails,tags: tags, completion: { ( recordResult ) in
+                            switch recordResult
+                            {
+                            case .success(let record) :
+                                record.upsertJSON = [ String : Any ]()
+                                dispatchQueue.sync {
+                                    records.append(record)
+                                }
+                            case .failure(let error) :
+                                ZCRMLogger.logError( message : "\( error )" )
+                                completion( nil, typeCastToZCRMError( error ) )
+                            }
+                            dispatchGroup.leave()
+                        })
+                    }
+                    dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
+                        completion( records, nil )
+                    }
+                }
+                catch
+                {
+                    ZCRMLogger.logError( message : "\( error )" )
+                    completion( nil, typeCastToZCRMError( error ) )
+                }
             }
         }
-        dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
-            completion( records, nil )
+        catch
+        {
+            ZCRMLogger.logError( message : "\( error )" )
+            completion( nil, typeCastToZCRMError( error ) )
         }
     }
-
-    internal func searchByText( searchText : String, page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    
+    internal func searchByText( searchText : String, page : Int?, perPage : Int?, completion : @escaping( ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         self.searchRecords( searchKey : RequestParamValues.word, searchValue : searchText, page : page, perPage : perPage) { ( resultType ) in
             completion( resultType )
         }
     }
     
-    internal func searchByCriteria( searchCriteria : ZCRMQuery.ZCRMCriteria, page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    internal func searchByCriteria( searchCriteria : ZCRMQuery.ZCRMCriteria, page : Int?, perPage : Int?, completion : @escaping( ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         guard let recordQuery = searchCriteria.recordQuery else
         {
-            ZCRMLogger.logError( message : "\( ErrorCode.internalError) : Criteria cannot be constructed, \( APIConstants.DETAILS ) : -" )
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.internalError, message : "Criteria cannot be constructed", details : nil ) ) )
+            ZCRMLogger.logError( message : "\( ZCRMErrorCode.internalError) : Criteria cannot be constructed, \( APIConstants.DETAILS ) : -" )
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.internalError, message : "Criteria cannot be constructed", details : nil ) ) )
             return
         }
         self.searchRecords(searchKey: RequestParamValues.criteria, searchValue: recordQuery, page: page, perPage: perPage) { ( resultType ) in
             completion( resultType )
         }
     }
-
-    internal func searchByEmail( searchValue : String, page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    
+    internal func searchByEmail( searchValue : String, page : Int?, perPage : Int?, completion : @escaping( ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         self.searchRecords( searchKey : RequestParamValues.email, searchValue : searchValue, page : page, perPage : perPage) { ( resultType ) in
             completion( resultType )
         }
     }
     
-    internal func searchByPhone( searchValue : String, page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    internal func searchByPhone( searchValue : String, page : Int?, perPage : Int?, completion : @escaping( ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         self.searchRecords( searchKey : RequestParamValues.phone, searchValue : searchValue, page : page, perPage : perPage) { ( resultType ) in
             completion( resultType )
         }
     }
-	
-    private func searchRecords( searchKey : String, searchValue : String, page : Int?, perPage : Int?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
-	{
+    
+    private func searchRecords( searchKey : String, searchValue : String, page : Int?, perPage : Int?, completion : @escaping( ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    {
         if searchValue.count < 2 {
-            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : Please enter two or more characters to make a search request, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidData, message : "Please enter two or more characters to make a search request", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidData) : Please enter two or more characters to make a search request, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.invalidData, message : "Please enter two or more characters to make a search request", details : nil ) ) )
             return
         }
         setJSONRootKey( key : JSONRootKey.DATA )
@@ -361,10 +754,12 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         var bulkResponse : BulkAPIResponse?
         var recordAPIError : Error?
         var fieldsAPIError : Error?
+        var zcrmTags : [ ZCRMTag ]?
+        var tagsAPIError : Error?
         let dispatchGroup : DispatchGroup = DispatchGroup()
         
         dispatchGroup.enter()
-        ModuleAPIHandler( module : self.module, cacheFlavour : .urlVsResponse ).getAllFields( modifiedSince : nil ) { ( result ) in
+        ModuleAPIHandler( module : self.module, cacheFlavour : .noCache ).getAllFields( modifiedSince : nil ) { ( result ) in
             do
             {
                 let resp = try result.resolve()
@@ -377,6 +772,21 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 dispatchGroup.leave()
             }
         }
+        if ZCRMSDKClient.shared.orgLicensePlan != FREE_PLAN
+        {
+            dispatchGroup.enter()
+            TagAPIHandler(module: ZCRMModuleDelegate(apiName: self.module.apiName)).getTags() { result in
+                switch result
+                {
+                case .success(let tags, _):
+                    zcrmTags = tags
+                case .failure(let error):
+                    tagsAPIError = error
+                }
+                dispatchGroup.leave()
+            }
+        }
+        
         
         dispatchGroup.enter()
         request.getBulkAPIResponse { ( resultType ) in
@@ -406,9 +816,14 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                 completion( .failure( typeCastToZCRMError( fieldsAPIError ) ) )
                 return
             }
+            else if let tagsAPIError = tagsAPIError
+            {
+                ZCRMLogger.logError(message: "\(tagsAPIError)")
+            }
+            
             if let fields = zcrmFields, let response = bulkResponse
             {
-                self.getZCRMRecords(fields: fields, bulkResponse: response, completion: { ( records, error ) in
+                self.getZCRMRecords(fields: fields, bulkResponse: response, tags: zcrmTags, completion: { ( records, error ) in
                     if let err = error
                     {
                         ZCRMLogger.logError( message : "\( err )" )
@@ -425,25 +840,25 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             }
             else
             {
-                ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : FIELDS must not be nil, \( APIConstants.DETAILS ) : -")
-                completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "FIELDS must not be nil", details : nil ) ) )
+                ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : FIELDS must not be nil, \( APIConstants.DETAILS ) : -")
+                completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "FIELDS must not be nil", details : nil ) ) )
             }
         }
-	}
-
-    internal func updateRecords( triggers : [Trigger]?, records : [ ZCRMRecord ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    }
+    
+    internal func updateRecords( triggers : [ZCRMTrigger]?, records : [ ZCRMRecord ], completion : @escaping( ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         if( records.count > 100 )
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.maxCountExceeded, message : ErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.maxCountExceeded) : \(ZCRMErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ZCRMErrorCode.maxCountExceeded, message : ZCRMErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
             return
         }
         guard records.count != 0 else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : No records found to be updated, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.invalidData, message : "No records found to be updated", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidData) : No records found to be updated, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ZCRMErrorCode.invalidData, message : "No records found to be updated", details : nil ) ) )
             return
         }
         var reqBodyObj : [ String : Any ] = [ String : Any ]()
@@ -461,105 +876,92 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         setUrlPath(urlPath : "\(self.module.apiName)")
         setRequestMethod(requestMethod : .patch )
         setRequestBody(requestBody : reqBodyObj )
-        let request : APIRequest = APIRequest(handler: self )
-        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-
-        request.getBulkAPIResponse { ( resultType ) in
-            do{
-                switch resultType
-                {
-                case .success(let bulkResponse) :
-                    let responses : [EntityResponse] = bulkResponse.getEntityResponses()
-                    var updatedRecords : [ZCRMRecord] = [ZCRMRecord]()
-                    let dispatchGroup : DispatchGroup = DispatchGroup()
-                    let dispatchQueue : DispatchQueue = DispatchQueue(label: "com.zoho.crm.sdk.massEnityAPIHandler.updateRecords")
-                    for ( index, entityResponse ) in responses.enumerated()
-                    {
-                        if(APIConstants.CODE_SUCCESS == entityResponse.getStatus())
-                        {
-                            let entResponseJSON : [String:Any] = entityResponse.getResponseJSON()
-                            let recordJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
-                            let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
-                            record.id = records[ index ].id
-                            dispatchGroup.enter()
-                            EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordJSON, completion: { ( recordResult ) in
-                                switch recordResult
-                                {
-                                case .success(let updatedRecord) :
-                                    dispatchQueue.sync {
-                                        updatedRecords.append(updatedRecord)
-                                    }
-                                    entityResponse.setData(data: updatedRecord)
-                                    dispatchGroup.leave()
-                                case .failure(let error) :
-                                    ZCRMLogger.logError( message : "\( error )" )
-                                    completion( .failure( typeCastToZCRMError( error ) ) )
-                                    dispatchGroup.leave()
-                                    return
-                                }
-                            })
-                        }
-                        else
-                        {
-                            entityResponse.setData(data: nil)
-                        }
-                    }
-                    dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
-                        bulkResponse.setData( data : updatedRecords )
-                        completion( .success( updatedRecords, bulkResponse ) )
-                    }
-                case .failure(let error) :
-                    ZCRMLogger.logError( message : "\( error )" )
-                    completion( .failure( typeCastToZCRMError( error ) ) )
-                }
-            }
-            catch{
-                ZCRMLogger.logError( message : "\( error )" )
-                completion( .failure( typeCastToZCRMError( error ) ) )
-            }
-        }
+        
+        let dispatchQueue : DispatchQueue = DispatchQueue(label: "com.zoho.crm.sdk.massEnityAPIHandler.updateRecords")
+        makeRecordRequest(records: records, dispatchQueue: dispatchQueue, completion: completion)
     }
-
-    internal func massUpdateRecords( triggers : [ Trigger ]?, ids : [ Int64 ], fieldValuePair : [ String : Any? ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
-	{
+    
+    internal func massUpdateRecords( triggers : [ ZCRMTrigger ]?, ids : [ Int64 ], fieldValuePair : [ String : Any? ], completion : @escaping( ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    {
         if(ids.count > 500)
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.maxCountExceeded, message : ErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.maxCountExceeded) : \(ZCRMErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ZCRMErrorCode.maxCountExceeded, message : ZCRMErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
             return
         }
-        if ( self.module.apiName == DefaultModuleAPINames.DEALS && fieldValuePair.count > 3 ) || ( self.module.apiName != DefaultModuleAPINames.DEALS && fieldValuePair.count > 1 )
+        if ( self.module.apiName == ZCRMDefaultModuleAPINames.DEALS && fieldValuePair.count > 3 ) || ( self.module.apiName != ZCRMDefaultModuleAPINames.DEALS && fieldValuePair.count > 1 )
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : Max field limit exceeded, \( APIConstants.DETAILS ) : limit = \( ( self.module.apiName == DefaultModuleAPINames.DEALS ) ? 3 : 1 )")
-            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.invalidData, message : "Max field limit exceeded", details : [ "limit" : ( self.module.apiName == DefaultModuleAPINames.DEALS ) ? 3 : 1 ] ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidData) : Max field limit exceeded, \( APIConstants.DETAILS ) : limit = \( ( self.module.apiName == ZCRMDefaultModuleAPINames.DEALS ) ? 3 : 1 )")
+            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ZCRMErrorCode.invalidData, message : "Max field limit exceeded", details : [ "limit" : ( self.module.apiName == ZCRMDefaultModuleAPINames.DEALS ) ? 3 : 1 ] ) ) )
             return
         }
         else if fieldValuePair.count == 0
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : No field found, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.inValidError( code : ErrorCode.invalidData, message : "No field found", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidData) : No field found, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.inValidError( code : ZCRMErrorCode.invalidData, message : "No field found", details : nil ) ) )
             return
         }
         
         setJSONRootKey( key : JSONRootKey.DATA )
-		var reqBodyObj : [String:Any] = [String:Any]()
-		reqBodyObj[getJSONRootKey()] = [ fieldValuePair ]
+        var reqBodyObj : [String:Any] = [String:Any]()
+        reqBodyObj[getJSONRootKey()] = [ fieldValuePair ]
         reqBodyObj[ ResponseJSONKeys.ids ] = ids
         if let triggers = triggers
         {
             reqBodyObj[ APIConstants.TRIGGER ] = getTriggerArray(triggers: triggers)
         }
         setUrlPath(urlPath : "\(self.module.apiName)/\( URLPathConstants.actions )/\( URLPathConstants.massUpdate )")
-		setRequestMethod(requestMethod : .post )
-		setRequestBody(requestBody : reqBodyObj )
-		let request : APIRequest = APIRequest(handler: self )
-		ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-		
+        setRequestMethod(requestMethod : .post )
+        setRequestBody(requestBody : reqBodyObj )
+        let request : APIRequest = APIRequest(handler: self )
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        var zcrmFields : [ ZCRMField ]?
+        var bulkAPIResponse : BulkAPIResponse?
+        var recordAPIError : Error?
+        var fieldsAPIError : Error?
+        let dispatchGroup : DispatchGroup = DispatchGroup()
+        dispatchGroup.enter()
+        let moduleDelegate : ZCRMModuleDelegate = ZCRMModuleDelegate(apiName: self.module.apiName)
+        ModuleAPIHandler(module: moduleDelegate, cacheFlavour: .urlVsResponse).getAllFields(modifiedSince: nil) { result in
+            switch result
+            {
+            case .success(let fields, _) :
+                zcrmFields = fields
+            case .failure(let error) :
+                fieldsAPIError = error
+            }
+            dispatchGroup.leave()
+        }
+        
+        dispatchGroup.enter()
         request.getBulkAPIResponse { ( resultType ) in
-            do{
-                switch resultType
+            switch resultType
+            {
+            case .success(let response) :
+                bulkAPIResponse = response
+            case .failure(let error) :
+                recordAPIError = error
+            }
+            dispatchGroup.leave()
+        }
+        
+        dispatchGroup.notify( queue : OperationQueue.current?.underlyingQueue ?? .global() ) {
+            if let error = recordAPIError ?? fieldsAPIError
+            {
+                ZCRMLogger.logError( message : "\( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+                return
+            }
+            guard let modulefields = zcrmFields, let bulkResponse = bulkAPIResponse else
+            {
+                ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : FIELDS must not be nil, \( APIConstants.DETAILS ) : -")
+                completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "FIELDS must not be nil", details : nil ) ) )
+                return
+            }
+            self.getFieldIfMissing(fieldAPINames: Array( fieldValuePair.keys ), fields: modulefields) { updatedFields, error in
+                do
                 {
-                case .success(let bulkResponse) :
                     let responses : [EntityResponse] = bulkResponse.getEntityResponses()
                     var updatedRecords : [ZCRMRecord] = [ZCRMRecord]()
                     let dispatchGroup : DispatchGroup = DispatchGroup()
@@ -574,7 +976,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                             let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
                             record.id = ids[ index ]
                             dispatchGroup.enter()
-                            EntityAPIHandler(record: record).setRecordProperties(recordDetails: recordJSON, completion: { ( recordResult ) in
+                            EntityAPIHandler(record: record, moduleFields: getFieldVsApinameJSON(fields: updatedFields)).setRecordProperties(recordDetails: recordJSON, completion: { ( recordResult ) in
                                 switch recordResult
                                 {
                                 case .success(let updatedRecord) :
@@ -600,25 +1002,49 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         bulkResponse.setData( data : updatedRecords )
                         completion( .success( updatedRecords, bulkResponse ) )
                     }
-                case .failure(let error) :
+                }
+                catch
+                {
                     ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
             }
-            catch{
-                ZCRMLogger.logError( message : "\( error )" )
-                completion( .failure( typeCastToZCRMError( error ) ) )
+        }
+    }
+    
+    internal func getFieldIfMissing( fieldAPINames : [ String ], fields : [ ZCRMField ], completion : @escaping ( [ ZCRMField ], ZCRMError? ) -> () )
+    {
+        let fieldVsApinameMap = getFieldVsApinameJSON(fields: fields)
+        for fieldAPIName in fieldAPINames
+        {
+            if !fieldVsApinameMap.hasKey(forKey: fieldAPIName)
+            {
+                ZCRMModuleDelegate(apiName: self.module.apiName).getFieldsFromServer() { fieldsResponse in
+                    switch fieldsResponse
+                    {
+                    case .success(let updatedFields, _) :
+                        completion( updatedFields, nil )
+                    case .failure(let error) :
+                        ZCRMLogger.logError( message : "\( error )" )
+                        completion( fields, error )
+                    }
+                }
+                break
+            }
+            else
+            {
+                completion( fields, nil )
             }
         }
-	}
-
-    internal func upsertRecords( triggers : [Trigger]?, records : [ ZCRMRecord ], duplicateCheckFields : [ String ]?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    }
+    
+    internal func upsertRecords( triggers : [ZCRMTrigger]?, records : [ ZCRMRecord ], duplicateCheckFields : [ String ]?, completion : @escaping( ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         if ( records.count > 100 )
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.maxCountExceeded, message : ErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.maxCountExceeded) : \(ZCRMErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ZCRMErrorCode.maxCountExceeded, message : ZCRMErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
             return
         }
         var reqBodyObj : [ String : Any? ] = [ String : Any? ]()
@@ -637,13 +1063,13 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         {
             reqBodyObj[ APIConstants.DUPLICATE_CHECK_FIELDS ] = duplicateCheckFields
         }
-		
+        
         setUrlPath(urlPath:  "\( self.module.apiName )/\( URLPathConstants.upsert )")
-		setRequestMethod(requestMethod: .post )
-		setRequestBody(requestBody: reqBodyObj )
-		let request : APIRequest = APIRequest(handler: self )
+        setRequestMethod(requestMethod: .post )
+        setRequestBody(requestBody: reqBodyObj )
+        let request : APIRequest = APIRequest(handler: self )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-		
+        
         request.getBulkAPIResponse { ( resultType ) in
             do{
                 let bulkResponse = try resultType.resolve()
@@ -660,8 +1086,8 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         let recordJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS)
                         if recordJSON.isEmpty == true
                         {
-                            ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
-                            completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                            ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                            completion( .failure( ZCRMError.processingError( code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
                             return
                         }
                         records[ index ].id = try recordJSON.getInt64( key : ResponseJSONKeys.id )
@@ -707,13 +1133,13 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func deleteRecords( ids : [ Int64 ], completion : @escaping( Result.DataResponse< [ Int64 ] , BulkAPIResponse > ) -> () )
+    internal func deleteRecords( ids : [ Int64 ], completion : @escaping( ZCRMResult.DataResponse< [ Int64 ] , BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         if(ids.count > 100)
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.maxCountExceeded, message : ErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.maxCountExceeded) : \(ZCRMErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ZCRMErrorCode.maxCountExceeded, message : ZCRMErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
             return
         }
         setUrlPath(urlPath : "\(self.module.apiName)")
@@ -737,8 +1163,8 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                             let recordJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
                             if recordJSON.isEmpty == true
                             {
-                                ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
-                                completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                                ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                                completion( .failure( ZCRMError.processingError( code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
                                 return
                             }
                             deletedIds.append( try recordJSON.getInt64( key: ResponseJSONKeys.id ) )
@@ -756,20 +1182,20 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             }
         }
     }
-
-    internal func deleteRecords( ids : [ Int64 ], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
+    
+    internal func deleteRecords( ids : [ Int64 ], completion : @escaping( ZCRMResult.Response< BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.DATA )
         if(ids.count > 100)
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.maxCountExceeded) : \(ErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ErrorCode.maxCountExceeded, message : ErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.maxCountExceeded) : \(ZCRMErrorMessage.apiMaxRecordsMsg), \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.maxRecordCountExceeded( code : ZCRMErrorCode.maxCountExceeded, message : ZCRMErrorMessage.apiMaxRecordsMsg, details : nil ) ) )
             return
         }
-		setUrlPath(urlPath : "\(self.module.apiName)")
-		setRequestMethod(requestMethod: .delete )
-		addRequestParam( param : RequestParamKeys.ids, value : ids.map{ String( $0 ) }.joined(separator: ",") )
-		let request : APIRequest = APIRequest(handler: self )
+        setUrlPath(urlPath : "\(self.module.apiName)")
+        setRequestMethod(requestMethod: .delete )
+        addRequestParam( param : RequestParamKeys.ids, value : ids.map{ String( $0 ) }.joined(separator: ",") )
+        let request : APIRequest = APIRequest(handler: self )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getBulkAPIResponse { ( resultType ) in
@@ -782,8 +1208,8 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     let recordJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
                     if recordJSON.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
-                        completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.processingError( code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                     let record : ZCRMRecord = ZCRMRecord(moduleAPIName: self.module.apiName)
@@ -799,7 +1225,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getDeletedRecords( type : TrashRecordTypes, params : GETRequestParams, completion : @escaping( Result.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
+    internal func getDeletedRecords( type : ZCRMTrashRecordTypes, params : GETRequestParams, completion : @escaping( ZCRMResult.DataResponse< [ ZCRMTrashRecord ], BulkAPIResponse > ) -> () )
     {
         setUrlPath(urlPath : "\( self.module.apiName )/\( URLPathConstants.deleted )")
         setRequestMethod(requestMethod : .get )
@@ -829,8 +1255,8 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                     trashRecords = try self.setTrashRecordsProperties( recordsDetails : responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() ) )
                     if trashRecords.isEmpty
                     {
-                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
-                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.sdkError( code : ZCRMErrorCode.responseNil, message : ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                 }
@@ -845,18 +1271,116 @@ internal class MassEntityAPIHandler : CommonAPIHandler
     }
     
     // TODO : Add response object as List of Records when overwrite false case is fixed
-    internal func addTags( records : [ ZCRMRecord ], tags : [ String ], overWrite : Bool?, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    internal func addTags( records : [ ZCRMRecord ], tags : [ ZCRMTagDelegate ], overWrite : Bool?, completion : @escaping( ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.DATA)
         setUrlPath(urlPath: "\(self.module.apiName)/\( URLPathConstants.actions )/\( URLPathConstants.addTags )")
         setRequestMethod(requestMethod: .post)
-        addRequestParam(param: RequestParamKeys.ids, value: records.map{ String( $0.id ) }.joined(separator: ",") )
-        addRequestParam(param: RequestParamKeys.tagNames, value: tags.joined(separator: ",") )
+        if ZCRMSDKClient.shared.apiVersion <= "v2.1"
+        {
+            addRequestParam(param: RequestParamKeys.ids, value: records.map{ String( $0.id ) }.joined(separator: ",") )
+            addRequestParam(param: RequestParamKeys.tagNames, value: tags.map{ $0.name }.joined(separator: ",") )
+        }
+        else
+        {
+            var requestBody : [ String : Any ] = [:]
+            requestBody[ RequestParamKeys.ids ] = records.map{ $0.id }
+            requestBody[ JSONRootKey.TAGS ] = tags.map{ [ ResponseJSONKeys.name : $0.name, ResponseJSONKeys.colorCode : $0.colorCode ] }
+            setRequestBody(requestBody: requestBody)
+        }
         if let overWrite = overWrite
         {
             addRequestParam( param : RequestParamKeys.overWrite, value : String( overWrite ) )
         }
-
+        
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getBulkAPIResponse() { result in
+            switch result
+            {
+            case .success(let bulkResponse) :
+                do
+                {
+                    let responses : [EntityResponse] = bulkResponse.getEntityResponses()
+                    for index in 0..<responses.count
+                    {
+                        if(APIConstants.CODE_SUCCESS == responses[ index ].getStatus())
+                        {
+                            let entResponseJSON : [ String : Any ] = responses[ index ].getResponseJSON()
+                            let recordDetails : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
+                            if recordDetails.isEmpty == true
+                            {
+                                ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                                completion( .failure( ZCRMError.processingError( code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                                return
+                            }
+                            
+                            var tagNames : [ String ] = []
+                            if let tags = recordDetails.optArray( key : ResponseJSONKeys.tags ) as? [ String ]
+                            {
+                                tagNames = tags
+                            }
+                            else
+                            {
+                                tagNames = try recordDetails.getArrayOfDictionaries(key: ResponseJSONKeys.tags).map{ try $0.getString(key: ResponseJSONKeys.name) }
+                            }
+                            
+                            var existingTags : [ ZCRMTagDelegate ] = records[ index ].tags ?? []
+                            let existingTagNames : [ String ] = existingTags.map{ $0.name }
+                            
+                            for tag in tags
+                            {
+                                if !existingTagNames.contains( tag.name ) && tagNames.contains( tag.name )
+                                {
+                                    existingTags.append( tag )
+                                }
+                            }
+                            records[ index ].tags = existingTags
+                            responses[ index ].setData(data: records[ index ])
+                        }
+                        else
+                        {
+                            responses[ index ].setData(data: records[ index ])
+                        }
+                    }
+                    bulkResponse.setData( data : records )
+                    completion( .success( records, bulkResponse ) )
+                }
+                catch
+                {
+                    ZCRMLogger.logError( message : "\( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "\( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func addTags( records : [ ZCRMRecord ], tags : [ String ], overWrite : Bool?, completion : @escaping( ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    {
+        setJSONRootKey(key: JSONRootKey.DATA)
+        setUrlPath(urlPath: "\(self.module.apiName)/\( URLPathConstants.actions )/\( URLPathConstants.addTags )")
+        setRequestMethod(requestMethod: .post)
+        if ZCRMSDKClient.shared.apiVersion <= "v2.1"
+        {
+            addRequestParam(param: RequestParamKeys.ids, value: records.map{ String( $0.id ) }.joined(separator: ",") )
+            addRequestParam(param: RequestParamKeys.tagNames, value: tags.joined(separator: ",") )
+        }
+        else
+        {
+            var requestBody : [ String : Any ] = [:]
+            requestBody[ RequestParamKeys.ids ] = records.map{ $0.id }
+            requestBody[ JSONRootKey.TAGS ] = tags.map{ [ ResponseJSONKeys.name : $0 ] }
+            setRequestBody(requestBody: requestBody)
+        }
+        if let overWrite = overWrite
+        {
+            addRequestParam( param : RequestParamKeys.overWrite, value : String( overWrite ) )
+        }
+        
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
@@ -872,8 +1396,8 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         let recordDetails : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
                         if recordDetails.isEmpty == true
                         {
-                            ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
-                            completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                            ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                            completion( .failure( ZCRMError.processingError( code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
                             return
                         }
                         var tagNames : [ String ] = []
@@ -885,10 +1409,11 @@ internal class MassEntityAPIHandler : CommonAPIHandler
                         {
                             tagNames = try recordDetails.getArrayOfDictionaries(key: ResponseJSONKeys.tags).map{ try $0.getString(key: ResponseJSONKeys.name) }
                         }
-                        records[ index ].tags = [ String ]()
+                        records[ index ].tags = [ ZCRMTagDelegate ]()
                         for name in tagNames
                         {
-                            records[ index ].tags?.append( name )
+                            let tagDelegate = ZCRMTagDelegate(name: name)
+                            records[ index ].tags?.append( tagDelegate )
                         }
                         responses[ index ].setData(data: records[ index ])
                     }
@@ -906,65 +1431,94 @@ internal class MassEntityAPIHandler : CommonAPIHandler
             }
         }
     }
-
-    internal func removeTags( records : [ ZCRMRecord ], tags : [ String ], completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    
+    internal func removeTags( records : [ ZCRMRecord ], tags removableTags : [ String ], completion : @escaping( ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.DATA)
         setUrlPath(urlPath: "\(self.module.apiName)/\( URLPathConstants.actions )/\( URLPathConstants.removeTags )")
         setRequestMethod(requestMethod: .post)
-        addRequestParam(param: RequestParamKeys.ids, value: records.map{ String( $0.id ) }.joined(separator: ","))
-        addRequestParam(param: RequestParamKeys.tagNames, value: tags.joined(separator: ",") )
+        if ZCRMSDKClient.shared.apiVersion <= "v2.1"
+        {
+            addRequestParam(param: RequestParamKeys.ids, value: records.map{ String( $0.id ) }.joined(separator: ","))
+            addRequestParam(param: RequestParamKeys.tagNames, value: removableTags.joined(separator: ",") )
+        }
+        else
+        {
+            var requestBody : [ String : Any ] = [:]
+            requestBody[ RequestParamKeys.ids ] = records.map{ $0.id }
+            requestBody[ JSONRootKey.TAGS ] = removableTags.map{ [ ResponseJSONKeys.name : $0 ] }
+            setRequestBody(requestBody: requestBody)
+        }
         
         let request : APIRequest = APIRequest(handler: self)
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
-        request.getBulkAPIResponse { ( resultType ) in
-            do{
-                let bulkResponse = try resultType.resolve()
-                let responses : [ EntityResponse ] = bulkResponse.getEntityResponses()
-                for index in 0..<responses.count
+        request.getBulkAPIResponse() { result in
+            switch result
+            {
+            case .success(let bulkResponse) :
+                do
                 {
-                    if( APIConstants.CODE_SUCCESS == responses[ index ].getStatus() )
+                    let responses = bulkResponse.getEntityResponses()
+                    for index in 0..<responses.count
                     {
-                        let entResponseJSON : [ String : Any ] = responses[ index ].getResponseJSON()
-                        let recordDetails : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
-                        if recordDetails.isEmpty == true
+                        if( APIConstants.CODE_SUCCESS == responses[ index ].getStatus() )
                         {
-                            ZCRMLogger.logError( message : "\( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg ), \( APIConstants.DETAILS ) : -" )
-                            completion( .failure( ZCRMError.processingError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
-                            return
-                        }
-                        var tags : [ String ] = []
-                        if let tagNames = try recordDetails.getArray( key : JSONRootKey.TAGS ) as? [ String ]
-                        {
-                            tags = tagNames
-                        }
-                        else if let tagNames = try recordDetails.getArrayOfDictionaries(key: JSONRootKey.TAGS) as? [ [ String : String ] ]
-                        {
-                            for tag in tagNames
+                            let entResponseJSON : [ String : Any ] = responses[ index ].getResponseJSON()
+                            let recordDetails : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
+                            if recordDetails.isEmpty == true
                             {
-                                tags.append( try tag.getString(key: ResponseJSONKeys.name) )
+                                ZCRMLogger.logError( message : "\( ZCRMErrorCode.responseNil ) : \( ZCRMErrorMessage.responseJSONNilMsg ), \( APIConstants.DETAILS ) : -" )
+                                completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.responseNil, message : ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                                return
                             }
+                            var updatedTags : [ ZCRMTagDelegate ] = []
+                            if let tagNames = try recordDetails.getArray( key : JSONRootKey.TAGS ) as? [ String ]
+                            {
+                                for tag in records[ index ].tags ?? []
+                                {
+                                    if !removableTags.contains( tag.name ) && tagNames.contains( tag.name )
+                                    {
+                                        updatedTags.append( tag )
+                                    }
+                                }
+                                
+                            }
+                            else if let tags = try recordDetails.getArrayOfDictionaries(key: JSONRootKey.TAGS) as? [ [ String : String ] ]
+                            {
+                                let tagNames = try tags.map{ try $0.getString(key: ResponseJSONKeys.name) }
+                                for tag in records[ index ].tags ?? []
+                                {
+                                    if !removableTags.contains( tag.name ) && tagNames.contains( tag.name )
+                                    {
+                                        updatedTags.append( tag )
+                                    }
+                                }
+                            }
+                            records[ index ].tags = updatedTags
+                            responses[ index ].setData( data : records[ index ] )
                         }
-                        records[ index ].tags = tags
-                        responses[ index ].setData( data : records[ index ] )
+                        else
+                        {
+                            responses[ index ].setData( data : records[ index ] )
+                        }
                     }
-                    else
-                    {
-                        responses[ index ].setData( data : records[ index ] )
-                    }
+                    bulkResponse.setData( data : records )
+                    completion( .success( records, bulkResponse ) )
                 }
-                bulkResponse.setData( data : records )
-                completion( .success( records, bulkResponse ) )
-            }
-            catch{
+                catch
+                {
+                    ZCRMLogger.logError( message : "\( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            case .failure(let error) :
                 ZCRMLogger.logError( message : "\( error )" )
                 completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
     }
-	
-	// MARK: - Utility Functions
+    
+    // MARK: - Utility Functions
     private func setTrashRecordsProperties( recordsDetails : [ [ String : Any ] ] ) throws -> [ ZCRMTrashRecord ]
     {
         var trashRecords : [ ZCRMTrashRecord ] = [ ZCRMTrashRecord ]()
@@ -975,7 +1529,7 @@ internal class MassEntityAPIHandler : CommonAPIHandler
         return trashRecords
     }
     
-	private func setTrashRecordProperties( recordDetails : [ String : Any ] ) throws -> ZCRMTrashRecord
+    private func setTrashRecordProperties( recordDetails : [ String : Any ] ) throws -> ZCRMTrashRecord
     {
         let trashRecord : ZCRMTrashRecord = try ZCRMTrashRecord( type : recordDetails.getString( key : ResponseJSONKeys.type ), id : recordDetails.getInt64( key : ResponseJSONKeys.id ) )
         if recordDetails.hasValue( forKey : ResponseJSONKeys.createdBy )
@@ -1006,7 +1560,7 @@ internal extension MassEntityAPIHandler
         static let recycle = "recycle"
         static let permanent = "permanent"
     }
-
+    
     struct ResponseJSONKeys
     {
         static let id = "id"
@@ -1018,6 +1572,8 @@ internal extension MassEntityAPIHandler
         static let deletedTime = "deleted_time"
         static let tags = "tags"
         static let type = "type"
+        
+        static let colorCode = "color_code"
     }
     
     struct URLPathConstants
@@ -1045,5 +1601,7 @@ extension RequestParamKeys
     static let filters = "filters"
     static let endDateTime = "endDateTime"
     static let startDateTime = "startDateTime"
+    static let formattedCurrency = "formatted_currency"
+    static let homeConvertedCurrency = "home_converted_currency"
 }
 

@@ -35,6 +35,7 @@ public class ZCRMUser : ZCRMUserDelegate
     }
     public var profile : ZCRMProfileDelegate?{
         didSet
+        
         {
             if let profileId = profile?.id
             {
@@ -206,99 +207,39 @@ public class ZCRMUser : ZCRMUserDelegate
     
     public func resetModifiedValues()
     {
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.lastName ), let lastName = self.data[ UserAPIHandler.ResponseJSONKeys.lastName ] as? String
+        if let name = self.data[ UserAPIHandler.ResponseJSONKeys.fullName ] as? String
+        {
+            self.name = name
+        }
+        if let lastName = self.data[ UserAPIHandler.ResponseJSONKeys.lastName ] as? String
         {
             self.lastName = lastName
         }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.email ), let email = self.data[ UserAPIHandler.ResponseJSONKeys.email ] as? String
+        if let email = self.data[ UserAPIHandler.ResponseJSONKeys.email ] as? String
         {
             self.emailId = email
         }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.role )
-        {
-            self.role = self.data[ UserAPIHandler.ResponseJSONKeys.role ] as? ZCRMRoleDelegate
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.profile )
-        {
-            self.profile = self.data[ UserAPIHandler.ResponseJSONKeys.profile ] as? ZCRMProfileDelegate
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.firstName )
-        {
-            self.firstName = self.data[ UserAPIHandler.ResponseJSONKeys.firstName ] as? String
-            
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.alias )
-        {
-            self.alias = self.data[ UserAPIHandler.ResponseJSONKeys.alias ] as? String
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.dob )
-        {
-            self.dateOfBirth = self.data[ UserAPIHandler.ResponseJSONKeys.dob ] as? String
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.mobile )
-        {
-            self.mobile = self.data[ UserAPIHandler.ResponseJSONKeys.mobile ] as? String
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.phone )
-        {
-            self.phone = self.data[ UserAPIHandler.ResponseJSONKeys.phone ] as? String
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.fax )
-        {
-            self.fax = self.data[ UserAPIHandler.ResponseJSONKeys.fax ] as? String
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.street )
-        {
-            self.street = self.data[ UserAPIHandler.ResponseJSONKeys.street ] as? String
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.city )
-        {
-            self.city = self.data[ UserAPIHandler.ResponseJSONKeys.city ] as? String
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.state )
-        {
-            self.state = self.data[ UserAPIHandler.ResponseJSONKeys.state ] as? String
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.zip )
-        {
-            self.zip = self.data[ UserAPIHandler.ResponseJSONKeys.zip ] as? Int64
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.country )
-        {
-            self.country = self.data[ UserAPIHandler.ResponseJSONKeys.country ] as? String
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.locale )
-        {
-            self.locale = self.data[ UserAPIHandler.ResponseJSONKeys.locale ] as? String
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.countryLocale )
-        {
-            self.countryLocale = self.data[ UserAPIHandler.ResponseJSONKeys.countryLocale ] as? String
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.nameFormat )
-        {
-            self.nameFormat = self.data[ UserAPIHandler.ResponseJSONKeys.nameFormat ] as? String
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.dateFormat )
-        {
-            self.dateFormat = self.data[ UserAPIHandler.ResponseJSONKeys.dateFormat ] as? String
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.timeFormat )
-        {
-            self.timeFormat = self.data[ UserAPIHandler.ResponseJSONKeys.timeFormat ] as? String
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.timeZone )
-        {
-            self.timeZone = self.data[ UserAPIHandler.ResponseJSONKeys.timeZone ] as? String
-        }
-        if self.upsertJSON.hasValue( forKey : UserAPIHandler.ResponseJSONKeys.website )
-        {
-            self.website = self.data[ UserAPIHandler.ResponseJSONKeys.website ] as? String
-        }
-        if self.upsertJSON.hasValue(forKey: UserAPIHandler.ResponseJSONKeys.signature)
-        {
-            self.signature = self.data[ UserAPIHandler.ResponseJSONKeys.signature ] as? String
-        }
+        self.role = self.data[ UserAPIHandler.ResponseJSONKeys.role ] as? ZCRMRoleDelegate
+        self.profile = self.data[ UserAPIHandler.ResponseJSONKeys.profile ] as? ZCRMProfileDelegate
+        self.firstName = self.data[ UserAPIHandler.ResponseJSONKeys.firstName ] as? String
+        self.alias = self.data[ UserAPIHandler.ResponseJSONKeys.alias ] as? String
+        self.dateOfBirth = self.data[ UserAPIHandler.ResponseJSONKeys.dob ] as? String
+        self.mobile = self.data[ UserAPIHandler.ResponseJSONKeys.mobile ] as? String
+        self.phone = self.data[ UserAPIHandler.ResponseJSONKeys.phone ] as? String
+        self.fax = self.data[ UserAPIHandler.ResponseJSONKeys.fax ] as? String
+        self.street = self.data[ UserAPIHandler.ResponseJSONKeys.street ] as? String
+        self.city = self.data[ UserAPIHandler.ResponseJSONKeys.city ] as? String
+        self.state = self.data[ UserAPIHandler.ResponseJSONKeys.state ] as? String
+        self.zip = self.data[ UserAPIHandler.ResponseJSONKeys.zip ] as? Int64
+        self.country = self.data[ UserAPIHandler.ResponseJSONKeys.country ] as? String
+        self.locale = self.data[ UserAPIHandler.ResponseJSONKeys.locale ] as? String
+        self.countryLocale = self.data[ UserAPIHandler.ResponseJSONKeys.countryLocale ] as? String
+        self.nameFormat = self.data[ UserAPIHandler.ResponseJSONKeys.nameFormat ] as? String
+        self.dateFormat = self.data[ UserAPIHandler.ResponseJSONKeys.dateFormat ] as? String
+        self.timeFormat = self.data[ UserAPIHandler.ResponseJSONKeys.timeFormat ] as? String
+        self.timeZone = self.data[ UserAPIHandler.ResponseJSONKeys.timeZone ] as? String
+        self.website = self.data[ UserAPIHandler.ResponseJSONKeys.website ] as? String
+        self.signature = self.data[ UserAPIHandler.ResponseJSONKeys.signature ] as? String
         self.upsertJSON = [ String : Any? ]()
     }
     
@@ -319,8 +260,8 @@ public class ZCRMUser : ZCRMUserDelegate
         }
         else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.fieldNotFound) : The given field is not present in this user - \( ofFieldAPIName ), \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.processingError( code : ErrorCode.fieldNotFound, message : "The given field is not present in this user - \( ofFieldAPIName )", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.fieldNotFound) : The given field is not present in this user - \( ofFieldAPIName ), \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ZCRMErrorCode.fieldNotFound, message : "The given field is not present in this user - \( ofFieldAPIName )", details : nil )
         }
     }
     
@@ -335,24 +276,21 @@ public class ZCRMUser : ZCRMUserDelegate
         return data
     }
     
-    public func create( completion : @escaping( Result.DataResponse< ZCRMUser, APIResponse > ) -> () )
+    public func create( completion : @escaping( ZCRMResult.DataResponse< ZCRMUser, APIResponse > ) -> () )
     {
         UserAPIHandler().addUser( user : self ) { ( result ) in
             completion( result )
         }
     }
     
-    public func update( completion : @escaping( Result.Response< APIResponse > ) -> () )
+    public func update( completion : @escaping( ZCRMResult.Response< APIResponse > ) -> () )
     {
         UserAPIHandler().updateUser( user : self ) { ( result ) in
             completion( result )
         }
     }
-}
-
-extension ZCRMUser : NSCopying
-{
-    public func copy( with zone : NSZone? = nil ) -> Any
+    
+    override func copy() -> ZCRMUser
     {
         let copy = ZCRMUser( emailId : self.emailId )
         copy.lastName = self.lastName
@@ -388,11 +326,30 @@ extension ZCRMUser : NSCopying
         copy.isCreate = self.isCreate
         copy.sortOrderPreference = self.sortOrderPreference
         copy.signature = self.signature
-        copy.data = self.data
-        copy.upsertJSON = self.upsertJSON
+        copy.data = self.data.copy()
+        copy.upsertJSON = self.upsertJSON.copy()
         return copy
     }
     
+    public enum Category : String
+    {
+        case allUsers = "AllUsers"
+        case activeUsers = "ActiveUsers"
+        case deactiveUsers = "DeactiveUsers"
+        case notConfirmedUsers = "NotConfirmedUsers"
+        case confirmedUsers = "ConfirmedUsers"
+        case activeConfirmedUsers = "ActiveConfirmedUsers"
+        case confirmedReportingUsers = "ConfirmedReportingUsers"
+        case deletedUsers = "DeletedUsers"
+        case adminUsers = "AdminUsers"
+        case activeConfirmedAdmins = "ActiveConfirmedAdmins"
+        case parentRoleUsers = "ParentRoleUsers"
+        case childRoleUsers = "ChildRoleUsers"
+    }
+}
+
+extension ZCRMUser
+{
     public static func == (lhs: ZCRMUser, rhs: ZCRMUser) -> Bool {
         if lhs.data.count == rhs.data.count {
             for ( key, value ) in lhs.data
@@ -450,4 +407,5 @@ extension ZCRMUser : NSCopying
         return equals
     }
 }
+
 

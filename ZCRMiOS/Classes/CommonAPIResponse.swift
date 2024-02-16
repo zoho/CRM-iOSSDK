@@ -17,33 +17,37 @@ public class CommonAPIResponse
     internal var responseJSONRootKey = String()
     internal var responseHeaders : ResponseHeaders?
     internal var requestAPIName : String?
+    internal var checkInfoOptional: Bool = false // If the response info is optional, set the value to true.
     
-    init( responseJSON : Dictionary< String, Any >, responseJSONRootKey : String, requestAPIName : String? ) throws
+    init( responseJSON : Dictionary< String, Any >, responseJSONRootKey : String, requestAPIName : String?, checkInfoOptional: Bool = false ) throws
     {
         self.responseJSONRootKey = responseJSONRootKey
         self.responseJSON = responseJSON
         self.requestAPIName = requestAPIName
+        self.checkInfoOptional = checkInfoOptional
         try self.setInfo()
     }
     
-    init( response : HTTPURLResponse, responseJSONRootKey : String, requestAPIName : String? ) throws
+    init( response : HTTPURLResponse, responseJSONRootKey : String, requestAPIName : String?, checkInfoOptional: Bool = false ) throws
     {
         self.response = response
         self.requestAPIName = requestAPIName
         self.httpStatusCode = HTTPStatusCode( statusCodeValue : response.statusCode )
         self.responseJSONRootKey = responseJSONRootKey
+        self.checkInfoOptional = checkInfoOptional
         try setResponseJSON(responseData: nil)
         try processResponse()
         try self.setInfo()
         responseHeaders = ResponseHeaders(response: response)
     }
     
-    init(response : HTTPURLResponse, responseData : Data, responseJSONRootKey : String, requestAPIName : String? ) throws
+    init(response : HTTPURLResponse, responseData : Data, responseJSONRootKey : String, requestAPIName : String?, checkInfoOptional: Bool = false ) throws
     {
         self.response = response
         self.requestAPIName = requestAPIName
         self.httpStatusCode = HTTPStatusCode( statusCodeValue : response.statusCode )
         self.responseJSONRootKey = responseJSONRootKey
+        self.checkInfoOptional = checkInfoOptional
         try setResponseJSON(responseData: responseData)
         try processResponse()
         try self.setInfo()
@@ -68,7 +72,7 @@ public class CommonAPIResponse
             }
             else
             {
-                throw ZCRMError.processingError( code : ErrorCode.internalError, message : "Response data is nil", details : nil )
+                throw ZCRMError.processingError( code : ZCRMErrorCode.internalError, message : "Response data is nil", details : nil )
             }
         }
     }
@@ -99,11 +103,19 @@ public class CommonAPIResponse
     {
         if( self.responseJSON.hasValue( forKey : APIConstants.INFO ) && self.responseJSON.hasValue( forKey : APIConstants.PRIVATE_FIELDS ) )
         {
-            self.info = try ResponseInfo( infoDetails : self.responseJSON.getDictionary( key : APIConstants.INFO ), privateFieldsDetails : self.responseJSON.getArrayOfDictionaries( key : APIConstants.PRIVATE_FIELDS ) )
+            self.info = try ResponseInfo(
+                infoDetails : self.responseJSON.getDictionary( key : APIConstants.INFO ),
+                privateFieldsDetails : self.responseJSON.getArrayOfDictionaries( key : APIConstants.PRIVATE_FIELDS ),
+                checkInfoOptional: checkInfoOptional
+            )
         }
         else if( self.responseJSON.hasValue( forKey : APIConstants.INFO ) )
         {
-            self.info = try ResponseInfo( infoDetails : self.responseJSON.getDictionary( key : APIConstants.INFO ) )
+            self.info = try ResponseInfo(
+                infoDetails : self.responseJSON.getDictionary( key : APIConstants.INFO ),
+                privateFieldsDetails: nil,
+                checkInfoOptional: checkInfoOptional
+            )
         }
         else if( self.responseJSON.hasValue( forKey : APIConstants.PRIVATE_FIELDS ) )
         {
@@ -197,35 +209,16 @@ public class ResponseInfo
         try self.init( infoDetails : nil, privateFieldsDetails : privateFields )
     }
     
-    init( infoDetails : [ String : Any ]?, privateFieldsDetails : [ [ String : Any ] ]? ) throws
+    init( infoDetails : [ String : Any ]?, privateFieldsDetails : [ [ String : Any ] ]?, checkInfoOptional: Bool = false ) throws
     {
         if let infoDetails = infoDetails
         {
             for fieldAPIName in infoDetails.keys
             {
-                if( APIConstants.MORE_RECORDS == fieldAPIName )
-                {
-                    self.moreRecords = try infoDetails.getBoolean( key : APIConstants.MORE_RECORDS )
-                }
-                else if( APIConstants.COUNT == fieldAPIName )
-                {
-                    self.recordCount = try infoDetails.getInt( key : APIConstants.COUNT )
-                }
-                else if( APIConstants.PAGE == fieldAPIName )
-                {
-                    self.pageNo = try infoDetails.getInt( key : APIConstants.PAGE )
-                }
-                else if( APIConstants.PER_PAGE == fieldAPIName )
-                {
-                    self.perPage = try infoDetails.getInt( key : APIConstants.PER_PAGE )
-                }
-                else
-                {
-                    if( fieldNameVsValue == nil )
-                    {
-                        self.fieldNameVsValue = [ String : Any ]()
-                    }
-                    self.fieldNameVsValue?[ fieldAPIName ] = infoDetails.optValue( key : fieldAPIName )
+                if checkInfoOptional {
+                    setPageInfoValuesOptional(fieldAPIName, infoDetails: infoDetails)
+                } else {
+                    try setPageInfoValues(fieldAPIName, infoDetails: infoDetails)
                 }
             }
         }
@@ -250,7 +243,61 @@ public class ResponseInfo
             }
         }
     }
-    
+
+    func setPageInfoValues(_ fieldAPIName: String, infoDetails: [String: Any]) throws {
+        if( APIConstants.MORE_RECORDS == fieldAPIName )
+        {
+            self.moreRecords = try infoDetails.getBoolean( key : APIConstants.MORE_RECORDS )
+        }
+        else if( APIConstants.COUNT == fieldAPIName )
+        {
+            self.recordCount = try infoDetails.getInt( key : APIConstants.COUNT )
+        }
+        else if( APIConstants.PAGE == fieldAPIName )
+        {
+            self.pageNo = try infoDetails.getInt( key : APIConstants.PAGE )
+        }
+        else if( APIConstants.PER_PAGE == fieldAPIName )
+        {
+            self.perPage = try infoDetails.getInt( key : APIConstants.PER_PAGE )
+        }
+        else
+        {
+            if( fieldNameVsValue == nil )
+            {
+                self.fieldNameVsValue = [ String : Any ]()
+            }
+            self.fieldNameVsValue?[ fieldAPIName ] = infoDetails.optValue( key : fieldAPIName )
+        }
+    }
+
+    func setPageInfoValuesOptional(_ fieldAPIName: String, infoDetails: [String: Any]) {
+        if( APIConstants.MORE_DATA == fieldAPIName )
+        {
+            self.moreRecords = infoDetails.optBoolean( key : APIConstants.MORE_DATA )
+        }
+        else if( APIConstants.COUNT == fieldAPIName )
+        {
+            self.recordCount = infoDetails.optInt( key : APIConstants.COUNT )
+        }
+        else if( APIConstants.SET == fieldAPIName )
+        {
+            self.pageNo = infoDetails.optInt( key : APIConstants.SET )
+        }
+        else if( APIConstants.PER_SET == fieldAPIName )
+        {
+            self.perPage = infoDetails.optInt( key : APIConstants.PER_SET )
+        }
+        else
+        {
+            if( fieldNameVsValue == nil )
+            {
+                self.fieldNameVsValue = [ String : Any ]()
+            }
+            self.fieldNameVsValue?[ fieldAPIName ] = infoDetails.optValue( key : fieldAPIName )
+        }
+    }
+
     public func hasMoreRecords() -> Bool?
     {
         return self.moreRecords
@@ -284,5 +331,23 @@ public class ResponseInfo
     public func getFieldNameVsValue() -> [ String : Any ]?
     {
         return self.fieldNameVsValue
+    }
+}
+
+extension ResponseInfo {
+    func setPageNo(_ pageNo: Int) {
+        self.pageNo = pageNo
+    }
+
+    func setPerPage(_ perPage: Int) {
+        self.perPage = perPage
+    }
+
+    func setRecordCount(_ recordCount: Int) {
+        self.recordCount = recordCount
+    }
+
+    func setMoreRecords(_ moreRecords: Bool) {
+        self.moreRecords = moreRecords
     }
 }

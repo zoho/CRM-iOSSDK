@@ -11,6 +11,14 @@ open class ZCRMTax : ZCRMTaxDelegate
     public var name : String = APIConstants.STRING_MOCK
     public var percentage : Double = APIConstants.DOUBLE_MOCK
     internal var isCreate : Bool = APIConstants.BOOL_MOCK
+    public var operationType: OperationType = OperationType.create
+        
+    public enum OperationType
+    {
+        case create
+        case update
+        case delete
+    }
     
     internal init( id : Int64)
     {

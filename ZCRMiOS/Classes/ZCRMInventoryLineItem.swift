@@ -8,7 +8,7 @@
 
 public class ZCRMInventoryLineItem : ZCRMEntity
 {
-	public var product : ZCRMRecordDelegate = RECORD_MOCK
+	public var product : ZCRMRecordDelegate = RECORD_DELEGATE_MOCK
 	public internal( set ) var id : Int64 = APIConstants.INT64_MOCK
     public var listPrice : Double = APIConstants.DOUBLE_MOCK{
         didSet
@@ -31,6 +31,27 @@ public class ZCRMInventoryLineItem : ZCRMEntity
     public var priceBookId : Int64?
     public var quantityInStock : Double?
     
+    func copy() -> ZCRMInventoryLineItem
+    {
+        let copyObj = ZCRMInventoryLineItem(id: id)
+        copyObj.product = product.copy()
+        copyObj.listPrice = listPrice
+        copyObj.isListPriceSet = isListPriceSet
+        copyObj.unitPrice = unitPrice
+        copyObj.quantity = quantity
+        copyObj.description = description
+        copyObj.total = total
+        copyObj.discount = discount
+        copyObj.discountPercentage = discountPercentage
+        copyObj.totalAfterDiscount = totalAfterDiscount
+        copyObj.tax = tax
+        copyObj.lineTaxes = lineTaxes.copy()
+        copyObj.netTotal = netTotal
+        copyObj.deleteFlag = deleteFlag
+        copyObj.priceBookId = priceBookId
+        copyObj.quantityInStock = quantityInStock
+        return copyObj
+    }
 	
     /// Initialise the instance of a ZCRMInventoryLineItem with the given record.
     ///

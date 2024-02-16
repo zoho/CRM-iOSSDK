@@ -9,31 +9,32 @@
 public class ZCRMSection : ZCRMEntity
 {
     public internal( set ) var apiName : String
-    public internal( set ) var name : String = APIConstants.STRING_MOCK
-    public internal( set ) var displayName : String = APIConstants.STRING_MOCK
-    public internal( set ) var columnCount : Int = APIConstants.INT_MOCK
-    public internal( set ) var sequence : Int = APIConstants.INT_MOCK
-    public internal( set ) var fields : [ ZCRMField ] = [ ZCRMField ]()
+	public internal( set ) var name : String = APIConstants.STRING_MOCK
+	public internal( set ) var displayName : String = APIConstants.STRING_MOCK
+	public internal( set ) var columnCount : Int = APIConstants.INT_MOCK
+	public internal( set ) var sequence : Int = APIConstants.INT_MOCK
+	public internal( set ) var fields : [ ZCRMField ] = [ ZCRMField ]()
     public internal( set ) var isSubformSection : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var reorderRows : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var tooltip : String?
     public internal( set ) var maximumRows : Int?
-    
+    public internal( set ) var type : String?
+	
     /// Initialise the instance of a section with the given section name.
     ///
     /// - Parameter sectionName: section name whose associated section is to be initialised
-    internal init( apiName : String )
-    {
-        self.apiName = apiName
-    }
-    
+	internal init( apiName : String )
+	{
+		self.apiName = apiName
+	}
+	
     /// Add given ZCRMFields to the sections.
     ///
     /// - Parameter field: ZCRMField to be added
-    internal func addField(field : ZCRMField)
-    {
+	internal func addField(field : ZCRMField)
+	{
         self.fields.append( field )
-    }
+	}
 }
 
 extension ZCRMSection : Equatable

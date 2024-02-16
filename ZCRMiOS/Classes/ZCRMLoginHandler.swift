@@ -75,7 +75,7 @@ internal class ZCRMLoginHandler : ZohoAuthProvider
     {
         do
         {
-            try ZCRMSDKClient.shared.clearAllCache()
+            try ZCRMSDKClient.shared.clearAllCache(isLogoutAction: true)
             ZohoAuth.revokeAccessToken( { ( error ) in
                 if let error = error
                 {
@@ -89,7 +89,7 @@ internal class ZCRMLoginHandler : ZohoAuthProvider
                     ZCRMSDKClient.shared.requestHeaders?.removeAll()
                     URLCache.shared.removeAllCachedResponses()
 
-                    ZCRMSDKClient.shared.portalId = nil
+                    ZCRMSDKClient.shared.organizationId = nil
                     if let cookies = HTTPCookieStorage.shared.cookies {
                         for cookie in cookies {
                             HTTPCookieStorage.shared.deleteCookie( cookie )
@@ -132,7 +132,7 @@ internal class ZCRMLoginHandler : ZohoAuthProvider
         return loginScreenParams
     }
     
-    func getAccessToken( completion : @escaping ( Result.Data< String > ) -> () )
+    func getAccessToken( completion : @escaping ( ZCRMResult.Data< String > ) -> () )
     {
         ZohoAuth.getOauth2Token { ( token, error ) in
             if let error = error

@@ -16,6 +16,19 @@ public class ZCRMSubformRecord : ZCRMEntity
     public internal( set ) var modifiedBy : ZCRMUserDelegate?
     public private( set ) var data : [ String : Any? ] = [ String : Any? ]()
     public private( set ) var properties : [ String : Any? ] = [ String : Any? ]()
+    
+    public func copy() -> ZCRMSubformRecord {
+        let copyObj : ZCRMSubformRecord = ZCRMSubformRecord( name : name )
+        copyObj.id = self.id
+        copyObj.owner = self.owner?.copy()
+        copyObj.modifiedTime = self.modifiedTime
+        copyObj.createdTime = self.createdTime
+        copyObj.createdBy = self.createdBy
+        copyObj.modifiedBy = self.modifiedBy
+        copyObj.data = self.data.copy()
+        copyObj.properties = self.properties.copy()
+        return copyObj
+    }
 	
 	internal init( name : String , id : Int64 )
 	{
@@ -46,8 +59,8 @@ public class ZCRMSubformRecord : ZCRMEntity
 		}
 		else
 		{
-            ZCRMLogger.logError(message: "\(ErrorCode.fieldNotFound) : The given field is not present in the record. Field Name -> \( ofFieldAPIName ), \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.processingError( code : ErrorCode.fieldNotFound, message : "The given field is not present in the record. Field Name -> \( ofFieldAPIName )", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.fieldNotFound) : The given field is not present in the record. Field Name -> \( ofFieldAPIName ), \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ZCRMErrorCode.fieldNotFound, message : "The given field is not present in the record. Field Name -> \( ofFieldAPIName )", details : nil )
 		}
 	}
     
@@ -57,21 +70,8 @@ public class ZCRMSubformRecord : ZCRMEntity
     }
 }
 
-extension ZCRMSubformRecord : NSCopying, Hashable
+extension ZCRMSubformRecord : Hashable
 {
-    public func copy(with zone: NSZone? = nil) -> Any {
-        let copy : ZCRMSubformRecord = ZCRMSubformRecord( name : self.name )
-        copy.id = self.id
-        copy.owner = self.owner
-        copy.modifiedBy = self.modifiedBy
-        copy.modifiedTime = self.modifiedTime
-        copy.createdBy = self.createdBy
-        copy.createdTime = self.createdTime
-        copy.data = self.data
-        copy.properties = self.properties
-        return copy
-    }
-    
     public static func == (lhs: ZCRMSubformRecord, rhs: ZCRMSubformRecord) -> Bool {
         if lhs.data.count == rhs.data.count {
             for ( key, value ) in lhs.data

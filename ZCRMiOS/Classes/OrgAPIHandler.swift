@@ -10,32 +10,32 @@ import Foundation
 
 internal class OrgAPIHandler : CommonAPIHandler
 {
-    let cache : CacheFlavour
+    let cache : ZCRMCacheFlavour
     internal var variable : ZCRMVariable?
     
-    internal init( cacheFlavour : CacheFlavour ) {
+    internal init( cacheFlavour : ZCRMCacheFlavour ) {
         self.cache = cacheFlavour
     }
     
     init( variable : ZCRMVariable ) {
-        self.cache = CacheFlavour.noCache
+        self.cache = .noCache
         self.variable = variable
     }
     
-    internal init( variable : ZCRMVariable, cacheFlavour : CacheFlavour ) {
+    internal init( variable : ZCRMVariable, cacheFlavour : ZCRMCacheFlavour ) {
         self.cache = cacheFlavour
         self.variable = variable
     }
     
-	override init() {
-        self.cache = CacheFlavour.noCache
-	}
+    override init() {
+        self.cache = .noCache
+    }
     
     override func setModuleName() {
         self.requestedModule = "org"
     }
     
-    internal func getCompanyDetails( _ id : Int64? = nil, completion : @escaping( Result.DataResponse< ZCRMCompanyInfo, APIResponse > ) -> () )
+    internal func getCompanyDetails( _ id : Int64? = nil, completion : @escaping( ZCRMResult.DataResponse< ZCRMCompanyInfo, APIResponse > ) -> () )
     {
         setIsForceCacheable( true )
         setJSONRootKey( key : JSONRootKey.ORG )
@@ -47,7 +47,7 @@ internal class OrgAPIHandler : CommonAPIHandler
             addRequestHeader(header: X_CRM_ORG, value: "\( id )")
         }
         
-        let request : APIRequest = APIRequest(handler: self, cacheFlavour: self.cache )
+        let request : APIRequest = APIRequest(handler: self, cacheFlavour: self.cache, dbType: .orgData )
         ZCRMLogger.logDebug(message: "Request : \(request.toString())")
         
         request.getAPIResponse { ( resultType ) in
@@ -74,7 +74,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func createVariables( variables : [ZCRMVariable], completion : @escaping( Result.DataResponse< [ZCRMVariable], BulkAPIResponse > ) -> () )
+    internal func createVariables( variables : [ZCRMVariable], completion : @escaping( ZCRMResult.DataResponse< [ZCRMVariable], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.VARIABLES)
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
@@ -109,8 +109,8 @@ internal class OrgAPIHandler : CommonAPIHandler
                         let variableJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
                         if variableJSON.isEmpty == true
                         {
-                            ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
-                            completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                            ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                            completion( .failure( ZCRMError.processingError( code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
                             return
                         }
                         createdVariables[ index ] = try self.getZCRMVariable(variable: createdVariables[ index ], variableJSON: variableJSON)
@@ -131,14 +131,14 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func createVariable( completion : @escaping( Result.DataResponse< ZCRMVariable, APIResponse > ) -> () )
+    internal func createVariable( completion : @escaping( ZCRMResult.DataResponse< ZCRMVariable, APIResponse > ) -> () )
     {
         if let variable = self.variable
         {
             if !variable.isCreate
             {
-                ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : VARIABLE ID must be nil, \( APIConstants.DETAILS ) : -")
-                completion( .failure( ZCRMError.processingError( code: ErrorCode.invalidData, message: "VARIABLE ID must be nil", details : nil ) ) )
+                ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidData) : VARIABLE ID must be nil, \( APIConstants.DETAILS ) : -")
+                completion( .failure( ZCRMError.processingError( code: ZCRMErrorCode.invalidData, message: "VARIABLE ID must be nil", details : nil ) ) )
                 return
             }
             setJSONRootKey(key: JSONRootKey.VARIABLES)
@@ -174,12 +174,12 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : VARIABLE must not be nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: "VARIABLE must not be nil", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : VARIABLE must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code: ZCRMErrorCode.mandatoryNotFound, message: "VARIABLE must not be nil", details : nil ) ) )
         }
     }
     
-    internal func updateVariables( variables : [ZCRMVariable], completion : @escaping( Result.DataResponse< [ZCRMVariable], BulkAPIResponse > ) -> () )
+    internal func updateVariables( variables : [ZCRMVariable], completion : @escaping( ZCRMResult.DataResponse< [ZCRMVariable], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.VARIABLES)
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
@@ -214,8 +214,8 @@ internal class OrgAPIHandler : CommonAPIHandler
                         let variableJSON : [ String : Any ] = try entResponseJSON.getDictionary( key : APIConstants.DETAILS )
                         if variableJSON.isEmpty == true
                         {
-                            ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
-                            completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                            ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                            completion( .failure( ZCRMError.processingError( code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
                             return
                         }
                         createdVariables[ index ] = try self.getZCRMVariable(variable: createdVariables[ index ], variableJSON: variableJSON)
@@ -236,14 +236,14 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func updateVariable( completion : @escaping( Result.DataResponse< ZCRMVariable, APIResponse > ) -> () )
+    internal func updateVariable( completion : @escaping( ZCRMResult.DataResponse< ZCRMVariable, APIResponse > ) -> () )
     {
         if let variable = self.variable
         {
             if variable.isCreate
             {
-                ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : VARIABLE ID must not be nil, \( APIConstants.DETAILS ) : -")
-                completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: "VARIABLE ID must not be nil", details : nil ) ) )
+                ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidData) : VARIABLE ID must not be nil, \( APIConstants.DETAILS ) : -")
+                completion( .failure( ZCRMError.processingError( code: ZCRMErrorCode.mandatoryNotFound, message: "VARIABLE ID must not be nil", details : nil ) ) )
                 return
             }
             setJSONRootKey(key: JSONRootKey.VARIABLES)
@@ -278,12 +278,12 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : VARIABLE must not be nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message: "VARIABLE must not be nil", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : VARIABLE must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code: ZCRMErrorCode.mandatoryNotFound, message: "VARIABLE must not be nil", details : nil ) ) )
         }
     }
     
-    internal func getVariableGroups( completion : @escaping( Result.DataResponse< [ZCRMVariableGroup], BulkAPIResponse > ) -> () )
+    internal func getVariableGroups( completion : @escaping( ZCRMResult.DataResponse< [ZCRMVariableGroup], BulkAPIResponse > ) -> () )
     {
         var variableGroups : [ZCRMVariableGroup] = [ZCRMVariableGroup]()
         setJSONRootKey(key: JSONRootKey.VARIABLE_GROUPS)
@@ -301,8 +301,8 @@ internal class OrgAPIHandler : CommonAPIHandler
                     let variableGroupsList :[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if( variableGroupsList.isEmpty == true )
                     {
-                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
-                        completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.sdkError( code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                     for variableGroupList in variableGroupsList
@@ -320,7 +320,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getVariableGroup( id : Int64?, apiName : String?, completion : @escaping( Result.DataResponse< ZCRMVariableGroup, APIResponse > ) -> () )
+    internal func getVariableGroup( id : Int64?, apiName : String?, completion : @escaping( ZCRMResult.DataResponse< ZCRMVariableGroup, APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.VARIABLE_GROUPS)
         if let id = id
@@ -353,7 +353,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getVariables( completion : @escaping( Result.DataResponse< [ZCRMVariable], BulkAPIResponse > ) -> () )
+    internal func getVariables( completion : @escaping( ZCRMResult.DataResponse< [ZCRMVariable], BulkAPIResponse > ) -> () )
     {
         var variables : [ZCRMVariable] = [ZCRMVariable]()
         setJSONRootKey(key: JSONRootKey.VARIABLES)
@@ -371,8 +371,8 @@ internal class OrgAPIHandler : CommonAPIHandler
                     let variablesList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if( variablesList.isEmpty == true )
                     {
-                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
-                        completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.sdkError( code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                     for variableList in variablesList
@@ -391,7 +391,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getVariable( variableId : Int64?, variableAPIName : String?, variableGroupId : Int64?, variableGroupAPIName : String?, completion : @escaping( Result.DataResponse< ZCRMVariable, APIResponse > ) -> () )
+    internal func getVariable( variableId : Int64?, variableAPIName : String?, variableGroupId : Int64?, variableGroupAPIName : String?, completion : @escaping( ZCRMResult.DataResponse< ZCRMVariable, APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.VARIABLES)
         if let variableId = variableId
@@ -433,7 +433,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
 
-    internal func deleteVariables( ids : [Int64], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
+    internal func deleteVariables( ids : [Int64], completion : @escaping( ZCRMResult.Response< BulkAPIResponse > ) -> () )
     {
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )")
         setJSONRootKey(key: JSONRootKey.VARIABLES)
@@ -454,7 +454,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func deleteVariable( id : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    internal func deleteVariable( id : Int64, completion : @escaping( ZCRMResult.Response< APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.VARIABLES)
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.variables )/\( id )")
@@ -474,7 +474,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func update( companyInfo : ZCRMCompanyInfo, completion : @escaping( Result.DataResponse< ZCRMCompanyInfo, APIResponse > ) -> () )
+    internal func update( companyInfo : ZCRMCompanyInfo, completion : @escaping( ZCRMResult.DataResponse< ZCRMCompanyInfo, APIResponse > ) -> () )
     {
         if !companyInfo.upsertJSON.isEmpty
         {
@@ -503,18 +503,25 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.notModified) : No changes have been made on the company details to update, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.sdkError( code: ErrorCode.notModified, message: "No changes have been made on the company details to update", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.notModified) : No changes have been made on the company details to update, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.sdkError( code: ZCRMErrorCode.notModified, message: "No changes have been made on the company details to update", details : nil ) ) )
         }
     }
     
-    internal func getCurrencies( completion : @escaping( Result.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> () )
+    internal func getCurrencies( withHeaders requestHeaders : [ String : String ]? = nil, completion : @escaping( ZCRMResult.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> () )
     {
-        setIsCacheable( true )
+        if requestHeaders == nil || !( requestHeaders ?? [:] ).hasValue(forKey: X_CRM_ORG)
+        {
+            setIsCacheable(true)
+        }
         setJSONRootKey( key : JSONRootKey.CURRENCIES )
         setUrlPath( urlPath : "\( URLPathConstants.org )/\( URLPathConstants.currencies )" )
         setRequestMethod( requestMethod : .get )
-        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+        for ( key, value ) in requestHeaders ?? [:]
+        {
+            addRequestHeader(header: key, value: value)
+        }
+        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache, dbType: .metaData )
         ZCRMLogger.logDebug( message : "Request : \( request.toString() )" )
         
         request.getBulkAPIResponse { ( resultType ) in
@@ -528,8 +535,8 @@ internal class OrgAPIHandler : CommonAPIHandler
                     let currenciesList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     if currenciesList.isEmpty == true
                     {
-                        ZCRMLogger.logError( message : "\( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg )" )
-                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        ZCRMLogger.logError( message : "\( ZCRMErrorCode.responseNil ) : \( ZCRMErrorMessage.responseJSONNilMsg )" )
+                        completion( .failure( ZCRMError.sdkError( code : ZCRMErrorCode.responseNil, message : ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                     currencies = try self.getAllZCRMCurrencies( currenciesDetails : currenciesList )
@@ -545,13 +552,20 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getCurrency( byId id : Int64, completion : @escaping( Result.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
+    internal func getCurrency( byId id : Int64, withHeaders requestHeaders : [ String : String ]? = nil, completion : @escaping( ZCRMResult.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
     {
-        setIsCacheable( true )
+        if requestHeaders == nil || !( requestHeaders ?? [:] ).hasValue(forKey: X_CRM_ORG)
+        {
+            setIsCacheable(true)
+        }
         setJSONRootKey( key : JSONRootKey.CURRENCIES )
         setUrlPath( urlPath : "\( URLPathConstants.org )/\( URLPathConstants.currencies )/\( id )" )
         setRequestMethod( requestMethod : .get )
-        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache )
+        for ( key, value ) in requestHeaders ?? [:]
+        {
+            addRequestHeader(header: key, value: value)
+        }
+        let request : APIRequest = APIRequest( handler : self, cacheFlavour : self.cache, dbType: .metaData )
         ZCRMLogger.logDebug( message : "Request : \( request.toString() )" )
         
         request.getAPIResponse { ( resultType ) in
@@ -564,8 +578,8 @@ internal class OrgAPIHandler : CommonAPIHandler
                     let responseArray = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     if responseArray.isEmpty
                     {
-                        ZCRMLogger.logError( message : "\( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg )" )
-                        completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        ZCRMLogger.logError( message : "\( ZCRMErrorCode.responseNil ) : \( ZCRMErrorMessage.responseJSONNilMsg )" )
+                        completion( .failure( ZCRMError.sdkError( code : ZCRMErrorCode.responseNil, message : ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                     let currency = try self.getZCRMCurrency(currencyDetails: responseArray[0])
@@ -584,7 +598,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getBaseCurrency( completion : @escaping( Result.Data< ZCRMCurrency > ) -> () )
+    internal func getBaseCurrency( completion : @escaping( ZCRMResult.Data< ZCRMCurrency > ) -> () )
     {
         self.getCurrencies { ( result ) in
             do
@@ -610,8 +624,8 @@ internal class OrgAPIHandler : CommonAPIHandler
                         completion( .success( currencies[0] ) )
                     }
                 } else {
-                    ZCRMLogger.logError( message : "\( ErrorCode.invalidData ) : BASE CURRENCY not found" )
-                    completion( .failure( ZCRMError.inValidError( code : ErrorCode.invalidData, message : "BASE CURRENCY not found", details : nil) ) )
+                    ZCRMLogger.logError( message : "\( ZCRMErrorCode.invalidData ) : BASE CURRENCY not found" )
+                    completion( .failure( ZCRMError.inValidError( code : ZCRMErrorCode.invalidData, message : "BASE CURRENCY not found", details : nil) ) )
                 }
             }
             catch
@@ -622,11 +636,11 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func uploadPhoto( filePath : String?, fileName : String?, fileData : Data?, completion : @escaping(  Result.Response< APIResponse > ) -> () )
+    internal func uploadPhoto( filePath : String?, fileName : String?, fileData : Data?, completion : @escaping(  ZCRMResult.Response< APIResponse > ) -> () )
     {
         do
         {
-            try fileDetailCheck( filePath : filePath, fileData : fileData, maxFileSize: MaxFileSize.profilePhoto )
+            try fileDetailsCheck( filePath : filePath, fileData : fileData, maxFileSize: .profilePhoto )
             try imageTypeValidation( filePath )
         }
         catch
@@ -672,8 +686,30 @@ internal class OrgAPIHandler : CommonAPIHandler
             }
         }
     }
+    
+    internal func uploadPhoto( fileRefId : String, filePath : String?, fileName : String?, fileData : Data?, fileUploadDelegate : ZCRMFileUploadDelegate )
+    {
+        do
+        {
+            try fileDetailsCheck( filePath : filePath, fileData : fileData, maxFileSize: .profilePhoto )
+            try imageTypeValidation( filePath )
+        }
+        catch
+        {
+            ZCRMLogger.logError( message : "\( error )" )
+            fileUploadDelegate.didFail(fileRefId: fileRefId, typeCastToZCRMError( error ) )
+            return
+        }
+        setJSONRootKey( key : JSONRootKey.NIL )
+        setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.photo )")
+        setRequestMethod(requestMethod: .post)
+        let request : FileAPIRequest = FileAPIRequest(handler: self, fileUploadDelegate: fileUploadDelegate)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.uploadFile(fileRefId: fileRefId, filePath: filePath, fileName: fileName, fileData: fileData, entity: nil ) { _,_ in }
+    }
 
-    internal func downloadPhoto( withOrgID id : Int64?, completion : @escaping (Result.Response< FileAPIResponse >) -> ())
+    internal func downloadPhoto( withOrgID id : Int64?, completion : @escaping (ZCRMResult.Response< FileAPIResponse >) -> ())
     {
         setJSONRootKey( key : JSONRootKey.NIL )
         setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.photo )")
@@ -699,7 +735,48 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getZCRMTerritories( completion : @escaping ( Result.DataResponse< [ ZCRMTerritory ], BulkAPIResponse > ) -> () )
+    internal func downloadPhoto( fileRefId : String, withOrgID id : Int64?, fileDownloadDelegate : ZCRMFileDownloadDelegate )
+    {
+        setJSONRootKey( key : JSONRootKey.NIL )
+        setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.photo )")
+        setRequestMethod(requestMethod: .get)
+        
+        if let orgId = id
+        {
+            addRequestHeader(header: X_CRM_ORG, value: "\( orgId )")
+        }
+        
+        let request : FileAPIRequest = FileAPIRequest(handler: self, fileDownloadDelegate: fileDownloadDelegate)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.downloadFile(fileRefId: fileRefId)
+    }
+    
+    internal func deletePhoto( withOrgID id : Int64? , completion : @escaping( ZCRMResult.Response< APIResponse > ) -> () )
+    {
+        setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.photo )")
+        setRequestMethod(requestMethod : .delete )
+        let request : APIRequest = APIRequest(handler : self )
+        if let orgId = id
+        {
+            addRequestHeader(header: X_CRM_ORG, value: "\( orgId )")
+        }
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        
+        request.getAPIResponse { ( resultType ) in
+            do{
+                let response = try resultType.resolve()
+                completion( .success( response ) )
+            }
+            catch{
+                ZCRMLogger.logError( message : "\( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func getZCRMTerritories( completion : @escaping ( ZCRMResult.DataResponse< [ ZCRMTerritory ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.TERRITORIES )
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( JSONRootKey.TERRITORIES )")
@@ -721,8 +798,8 @@ internal class OrgAPIHandler : CommonAPIHandler
                         let territoriesList = try responseJSON.getArrayOfDictionaries( key: JSONRootKey.TERRITORIES )
                         if territoriesList.isEmpty == true
                         {
-                            ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
-                            completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                            ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                            completion( .failure( ZCRMError.sdkError( code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
                             return
                         }
                         territories = try self.getZCRMTerritoriesFrom( territoriesList )
@@ -742,7 +819,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func getZCRMTerritory( byId id : Int64, completion : @escaping ( Result.DataResponse< ZCRMTerritory, APIResponse > ) -> () )
+    internal func getZCRMTerritory( byId id : Int64, completion : @escaping ( ZCRMResult.DataResponse< ZCRMTerritory, APIResponse > ) -> () )
     {
         setJSONRootKey( key : JSONRootKey.TERRITORIES )
         setUrlPath(urlPath: "\( URLPathConstants.settings )/\( JSONRootKey.TERRITORIES )/\( id )")
@@ -762,8 +839,8 @@ internal class OrgAPIHandler : CommonAPIHandler
                     let territoriesList = try responseJSON.getArrayOfDictionaries( key: JSONRootKey.TERRITORIES )
                     if territoriesList.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
-                        completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.sdkError( code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                     let territory = try self.getZCRMTerritoriesFrom( territoriesList )[0]
@@ -782,7 +859,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func enableMultiCurrency( _ currency : ZCRMCurrency, completion : @escaping ( Result.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
+    internal func enableMultiCurrency( _ currency : ZCRMCurrency, completion : @escaping ( ZCRMResult.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.BASE_CURRENCY)
         setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.currencies )/\( URLPathConstants.actions )/\( URLPathConstants.enable )")
@@ -831,7 +908,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func addCurrency( _ currency : ZCRMCurrency, completion : @escaping ( Result.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
+    internal func addCurrency( _ currency : ZCRMCurrency, completion : @escaping ( ZCRMResult.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.CURRENCIES)
         setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.currencies )")
@@ -865,8 +942,8 @@ internal class OrgAPIHandler : CommonAPIHandler
                     let responseArray = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     if responseArray.isEmpty
                     {
-                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
-                        completion( .failure( ZCRMError.sdkError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.sdkError( code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                     let respData : [ String : Any ] = responseArray[0]
@@ -888,7 +965,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func addCurrencies( _ currencies : [ ZCRMCurrency ], completion : @escaping ( Result.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> () )
+    internal func addCurrencies( _ currencies : [ ZCRMCurrency ], completion : @escaping ( ZCRMResult.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.CURRENCIES)
         setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.currencies )")
@@ -954,7 +1031,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func updateBaseCurrency( _ currency : ZCRMCurrency, completion : @escaping ( Result.DataResponse< ZCRMCurrency, APIResponse > ) -> ())
+    internal func updateBaseCurrency( _ currency : ZCRMCurrency, completion : @escaping ( ZCRMResult.DataResponse< ZCRMCurrency, APIResponse > ) -> ())
     {
         setJSONRootKey(key: JSONRootKey.BASE_CURRENCY)
         setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.currencies )/\( URLPathConstants.actions )/\( URLPathConstants.enable )")
@@ -1001,7 +1078,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func updateCurrencies( _ currencies : [ ZCRMCurrency ], completion : @escaping ( Result.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> ())
+    internal func updateCurrencies( _ currencies : [ ZCRMCurrency ], completion : @escaping ( ZCRMResult.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> ())
     {
         setJSONRootKey(key: JSONRootKey.CURRENCIES)
         setUrlPath(urlPath: "\( URLPathConstants.org )/\( URLPathConstants.currencies )")
@@ -1068,13 +1145,13 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func updateCurrency( _ currency : ZCRMCurrency, completion : @escaping ( Result.DataResponse< ZCRMCurrency, APIResponse > ) -> ())
+    internal func updateCurrency( _ currency : ZCRMCurrency, completion : @escaping ( ZCRMResult.DataResponse< ZCRMCurrency, APIResponse > ) -> ())
     {
         
         guard let currencyId = currency.id else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : Mandatory field not found, \( APIConstants.DETAILS ) : [ \"api_name\" : \"id\" ]")
-            completion( .failure( ZCRMError.processingError( code: ErrorCode.mandatoryNotFound, message:
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : Mandatory field not found, \( APIConstants.DETAILS ) : [ \"api_name\" : \"id\" ]")
+            completion( .failure( ZCRMError.processingError( code: ZCRMErrorCode.mandatoryNotFound, message:
                 "Mandatory field not found", details : [ "api_name" : "id" ] ) ) )
             return
         }
@@ -1109,8 +1186,8 @@ internal class OrgAPIHandler : CommonAPIHandler
                     let respData = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
                     if respData.isEmpty == true
                     {
-                        ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
-                        completion( .failure( ZCRMError.processingError( code: ErrorCode.responseNil, message: ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                        ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.processingError( code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
                         return
                     }
                     let details = try respData[0].getDictionary(key: APIConstants.DETAILS)
@@ -1131,11 +1208,11 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func uploadFile( filePath : String?, fileName : String?, fileData : Data?, inline : Bool, completion : @escaping ( Result.DataResponse< String, APIResponse > ) -> ())
+    internal func uploadFile( filePath : String?, fileName : String?, fileData : Data?, inline : Bool, completion : @escaping ( ZCRMResult.DataResponse< String, APIResponse > ) -> ())
     {
         do
         {
-            try fileDetailCheck( filePath : filePath, fileData : fileData, maxFileSize: MaxFileSize.notesAttachment )
+            try fileDetailsCheck( filePath : filePath, fileData : fileData, maxFileSize: .notesAttachment )
         }
         catch
         {
@@ -1202,19 +1279,72 @@ internal class OrgAPIHandler : CommonAPIHandler
     {
         let responseJSON = response.getResponseJSON()
         let responseData = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
-        if responseData.isEmpty
+        guard let firstResponse = responseData.first else
         {
-            throw ZCRMError.processingError(code: ErrorCode.responseNil, message: ErrorMessage.responseNilMsg, details: nil)
+            throw ZCRMError.processingError(code: ZCRMErrorCode.responseNil, message: ZCRMErrorMessage.responseNilMsg, details: nil)
         }
-        let details = try responseData[0].getDictionary(key: APIConstants.DETAILS)
+        let details = try firstResponse.getDictionary(key: APIConstants.DETAILS)
         return try details.getString(key: ResponseJSONKeys.id)
+    }
+    
+    internal func uploadFile( fileRefId : String, filePath : String?, fileName : String?, fileData : Data?, inline : Bool, fileUploadDelegate : ZCRMFileUploadDelegate, completion  : @escaping ( String? ) -> () )
+    {
+        do
+        {
+            try fileDetailsCheck( filePath : filePath, fileData : fileData, maxFileSize: .notesAttachment )
+        }
+        catch
+        {
+            ZCRMLogger.logError( message : "\( error )" )
+            fileUploadDelegate.didFail(fileRefId: fileRefId, typeCastToZCRMError( error ))
+            return
+        }
+        setJSONRootKey(key: JSONRootKey.DATA)
+        setUrlPath(urlPath: "\( URLPathConstants.files )")
+        setRequestMethod(requestMethod: .post)
+        if inline
+        {
+            addRequestParam(param: "\( RequestParamKeys.inline )", value: "\( inline )")
+        }
+        
+        let request = FileAPIRequest(handler: self, fileUploadDelegate: fileUploadDelegate)
+        ZCRMLogger.logDebug(message: "Request : \( request.toString() )")
+        
+        var orgAPIHandler : OrgAPIHandler? = self
+        var fileUploadDelegate : ZCRMFileUploadDelegate? = fileUploadDelegate
+        request.uploadFile(fileRefId: fileRefId, filePath: filePath, fileName: fileName, fileData: fileData, entity: nil) { result, response in
+            if result
+            {
+                guard let response = response else {
+                    orgAPIHandler = nil
+                    completion( nil )
+                    return
+                }
+                do
+                {
+                    guard let attachmentId = try orgAPIHandler?.getFileIdFromResponse( response ) else { return }
+                    completion( attachmentId )
+                }
+                catch
+                {
+                    completion( nil )
+                    fileUploadDelegate?.didFail( fileRefId : fileRefId, typeCastToZCRMError( error ) )
+                }
+            }
+            else
+            {
+                completion( nil )
+            }
+            orgAPIHandler = nil
+            fileUploadDelegate = nil
+        }
     }
     
     internal func uploadFile( fileRefId : String, filePath : String?, fileName : String?, fileData : Data?, inline : Bool, fileUploadDelegate : ZCRMFileUploadDelegate)
     {
         do
         {
-            try fileDetailCheck( filePath : filePath, fileData : fileData, maxFileSize: MaxFileSize.notesAttachment )
+            try fileDetailsCheck( filePath : filePath, fileData : fileData, maxFileSize: .notesAttachment )
         }
         catch
         {
@@ -1257,7 +1387,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
     }
     
-    internal func downloadFile(byId id : String, completion : @escaping ( Result.Response< FileAPIResponse > ) -> ())
+    internal func downloadFile(byId id : String, completion : @escaping ( ZCRMResult.Response< FileAPIResponse > ) -> ())
     {
         setUrlPath(urlPath: "\( URLPathConstants.files )")
         addRequestParam(param: "\( RequestParamKeys.id )", value: id)
@@ -1327,7 +1457,7 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
         if json.hasValue(forKey: ResponseJSONKeys.permissionType)
         {
-            territory.permissionType = AccessPermission.getType( rawValue: try json.getString(key: ResponseJSONKeys.permissionType) )
+            territory.permissionType = ZCRMAccessPermission.getType( rawValue: try json.getString(key: ResponseJSONKeys.permissionType) )
         }
         territory.description = json.optString(key: ResponseJSONKeys.description)
         
@@ -1463,17 +1593,23 @@ internal class OrgAPIHandler : CommonAPIHandler
             license.isPaid = try licenseDetails.getBoolean( key : ResponseJSONKeys.paid )
             if licenseDetails.hasValue(forKey: ResponseJSONKeys.paidExpiry)
             {
-                license.expiryDate = try licenseDetails.getString(key: ResponseJSONKeys.paidExpiry)
+                license.licenseExpiryDate = try licenseDetails.getString(key: ResponseJSONKeys.paidExpiry)
             }
             if licenseDetails.hasValue(forKey: ResponseJSONKeys.trialExpiry)
             {
-                license.expiryDate = try licenseDetails.getString(key: ResponseJSONKeys.trialExpiry)
+                license.trialExpiryDate = try licenseDetails.getString(key: ResponseJSONKeys.trialExpiry)
             }
             license.noOfUsersPurchased = try licenseDetails.getInt( key : ResponseJSONKeys.usersLicensePurchased )
             license.trialType = licenseDetails.optString( key : ResponseJSONKeys.trialType )
             license.trialAction = licenseDetails.optString( key : ResponseJSONKeys.trialAction )
             companyInfo.licenseDetails = license
+            ZCRMSDKClient.shared.orgLicensePlan = license.licensePlan
         }
+        if companyDetails.hasValue(forKey: ResponseJSONKeys.hipaaComplianceEnabled)
+        {
+            companyInfo.isHipaaComplianceEnabled = try companyDetails.getBoolean(key: ResponseJSONKeys.hipaaComplianceEnabled)
+        }
+        companyInfo.data = companyDetails
         return companyInfo
     }
     
@@ -1527,8 +1663,8 @@ internal class OrgAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : \( type ) given is invalid - \( separator ), \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.processingError(code: ErrorCode.invalidData, message: "\( type ) given is invalid - \( separator )", details: nil)
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidData) : \( type ) given is invalid - \( separator ), \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError(code: ZCRMErrorCode.invalidData, message: "\( type ) given is invalid - \( separator )", details: nil)
         }
     }
     
@@ -1721,6 +1857,7 @@ extension OrgAPIHandler
         static let paidType = "paid_type"
         static let trialAction = "trial_action"
         static let licenseDetails = "license_details"
+        static let hipaaComplianceEnabled = "hipaa_compliance_enabled"
         static let ziaPortalId = "zia_portal_id"
         
         static let symbol = "symbol"
@@ -1741,6 +1878,7 @@ extension OrgAPIHandler
         static let currency = "currency"
         
         static let active = "active"
+        static let status = "status"
 
         static let manager = "manager"
         static let parentId = "parent_id"
@@ -1750,6 +1888,18 @@ extension OrgAPIHandler
         static let comparator = "comparator"
         static let accountRuleCriteria = "account_rule_criteria"
         static let permissionType = "permission_type"
+        
+        static let parentOrganizationId = "parent_org"
+        
+        static let duringTransition = "during_transition"
+        static let pickListValue = "pick_list_value"
+        static let commonSources = "common_sources"
+        static let toState = "to_state"
+        static let actions = "actions"
+        static let fromState = "from_state"
+        static let layout = "layout"
+        static let pipeline = "pipeline"
+        static let module = "module"
     }
     
     struct URLPathConstants {
@@ -1768,6 +1918,8 @@ extension OrgAPIHandler
         static let actions = "actions"
         static let enable = "enable"
         static let files = "files"
+        static let blueprints = "blueprints"
+        static let transitions = "transitions"
     }
 }
 
@@ -1776,4 +1928,5 @@ extension RequestParamKeys
     static let group : String = "group"
     static let orgId = "orgid"
     static let inline = "inline"
+    static let resource = "resource"
 }
