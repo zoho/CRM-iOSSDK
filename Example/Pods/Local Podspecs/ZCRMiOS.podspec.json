@@ -1,6 +1,6 @@
 {
   "name": "ZCRMiOS",
-  "version": "1.6.0",
+  "version": "2.0.0",
   "summary": "A short description of ZCRMiOS.",
   "description": "TODO: Add long description of the pod here.",
   "homepage": "https://github.com/zoho/CRM-iOSSDK",
@@ -13,15 +13,34 @@
   },
   "source": {
     "git": "https://github.com/zoho/CRM-iOSSDK.git",
-    "tag": "1.6.0"
+    "tag": "2.0.0"
   },
   "vendored_frameworks": [
     "Example/Pods/ZohoAuth/ZohoAuthKit.framework",
     "Example/Pods/ZohoPortalAuth/ZohoPortalAuthKit.framework"
   ],
   "platforms": {
-    "ios": "8.0"
+    "ios": "9.0"
   },
   "source_files": "ZCRMiOS/Classes/**/*",
-  "public_header_files": "Pod/Classes/**/*.h"
+  "public_header_files": "\"${PODS_ROOT}/Pods/Target Support Files/SQLCipher/SQLCipher-umbrella.h\"",
+  "dependencies": {
+    "SQLCipher": [
+      "~> 4.5.2"
+    ]
+  },
+  "subspecs": [
+    {
+      "name": "SQLCipher",
+      "dependencies": {
+        "SQLCipher": [
+          "~> 4.5.2"
+        ]
+      },
+      "xcconfig": {
+        "OTHER_SWIFT_FLAGS": "$(inherited) -DSQLCipher",
+        "GCC_PREPROCESSOR_DEFINITIONS": "$(inherited) SQLITE_HAS_CODEC=1"
+      }
+    }
+  ]
 }

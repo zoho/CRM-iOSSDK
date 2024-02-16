@@ -5,13 +5,13 @@
 //  Created by Sarath Kumar Rajendran on 16/04/18.
 //
 
-internal protocol APIHandler : class
+internal protocol APIHandler : AnyObject
 {
 	func getUrlPath() -> String?
 	
 	func getUrl() -> URL?
 	
-	func getRequestMethod() -> RequestMethod
+	func getRequestMethod() -> ZCRMRequestMethod
 	
 	func getRequestHeaders() -> [ String : String ]
 	
@@ -26,6 +26,8 @@ internal protocol APIHandler : class
     func getIsForceCacheable() -> Bool
     
     func getModuleName() -> String?
+    
+    func getIsOrganizationsAPI() -> Bool
 }
 
 internal class CommonAPIHandler : APIHandler
@@ -33,7 +35,7 @@ internal class CommonAPIHandler : APIHandler
 	private var url : URL?
 	private var urlPath : String?
     private var apiVersion : String = ZCRMSDKClient.shared.apiVersion
-	private var requestMethod : RequestMethod = RequestMethod.undefined
+	private var requestMethod : ZCRMRequestMethod = .undefined
 	private var requestBody : [String : Any? ] = [ String : Any? ]()
 	private var requestParams : [ URLQueryItem ] = []
 	private var requestHeaders : [ String : String ] = [String : String]()
@@ -42,6 +44,8 @@ internal class CommonAPIHandler : APIHandler
     private var isCacheable : Bool = false
     private var isForceCacheable : Bool = false
     private var isEmail : Bool = false
+    private var isBigin : Bool = false
+    private var isOrganizationsAPI : Bool = false
     internal var requestedModule : String?
     
     init()
@@ -60,12 +64,19 @@ internal class CommonAPIHandler : APIHandler
 	{
         if let path = self.urlPath
         {
+            var urlBuilder : ZCRMURLBuilder
             if isEmail
             {
-                let urlBuilder = ZCRMURLBuilder(path: "/\(CRM)/\(EMAIL)/\( apiVersion )/\(path)", queryItems: self.getQueryItems())
-                return urlBuilder.url
+                urlBuilder = ZCRMURLBuilder(path: "/\(CRM)/\(EMAIL)/\( apiVersion )/\(path)", queryItems: self.getQueryItems())
             }
-            let urlBuilder = ZCRMURLBuilder(path: "/\(CRM)/\( apiVersion )/\(path)", queryItems: self.getQueryItems())
+            else if isBigin
+            {
+                urlBuilder = ZCRMURLBuilder(path: "/\(BIGIN)/\( apiVersion )/\(path)", queryItems: self.getQueryItems())
+            }
+            else
+            {
+                urlBuilder = ZCRMURLBuilder(path: "/\(CRM)/\( apiVersion )/\(path)", queryItems: self.getQueryItems())
+            }
             return urlBuilder.url
         }
         return nil
@@ -86,12 +97,12 @@ internal class CommonAPIHandler : APIHandler
 		return self.urlPath
 	}
 	
-	internal func setRequestMethod( requestMethod : RequestMethod )
+	internal func setRequestMethod( requestMethod : ZCRMRequestMethod )
 	{
 		self.requestMethod = requestMethod
 	}
 	
-	internal func getRequestMethod() -> RequestMethod
+	internal func getRequestMethod() -> ZCRMRequestMethod
 	{
 		return self.requestMethod
 	}
@@ -164,8 +175,23 @@ internal class CommonAPIHandler : APIHandler
         self.isEmail = isEmail
     }
     
+    internal func setIsBigin( _ isBigin : Bool )
+    {
+        self.isBigin = isBigin
+    }
+    
     internal func setAPIVersion( _ version : String )
     {
         self.apiVersion = version
+    }
+    
+    internal func setIsOrganizationsAPI( _ isOrganizationsAPI : Bool )
+    {
+        self.isOrganizationsAPI = isOrganizationsAPI
+    }
+    
+    internal func getIsOrganizationsAPI() -> Bool
+    {
+        return isOrganizationsAPI
     }
 }

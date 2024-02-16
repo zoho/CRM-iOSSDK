@@ -185,11 +185,42 @@ public class ZCRMCompanyInfo : ZCRMCompanyInfoDelegate
     public internal( set ) var isPrivacySettingsEnable : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isTranslationEnabled : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var licenseDetails : LicenseDetails = LicenseDetails( licensePlan: APIConstants.STRING_MOCK )
+    public internal( set ) var isHipaaComplianceEnabled : Bool = APIConstants.BOOL_MOCK
     
+    internal var data : [ String : Any? ] = [ String : Any? ]()
     internal var upsertJSON : [ String : Any? ] = [ String : Any? ]()
+    
+    public func resetModifiedValues()
+    {
+        self.name = self.data[ OrgAPIHandler.ResponseJSONKeys.companyName ] as? String
+        self.alias = self.data[ OrgAPIHandler.ResponseJSONKeys.alias ] as? String
+        if let primaryZUID = self.data[ OrgAPIHandler.ResponseJSONKeys.primaryZUID ] as? Int64
+        {
+            self.primaryZUID = primaryZUID
+        }
+        self.website = self.data[ OrgAPIHandler.ResponseJSONKeys.website ] as? String
+        self.mobile = self.data[ OrgAPIHandler.ResponseJSONKeys.mobile ] as? String
+        self.phone = self.data[ OrgAPIHandler.ResponseJSONKeys.phone ] as? String
+        self.fax = self.data[ OrgAPIHandler.ResponseJSONKeys.fax ] as? String
+        self.employeeCount = self.data[ OrgAPIHandler.ResponseJSONKeys.employeeCount ] as? String
+        self.description = self.data[ OrgAPIHandler.ResponseJSONKeys.description ] as? String
+        self.timeZone = self.data[ OrgAPIHandler.ResponseJSONKeys.timeZone ] as? String
+        self.street = self.data[ OrgAPIHandler.ResponseJSONKeys.street ] as? String
+        self.city = self.data[ OrgAPIHandler.ResponseJSONKeys.city ] as? String
+        self.state = self.data[ OrgAPIHandler.ResponseJSONKeys.state ] as? String
+        self.country = self.data[ OrgAPIHandler.ResponseJSONKeys.country ] as? String
+        self.zipcode = self.data[ OrgAPIHandler.ResponseJSONKeys.zip ] as? String
+        if let countryCode = self.data[ OrgAPIHandler.ResponseJSONKeys.countryCode ] as? String
+        {
+            self.countryCode = countryCode
+        }
+        self.upsertJSON = [ String : Any ]()
+    }
+    
     public struct LicenseDetails : Equatable
     {
-        public internal( set ) var expiryDate : String?
+        public internal( set ) var licenseExpiryDate : String?
+        public internal( set ) var trialExpiryDate : String?
         public internal( set ) var noOfUsersPurchased : Int = APIConstants.INT_MOCK
         public internal( set ) var trialType : String?
         public internal( set ) var isPaid : Bool = APIConstants.BOOL_MOCK
@@ -203,7 +234,8 @@ public class ZCRMCompanyInfo : ZCRMCompanyInfoDelegate
         
         public static func == ( lhs : LicenseDetails, rhs : LicenseDetails ) -> Bool
         {
-            let equals : Bool = lhs.expiryDate == rhs.expiryDate &&
+            let equals : Bool = lhs.licenseExpiryDate == rhs.licenseExpiryDate &&
+                lhs.trialExpiryDate == rhs.trialExpiryDate && 
                 lhs.noOfUsersPurchased == rhs.noOfUsersPurchased &&
                 lhs.trialType == rhs.trialType &&
                 lhs.isPaid == rhs.isPaid &&
@@ -213,35 +245,35 @@ public class ZCRMCompanyInfo : ZCRMCompanyInfoDelegate
         }
     }
     
-    public func update( completion : @escaping( Result.DataResponse< ZCRMCompanyInfo, APIResponse > ) -> () )
+    public func update( completion : @escaping( ZCRMResult.DataResponse< ZCRMCompanyInfo, APIResponse > ) -> () )
     {
         OrgAPIHandler( cacheFlavour: .noCache ).update( companyInfo : self ) { result in
             completion( result )
         }
     }
     
-    public func getCurrencies( completion : @escaping( Result.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> () )
+    public func getCurrencies( completion : @escaping( ZCRMResult.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> () )
     {
         OrgAPIHandler( cacheFlavour : .urlVsResponse ).getCurrencies { ( result ) in
             completion( result )
         }
     }
     
-    public func getCurrenciesFromServer( completion : @escaping( Result.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> () )
+    public func getCurrenciesFromServer( completion : @escaping( ZCRMResult.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> () )
     {
         OrgAPIHandler( cacheFlavour : .noCache ).getCurrencies { ( result ) in
             completion( result )
         }
     }
     
-    public func getCurrency( byId id : Int64, completion : @escaping( Result.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
+    public func getCurrency( byId id : Int64, completion : @escaping( ZCRMResult.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
     {
         OrgAPIHandler( cacheFlavour : .urlVsResponse ).getCurrency( byId : id ) { ( result ) in
             completion( result )
         }
     }
     
-    public func getCurrencyFromServer( byId id : Int64, completion : @escaping( Result.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
+    public func getCurrencyFromServer( byId id : Int64, completion : @escaping( ZCRMResult.DataResponse< ZCRMCurrency, APIResponse > ) -> () )
     {
         OrgAPIHandler( cacheFlavour : .noCache ).getCurrency( byId : id ) { ( result ) in
             completion( result )
@@ -256,28 +288,28 @@ public class ZCRMCompanyInfo : ZCRMCompanyInfoDelegate
         return currency
     }
     
-    public func addCurrencies( _ currencies : [ ZCRMCurrency ], completion : @escaping ( Result.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> ())
+    public func addCurrencies( _ currencies : [ ZCRMCurrency ], completion : @escaping ( ZCRMResult.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> ())
     {
         OrgAPIHandler().addCurrencies( currencies ) { result in
             completion( result )
         }
     }
     
-    public func updateCurrencies( _ currencies : [ ZCRMCurrency ], completion : @escaping ( Result.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> ())
+    public func updateCurrencies( _ currencies : [ ZCRMCurrency ], completion : @escaping ( ZCRMResult.DataResponse< [ ZCRMCurrency ], BulkAPIResponse > ) -> ())
     {
         OrgAPIHandler().updateCurrencies( currencies ) { result in
             completion( result )
         }
     }
     
-    public func enableMultiCurrency( _ currency : ZCRMCurrency, completion : @escaping ( Result.DataResponse< ZCRMCurrency, APIResponse >) -> () )
+    public func enableMultiCurrency( _ currency : ZCRMCurrency, completion : @escaping ( ZCRMResult.DataResponse< ZCRMCurrency, APIResponse >) -> () )
     {
         OrgAPIHandler().enableMultiCurrency( currency ) { result in
             completion( result )
         }
     }
     
-    public func getBaseCurrency( completion : @escaping( Result.Data< ZCRMCurrency > ) -> () )
+    public func getBaseCurrency( completion : @escaping( ZCRMResult.Data< ZCRMCurrency > ) -> () )
     {
         if self.mcStatus
         {
@@ -323,7 +355,8 @@ extension ZCRMCompanyInfo : Hashable
             lhs.isGappsEnabled == rhs.isGappsEnabled &&
             lhs.isPrivacySettingsEnable == rhs.isPrivacySettingsEnable &&
             lhs.isTranslationEnabled == rhs.isTranslationEnabled &&
-            lhs.licenseDetails == rhs.licenseDetails
+            lhs.licenseDetails == rhs.licenseDetails &&
+            lhs.isHipaaComplianceEnabled == rhs.isHipaaComplianceEnabled
         
         return equals
     }

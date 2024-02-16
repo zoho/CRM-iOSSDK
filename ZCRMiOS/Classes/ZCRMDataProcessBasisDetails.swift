@@ -9,7 +9,7 @@ import Foundation
 
 open class ZCRMDataProcessBasisDetails : ZCRMEntity
 {
-    public var communicationPreferences : [ CommunicationPreferences ]?
+    public var communicationPreferences : [ ZCRMCommunicationPreferences ]?
     public var owner : ZCRMUserDelegate = USER_MOCK
     public internal( set ) var modifiedTime : String = APIConstants.STRING_MOCK
     public internal( set ) var modifiedBy : ZCRMUserDelegate = USER_MOCK
@@ -25,11 +25,28 @@ open class ZCRMDataProcessBasisDetails : ZCRMEntity
     public var consentEndsOn : String?
     public var consentThrough : String?
     
+    func copy() -> ZCRMDataProcessBasisDetails
+    {
+        let copyObj = ZCRMDataProcessBasisDetails(id: id, dataProcessingBasis: dataProcessingBasis, communicationPreferences: communicationPreferences)
+        copyObj.owner = owner.copy()
+        copyObj.modifiedTime = modifiedTime
+        copyObj.modifiedBy = modifiedBy
+        copyObj.createdTime = createdTime
+        copyObj.createdBy = createdBy
+        copyObj.mailSentTime = mailSentTime
+        copyObj.lawfulReason = lawfulReason
+        copyObj.consentDate = consentDate
+        copyObj.consentRemarks = consentRemarks
+        copyObj.consentEndsOn = consentEndsOn
+        copyObj.consentThrough = consentThrough
+        return copyObj
+    }
+    
     public init( dataProcessingBasis : String) {
         self.dataProcessingBasis = dataProcessingBasis
     }
     
-    internal init( id : Int64, dataProcessingBasis : String, communicationPreferences : [ CommunicationPreferences ]? )
+    internal init( id : Int64, dataProcessingBasis : String, communicationPreferences : [ ZCRMCommunicationPreferences ]? )
     {
         self.id = id
         self.dataProcessingBasis = dataProcessingBasis

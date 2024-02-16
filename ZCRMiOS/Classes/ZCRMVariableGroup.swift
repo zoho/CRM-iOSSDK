@@ -39,9 +39,9 @@ open class ZCRMVariableGroup : ZCRMEntity
     }
 }
 
-extension ZCRMVariableGroup : NSCopying, Hashable
+extension ZCRMVariableGroup : Hashable
 {
-    public func copy( with zone : NSZone? = nil ) -> Any
+    func copy() -> ZCRMVariableGroup
     {
         let copy = ZCRMVariableGroup( apiName : self.apiName, id : self.id )
         copy.isApiNameSet = self.isApiNameSet

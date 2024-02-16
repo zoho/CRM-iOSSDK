@@ -27,6 +27,7 @@ open class ZCRMModule : ZCRMModuleDelegate
 
     
     public internal( set ) var isGlobalSearchSupported : Bool = APIConstants.BOOL_MOCK
+    public internal( set ) var isVisible : Bool?
     public internal( set ) var visibility : Int = APIConstants.INT_MOCK
     public internal( set ) var isAPISupported : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var isQuickCreateAvailable : Bool = APIConstants.BOOL_MOCK
@@ -87,7 +88,7 @@ open class ZCRMModule : ZCRMModuleDelegate
             - Success : Returns an array of ZCRMField objects and a BulkAPIResponse
             - Failure : Returns Error
      */
-    override public func getFields( completion : @escaping( Result.DataResponse< [ ZCRMField ], BulkAPIResponse > ) -> () )
+    override public func getFields( completion : @escaping( ZCRMResult.DataResponse< [ ZCRMField ], BulkAPIResponse > ) -> () )
     {
         if let fields = fields
         {
@@ -118,7 +119,7 @@ open class ZCRMModule : ZCRMModuleDelegate
             - Success : Returns a ZCRMField object and an APIResponse
             - Failure : Returns Error
      */
-    override public func getField( id : Int64, completion : @escaping( Result.DataResponse< ZCRMField, APIResponse > ) -> () )
+    override public func getField( id : Int64, completion : @escaping( ZCRMResult.DataResponse< ZCRMField, APIResponse > ) -> () )
     {
         if let fields = fields
         {
@@ -128,8 +129,8 @@ open class ZCRMModule : ZCRMModuleDelegate
             }
             else
             {
-                ZCRMLogger.logError(message: "\( ErrorCode.invalidData ) : \( ErrorMessage.invalidIdMsg ), \( APIConstants.DETAILS ) : \("-")")
-                completion( .failure( ZCRMError.processingError(code: ErrorCode.invalidData, message: ErrorMessage.invalidIdMsg, details: nil)) )
+                ZCRMLogger.logError(message: "\( ZCRMErrorCode.invalidData ) : \( ZCRMErrorMessage.invalidIdMsg ), \( APIConstants.DETAILS ) : \("-")")
+                completion( .failure( ZCRMError.processingError(code: ZCRMErrorCode.invalidData, message: ZCRMErrorMessage.invalidIdMsg, details: nil)) )
             }
         }
         else
@@ -138,6 +139,49 @@ open class ZCRMModule : ZCRMModuleDelegate
                 completion( result )
             }
         }
+    }
+    
+    public override func copy() -> ZCRMModule {
+        
+        let module = ZCRMModule(apiName: apiName, singularLabel: singularLabel, pluralLabel: pluralLabel)
+        module.id = id
+        module.name = name
+        module.isCreatable = isCreatable
+        module.isViewable = isViewable
+        module.isConvertible = isConvertible
+        module.isEditable = isEditable
+        module.isDeletable = isDeletable
+        module.modifiedBy = modifiedBy?.copy()
+        module.modifiedTime = modifiedTime
+        module.accessibleProfiles = accessibleProfiles?.copy()
+        module.relatedLists = relatedLists?.copy()
+        module.isGlobalSearchSupported = isGlobalSearchSupported
+        module.isVisible = isVisible
+        module.visibility = visibility
+        module.isAPISupported = isAPISupported
+        module.isQuickCreateAvailable = isQuickCreateAvailable
+        module.isScoringSupported = isScoringSupported
+        module.sequenceNumber = sequenceNumber
+        module.generatedType = generatedType
+        module.businessCardFieldLimit = businessCardFieldLimit
+        module.webLink = webLink
+        module.arguments = arguments
+        module.displayField = displayField
+        module.searchLayoutFields = searchLayoutFields
+        module.parentModule = parentModule?.copy()
+        module.customView = customView?.copy()
+        module.isKanbanViewEnabled = isKanbanViewEnabled
+        module.filterStatus = filterStatus
+        module.isSubMenuPresent = isSubMenuPresent
+        module.perPage = perPage
+        module.isFilterSupported = isFilterSupported
+        module.isFeedsRequired = isFeedsRequired
+        module.isEmailTemplateSupported = isEmailTemplateSupported
+        module.properties = properties
+        module.internalBusinessCardFields = internalBusinessCardFields
+        module.fields = fields?.copy()
+       
+        return module
     }
 }
 

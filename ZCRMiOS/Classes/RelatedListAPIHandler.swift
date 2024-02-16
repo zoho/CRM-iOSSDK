@@ -8,8 +8,8 @@
 
 internal class RelatedListAPIHandler : CommonAPIHandler
 {
-	private var parentRecord : ZCRMRecordDelegate
-	internal var relatedList : ZCRMModuleRelation?
+    private var parentRecord : ZCRMRecordDelegate
+    internal var relatedList : ZCRMModuleRelation?
     private var junctionRecord : ZCRMJunctionRecord?
     private var noteAttachment : ZCRMNote?
     
@@ -19,7 +19,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         self.relatedList = relatedList
         self.junctionRecord = junctionRecord
     }
-	
+    
     init( parentRecord : ZCRMRecordDelegate, relatedList : ZCRMModuleRelation )
     {
         self.parentRecord = parentRecord
@@ -36,19 +36,23 @@ internal class RelatedListAPIHandler : CommonAPIHandler
     {
         self.parentRecord = parentRecord
     }
-
+    
     override func setModuleName() {
         self.requestedModule = parentRecord.moduleAPIName
     }
     
-    internal func getRecords( recordParams : ZCRMQuery.GetRecordParams, completion : @escaping( Result.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
+    internal func getRecords( recordParams : ZCRMQuery.GetRecordParams, pipelineId : Int64?, completion : @escaping( ZCRMResult.DataResponse< [ ZCRMRecord ], BulkAPIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
-            if let moduleName = relatedList.module
+            if let moduleName = relatedList.linkingModule?.apiName
             {
                 setUrlPath(urlPath:  "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\(relatedList.apiName)" )
                 setRequestMethod(requestMethod: .get )
+                //                if ZCRMSDKClient.shared.isInternal
+                //                {
+                //                    setAPIVersion( "v2.2" )
+                //                }
                 if let page = recordParams.page
                 {
                     addRequestParam( param :  RequestParamKeys.page, value : String( page ) )
@@ -56,6 +60,10 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                 if let perPage = recordParams.perPage
                 {
                     addRequestParam( param : RequestParamKeys.perPage, value : String( perPage ) )
+                }
+                if let fields = recordParams.fields
+                {
+                    addRequestParam(param: RequestParamKeys.fields , value: fields.joined(separator: ",") )
                 }
                 if recordParams.sortBy.notNilandEmpty
                 {
@@ -68,6 +76,10 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                 if ( recordParams.modifiedSince.notNilandEmpty ), let modifiedSince = recordParams.modifiedSince
                 {
                     addRequestHeader( header : RequestParamKeys.ifModifiedSince, value : modifiedSince )
+                }
+                if let pipelineId = pipelineId
+                {
+                    addRequestParam(param: ResponseJSONKeys.pipelineId, value: "\( pipelineId )")
                 }
                 let requestHeaders = recordParams.headers ?? [:]
                 if !requestHeaders.isEmpty
@@ -83,10 +95,12 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                 var bulkResponse : BulkAPIResponse?
                 var recordAPIError : Error?
                 var fieldsAPIError : Error?
+                var zcrmTags : [ ZCRMTag ]?
+                var tagsAPIError : Error?
                 let dispatchGroup : DispatchGroup = DispatchGroup()
                 
                 dispatchGroup.enter()
-                ModuleAPIHandler(module: ZCRMModuleDelegate(apiName: moduleName), cacheFlavour: .urlVsResponse, requestHeaders: requestHeaders ).getAllFields( modifiedSince : nil ) { ( result ) in
+                ModuleAPIHandler(module: ZCRMModuleDelegate(apiName: moduleName), cacheFlavour: .noCache, requestHeaders: requestHeaders ).getAllFields( modifiedSince : nil ) { ( result ) in
                     do
                     {
                         let resp = try result.resolve()
@@ -99,6 +113,21 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         dispatchGroup.leave()
                     }
                 }
+                if ZCRMSDKClient.shared.orgLicensePlan != FREE_PLAN
+                {
+                    dispatchGroup.enter()
+                    TagAPIHandler(module: ZCRMModuleDelegate(apiName: moduleName)).getTags() { result in
+                        switch result
+                        {
+                        case .success(let tags, _):
+                            zcrmTags = tags
+                        case .failure(let error):
+                            tagsAPIError = error
+                        }
+                        dispatchGroup.leave()
+                    }
+                }
+                
                 
                 dispatchGroup.enter()
                 request.getBulkAPIResponse { ( resultType ) in
@@ -128,9 +157,14 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         completion( .failure( typeCastToZCRMError( fieldsAPIError ) ) )
                         return
                     }
+                    else if let tagsAPIError = tagsAPIError
+                    {
+                        ZCRMLogger.logError(message: "\(tagsAPIError)")
+                    }
+                    
                     if let fields = zcrmFields, let response = bulkResponse
                     {
-                        MassEntityAPIHandler(module: ZCRMModuleDelegate(apiName: moduleName)).getZCRMRecords(fields: fields, bulkResponse: response, requestHeaders: recordParams.headers, completion: { ( records, error ) in
+                        MassEntityAPIHandler(module: ZCRMModuleDelegate(apiName: moduleName)).getZCRMRecords(fields: fields, bulkResponse: response, tags: zcrmTags, requestHeaders: recordParams.headers, completion: { ( records, error ) in
                             if let err = error
                             {
                                 ZCRMLogger.logError( message : "\( err )" )
@@ -147,25 +181,25 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     }
                     else
                     {
-                        ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : FIELDS must not be nil, \( APIConstants.DETAILS ) : -")
-                        completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "FIELDS must not be nil", details : nil ) ) )
+                        ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : FIELDS must not be nil, \( APIConstants.DETAILS ) : -")
+                        completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "FIELDS must not be nil", details : nil ) ) )
                     }
                 }
             }
             else
             {
-                ZCRMLogger.logError(message: "\(ErrorCode.notSupported) : SDK does not support this module, \( APIConstants.DETAILS ) : -")
-                completion( .failure( ZCRMError.processingError( code : ErrorCode.notSupported, message : "SDK does not support this module", details : nil ) ) )
+                ZCRMLogger.logError(message: "\(ZCRMErrorCode.notSupported) : SDK does not support this module, \( APIConstants.DETAILS ) : -")
+                completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.notSupported, message : "SDK does not support this module", details : nil ) ) )
             }
         }
         else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
     }
     
-    internal func getNotes( withParams : GETEntityRequestParams, completion : @escaping( Result.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
+    internal func getNotes( withParams : GETEntityRequestParams, completion : @escaping( ZCRMResult.DataResponse< [ ZCRMNote ], BulkAPIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
@@ -174,7 +208,7 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             setRequestMethod( requestMethod : .get )
             if let page = withParams.page
             {
-               addRequestParam( param :  RequestParamKeys.page, value : String( page ))
+                addRequestParam( param :  RequestParamKeys.page, value : String( page ))
             }
             if let perPage = withParams.perPage
             {
@@ -208,8 +242,8 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         let notesList:[ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                         if notesList.isEmpty == true
                         {
-                            ZCRMLogger.logError( message : "\( ErrorCode.responseNil ) : \( ErrorMessage.responseJSONNilMsg ), \( APIConstants.DETAILS ) : -" )
-                            completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                            ZCRMLogger.logError( message : "\( ZCRMErrorCode.responseNil ) : \( ZCRMErrorMessage.responseJSONNilMsg ), \( APIConstants.DETAILS ) : -" )
+                            completion( .failure( ZCRMError.sdkError( code : ZCRMErrorCode.responseNil, message : ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
                             return
                         }
                         for noteDetails in notesList
@@ -235,12 +269,12 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError( message : "\( ErrorCode.mandatoryNotFound ) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -" )
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
+            ZCRMLogger.logError( message : "\( ZCRMErrorCode.mandatoryNotFound ) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -" )
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
     }
     
-    internal func getNote( noteId : Int64, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
+    internal func getNote( noteId : Int64, completion : @escaping( ZCRMResult.DataResponse< ZCRMNote, APIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
@@ -277,12 +311,12 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
     }
     
-    internal func getAttachments( withParams : GETEntityRequestParams, completion : @escaping( Result.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
+    internal func getAttachments( withParams : GETEntityRequestParams, completion : @escaping( ZCRMResult.DataResponse< [ ZCRMAttachment ], BulkAPIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
@@ -325,8 +359,8 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                         let attachmentsList : [ [ String : Any ] ] = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                         if attachmentsList.isEmpty == true
                         {
-                            ZCRMLogger.logError(message: "\(ErrorCode.responseNil) : \(ErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
-                            completion( .failure( ZCRMError.sdkError( code : ErrorCode.responseNil, message : ErrorMessage.responseJSONNilMsg, details : nil ) ) )
+                            ZCRMLogger.logError(message: "\(ZCRMErrorCode.responseNil) : \(ZCRMErrorMessage.responseJSONNilMsg), \( APIConstants.DETAILS ) : -")
+                            completion( .failure( ZCRMError.sdkError( code : ZCRMErrorCode.responseNil, message : ZCRMErrorMessage.responseJSONNilMsg, details : nil ) ) )
                             return
                         }
                         for attachmentDetails in attachmentsList
@@ -345,24 +379,34 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
-	}
-
-    internal func uploadLinkAsAttachment( attachmentURL : String, completion : @escaping( Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
+    }
+    
+    internal func uploadLinkAsAttachment( attachmentURL : String, title : String?, completion : @escaping( ZCRMResult.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
     {
-        if let relatedList = self.relatedList
+        guard let relatedList = self.relatedList else
         {
-            setUrlPath( urlPath : "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\( relatedList.apiName )" )
-            addRequestParam( param :  RequestParamKeys.attachmentURL, value : attachmentURL )
-            setRequestMethod(requestMethod: .post )
-            let request : FileAPIRequest = FileAPIRequest(handler: self)
-            ZCRMLogger.logDebug(message: "Request : \(request.toString())")
-            
-            request.uploadLink { ( resultType ) in
-                do{
-                    let response = try resultType.resolve()
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
+            return
+        }
+        setUrlPath( urlPath : "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\( relatedList.apiName )" )
+        addRequestParam( param :  RequestParamKeys.attachmentURL, value : attachmentURL )
+        setRequestMethod(requestMethod: .post )
+        if let title = title {
+            addRequestParam(param: RequestParamKeys.title, value: title)
+        }
+        let request : FileAPIRequest = FileAPIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.uploadLink { ( resultType ) in
+            switch resultType
+            {
+            case .success(let response) :
+                do
+                {
                     let responseJSON = response.getResponseJSON()
                     let responseJSONArray : [ [ String : Any ] ]  = try responseJSON.getArrayOfDictionaries( key : self.getJSONRootKey() )
                     let details = try responseJSONArray[ 0 ].getDictionary( key : APIConstants.DETAILS )
@@ -370,21 +414,20 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                     response.setData( data : attachment )
                     completion( .success( attachment, response ) )
                 }
-                catch{
+                catch
+                {
                     ZCRMLogger.logError( message : "\( error )" )
                     completion( .failure( typeCastToZCRMError( error ) ) )
                 }
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "\( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
             }
         }
-        else
-        {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
-        }
     }
-
-    internal func downloadAttachment( attachmentId : Int64, completion : @escaping( Result.Response< FileAPIResponse > ) -> () )
-	{
+    
+    internal func downloadAttachment( attachmentId : Int64, completion : @escaping( ZCRMResult.Response< FileAPIResponse > ) -> () )
+    {
         if let relatedList = self.relatedList
         {
             setJSONRootKey( key : JSONRootKey.NIL )
@@ -406,10 +449,10 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
-	}
+    }
     
     internal func downloadAttachment( attachmentId : Int64, fileDownloadDelegate : ZCRMFileDownloadDelegate ) throws
     {
@@ -424,12 +467,12 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
-            throw ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil )
         }
     }
-
-    internal func deleteAttachment( attachmentId : Int64, completion : @escaping( Result.Response< APIResponse > ) -> () )
+    
+    internal func deleteAttachment( attachmentId : Int64, completion : @escaping( ZCRMResult.Response< APIResponse > ) -> () )
     {
         if let relatedList = self.relatedList
         {
@@ -452,13 +495,13 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
     }
-
-    internal func addNote( note : ZCRMNote, headers : [ String : String ]? = nil, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
-	{
+    
+    internal func addNote( note : ZCRMNote, headers : [ String : String ]? = nil, completion : @escaping( ZCRMResult.DataResponse< ZCRMNote, APIResponse > ) -> () )
+    {
         if let relatedList = self.relatedList
         {
             var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
@@ -500,19 +543,19 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
-	}
+    }
     
-    internal func updateNote( note : ZCRMNote, completion : @escaping( Result.DataResponse< ZCRMNote, APIResponse > ) -> () )
-	{
+    internal func updateNote( note : ZCRMNote, completion : @escaping( ZCRMResult.DataResponse< ZCRMNote, APIResponse > ) -> () )
+    {
         if let relatedList = self.relatedList
         {
             if note.isCreate
             {
-                ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : NOTE ID must not be nil, \( APIConstants.DETAILS ) : -")
-                completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "NOTE ID must not be nil", details : nil ) ) )
+                ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : NOTE ID must not be nil, \( APIConstants.DETAILS ) : -")
+                completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "NOTE ID must not be nil", details : nil ) ) )
                 return
             }
             else
@@ -549,13 +592,13 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
-	}
+    }
     
-    internal func deleteNote( noteId : Int64, requestHeaders : [ String : String ]? = nil, completion : @escaping( Result.Response< APIResponse > ) -> () )
-	{
+    internal func deleteNote( noteId : Int64, requestHeaders : [ String : String ]? = nil, completion : @escaping( ZCRMResult.Response< APIResponse > ) -> () )
+    {
         if let relatedList = self.relatedList
         {
             setJSONRootKey( key : JSONRootKey.NIL )
@@ -581,11 +624,11 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : RELATED LIST must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil ) ) )
         }
-	}
-	
+    }
+    
     private func getZCRMAttachment(attachmentDetails : [String:Any?]) throws -> ZCRMAttachment
     {
         let attachment : ZCRMAttachment = ZCRMAttachment( parentRecord : parentRecord )
@@ -611,11 +654,11 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             attachment.modifiedBy = try getUserDelegate(userJSON : modifiedByDetails)
             attachment.modifiedTime = try attachmentDetails.getString( key : ResponseJSONKeys.modifiedTime )
         }
-		if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.owner))
-		{
-			let ownerDetails : [ String : Any ] = try attachmentDetails.getDictionary( key : ResponseJSONKeys.owner )
+        if(attachmentDetails.hasValue(forKey: ResponseJSONKeys.owner))
+        {
+            let ownerDetails : [ String : Any ] = try attachmentDetails.getDictionary( key : ResponseJSONKeys.owner )
             attachment.owner = try getUserDelegate(userJSON : ownerDetails)
-		}
+        }
         else if attachmentDetails.hasValue(forKey: ResponseJSONKeys.createdBy)
         {
             let ownerDetails : [String:Any] = try attachmentDetails.getDictionary(key: ResponseJSONKeys.createdBy)
@@ -645,9 +688,9 @@ internal class RelatedListAPIHandler : CommonAPIHandler
                 attachment.parentRecord = try EntityAPIHandler.getRecordDelegate(moduleAPIName: parentRecord.moduleAPIName, recordJSON: parentRecordList)
             }
         }
-		return attachment
-	}
-	
+        return attachment
+    }
+    
     internal func getZCRMNote(noteDetails : [String:Any?], note : ZCRMNote) throws -> ZCRMNote
     {
         note.isCreate = false
@@ -704,32 +747,39 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         if noteDetails.hasValue(forKey: ResponseJSONKeys.voiceNote)
         {
-            note.isVoiceNote = try noteDetails.getBoolean( key : ResponseJSONKeys.voiceNote )
-            if noteDetails.hasValue(forKey: ResponseJSONKeys.size)
+            note.isVoiceNote = true
+            if let voiceNote = noteDetails.optDictionary(key: ResponseJSONKeys.voiceNote)
             {
-                note.size = try noteDetails.getInt64( key : ResponseJSONKeys.size )
+                note.size = try Int64(voiceNote.getString(key: ResponseJSONKeys.vnsize))
+            }
+            else
+            {
+                if noteDetails.hasValue(forKey: ResponseJSONKeys.size)
+                {
+                    note.size = try noteDetails.getInt64( key : ResponseJSONKeys.size )
+                }
             }
         }
         if noteDetails.hasValue(forKey: ResponseJSONKeys.editable)
         {
             note.isEditable = try noteDetails.getBoolean( key : ResponseJSONKeys.editable )
         }
-		return note
-	}
-	
-	internal func getZCRMNoteAsJSON(note : ZCRMNote) -> [ String : Any? ]
-	{
-		var noteJSON : [ String : Any? ] = [ String : Any? ]()
+        return note
+    }
+    
+    internal func getZCRMNoteAsJSON(note : ZCRMNote) -> [ String : Any? ]
+    {
+        var noteJSON : [ String : Any? ] = [ String : Any? ]()
         noteJSON.updateValue( note.title, forKey : ResponseJSONKeys.noteTitle )
         noteJSON.updateValue( note.content, forKey : ResponseJSONKeys.noteContent )
         noteJSON.updateValue( note.parentRecord.id, forKey : ResponseJSONKeys.parentId )
         noteJSON.updateValue( note.parentRecord.moduleAPIName, forKey : ResponseJSONKeys.seModule )
-		return noteJSON
-	}
-
-    internal func addRelation( completion : @escaping( Result.Response< APIResponse > ) -> () )
+        return noteJSON
+    }
+    
+    internal func addRelation( completion : @escaping( ZCRMResult.Response< APIResponse > ) -> () )
     {
-		if let junctionRecord = self.junctionRecord
+        if let junctionRecord = self.junctionRecord
         {
             var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
             var dataArray : [ [ String : Any? ] ] = [ [ String : Any? ] ]()
@@ -755,12 +805,12 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : JUNCTION RECORD must not be nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "JUNCTION RECORD must not be nil", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : JUNCTION RECORD must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "JUNCTION RECORD must not be nil", details : nil ) ) )
         }
     }
     
-    internal func addRelations( junctionRecords : [ ZCRMJunctionRecord ], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
+    internal func addRelations( junctionRecords : [ ZCRMJunctionRecord ], completion : @escaping( ZCRMResult.Response< BulkAPIResponse > ) -> () )
     {
         var reqBodyObj : [ String : [ [ String : Any? ] ] ] = [ String : [ [ String : Any? ] ] ]()
         let dataArray : [ [ String : Any? ] ] = self.getRelationsDetailsAsJSON( junctionRecords : junctionRecords )
@@ -785,8 +835,8 @@ internal class RelatedListAPIHandler : CommonAPIHandler
             }
         }
     }
-
-    internal func deleteRelation( completion : @escaping( Result.Response< APIResponse > ) -> () )
+    
+    internal func deleteRelation( completion : @escaping( ZCRMResult.Response< APIResponse > ) -> () )
     {
         if let junctionRecord = self.junctionRecord
         {
@@ -808,12 +858,12 @@ internal class RelatedListAPIHandler : CommonAPIHandler
         }
         else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : JUNCTION RECORD must not be nil, \( APIConstants.DETAILS ) : -")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "JUNCTION RECORD must not be nil", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : JUNCTION RECORD must not be nil, \( APIConstants.DETAILS ) : -")
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "JUNCTION RECORD must not be nil", details : nil ) ) )
         }
     }
     
-    internal func deleteRelations( junctionRecords : [ ZCRMJunctionRecord ], completion : @escaping( Result.Response< BulkAPIResponse > ) -> () )
+    internal func deleteRelations( junctionRecords : [ ZCRMJunctionRecord ], completion : @escaping( ZCRMResult.Response< BulkAPIResponse > ) -> () )
     {
         setUrlPath( urlPath : "\( parentRecord.moduleAPIName )/\( parentRecord.id )/\( junctionRecords[ 0 ].apiName )" )
         setRequestMethod(requestMethod: .delete )
@@ -875,7 +925,7 @@ extension RelatedListAPIHandler
                 }
                 else
                 {
-                    try fileDetailCheck( filePath : filePath, fileData : fileData, maxFileSize: MaxFileSize.attachment)
+                    try fileDetailsCheck( filePath : filePath, fileData : fileData, maxFileSize: .attachment)
                 }
             }
             catch
@@ -885,11 +935,11 @@ extension RelatedListAPIHandler
             setUrlPath( urlPath : "\( self.parentRecord.moduleAPIName )/\( self.parentRecord.id )/\( relatedList.apiName )" )
             setRequestMethod(requestMethod: .post )
         } else {
-            throw ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil )
+            throw ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "RELATED LIST must not be nil", details : nil )
         }
     }
     
-    internal func uploadAttachment( filePath : String?, fileName : String?, fileData : Data?, note : ZCRMNote?, completion : @escaping(Result.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
+    internal func uploadAttachment( filePath : String?, fileName : String?, fileData : Data?, note : ZCRMNote?, completion : @escaping(ZCRMResult.DataResponse< ZCRMAttachment, APIResponse > ) -> () )
     {
         do {
             try buildFileUploadAttachmentRequest(filePath: filePath, fileName: fileName, fileData: fileData, note: note)
@@ -1033,6 +1083,7 @@ extension RelatedListAPIHandler
         static let type = "$type"
         static let linkURL = "$link_url"
         static let size = "$size"
+        static let vnsize = "size"
         
         static let noteTitle = "Note_Title"
         static let noteContent = "Note_Content"
@@ -1042,6 +1093,7 @@ extension RelatedListAPIHandler
         static let voiceNote = "$voice_note"
         static let content = "content"
         static let module = "module"
+        static let pipelineId = "pipeline_id"
     }
     
     struct URLPathConstants {
@@ -1057,4 +1109,5 @@ public protocol ZCRMAttachmentUploadDelegate : ZCRMFileUploadDelegate
 extension RequestParamKeys
 {
     static let attachmentURL : String = "attachmentUrl"
+    static let title : String = "title"
 }

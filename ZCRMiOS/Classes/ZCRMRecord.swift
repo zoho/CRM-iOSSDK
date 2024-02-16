@@ -8,7 +8,6 @@
 
 public protocol ZCRMEntity
 {
-    
 }
 
 open class ZCRMRecord : ZCRMRecordDelegate
@@ -34,18 +33,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
             upsertJSON.updateValue(participants, forKey: EntityAPIHandler.ResponseJSONKeys.participants)
         }
     }
-    public var subformRecord : [String:[ZCRMSubformRecord]]?{
-        didSet
-        {
-            if let subformRecord = subformRecord
-            {
-                for ( key, value ) in subformRecord
-                {
-                    upsertJSON.updateValue(value, forKey: key)
-                }
-            }
-        }
-    }
+    public internal( set ) var subformRecord : [String:[ZCRMSubformRecord]]?
     public internal( set ) var taxes : [ ZCRMTaxDelegate ]?{
         didSet
         {
@@ -58,7 +46,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
             upsertJSON.updateValue( lineTaxes, forKey : EntityAPIHandler.ResponseJSONKeys.dollarLineTax )
         }
     }
-    public internal( set ) var tags : [ String ]?{
+    public internal( set ) var tags : [ ZCRMTagDelegate ]?{
         didSet
         {
             upsertJSON.updateValue(tags, forKey: EntityAPIHandler.ResponseJSONKeys.tag)
@@ -83,6 +71,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
             upsertJSON.updateValue(owner, forKey: EntityAPIHandler.ResponseJSONKeys.owner)
         }
     }
+    public var fileUploads : [ String : [ UploadFieldFile ] ] = [:]
     internal var isOwnerSet : Bool = APIConstants.BOOL_MOCK
     public internal( set ) var createdBy : ZCRMUserDelegate?
     public internal( set ) var modifiedBy : ZCRMUserDelegate?
@@ -101,44 +90,21 @@ open class ZCRMRecord : ZCRMRecordDelegate
     
     public func resetModifiedValues()
     {
-        if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.productDetails)
+        self.lineItems = self.data[ EntityAPIHandler.ResponseJSONKeys.productDetails ] as? [ ZCRMInventoryLineItem ]
+        self.priceDetails = self.data[ EntityAPIHandler.ResponseJSONKeys.pricingDetails ] as? [ ZCRMPriceBookPricing ]
+        self.participants = self.data[ EntityAPIHandler.ResponseJSONKeys.participants ] as? [ ZCRMEventParticipant ]
+        self.taxes = self.data[ EntityAPIHandler.ResponseJSONKeys.tax ] as? [ ZCRMTaxDelegate ]
+        self.lineTaxes = self.data[ EntityAPIHandler.ResponseJSONKeys.lineTax ] as? [ ZCRMLineTax ]
+        self.tags = self.data[ EntityAPIHandler.ResponseJSONKeys.tag ] as? [ ZCRMTagDelegate ]
+        self.dataProcessingBasisDetails = self.data[ EntityAPIHandler.ResponseJSONKeys.dataProcessingBasisDetails ] as? ZCRMDataProcessBasisDetails
+        self.layout = self.data[ EntityAPIHandler.ResponseJSONKeys.layout ] as? ZCRMLayoutDelegate
+        if let owner = self.data[ EntityAPIHandler.ResponseJSONKeys.owner ] as? ZCRMUserDelegate
         {
-            self.lineItems = self.data[ EntityAPIHandler.ResponseJSONKeys.productDetails ] as? [ ZCRMInventoryLineItem ]
+            self.owner = owner
         }
-        if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.pricingDetails)
+        if let fileUploads = self.data[ EntityAPIHandler.ResponseJSONKeys.fileUploadFields ] as? [ String : [ ZCRMRecord.UploadFieldFile ] ]
         {
-            self.priceDetails = self.data[ EntityAPIHandler.ResponseJSONKeys.pricingDetails ] as? [ ZCRMPriceBookPricing ]
-        }
-        if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.participants)
-        {
-            self.participants = self.data[ EntityAPIHandler.ResponseJSONKeys.participants ] as? [ ZCRMEventParticipant ]
-        }
-        if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.tax)
-        {
-            self.taxes = self.data[ EntityAPIHandler.ResponseJSONKeys.tax ] as? [ ZCRMTaxDelegate ]
-        }
-        if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.lineTax)
-        {
-            self.lineTaxes = self.data[ EntityAPIHandler.ResponseJSONKeys.lineTax ] as? [ ZCRMLineTax ]
-        }
-        if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.tag)
-        {
-            self.tags = self.data[ EntityAPIHandler.ResponseJSONKeys.tag ] as? [ String ]
-        }
-        if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.dataProcessingBasisDetails)
-        {
-            self.dataProcessingBasisDetails = self.data[ EntityAPIHandler.ResponseJSONKeys.dataProcessingBasisDetails ] as? ZCRMDataProcessBasisDetails
-        }
-        if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.layout)
-        {
-            self.layout = self.data[ EntityAPIHandler.ResponseJSONKeys.layout ] as? ZCRMLayoutDelegate
-        }
-        if self.upsertJSON.hasValue(forKey: EntityAPIHandler.ResponseJSONKeys.owner)
-        {
-            if let owner = self.data[ EntityAPIHandler.ResponseJSONKeys.owner ] as? ZCRMUserDelegate
-            {
-                self.owner = owner
-            }
+            self.fileUploads = fileUploads
         }
         self.subformRecord = [ String : [ ZCRMSubformRecord ] ]()
         for ( key, value ) in self.data
@@ -193,8 +159,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
         else
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.fieldNotFound) : The given field is not present in the record. Field Name -> \( ofFieldAPIName )")
-            throw ZCRMError.processingError( code : ErrorCode.fieldNotFound, message : "The given field is not present in the record. Field Name -> \( ofFieldAPIName )", details : nil )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.fieldNotFound) : The given field is not present in the record. Field Name -> \( ofFieldAPIName )")
+            throw ZCRMError.processingError( code : ZCRMErrorCode.fieldNotFound, message : "The given field is not present in the record. Field Name -> \( ofFieldAPIName )", details : nil )
         }
     }
     
@@ -285,6 +251,110 @@ open class ZCRMRecord : ZCRMRecordDelegate
         self.participants?.append( participant )
     }
     
+    /**
+      To replace all existing subform records with records passed in the method param
+     
+     - Parameters:
+        - subformName : Name of the subform to be modified
+        - subforms : ZCRMSubformRecord objects that needs to be added to this record
+     */
+    public func addSubforms( subformName: String, subforms: [ ZCRMSubformRecord ])
+    {
+        if(ZCRMSDKClient.shared.apiVersion >= "v3")
+        {
+            if subformRecord == nil
+            {
+                subformRecord = [:]
+            }
+            var existingRecords : [ ZCRMSubformRecord ] = subformRecord?.optValue(key: subformName) ?? []
+            existingRecords.append(contentsOf: subforms)
+            subformRecord?.updateValue( existingRecords, forKey: subformName )
+        }
+        else
+        {
+            if subformRecord == nil
+            {
+                subformRecord = [:]
+            }
+            subformRecord?[ subformName ] = subforms
+        }
+        upsertJSON.updateValue(subforms, forKey: subformName)
+        
+    }
+    
+    /**
+      To append the subform record passed in the param with existing subform records
+     
+     - Parameters:
+        - subformName : Name of the subform to be modified
+        - subform : Subform record object that needs to be added to the existing list
+     */
+    public func addSubform( subformName: String, subform: ZCRMSubformRecord )
+    {
+        if subformRecord == nil
+        {
+            subformRecord = [:]
+        }
+        var existingRecords : [ ZCRMSubformRecord ] = subformRecord?.optValue(key: subformName) ?? []
+        existingRecords.append( subform )
+        subformRecord?.updateValue( existingRecords, forKey: subformName )
+        upsertJSON.updateValue( existingRecords, forKey: subformName)
+    }
+    
+    /**
+      To remove multiple subform records
+     
+     - Parameters:
+        - subformName : Name of the subform to be modified
+        - subformIds : Id of the subform records that needs to be removed
+     */
+    public func removeSubformRecords( subformName: String, subformIds: [ Int64 ] )
+    {
+        let existingRecords : [ ZCRMSubformRecord ] = subformRecord?.optValue(key: subformName) ?? []
+        var updateRecords : [ ZCRMSubformRecord ] = []
+        for existingRecord in existingRecords {
+            if subformIds.contains( existingRecord.id )
+            {
+                if(ZCRMSDKClient.shared.apiVersion >= "v3")
+                {
+                    existingRecord.setValue(ofFieldAPIName: "_delete", value: "null")
+                    updateRecords.append( existingRecord )
+                }
+            }
+            else {
+                updateRecords.append( existingRecord )
+            }
+
+        }
+        subformRecord?.updateValue( updateRecords, forKey: subformName )
+        upsertJSON.updateValue( updateRecords, forKey: subformName)
+    }
+    
+    /**
+      To remove all subform records
+     
+     - Parameters:
+        - subformName : Name of the subform that needs to be emptied
+     */
+    public func removeAllSubformRecords( subformName: String )
+    {
+        let existingRecords : [ ZCRMSubformRecord ] = subformRecord?.optValue(key: subformName) ?? []
+        if(ZCRMSDKClient.shared.apiVersion >= "v3")
+        {
+            for existingRecord in existingRecords
+            {
+                existingRecord.setValue(ofFieldAPIName: "_delete", value: "null")
+            }
+            subformRecord?.updateValue( existingRecords, forKey: subformName )
+            upsertJSON.updateValue( existingRecords, forKey: subformName)
+        }
+        else
+        {
+            subformRecord?.updateValue( [], forKey: subformName )
+            upsertJSON.updateValue( [], forKey: subformName )
+        }
+    }
+    
     public struct ZCRMCheckIn
     {
         public internal( set ) var latitude : Double
@@ -312,11 +382,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
     /// - Throws: ZCRMError if falied to clone ZCRMRecord
     public func clone() throws -> ZCRMRecord
     {
-        guard let cloneRecord = self.copy() as? ZCRMRecord else
-        {
-            ZCRMLogger.logError(message: "\(ErrorCode.internalError) : Unable to clone the record")
-            throw ZCRMError.inValidError( code : ErrorCode.internalError, message : "Unable to clone the record", details : nil )
-        }
+        let cloneRecord = self.copy()
         cloneRecord.id = APIConstants.INT64_MOCK
         return cloneRecord
     }
@@ -325,12 +391,12 @@ open class ZCRMRecord : ZCRMRecordDelegate
     ///
     /// - Returns: API response of the ZCRMRecord creation
     /// - Throws: ZCRMSDKError if Entity ID of the record is not nil
-    public func create( completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func create( completion : @escaping( ZCRMResult.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         if !self.isCreate
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : Entity ID MUST be nil for create operation")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidData, message : "Entity ID MUST be nil for create operation.", details : nil  ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidData) : Entity ID MUST be nil for create operation")
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.invalidData, message : "Entity ID MUST be nil for create operation.", details : nil  ) ) )
         }
         else
         {
@@ -340,12 +406,12 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
     }
     
-    public func create( triggers : [Trigger], completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func create( triggers : [ZCRMTrigger], completion : @escaping( ZCRMResult.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         if !self.isCreate
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.invalidData) : Entity ID MUST be nil for create operation")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.invalidData, message : "Entity ID MUST be nil for create operation.", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidData) : Entity ID MUST be nil for create operation")
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.invalidData, message : "Entity ID MUST be nil for create operation.", details : nil ) ) )
         }
         else
         {
@@ -359,12 +425,12 @@ open class ZCRMRecord : ZCRMRecordDelegate
     ///
     /// - Returns: API response of the ZCRMRecord update
     /// - Throws: ZCRMSDKError if Entity ID of the record is nil
-    public func update( completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func update( completion : @escaping( ZCRMResult.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         if self.isCreate
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : Entity ID MUST NOT be nil for update operation")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil for update operation.", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : Entity ID MUST NOT be nil for update operation")
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil for update operation.", details : nil ) ) )
         }
         else
         {
@@ -374,12 +440,12 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
     }
     
-    public func update( triggers : [Trigger], completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func update( triggers : [ZCRMTrigger], completion : @escaping( ZCRMResult.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         if self.isCreate
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.mandatoryNotFound) : Entity ID MUST NOT be nil for update operation")
-            completion( .failure( ZCRMError.processingError( code : ErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil for update operation.", details : nil ) ) )
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.mandatoryNotFound) : Entity ID MUST NOT be nil for update operation")
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.mandatoryNotFound, message : "Entity ID MUST NOT be nil for update operation.", details : nil ) ) )
         }
         else
         {
@@ -389,7 +455,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
     }
     
-    public func checkIn( checkIn : ZCRMCheckIn, completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func checkIn( checkIn : ZCRMCheckIn, completion : @escaping( ZCRMResult.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         do
         {
@@ -414,7 +480,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
     }
     
-    public func checkIn( checkIn : ZCRMCheckIn, triggers : [ Trigger ], completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func checkIn( checkIn : ZCRMCheckIn, triggers : [ ZCRMTrigger ], completion : @escaping( ZCRMResult.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         do
         {
@@ -439,7 +505,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
     }
     
-    public func undoCheckIn( completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func undoCheckIn( completion : @escaping( ZCRMResult.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         do
         {
@@ -455,7 +521,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
         }
     }
     
-    public func undoCheckIn( triggers : [ Trigger ], completion : @escaping( Result.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    public func undoCheckIn( triggers : [ ZCRMTrigger ], completion : @escaping( ZCRMResult.DataResponse< ZCRMRecord, APIResponse > ) -> () )
     {
         do
         {
@@ -473,10 +539,10 @@ open class ZCRMRecord : ZCRMRecordDelegate
     
     private func createCheckIn( checkIn : ZCRMCheckIn ) throws
     {
-        if self.moduleAPIName != DefaultModuleAPINames.EVENTS
+        if self.moduleAPIName != ZCRMDefaultModuleAPINames.EVENTS
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.notSupported) : Check In is not supported for this module")
-            throw ZCRMError.inValidError(code: ErrorCode.notSupported, message: "Check In is not supported for this module", details: nil)
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.notSupported) : Check In is not supported for this module")
+            throw ZCRMError.inValidError(code: ZCRMErrorCode.notSupported, message: "Check In is not supported for this module", details: nil)
         }
         else
         {
@@ -516,10 +582,10 @@ open class ZCRMRecord : ZCRMRecordDelegate
     
     public func getCheckInDetails() throws -> ZCRMCheckIn
     {
-        if self.moduleAPIName != DefaultModuleAPINames.EVENTS
+        if self.moduleAPIName != ZCRMDefaultModuleAPINames.EVENTS
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.notSupported) : Check In is not supported for this module")
-            throw ZCRMError.inValidError(code: ErrorCode.notSupported, message: "Check In is not supported for this module", details: nil)
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.notSupported) : Check In is not supported for this module")
+            throw ZCRMError.inValidError(code: ZCRMErrorCode.notSupported, message: "Check In is not supported for this module", details: nil)
         }
         else
         {
@@ -538,8 +604,8 @@ open class ZCRMRecord : ZCRMRecordDelegate
             }
             else
             {
-                ZCRMLogger.logError(message: "\(ErrorCode.invalidOperation) : This record does not contain a ZCRMCheckIn")
-                throw ZCRMError.inValidError(code: ErrorCode.invalidOperation, message: "This record does not contain a ZCRMCheckIn", details: nil)
+                ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidOperation) : This record does not contain a ZCRMCheckIn")
+                throw ZCRMError.inValidError(code: ZCRMErrorCode.invalidOperation, message: "This record does not contain a ZCRMCheckIn", details: nil)
             }
         }
     }
@@ -552,7 +618,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
             - Success : Returns an array of users with whom the record can be shared with and a BulkAPIResponse
             - Failure : ZCRMError
      */
-    public func getShareableUsers( completion : @escaping ( Result.DataResponse< [ ZCRMUserDelegate ], BulkAPIResponse > ) -> () )
+    public func getShareableUsers( completion : @escaping ( ZCRMResult.DataResponse< [ ZCRMUserDelegate ], BulkAPIResponse > ) -> () )
     {
         EntityAPIHandler(record: self).getShareableUsers(completion: completion)
     }
@@ -566,7 +632,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
             - Success : Returns BulkAPIResponse of share operation
             - Failure : ZCRMError
      */
-    public func share( details : [ SharedDetails ],completion : @escaping ( Result.Response< BulkAPIResponse > ) -> () )
+    public func share( details : [ SharedDetails ],completion : @escaping ( ZCRMResult.Response< BulkAPIResponse > ) -> () )
     {
         EntityAPIHandler(record: self).share(details: details, completion: completion)
     }
@@ -580,7 +646,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
             - Success : Returns BulkAPIResponse of update share operation
             - Failure : ZCRMError
      */
-    public func updateShare( details : [ SharedDetails ],completion : @escaping ( Result.Response< BulkAPIResponse > ) -> () )
+    public func updateShare( details : [ SharedDetails ],completion : @escaping ( ZCRMResult.Response< BulkAPIResponse > ) -> () )
     {
         EntityAPIHandler(record: self).updateShare(details: details, completion: completion)
     }
@@ -593,7 +659,7 @@ open class ZCRMRecord : ZCRMRecordDelegate
             - Success : Returns an array of ZCRMSharedRecordDetails objects and a BulkAPIResponse
             - Failure : ZCRMError
      */
-    public func getSharedDetails( completion : @escaping ( Result.DataResponse< [ SharedDetails ], BulkAPIResponse > ) -> () )
+    public func getSharedDetails( completion : @escaping ( ZCRMResult.DataResponse< [ SharedDetails ], BulkAPIResponse > ) -> () )
     {
         EntityAPIHandler(record: self).getSharedRecordDetails( completion: completion )
     }
@@ -606,24 +672,45 @@ open class ZCRMRecord : ZCRMRecordDelegate
             - Success : Returns an APIResponse of the operation performed
             - Failure : ZCRMError
      */
-    public func revokeShare( completion : @escaping ( Result.Response< APIResponse > ) -> () )
+    public func revokeShare( completion : @escaping ( ZCRMResult.Response< APIResponse > ) -> () )
     {
         EntityAPIHandler(record: self).revokeShare(completion: completion)
     }
     
+    public func addTags( tags : [ ZCRMTagDelegate ], completion : @escaping( ZCRMResult.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    {
+        EntityAPIHandler( record : self ).addTags( tags : tags, overWrite : nil ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func addTags( tags : [ ZCRMTagDelegate ], overWrite : Bool?, completion : @escaping( ZCRMResult.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    {
+        EntityAPIHandler( record : self ).addTags( tags : tags, overWrite : overWrite ) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func removeTags( tags : [ String ], completion : @escaping( ZCRMResult.DataResponse< ZCRMRecord, APIResponse > ) -> () )
+    {
+        EntityAPIHandler( record : self ).removeTags( tags : tags ) { ( result ) in
+            completion( result )
+        }
+    }
+    
     private func undoCheckIn() throws
     {
-        if self.moduleAPIName != DefaultModuleAPINames.EVENTS
+        if self.moduleAPIName != ZCRMDefaultModuleAPINames.EVENTS
         {
-            ZCRMLogger.logError(message: "\(ErrorCode.notSupported) : Check In is not supported for this module")
-            throw ZCRMError.inValidError(code: ErrorCode.notSupported, message: "Check In is not supported for this module", details: nil)
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.notSupported) : Check In is not supported for this module")
+            throw ZCRMError.inValidError(code: ZCRMErrorCode.notSupported, message: "Check In is not supported for this module", details: nil)
         }
         else
         {
             if self.isCreate
             {
-                ZCRMLogger.logError(message: "\(ErrorCode.invalidOperation) : You haven't checked into the event")
-                throw ZCRMError.inValidError(code: ErrorCode.invalidOperation, message: "You haven't checked into the event", details: nil)
+                ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidOperation) : You haven't checked into the event")
+                throw ZCRMError.inValidError(code: ZCRMErrorCode.invalidOperation, message: "You haven't checked into the event", details: nil)
             }
             else
             {
@@ -648,9 +735,9 @@ open class ZCRMRecord : ZCRMRecordDelegate
              - success : Returns a ZCRMBlueprint object and an APIResponse
              - failure : ZCRMError
      */
-    public func getBlueprintDetails( completion : @escaping ( Result.DataResponse< ZCRMBlueprint, APIResponse > ) -> () )
+    public func getBlueprintStateDetails( completion : @escaping ( ZCRMResult.DataResponse< ZCRMBlueprintState, APIResponse > ) -> () )
     {
-        EntityAPIHandler(record: self).getBlueprintDetails(completion: completion)
+        EntityAPIHandler(record: self).getBlueprintStateDetails(completion: completion)
     }
     
     /**
@@ -662,34 +749,211 @@ open class ZCRMRecord : ZCRMRecordDelegate
             - success : Returns APIResponse of the transition request
             - failure : ZCRMError
      */
-    public func moveTo( transitionState : ZCRMBlueprint.Transition, completion : @escaping ( Result.Response< APIResponse > ) -> () )
+    public func applyTransition( transition : ZCRMBlueprintState.Transition, completion : @escaping ( ZCRMResult.Response< APIResponse > ) -> () )
     {
-        EntityAPIHandler(record: self).moveTo( transitionState : transitionState, completion: completion)
+        EntityAPIHandler(record: self).applyStateTransition(transition: transition, completion: completion)
+    }
+    
+    public func addFileToUploadField( file : ZCRMRecord.UploadFieldFile, fileRefId : String, fileUploadDelegate : ZCRMFileUploadDelegate )
+    {
+        var tempFile = file
+        let dispatchQueue : DispatchQueue = DispatchQueue(label: "com.zoho.crm.sdk.ZCRMRecord.addFilesToUploadField")
+        let fieldAPIName = file.fieldAPIName
+        tempFile.parentRecord = self
+        OrgAPIHandler().uploadFile(fileRefId: fileRefId, filePath: ( file.fileServerId != APIConstants.STRING_MOCK ) ? file.fileServerId : nil, fileName: file.name, fileData: file.data, inline: true, fileUploadDelegate: fileUploadDelegate) { fileServerId in
+            guard let fileServerId = fileServerId else {
+                return
+            }
+            tempFile.fileServerId = fileServerId
+            dispatchQueue.sync {
+                var existingFiles : [ UploadFieldFile ] = self.fileUploads[ fieldAPIName ] ?? []
+                existingFiles.append( tempFile )
+                var updateFieldValue = self.upsertJSON[ fieldAPIName ] as? [ Any ] ?? []
+                updateFieldValue.append( tempFile.fileServerId )
+                self.upsertJSON.updateValue( updateFieldValue, forKey: fieldAPIName)
+                self.fileUploads.updateValue( existingFiles, forKey: fieldAPIName)
+            }
+        }
+    }
+    
+    public func removeFileFromUploadField( fieldAPIName : String, file : ZCRMRecord.UploadFieldFile )
+    {
+        var removableFileDetails : [ [ String : Any? ] ] = []
+        var tempUpsertJSON : [ Any ] = []
+        if var existingFiles = fileUploads[ fieldAPIName ]
+        {
+            for ( index, existingFile ) in existingFiles.enumerated().reversed()
+            {
+                var isFound : Bool = false
+                if let fileId = file.id, fileId == existingFile.id
+                {
+                    existingFiles.remove(at: index)
+                    tempUpsertJSON.append( [ EntityAPIHandler.ResponseJSONKeys.deleteAttachmentId : "\( fileId )", RequestParamKeys._delete : nil ] )
+                    isFound = true
+                }
+                else if existingFile.id == nil
+                {
+                    if file.fileServerId == existingFile.fileServerId
+                    {
+                        existingFiles.remove(at: index)
+                        isFound = true
+                    }
+                }
+                if !isFound, existingFile.id == nil
+                {
+                    tempUpsertJSON.append( existingFile.fileServerId )
+                }
+            }
+            for upsertJSONRecord in upsertJSON[ fieldAPIName ] as? [ Any ] ?? []
+            {
+                if let recordDetails = upsertJSONRecord as? [ String : Any? ]
+                {
+                    removableFileDetails.append( recordDetails )
+                }
+            }
+            self.fileUploads[ fieldAPIName ] = existingFiles
+            self.upsertJSON.updateValue( tempUpsertJSON + removableFileDetails, forKey: fieldAPIName)
+        }
+    }
+    
+    /**
+      To associate multiple records to a multiselect lookup field
+     
+     - Parameters:
+        - fieldDetails: Field object of the multiselect lookup field
+        - records: Linking module record objects that needs to be associated to this record
+     */
+    public func associateMultiSelectLookupRecords( fieldDetails : ZCRMField, records : [ ZCRMRecordDelegate ] ) throws
+    {
+        guard EntityAPIHandler.isAPISupportedFromV2_1() else
+        {
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidOperation) : Unsupported API version to update multiSelectLookup - try with API v2.1 and above, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.maxRecordCountExceeded(code: ZCRMErrorCode.invalidOperation, message: "Unsupported API version to update multiSelectLookup - try with API v2.1 and above.", details: nil)
+        }
+        guard fieldDetails.dataType == FieldDataTypeConstants.multiSelectLookup else
+        {
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidOperation) : Not a multiselectlookup field, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.maxRecordCountExceeded(code: ZCRMErrorCode.invalidOperation, message: "Not a multiselectlookup field.", details: nil)
+        }
+        guard let multiSelectLookupDetails = fieldDetails.multiSelectLookup else
+        {
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.moduleFieldNotFound) : Failed to get the details of multiselect lookup field, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.maxRecordCountExceeded(code: ZCRMErrorCode.moduleFieldNotFound, message: "Failed to get the details of multiselect lookup field.", details: nil)
+        }
+        let connectedLookupApiname = try multiSelectLookupDetails.getString(key: EntityAPIHandler.ResponseJSONKeys.connectedLookupApiname)
+        let apiName = fieldDetails.apiName
+        var existingRecords : [[ String : Any? ]] = self.upsertJSON[ apiName ] as? [ [ String : Any ] ] ?? []
+        for record in records
+        {
+            existingRecords.append( [ connectedLookupApiname : record ] )
+        }
+        self.upsertJSON.updateValue( existingRecords, forKey: apiName)
+    }
+    
+    /**
+      To dissociate multiple records from a multiselect lookup field
+     
+     - Parameters:
+        - fieldDetails: Field object of the multiselect lookup field
+        - linkingModuleIds: Corresponding linking module Ids of the associated records
+     */
+    public func dissociateMultiSelectLookupRecords( fieldDetails : ZCRMField, linkingModuleIds : [ Int64 ] ) throws
+    {
+        guard EntityAPIHandler.isAPISupportedFromV2_1() else
+        {
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidOperation) : Unsupported API version to update multiSelectLookup - try with API v2.1 and above, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.maxRecordCountExceeded(code: ZCRMErrorCode.invalidOperation, message: "Unsupported API version to update multiSelectLookup - try with API v2.1 and above.", details: nil)
+        }
+        let apiName = fieldDetails.apiName
+        var existingRecords : [[ String : Any? ]] = self.upsertJSON[ apiName ] as? [ [ String : Any ] ] ?? []
+        for id in linkingModuleIds
+        {
+            existingRecords.append( [ RequestParamKeys.id : id, RequestParamKeys._delete : nil ] )
+        }
+        self.upsertJSON.updateValue( existingRecords, forKey: apiName)
+    }
+    
+    /**
+      To associate multiple records to a multiselect lookup field
+     
+     - Parameters:
+        - fieldAPIName: APIName of the multiselect lookup field
+        - multiSelectLookupDetails: multiSelectLookup property in fields object
+        - records: Linking module record objects that needs to be associated to this record
+     */
+    public func associateMultiSelectLookupRecords( fieldAPIName : String, multiSelectLookupDetails : [ String : Any? ], records : [ ZCRMRecordDelegate ] ) throws
+    {
+        guard EntityAPIHandler.isAPISupportedFromV2_1() else
+        {
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidOperation) : Unsupported API version to update multiSelectLookup - try with API v2.1 and above, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.maxRecordCountExceeded(code: ZCRMErrorCode.invalidOperation, message: "Unsupported API version to update multiSelectLookup - try with API v2.1 and above.", details: nil)
+        }
+        guard !multiSelectLookupDetails.isEmpty else
+        {
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.moduleFieldNotFound) : multiSelectLookupDetails cannot be empty, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.maxRecordCountExceeded(code: ZCRMErrorCode.moduleFieldNotFound, message: "multiSelectLookupDetails cannot be empty.", details: nil)
+        }
+        let connectedLookupApiname = try multiSelectLookupDetails.getString(key: EntityAPIHandler.ResponseJSONKeys.connectedLookupApiname)
+        var existingRecords : [[ String : Any? ]] = self.upsertJSON[ fieldAPIName ] as? [ [ String : Any ] ] ?? []
+        for record in records
+        {
+            existingRecords.append( [ connectedLookupApiname : record ] )
+        }
+        self.upsertJSON.updateValue( existingRecords, forKey: fieldAPIName)
+    }
+    
+    /**
+      To dissociate multiple records from a multiselect lookup field
+     
+     - Parameters:
+        - fieldAPIName: APIName of the multiselect lookup field
+        - linkingModuleIds: Corresponding linking module Ids of the associated records
+     */
+    public func dissociateMultiSelectLookupRecords( fieldAPIName : String, linkingModuleIds : [ Int64 ] ) throws
+    {
+        guard EntityAPIHandler.isAPISupportedFromV2_1() else
+        {
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidOperation) : Unsupported API version to update multiSelectLookup - try with API v2.1 and above, \( APIConstants.DETAILS ) : -")
+            throw ZCRMError.maxRecordCountExceeded(code: ZCRMErrorCode.invalidOperation, message: "Unsupported API version to update multiSelectLookup - try with API v2.1 and above.", details: nil)
+        }
+        var existingRecords : [[ String : Any? ]] = self.upsertJSON[ fieldAPIName ] as? [ [ String : Any ] ] ?? []
+        for id in linkingModuleIds
+        {
+            existingRecords.append( [ RequestParamKeys.id : id, RequestParamKeys._delete : nil ] )
+        }
+        self.upsertJSON.updateValue( existingRecords, forKey: fieldAPIName)
+    }
+    
+    override func copy() -> ZCRMRecord {
+        let copy : ZCRMRecord = ZCRMRecord(moduleAPIName: self.moduleAPIName)
+        copy.data = self.data.copy()
+        copy.lineItems = self.lineItems?.copy()
+        copy.priceDetails = self.priceDetails?.copy()
+        copy.participants = self.participants?.copy()
+        copy.subformRecord = self.subformRecord?.copy()
+        copy.taxes = self.taxes?.copy()
+        copy.lineTaxes = self.lineTaxes?.copy()
+        copy.tags = self.tags?.copy()
+        copy.dataProcessingBasisDetails = self.dataProcessingBasisDetails?.copy()
+        copy.layout = self.layout
+        copy.owner = self.owner.copy()
+        copy.upsertJSON = self.upsertJSON.copy()
+        copy.id = self.id
+        copy.isCreate = self.isCreate
+        copy.fileUploads = self.fileUploads
+        copy.isOwnerSet = isOwnerSet
+        copy.createdBy = createdBy
+        copy.modifiedBy = modifiedBy
+        copy.createdTime = createdTime
+        copy.modifiedTime = modifiedTime
+        copy.label = label
+        copy.properties = properties.copy()
+        return copy
     }
 }
 
-extension ZCRMRecord : NSCopying
+extension ZCRMRecord
 {
-    
-    public func copy(with zone: NSZone? = nil) -> Any {
-        let copy : ZCRMRecord = ZCRMRecord(moduleAPIName: self.moduleAPIName)
-        copy.data = self.data
-        copy.lineItems = self.lineItems
-        copy.priceDetails = self.priceDetails
-        copy.participants = self.participants
-        copy.subformRecord = self.subformRecord
-        copy.taxes = self.taxes
-        copy.lineTaxes = self.lineTaxes
-        copy.tags = self.tags
-        copy.dataProcessingBasisDetails = self.dataProcessingBasisDetails
-        copy.layout = self.layout
-        copy.owner = self.owner
-        copy.upsertJSON = self.upsertJSON
-        copy.id = self.id
-        copy.isCreate = self.isCreate
-        return copy
-    }
-    
     public static func == (lhs: ZCRMRecord, rhs: ZCRMRecord) -> Bool {
         if lhs.data.count == rhs.data.count {
             for ( key, value ) in lhs.data
@@ -757,23 +1021,98 @@ extension ZCRMRecord
     {
         public var isSharedWithRelatedRecords : Bool
         public internal( set ) var module : String = APIConstants.STRING_MOCK
-        public var permission : AccessPermission.Readable
+        public var permission : ZCRMAccessPermission.Readable
         public var user : ZCRMUserDelegate
         public internal( set ) var sharedTime : String = APIConstants.STRING_MOCK
         public internal( set ) var sharedBy : ZCRMUserDelegate = USER_MOCK
         
-        public init( user : ZCRMUserDelegate, permission : AccessPermission.Writable, isSharedWithRelatedRecords : Bool )
+        public init( user : ZCRMUserDelegate, permission : ZCRMAccessPermission.Writable, isSharedWithRelatedRecords : Bool )
         {
             self.user = user
             self.permission = permission.toReadable()
             self.isSharedWithRelatedRecords = isSharedWithRelatedRecords
         }
         
-        init( user : ZCRMUserDelegate, permission : AccessPermission.Readable, isSharedWithRelatedRecords : Bool )
+        init( user : ZCRMUserDelegate, permission : ZCRMAccessPermission.Readable, isSharedWithRelatedRecords : Bool )
         {
             self.user = user
             self.permission = permission
             self.isSharedWithRelatedRecords = isSharedWithRelatedRecords
+        }
+        
+        func copy() -> SharedDetails {
+            var copyObj = SharedDetails(user: user.copy(), permission: permission, isSharedWithRelatedRecords: isSharedWithRelatedRecords)
+            copyObj.module = module
+            copyObj.sharedTime = sharedTime
+            copyObj.sharedBy = sharedBy
+            return copyObj
+        }
+    }
+    
+    public struct UploadFieldFile
+    {
+        internal var fieldAPIName : String = APIConstants.STRING_MOCK
+        internal var fileServerId : String?
+        public internal( set ) var name : String?
+        public internal( set ) var id : Int64?
+        public internal( set ) var size : Int?
+        internal var data : Data?
+        public internal( set ) weak var parentRecord : ZCRMRecord? = nil
+        
+        internal init ( fieldAPIName : String )
+        {
+            self.fieldAPIName = fieldAPIName
+        }
+        
+        public init( fieldAPIName : String, filePath : String )
+        {
+            self.fieldAPIName = fieldAPIName
+            self.fileServerId = filePath
+            self.name = filePath.lastPathComponent()
+        }
+        
+        public init( fieldAPIName : String, fileName : String, fileData : Data )
+        {
+            self.fieldAPIName = fieldAPIName
+            self.name = fileName
+            self.data = fileData
+        }
+        
+        init( fileServerId : String )
+        {
+            self.fileServerId = fileServerId
+        }
+        
+        public func download( completion : @escaping ( ZCRMResult.Response< FileAPIResponse > ) -> () )
+        {
+            guard let id = id, let parentRecord = parentRecord else
+            {
+                ZCRMLogger.logError(message: "\( ZCRMErrorCode.invalidOperation ) : File cannot be downloaded before upload operation, \( APIConstants.DETAILS ) : - ")
+                completion( .failure( ZCRMError.inValidError(code: ZCRMErrorCode.invalidOperation, message: "File cannot be downloaded before upload operation", details: nil) ) )
+                return
+            }
+            EntityAPIHandler(recordDelegate: parentRecord).downloadFileUploadFieldFile(withAttachmentID: id, completion: completion)
+        }
+        
+        public func download( fileDownloadDelegate : ZCRMFileDownloadDelegate )
+        {
+            guard let id = id, let parentRecord = parentRecord else
+            {
+                ZCRMLogger.logError(message: "\( ZCRMErrorCode.invalidOperation ) : File cannot be downloaded before upload operation, \( APIConstants.DETAILS ) : - ")
+                fileDownloadDelegate.didFail(fileRefId: fileServerId ?? "", ZCRMError.inValidError(code: ZCRMErrorCode.invalidOperation, message: "File cannot be downloaded before upload operation", details: nil))
+                return
+            }
+            EntityAPIHandler(recordDelegate: parentRecord).downloadFileUploadFieldFile(withAttachmentID: id, fileDownloadDelegate: fileDownloadDelegate)
+        }
+        
+        public func remove() throws
+        {
+            guard let parentRecord = parentRecord else
+            {
+                ZCRMLogger.logError(message: "\( ZCRMErrorCode.invalidOperation ) : File cannot be removed before associating it with a record, \( APIConstants.DETAILS ) : - ")
+                throw ZCRMError.inValidError(code: ZCRMErrorCode.invalidOperation, message: "File cannot be removed before associating it with a record", details: nil)
+            }
+            parentRecord.removeFileFromUploadField(fieldAPIName: fieldAPIName, file: self)
         }
     }
 }

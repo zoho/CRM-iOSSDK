@@ -70,7 +70,7 @@ internal class ZVCRMLoginHandler : ZohoAuthProvider
     {
         do
         {
-            try ZCRMSDKClient.shared.clearAllCache()
+            try ZCRMSDKClient.shared.clearAllCache(isLogoutAction: true)
             ZohoPortalAuth.revokeAccessToken(
                 { ( error ) in
                     if let error = error
@@ -100,7 +100,7 @@ internal class ZVCRMLoginHandler : ZohoAuthProvider
         }
     }
     
-    func getAccessToken( completion : @escaping ( Result.Data< String > ) -> () )
+    func getAccessToken( completion : @escaping ( ZCRMResult.Data< String > ) -> () )
     {
         ZohoPortalAuth.getOauth2Token { ( token, error ) in
             if let error = error
