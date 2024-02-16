@@ -519,6 +519,20 @@ open class ZCRMRecordDelegate : ZCRMEntity
             completion( result )
         }
     }
+    
+    public func getMail( userId : Int64, messageId : String, completion : @escaping( ZCRMResult.DataResponse< ZCRMEmail, APIResponse > ) -> () )
+    {
+        EmailAPIHandler().viewMail(record: self, userId: userId, messageId: messageId) { ( result ) in
+            completion( result )
+        }
+    }
+    
+    public func deleteMail( messageId : String, completion : @escaping ( ZCRMResult.Response< APIResponse > ) -> ())
+    {
+        EmailAPIHandler().deleteMail(record: self, messageId: messageId) { result in
+            completion( result )
+        }
+    }
 }
 
 extension ZCRMRecordDelegate : Hashable

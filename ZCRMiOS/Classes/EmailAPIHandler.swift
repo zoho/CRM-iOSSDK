@@ -194,6 +194,28 @@ class EmailAPIHandler : CommonAPIHandler {
         }
     }
     
+    internal func deleteMail( record : ZCRMRecordDelegate, messageId : String, completion : @escaping ( ZCRMResult.Response< APIResponse > ) -> ()  )
+    {
+        setIsEmail( true )
+        setJSONRootKey(key: JSONRootKey.EMAIL_RELATED_LIST)
+        setUrlPath( urlPath : "\( record.moduleAPIName )/\( record.id )/\( URLPathConstants.Emails )" )
+        addRequestParam(param: RequestParamKeys.messageId, value: messageId)
+        setRequestMethod(requestMethod: .delete)
+        let request : APIRequest = APIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \(request.toString())")
+        
+        request.getAPIResponse { result in
+            switch result
+            {
+            case .success(let response) :
+                completion( .success( response ) )
+            case .failure(let error) :
+                ZCRMLogger.logError(message: "\( error )")
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
     internal func getInventoryTemplates( params : ZCRMQuery.GetTemplateParams, completion : @escaping ( ZCRMResult.DataResponse< [ ZCRMInventoryTemplate ], BulkAPIResponse > ) -> () )
     {
         setJSONRootKey(key: JSONRootKey.INVENTORY_TEMPLATES)

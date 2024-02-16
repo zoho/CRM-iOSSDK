@@ -255,6 +255,21 @@ open class ZCRMEmail : ZCRMEntity
             completion( result )
         }
     }
+    
+    public func delete( completion : @escaping ( ZCRMResult.Response< APIResponse > ) -> () )
+    {
+        if !didSend
+        {
+            ZCRMLogger.logError(message: "\(ZCRMErrorCode.invalidOperation) : Mail MUST be sent before performing delete operation.")
+            completion( .failure( ZCRMError.processingError( code : ZCRMErrorCode.invalidOperation, message : "Mail MUST be sent before performing delete operation.", details : nil  ) ) )
+        }
+        else
+        {
+            EmailAPIHandler(email: self).deleteMail(record: record, messageId: messageId) { result in
+                completion( result )
+            }
+        }
+    }
 }
 
 extension ZCRMEmail : Equatable
