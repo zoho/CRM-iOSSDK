@@ -1420,6 +1420,139 @@ internal class OrgAPIHandler : CommonAPIHandler
         request.downloadFile(fileRefId: id)
     }
     
+    internal func getBlueprints( completion : @escaping ( ZCRMResult.DataResponse< [ ZCRMBlueprint ], BulkAPIResponse > ) -> () )
+    {
+        setJSONRootKey(key: JSONRootKey.BLUEPRINTS)
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.blueprints )")
+        setRequestMethod(requestMethod: .get)
+        setAPIVersion("v2.2")
+        
+        let request = FileAPIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \( request.toString() )")
+        
+        request.getBulkAPIResponse() { result in
+            switch result
+            {
+            case .success(let bulkResponse) :
+                do
+                {
+                    let responseJSON : [ String : Any ] = bulkResponse.getResponseJSON()
+                    var blueprints : [ ZCRMBlueprint ] = []
+                    if !responseJSON.isEmpty
+                    {
+                        let blueprintsArray = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                        blueprints = try self.getALLBlueprints(fromJSONArray: blueprintsArray)
+                    }
+                    completion( .success( blueprints, bulkResponse ) )
+                }
+                catch
+                {
+                    ZCRMLogger.logError( message : "\( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "\( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    internal func getBlueprintTransitions( id : Int64, completion : @escaping ( ZCRMResult.DataResponse< [ ZCRMBlueprint.Transitions ], BulkAPIResponse > ) -> () )
+    {
+        setJSONRootKey(key: JSONRootKey.TRANSITIONS)
+        setUrlPath(urlPath: "\( URLPathConstants.settings )/\( URLPathConstants.blueprints )/\( id )/\( URLPathConstants.transitions )")
+        setRequestMethod(requestMethod: .get)
+        setAPIVersion("v2.2")
+        
+        let request = FileAPIRequest(handler: self)
+        ZCRMLogger.logDebug(message: "Request : \( request.toString() )")
+        
+        request.getBulkAPIResponse() { result in
+            switch result
+            {
+            case .success(let bulkResponse) :
+                do
+                {
+                    let responseJSON : [ String : Any ] = bulkResponse.getResponseJSON()
+                    var transitions : [ ZCRMBlueprint.Transitions ] = []
+                    if !responseJSON.isEmpty
+                    {
+                        let transitionsArray = try responseJSON.getArrayOfDictionaries(key: self.getJSONRootKey())
+                        transitions = try self.getBlueprintTransitions(fromJSONArray: transitionsArray)
+                    }
+                    completion( .success( transitions, bulkResponse ) )
+                }
+                catch
+                {
+                    ZCRMLogger.logError( message : "\( error )" )
+                    completion( .failure( typeCastToZCRMError( error ) ) )
+                }
+            case .failure(let error) :
+                ZCRMLogger.logError( message : "\( error )" )
+                completion( .failure( typeCastToZCRMError( error ) ) )
+            }
+        }
+    }
+    
+    private func getBlueprintTransitions( fromJSONArray : [[ String : Any ]] ) throws -> [ ZCRMBlueprint.Transitions ]
+    {
+        var transitions : [ ZCRMBlueprint.Transitions ] = []
+        for transitionDetails in fromJSONArray
+        {
+            let id = try transitionDetails.getInt64(key: ResponseJSONKeys.id)
+            let isActionsAvailable = try !(transitionDetails.getDictionary(key: ResponseJSONKeys.duringTransition).optArrayOfDictionaries(key: ResponseJSONKeys.actions)?.isEmpty ?? true )
+            var commonSources : [ ZCRMBlueprint.TransitionState ] = []
+            if transitionDetails.hasValue(forKey: ResponseJSONKeys.commonSources)
+            {
+                commonSources = try self.getCommonTransitionSources(fromJSONArray: transitionDetails.getArrayOfDictionaries(key: ResponseJSONKeys.commonSources))
+            }
+            let fromStateDetails = try transitionDetails.getDictionary(key: ResponseJSONKeys.fromState).getDictionary(key: ResponseJSONKeys.pickListValue)
+            let from = try ZCRMBlueprint.TransitionState(id: fromStateDetails.getInt64(key: ResponseJSONKeys.id), name: fromStateDetails.getString(key: ResponseJSONKeys.value))
+            let toStateDetails = try transitionDetails.getDictionary(key: ResponseJSONKeys.toState).getDictionary(key: ResponseJSONKeys.pickListValue)
+            let to = try ZCRMBlueprint.TransitionState(id: toStateDetails.getInt64(key: ResponseJSONKeys.id), name: toStateDetails.getString(key: ResponseJSONKeys.value))
+            let name = try transitionDetails.getString(key: ResponseJSONKeys.name)
+            
+            transitions.append( ZCRMBlueprint.Transitions(id: id, isActionsAvailable: isActionsAvailable, commonSources: commonSources, from: from, to: to, name: name) )
+        }
+        return transitions
+    }
+    
+    private func getCommonTransitionSources( fromJSONArray : [[ String : Any ]] ) throws -> [ ZCRMBlueprint.TransitionState ]
+    {
+        var commonSources : [ ZCRMBlueprint.TransitionState ] = []
+        for state in fromJSONArray
+        {
+            let pickListValue = try state.getDictionary(key: ResponseJSONKeys.state).getDictionary(key: ResponseJSONKeys.pickListValue)
+            commonSources.append( try ZCRMBlueprint.TransitionState(id: pickListValue.getInt64(key: ResponseJSONKeys.id), name: pickListValue.getString(key: ResponseJSONKeys.value)) )
+        }
+        return commonSources
+    }
+    
+    private func getALLBlueprints( fromJSONArray : [[ String : Any ]] ) throws -> [ ZCRMBlueprint ]
+    {
+        var blueprints : [ ZCRMBlueprint ] = []
+        for blueprintDetails in fromJSONArray
+        {
+            let id = try blueprintDetails.getInt64(key: ResponseJSONKeys.id)
+            let isActive = try blueprintDetails.getBoolean(key: ResponseJSONKeys.active)
+            let name = try blueprintDetails.getString(key: ResponseJSONKeys.name)
+            let layoutDetails = try blueprintDetails.getDictionary(key: ResponseJSONKeys.layout)
+            let layout = try ZCRMLayoutDelegate(id: layoutDetails.getInt64(key: ResponseJSONKeys.id), name: layoutDetails.getString(key: ResponseJSONKeys.name))
+            
+            let moduleDetails = try blueprintDetails.getDictionary(key: ResponseJSONKeys.module)
+            let module = try ZCRMModuleDelegate(apiName: moduleDetails.optString(key: ResponseJSONKeys.name) ?? moduleDetails.getString(key: ResponseJSONKeys.apiName))
+            
+            var pipeline : ZCRMPipelineDelegate? = nil
+            if let pipelineDetails = blueprintDetails.optDictionary(key: ResponseJSONKeys.pipeline)
+            {
+                pipeline = try ZCRMPipelineDelegate(id: pipelineDetails.getInt64(key: ResponseJSONKeys.id))
+                pipeline?.displayName = try pipelineDetails.getString(key: ResponseJSONKeys.name)
+            }
+            blueprints.append( ZCRMBlueprint(id: id, isActive: isActive, name: name, layout: layout, module: module, pipeline: pipeline) )
+        }
+        return blueprints
+    }
+    
     private func getZCRMTerritoriesFrom( _ responseJSON : [ [ String : Any ] ] ) throws -> [ ZCRMTerritory ]
     {
         var territories : [ ZCRMTerritory ] = []
@@ -1891,6 +2024,15 @@ extension OrgAPIHandler
         
         static let parentOrganizationId = "parent_org"
         
+        static let duringTransition = "during_transition"
+        static let pickListValue = "pick_list_value"
+        static let commonSources = "common_sources"
+        static let toState = "to_state"
+        static let actions = "actions"
+        static let fromState = "from_state"
+        static let layout = "layout"
+        static let pipeline = "pipeline"
+        static let module = "module"
     }
     
     struct URLPathConstants {
@@ -1909,6 +2051,8 @@ extension OrgAPIHandler
         static let actions = "actions"
         static let enable = "enable"
         static let files = "files"
+        static let blueprints = "blueprints"
+        static let transitions = "transitions"
     }
 }
 
