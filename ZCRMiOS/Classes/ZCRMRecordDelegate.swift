@@ -102,6 +102,14 @@ open class ZCRMRecordDelegate : ZCRMEntity
         return tag
     }
     
+    public func newMail( from : ZCRMEmail.User, to : [ZCRMEmail.User] ) -> ZCRMEmail
+    {
+        let email = ZCRMEmail( record : self, from : from )
+        email.to = to
+        email.didSend = false
+        return email
+    }
+    
     /// Returns the API response of the ZCRMRecord delete.
     ///
     /// - Returns: API response of the ZCRMRecord delete
