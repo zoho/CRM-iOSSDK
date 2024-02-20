@@ -1,8 +1,7 @@
 # ZCRMiOS
 
-Zoho CRM's Mobile SDK is a technology that helps developers build mobile applications to interact with their Zoho CRM data.
-
-Currently, the mobile app for Zoho CRM acts as a mobile interface to the Zoho CRM's web interface. But in case you need the mobile app to serve a specific purpose that conforms to your business needs, you might want to have an app which has only that specific function. For example, an app for a team that only approves leads or an app for a field team where one could upload photographs and client's documents on the fly.
+Zoho CRM is a cloud-based business collaboration application which helps to manage customer relationships. To access the CRM data efficiently and in time, a mobile app is built based on the CRM website. While building an iOS app on the CRM, you may need to do additional tasks like data extraction, creating an instance for data and more.
+With the advent of the CRM iOS SDK, these additional tasks are managed by SDK and it facilitates you to concentrate more on the design of the app. This document guides you to integrate the CRM SDK to the app and customize it according to business requirements.
 
 [![CI Status](http://img.shields.io/travis/boopathyparamasivan/ZCRMiOS.svg?style=flat)](https://travis-ci.org/boopathyparamasivan/ZCRMiOS)
 [![Version](https://img.shields.io/cocoapods/v/ZCRMiOS.svg?style=flat)](http://cocoapods.org/pods/ZCRMiOS)
@@ -15,7 +14,7 @@ To run the example project, clone the repo, and run `pod install` from the Examp
 
 ## Requirements
 
-Xcode 10 and Above
+Xcode 10.2 and Above
 
 Swift 4.2
 
@@ -74,7 +73,7 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
         // Override point for customization after application launch.
         do {
             let window = UIApplication.shared.windows.first
-            try ZCRMSDKClient.shared.initSDK(window: window)
+            try ZCRMSDKClient.shared.initSDK(window: window, appConfiguration : appConfiguration)
         }
         catch {
             print("unable to init ZCRMiOS SDK : \(error)")
@@ -82,6 +81,10 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
         return true
     }
 ```
+
+Here appConfiguration refers to the ZCRMSDKConfigs object which you need to pass to the SDK before consuming it.
+
+For detailed list of ZCRMSDKConfigs, refer this [link](https://www.zoho.com/crm/developer/docs/mobile-sdk/ios-initialize.html)
 
 ## Handle Sign in/ Sign out
 
@@ -119,9 +122,12 @@ ZCRMSDKClient.shared.logout { ( err ) in
   * Sandbox - Environments specifically used for testing application functionality before deploying to production or releasing to customers.
   
 3. **DomainSuffix** (optional) - Multi DC support.
-  * us - www.zohoapis.com
   * eu - www.zohoapis.eu
+  * in - www.zohoapis.in
+  * com - www.zohoapis.com
   * cn - www.zohoapis.com.cn
+  * au - www.zohoapis.au
+  * jp - www.zohoapis.jp
   
 4. **PortalID** (optional) - Mention your CRM PortalID (Ex : 65468393). No need to mention "PortalID" within properties file, if you do not have one.
 
